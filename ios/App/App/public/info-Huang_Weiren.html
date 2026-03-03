@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>立法院 - 成員介紹：黃韋仁</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        /* --- 基礎樣式與防溢出 --- */
+        html { scroll-behavior: smooth; }
+        html, body { max-width: 100%; overflow-x: hidden; margin: 0; padding: 0; }
+
+        body {
+            font-family: "Noto Sans TC", "Arial", sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* --- 1. 導覽列樣式 --- */
+        .navbar-static {
+            background-color: #1a237e;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            width: 100%;
+        }
+
+        .navbar-full {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: white;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+        }
+
+        .logo-circle {
+            background-color: #ffcc00;
+            color: #1a237e;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 10px;
+            font-weight: 700;
+        }
+
+        .nav-links {
+            list-style: none;
+            display: flex;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-links li { margin-left: 30px; }
+        .nav-links a { color: white; text-decoration: none; font-weight: 500; padding: 8px 15px; transition: 0.3s; }
+        .nav-links a:hover { border-bottom: 2px solid #ffcc00; }
+        .nav-links a.active-dark { background-color: #004d99; border-radius: 4px; color: white !important; }
+
+        /* --- 2. Banner 樣式 (固定高度) --- */
+        .event-banner {
+            background: linear-gradient(135deg, #1a237e 0%, #0d1241 100%);
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+            border-bottom: 4px solid #ffcc00;
+            height: 240px; 
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .event-banner h1 { font-size: 3.5em; margin: 0; letter-spacing: 2px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+
+        .banner-info-wrap {
+            display: flex;
+            flex-direction: column; /* 關鍵：由水平改為垂直排列 */
+            align-items: center;    /* 讓內容在垂直排列時依然保持居中 */
+            gap: 15px;             /* 設定兩行之間的距離 */
+            margin-top: 20px;
+            font-size: 1.1em;
+            color: #ffcc00;
+        }
+
+        /* --- 3. 主要內容區域 --- */
+        .event-content-area {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            flex: 1;
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            margin-bottom: 40px;
+        }
+
+        /*語言切換|Instagram|Facebook 按鈕設定位置*/
+        .ig-btn {
+            text-decoration: none;
+            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+            color: white;
+            padding: 8px 18px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(188, 24, 136, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .ig-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(188, 24, 136, 0.5);
+            color: white;
+        }
+
+        .fb-link-card {
+            position: absolute;
+            top: 85px; /* 維持原位 */
+            right: 35px;
+            z-index: 5;
+        }
+
+        .fb-btn {
+            text-decoration: none;
+            /* 修改為 Facebook 官方藍色 */
+            background: #1877F2; 
+            color: white;
+            padding: 8px 18px;
+            border-radius: 25px; /* 維持圓角膠囊狀 */
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            /* 修改陰影顏色為 Facebook 藍的擴散感 */
+            box-shadow: 0 4px 15px rgba(24, 119, 242, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .fb-btn:hover {
+            /* 滑過時稍微加深藍色 */
+            background: #166fe5;
+            transform: translateY(-3px);
+            /* 加強 Facebook 藍的發光效果 */
+            box-shadow: 0 6px 20px rgba(24, 119, 242, 0.5);
+            color: white;
+        }
+
+        .fb-btn i {
+            font-size: 16px; /* 控制 f 圖標的大小 */
+            margin-right: 5px; /* 與文字 Facebook 之間的距離 */
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .header-actions {
+            position: absolute; /* 相對於 profile-header 定位 */
+            top: 20px;          /* 距離頂部 20px */
+            right: 20px;        /* 距離右側 20px */
+            display: flex;
+            flex-direction: column; /* 讓按鈕上下排列 */
+            align-items: flex-end;  /* 讓按鈕靠右對齊 */
+            gap: 12px;          /* 設定按鈕之間的間距，防止重疊 */
+            z-index: 10;        /* 確保選單彈出時不會被其他內容遮擋 */
+        }
+
+        /*語言切換|Instagram|Facebook 按鈕設定位置 End*/
+
+        .photo-section { flex-shrink: 0; text-align: center; }
+        .avatar-img {
+            width: 200px; height: 200px; border-radius: 12px;
+            border: 4px solid #f0f0f0; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            object-fit: cover;
+        }
+
+        .info-brief h1 { font-size: 42px; color: #1a237e; margin: 0; letter-spacing: 4px; }
+        .nickname { font-size: 20px; color: #666; font-weight: 400; }
+        .blue-line { height: 3px; background: linear-gradient(to right, #1a237e, transparent); width: 300px; margin: 15px 0; }
+
+        .info-card {
+            background: white; 
+            padding: 30px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
+            margin-bottom: 40px; 
+            border-left: 6px solid #ffcc00;
+        }
+
+        .section-title {
+            border-left: 6px solid #1a237e;
+            padding-left: 15px;
+            margin: 40px 0 20px;
+            color: #1a237e;
+            font-size: 1.6em;
+            font-weight: bold;
+        }
+
+        /* --- 4. 網格佈局 (經歷與研究) --- */
+        .member-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 25px;
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        .member-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            border-top: 5px solid #1a237e;
+            transition: all 0.3s ease;
+        }
+
+        .tag {
+            display: inline-block; background: #e8eaf6; color: #3f51b5;
+            padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-bottom: 10px;
+        }
+
+        .m-title { font-weight: bold; font-size: 1.2em; color: #111; margin-bottom: 8px; display: block; }
+        .m-desc { font-size: 0.95em; color: #666; line-height: 1.6; }
+
+        /* --- 5. 其他元件 --- */
+        .back-to-top {
+            position: fixed; bottom: 30px; right: 30px;
+            width: 50px; height: 50px; background-color: #1a237e;
+            color: white; border-radius: 50%; display: flex;
+            justify-content: center; align-items: center; z-index: 1000;
+            border: 2px solid #ffcc00; transition: 0.3s;
+            text-decoration: none;
+        }
+
+        footer { text-align: center; padding: 25px; background-color: #1a237e; color: white; font-size: 0.9em; }
+
+        /* 神魔之塔 */
+        .summoner-data-card {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            border-left: 6px solid #ffc400;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 30px 0;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .summoner-avatar-box {
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .summoner-avatar-box img {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            border: 3px solid #ffc400;
+            object-fit: cover;
+            background: #000;
+        }
+
+        .summoner-allmax-badge {
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ffc400;
+            color: #1a1a1a;
+            font-size: 10px;
+            font-weight: 900;
+            padding: 2px 8px;
+            border-radius: 10px;
+            white-space: nowrap;
+            letter-spacing: 1px;
+        }
+
+        .summoner-info-box {
+            flex-grow: 1;
+        }
+
+        .summoner-main-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .summoner-name {
+            font-size: 22px;
+            color: #000000;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .summoner-uid {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+            font-weight: 600;
+            color: #ffffff; /* 提升文字亮度 */
+            background: #1a1a1a; /* 使用深色背景營造對比 */
+            border: 1px solid #d4af37; /* 加上金邊呼應主色調 */
+            padding: 4px 12px;
+            border-radius: 4px;
+            letter-spacing: 1.5px; /* 增加字距更具科技感 */
+            box-shadow: inset 0 0 5px rgba(212, 175, 55, 0.2); /* 內部微光效果 */
+            display: inline-block;
+        }
+
+        .summoner-tags {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .s-tag {
+            font-size: 12px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            background: rgba(212, 175, 55, 0.1);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            color: #1c170f;
+        }
+
+        .s-tag-guild {
+            border-color: rgba(212, 175, 55, 0.3);
+            color: #1c170f;
+        }
+        @media (max-width: 768px) {
+            .summoner-data-card { 
+                flex-direction: column; 
+                text-align: center; 
+                gap: 20px; 
+            }
+
+            /* 手機版強制置中並調整間距 */
+            .summoner-main-row {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                gap: 12px !important; /* 增加名稱與 UID 的垂直間距 */
+                margin-bottom: 15px !important;
+            }
+
+            /* 調整手機版 UID 字體大小以防溢出 */
+            .summoner-uid {
+                font-size: 13px;
+                padding: 6px 15px;
+            }
+
+            .summoner-tags {
+                justify-content: center !important;
+            }
+        }
+        /* 神魔之塔 */
+
+        /* =============================================
+           響應式優化 (RWD)
+           ============================================= */
+        @media (max-width: 768px) {
+            .navbar-full { flex-direction: column; padding: 10px 5px; }
+            .nav-links { 
+                margin-top: 10px; width: 100%; justify-content: center; display: flex;
+                flex-wrap: nowrap; padding: 10px 0 5px 0; border-top: 1px solid rgba(255,255,255,0.1);
+            }
+            .nav-links li { margin: 0 4px; flex-shrink: 1; }
+            .nav-links a { padding: 5px 8px; font-size: clamp(12px, 3.2vw, 14px); white-space: nowrap; }
+
+            .profile-header { flex-direction: column; text-align: center; padding: 30px 20px; }
+            .info-brief h1 { font-size: 32px; }
+            .blue-line { margin: 15px auto; }
+            
+            .member-grid { grid-template-columns: 1fr; gap: 20px; }
+
+            /* 1. 調整導覽列外殼，縮小內距 */
+            .navbar-full { 
+                flex-direction: column; 
+                padding: 10px 5px; 
+            }
+
+            /* 2. 調整導覽連結容器 */
+            .event-card-simple {
+                padding: 20px 15px;      /* 縮小手機版內距 */
+                width: 100%;             /* 寬度跟隨父層的 350px */
+                box-sizing: border-box;  /* 關鍵：確保 padding 不會撐破 350px */
+            }
+
+            /* 調整日期圓圈，讓 350px 內的空間分配合理 */
+            .event-date-circle {
+                width: 55px;
+                height: 55px;
+                margin-right: 15px;
+            }
+
+            /* 1. 調整導覽列外殼，縮小內距 */
+            .navbar-full { 
+                flex-direction: column; 
+                padding: 10px 5px; 
+            }
+
+            /* 2. 調整導覽連結容器 */
+            .nav-links { 
+                margin-top: 10px; 
+                width: 100%; 
+                justify-content: center; /* 置中 */
+                display: flex;
+                flex-wrap: nowrap;      /* 關鍵：強制絕對不換行 */
+                padding: 12px 0 5px 0;
+                border-top: 1px solid rgba(255,255,255,0.1);
+            }
+
+            /* 3. 調整清單項目 */
+            .nav-links li { 
+                margin: 0 4px;          /* 縮小項目間的間距 */
+                flex-shrink: 1;         /* 允許項目在必要時縮小 */
+            }
+
+            /* 4. 調整文字大小與行為 */
+            .nav-links a { 
+                padding: 5px 8px;       /* 縮小按鈕內距 */
+                
+                /* 使用 clamp 讓字體在 12px 到 14px 之間隨螢幕自動縮放 */
+                font-size: clamp(12px, 3.2vw, 14px); 
+                
+                white-space: nowrap;    /* 關鍵：文字絕對不換行 */
+                letter-spacing: -0.5px; /* 稍微縮小字距，節省空間 */
+            }
+            
+            /*語言切換|Instagram|Facebook 按鈕設定位置*/
+            .header-actions {
+                position: static;   /* 回復普通流向 */
+                margin-top: -30px;
+                align-items: center; /* 居中對齊 */
+                width: 100%;
+            }
+
+            /* 手機版 標題列和黃字說明大小調整 Star */
+            .event-banner { /* 欄位高度大小*/
+                height: 160px; 
+            }
+            .event-banner h1 { /* 大標題*/
+                font-size: 30px; 
+            }        
+            .banner-info-wrap { /* 提示字*/
+                margin-top: 10px;
+                padding-bottom: 10px;
+                font-size: 16px;
+            }
+            /* 手機版 標題列和黃字說明大小調整 End */
+        }
+    </style>
+</head>
+<body>
+
+    <header class="navbar-static">
+        <nav class="navbar-full">
+            <div class="logo"><div class="logo-circle">立</div> 立法院 Legislature</div>
+            <ul class="nav-links">
+                <li><a href="index.html">首頁</a></li>
+                <li><a href="about.html">關於我們</a></li> 
+                <li><a href="members.html"class="active-dark">成員介紹</a></li> 
+                <li><a href="events.html">活動行程</a></li>
+                <li><a href="Other.html">其他</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="event-banner">
+        <h1>成員簡介</h1>
+        <div class="banner-info-wrap">
+            <span>資通電化學工程委員會</span>
+            <span>天線設計與高頻通訊研究組</span>
+        </div>
+    </section>
+
+    <main class="event-content-area" style="position: relative;">
+        <div class="profile-header" style="position: relative;">
+            <div class="photo-section">
+                <img id="dynamic-avatar" src="https://via.placeholder.com/200?text=Loading..." alt="成員照片" class="avatar-img">
+            </div>
+            <div class="info-brief">
+                <span class="nickname">Liang Bojun</span>
+                <h1>黃韋仁</h1>
+                <div class="blue-line"></div>
+                <div style="font-size: 1.1em; color: #444; line-height: 2;">
+                    國籍：台灣 <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Flag_of_the_Republic_of_China.svg/1280px-Flag_of_the_Republic_of_China.svg.png" alt="ROC" style="height:15px; vertical-align: middle; border:1px solid #ddd;"><br>
+                    兵役狀態：陸軍 通信兵 (資通電訊作戰人員)<br>
+                    畢業院校：南臺科技大學 電子工程系<br>
+                    技術職稱：射頻通訊系統架構師 / 天線設計資深工程師<br>
+                    核心研究：微波電路設計、射頻辨識系統、多頻段天線微型化分析
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <div class="social-link-item">
+                    <a href="https://www.instagram.com/huang_wei_ren/" target="_blank" class="ig-btn">
+                        <i class="fa-brands fa-instagram"></i> Instagram
+                    </a>
+                </div>
+
+                <div class="social-link-item">
+                    <a href="https://www.facebook.com/huang.wei.ren.432061?locale=zh_TW" target="_blank" class="fb-btn">
+                        <i class="fa-brands fa-facebook-f"></i> Facebook
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title">神魔之塔召喚師資訊</div>
+        <div class="summoner-data-card">
+            <!--
+            <div class="summoner-avatar-box">
+                <img src="https://github.com/ChengHan16/Legislature-Family-Website/blob/main/image/v20251-12th-iOS_1024.png?raw=true" alt="召喚師頭像">
+                <div class="summoner-allmax-badge">ALL MAX</div>
+            </div>
+            -->
+            <div class="summoner-info-box">
+                <div class="summoner-main-row">
+                    <h3 class="summoner-name">程肖宇的暗影士兵</h3>
+                    <span class="summoner-uid">UID: 517710379</span>
+                </div>
+                <div class="summoner-tags">
+                    <span class="s-tag"><i class="fa-solid fa-trophy"></i> 神魔宮府</span>
+                    <span class="s-tag s-tag-guild"><i class="fa-solid fa-shield-cat"></i> 歐拉歐拉</span>
+                    <span class="s-tag"><i class="fa-solid fa-check"></i> 認證召喚師</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title" style="color: #d32f2f;"><i class="fa-solid fa-trophy" style="margin-right: 10px;"></i> 卓越成就：年度競賽重點獎項</div>
+        <div class="info-card" style="border-left-color: #d32f2f; background-color: #fffde7; box-sizing: border-box;">
+            <div style="display: flex; gap: 30px; align-items: flex-start; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 250px;">
+                    <h2 style="color: #d32f2f; margin-top: 0; font-size: 1.8em;">榮耀巔峰：資通電領域之頂尖實作實力</h2>
+                    <p style="line-height: 1.8; color: #333; font-size: 1.1em; font-weight: 500;">
+                        黃韋仁在 2024 年度展現了極其強大的技術統籌與實作能力，橫跨 5G 高頻通訊與精密模型轉換領域，連奪多項全國性冠軍。
+                    </p>
+                    
+                    <ul class="experience-list" style="margin-top: 15px; list-style: none; padding: 0;">
+                        <li style="margin-bottom: 15px;">
+                            <strong style="color: #d32f2f; font-size: 1.2em;"><i class="fa-solid fa-medal"></i> 2024天線競賽 5G/5G⁺通訊應用 — 冠軍</strong><br>
+                            <span style="color: #555;">針對次世代 5G 高頻段環境，提出創新之輻射增益補償方案，顯著提升通訊涵蓋範圍與信號穩定度。</span>
+                        </li>
+                        <li style="margin-bottom: 15px;">
+                            <strong style="color: #d32f2f; font-size: 1.2em;"><i class="fa-solid fa-medal"></i> 通訊天線系統設計競賽 產學深化合作 — 優勝</strong><br>
+                            <span style="color: #555;">成功媒合產業需求，將學術研究轉化為具備商業規模之量產設計，解決天線微型化過程中的多頻段干擾難題。</span>
+                        </li>
+                        <li style="margin-bottom: 15px;">
+                            <strong style="color: #d32f2f; font-size: 1.2em;"><i class="fa-solid fa-crown"></i> 2024 變形金剛變形達人競賽 — 冠軍</strong><br>
+                            <span style="color: #555;">Transformers Transformation Master Competition。展示高超的結構工程與機構轉換技術，其精準度與創意獲得國際評審高度一致肯定。</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title" style="color: #2e7d32;"><i class="fa-solid fa-file-invoice" style="margin-right: 10px;"></i> 戰術鑑定報告：入伍訓練期末鑑測全紀錄單</div>
+        <div class="info-card" style="border-left-color: #2e7d32; background-color: #f1f8e9; box-sizing: border-box;">
+            <div style="flex: 1; min-width:250px;">
+                    <h2 style="color: #2e7d32; margin-top: 0; font-size: 1.8em;">實戰素質：全方位兵器與體能評核報告 </h2>
+                    
+                    <p style="line-height: 1.8; color: #333; font-size: 1.1em; font-weight: 500;">
+                        於陸軍二〇三旅步四營接受期末鑑測，在兵器操作、體能測驗及綜合戰鬥教練中展現穩定表現，最終獲得總評分 72.84 之合格佳績 。
+                    </p>
+                    
+                    <ul class="experience-list" style="margin-top: 15px; list-style: none; padding: 0;">
+                        <li style="margin-bottom: 15px;">
+                            <strong style="color: #2e7d32; font-size: 1.2em;"><i class="fa-solid fa-gun"></i> 兵器與射擊鑑定 — 滿分表現 </strong><br>
+                            <span style="color: #555;">在「步槍機械訓練」中獲得 100 分滿分評價，展現對軍事硬體構造的精確掌控；於「步槍基礎鑑定射擊」亦取得 80 分之高標成績 。</span>
+                        </li>
+                        <li style="margin-bottom: 15px;">
+                            <strong style="color: #2e7d32; font-size: 1.2em;"><i class="fa-solid fa-person-running"></i> 體能與戰技測驗 </strong><br>
+                            <span style="color: #555;">「三千公尺徒手跑步」以 15:43 秒完成，體現優異的心肺耐力與爆發力；在震撼教育、戰傷救護等綜合教練項目中，均達標通過評核 。</span>
+                        </li>
+                    </ul>
+                </div>
+
+            
+
+            <div class="member-grid" style="margin-top: 20px;">
+                <div class="member-card" style="border-top-color: #2e7d32;">
+                    <span class="tag">綜合教練</span>
+                    <strong class="m-title">震撼教育 (戰傷救護)</strong>
+                    <p class="m-desc">評分結果：68 分 </p>
+                </div>
+
+                <div class="member-card" style="border-top-color: #2e7d32;">
+                    <span class="tag">戰鬥教練</span>
+                    <strong class="m-title">戰術行軍與宿營</strong>
+                    <p class="m-desc">評分結果：80 分 </p>
+                </div>
+
+                <div class="member-card" style="border-top-color: #2e7d32;">
+                    <span class="tag">體能測驗</span>
+                    <strong class="m-title">三千公尺徒手跑步</strong>
+                    <p class="m-desc">紀錄：15:43 (得分 80) </p>
+                </div>
+
+                <div class="member-card" style="border-top-color: #2e7d32;">
+                    <span class="tag">體能測驗</span>
+                    <strong class="m-title">二分鐘伏地挺身</strong>
+                    <p class="m-desc">評分結果：100 分 </p>
+                </div>
+
+                <div class="member-card" style="border-top-color: #2e7d32;">
+                    <span class="tag">體能測驗</span>
+                    <strong class="m-title">平板撐 (核心肌群)</strong>
+                    <p class="m-desc">評分結果：10 分 </p>
+                </div>
+
+                <div class="member-card" style="border-top-color: #2e7d32;">
+                    <span class="tag">戰技鑑定</span>
+                    <strong class="m-title">手榴彈基本投擲</strong>
+                    <p class="m-desc">評分結果：80 分 </p>
+                </div>
+
+                <div class="member-card" style="border-top-color: #2e7d32;">
+                    <span class="tag">兵器教練</span>
+                    <strong class="m-title">步槍機械訓練</strong>
+                    <p class="m-desc">評分結果：100 分 (滿分) </p>
+                </div>
+
+                <div class="member-card" style="border-top-color: #2e7d32;">
+                    <span class="tag">兵器教練</span>
+                    <strong class="m-title">步槍基礎鑑定射擊</strong>
+                    <p class="m-desc">評分結果：80 分 </p>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px; padding: 15px; background: rgba(46, 125, 50, 0.05); border-radius: 8px;">
+                <p style="font-size: 0.95em; color: #555; margin: 0;">
+                    <i class="fa-solid fa-circle-info"></i> <strong>其餘項目備註：</strong> 手榴彈野戰投擲評分為 80 分 。全案經潘信千連長與蔡宇杰輔導長核定結案 。
+                </p>
+             </div>
+        </div>
+
+        <div class="section-title">核心學術研究經歷</div>
+        <div class="member-grid">
+            <div class="member-card">
+                <span class="tag">Communication</span>
+                <strong class="m-title">天線設計與通訊系統應用</strong>
+                <p class="m-desc">專注於現代通訊載具之天線整合設計，開發高效能阻抗匹配電路，確保訊號在複雜大氣環境下的傳輸完整性與低損耗率。</p>
+            </div>
+            <div class="member-card">
+                <span class="tag">RFID Tech</span>
+                <strong class="m-title">無線射頻辨識系統之天線設計</strong>
+                <p class="m-desc">研發長距離 RFID 辨識天線，優化感應磁場分布與回波損耗性能，大幅提升物流自動化與資產追蹤系統之辨識精度。</p>
+            </div>
+            <div class="member-card">
+                <span class="tag">WLAN 802.11</span>
+                <strong class="m-title">802.11a/b/g 無線區域網路研究</strong>
+                <p class="m-desc">深入分析多重協定環境下的頻譜分配，針對 2.4GHz 與 5GHz 雙頻段切換機制進行底層優化，建立高韌性的無線接入標準。</p>
+            </div>
+            <div class="member-card">
+                <span class="tag">Electromagnetic</span>
+                <strong class="m-title">電磁信號之雙寬頻偶極天線</strong>
+                <p class="m-desc">運用全波模擬技術開發雙寬頻偶極子結構，實現全向性均勻輻射場型，為多制式電磁感測器提供穩定可靠的收發介面。</p>
+            </div>
+        </div>
+
+        <div class="info-card" style="margin-top: 40px; text-align: center; border-left-color: #ffcc00;">
+            <p style="color: #999; font-size: 0.9em; margin: 0;">Verified Communications Expert | Antenna & RF Systems Division | ID: 2026-RF-LIANG-888</p>
+        </div>
+    </main>
+
+    <a href="#" class="back-to-top"><i class="fa-solid fa-chevron-up"></i></a>
+
+    <footer>
+        <p>© 2026 立法院 Legislature - 數位資訊發展處 版權所有</p>
+    </footer>
+</body>
+
+
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+
+<script>
+    // 1. Firebase 配置 (沿用您的設定)
+    const firebaseConfig = {
+        apiKey: "AIzaSyACnoimIASfb1rb59SbgLDkUmyYR6ODbUU",
+        authDomain: "llwb-ed686.firebaseapp.com",
+        projectId: "llwb-ed686",
+        storageBucket: "llwb-ed686.firebasestorage.app", 
+        messagingSenderId: "940345852074",
+        appId: "1:940345852074:web:7a30cca5a6d997a92350d3",
+        measurementId: "G-KWL4ZE3D18"
+    };
+
+    // 2. 初始化
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.firestore();
+
+    // 3. 定義抓取函數
+    async function loadMemberImage(targetName) {
+        const avatarEl = document.getElementById('dynamic-avatar');
+
+        try {
+            // 在 'content' 集合中尋找 text 欄位等於指定姓名的人
+            const snapshot = await db.collection("content")
+                                   .where("text", "==", targetName)
+                                   .get();
+
+            if (!snapshot.empty) {
+                // 取得第一筆匹配到的資料
+                const data = snapshot.docs[0].data();
+                if (data.imageUrl) {
+                    avatarEl.src = data.imageUrl;
+                    avatarEl.alt = targetName + " 照片";
+                }
+            } else {
+                console.warn("找不到成員：" + targetName);
+                avatarEl.src = "https://via.placeholder.com/200?text=No+Photo";
+            }
+        } catch (error) {
+            console.error("Firebase 讀取錯誤:", error);
+        }
+    }
+
+    // 4. 網頁載入後執行：輸入您要顯示的名字
+    document.addEventListener("DOMContentLoaded", () => {
+        loadMemberImage("韋仁"); 
+    });
+</script>
+
+</html>

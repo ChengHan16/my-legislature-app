@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>立法院 - 成員介紹：丁俊齊</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    
+    <style>
+        /* --- 基礎樣式與防溢出 --- */
+        html { scroll-behavior: smooth; }
+        html, body { max-width: 100%; overflow-x: hidden; margin: 0; padding: 0; }
+
+        body {
+            font-family: "Noto Sans TC", "Arial", sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* --- 1. 導覽列樣式 --- */
+        .navbar-static {
+            background-color: #1a237e;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            width: 100%;
+        }
+
+        .navbar-full {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: white;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+        }
+
+        .logo-circle {
+            background-color: #ffcc00;
+            color: #1a237e;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 10px;
+            font-weight: 700;
+        }
+
+        .nav-links {
+            list-style: none;
+            display: flex;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-links li { margin-left: 30px; }
+        .nav-links a { color: white; text-decoration: none; font-weight: 500; padding: 8px 15px; transition: 0.3s; }
+        .nav-links a:hover { border-bottom: 2px solid #ffcc00; }
+        .nav-links a.active-dark { background-color: #004d99; border-radius: 4px; color: white !important; }
+
+        /* --- 2. Banner 樣式 (固定高度) --- */
+        .event-banner {
+            background: linear-gradient(135deg, #1a237e 0%, #0d1241 100%);
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+            border-bottom: 4px solid #ffcc00;
+            height: 240px; 
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .event-banner h1 { font-size: 3.5em; margin: 0; letter-spacing: 2px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+
+        .banner-info-wrap {
+            display: flex;
+            flex-direction: column; 
+            align-items: center;
+            gap: 15px;
+            margin-top: 20px;
+            font-size: 1.1em;
+            color: #ffcc00;
+        }
+
+        /* --- 3. 主要內容區域 --- */
+        .event-content-area {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            flex: 1;
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            margin-bottom: 40px;
+        }
+
+        .photo-section { flex-shrink: 0; text-align: center; }
+        .avatar-img {
+            width: 200px; height: 200px; border-radius: 12px;
+            border: 4px solid #f0f0f0; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            object-fit: cover;
+        }
+
+        .info-brief h1 { font-size: 42px; color: #1a237e; margin: 0; letter-spacing: 4px; }
+        .nickname { font-size: 20px; color: #666; font-weight: 400; }
+        .blue-line { height: 3px; background: linear-gradient(to right, #1a237e, transparent); width: 300px; margin: 15px 0; }
+
+        .info-card {
+            background: white; 
+            padding: 30px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
+            margin-bottom: 40px; 
+            border-left: 6px solid #ffcc00;
+        }
+
+        .section-title {
+            border-left: 6px solid #1a237e;
+            padding-left: 15px;
+            margin: 40px 0 20px;
+            color: #1a237e;
+            font-size: 1.6em;
+            font-weight: bold;
+        }
+
+        /* --- 4. 網格佈局 (經歷與研究) --- */
+        .member-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 25px;
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        .member-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            border-top: 5px solid #1a237e;
+            transition: all 0.3s ease;
+        }
+
+        .tag {
+            display: inline-block; background: #e8eaf6; color: #3f51b5;
+            padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-bottom: 10px;
+        }
+
+        .m-title { font-weight: bold; font-size: 1.2em; color: #111; margin-bottom: 8px; display: block; }
+        .m-desc { font-size: 0.95em; color: #666; line-height: 1.6; }
+        
+        /* --- 電腦版樣式 --- */
+        /* 將按鈕釘在 profile-header 右上角 */
+        .ig-link-card {
+            position: absolute;
+            /*top: 85px; /* IG按鈕位置定位 */
+            right: 35px;
+            z-index: 5;
+        }
+
+        .ig-btn {
+            text-decoration: none;
+            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+            color: white;
+            padding: 8px 18px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(188, 24, 136, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .ig-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(188, 24, 136, 0.5);
+            color: white;
+        }
+
+        .fb-link-card {
+            position: absolute;
+            top: 85px; /* 維持原位 */
+            right: 35px;
+            z-index: 5;
+        }
+
+        .fb-btn {
+            text-decoration: none;
+            /* 修改為 Facebook 官方藍色 */
+            background: #1877F2; 
+            color: white;
+            padding: 8px 18px;
+            border-radius: 25px; /* 維持圓角膠囊狀 */
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            /* 修改陰影顏色為 Facebook 藍的擴散感 */
+            box-shadow: 0 4px 15px rgba(24, 119, 242, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .fb-btn:hover {
+            /* 滑過時稍微加深藍色 */
+            background: #166fe5;
+            transform: translateY(-3px);
+            /* 加強 Facebook 藍的發光效果 */
+            box-shadow: 0 6px 20px rgba(24, 119, 242, 0.5);
+            color: white;
+        }
+
+        .fb-btn i {
+            font-size: 16px; /* 控制 f 圖標的大小 */
+            margin-right: 5px; /* 與文字 Facebook 之間的距離 */
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        /* 強化得獎項目的顯眼風格 */
+.award-card {
+    background: linear-gradient(135deg, #fff9c4 0%, #ffffff 100%);
+    border-left: 6px solid #fbc02d !important;
+    box-shadow: 0 6px 15px rgba(251,192,45,0.2) !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.award-card::after {
+    content: '\f091'; /* Trophy icon */
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    position: absolute;
+    right: 20px;
+    bottom: 10px;
+    font-size: 4em;
+    color: rgba(251,192,45,0.1);
+}
+
+/* 證照/照片集網格 */
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.gallery-item {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    background: white;
+    transition: 0.3s;
+}
+
+.gallery-item:hover {
+    transform: translateY(-5px);
+}
+
+.gallery-item img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    display: block;
+}
+
+.gallery-label {
+    padding: 10px;
+    font-size: 0.9em;
+    text-align: center;
+    color: #555;
+    background: #fdfdfd;
+}
+
+/* 純粹黑金半透明專用樣式 - 無暈光 */
+.stats-grid-gold {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    border-top: 1px solid rgba(197, 160, 89, 0.4);
+    padding-top: 30px;
+}
+
+.stat-item-gold {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 20px 10px;
+    border-radius: 4px;
+    text-align: center;
+    border: 1px solid rgba(197, 160, 89, 0.2);
+    transition: all 0.3s ease;
+}
+
+.stat-item-gold:hover {
+    background: rgba(197, 160, 89, 0.15);
+    border-color: #c5a059;
+    transform: translateY(-5px); /* 保留輕微位移感以示互動 */
+}
+
+.stat-label {
+    font-size: 0.7em;
+    color: #888;
+    font-weight: 800;
+    display: block;
+    margin-bottom: 8px;
+    letter-spacing: 2px;
+}
+
+.stat-value {
+    font-size: 1.3em;
+    color: #c5a059;
+    font-weight: 800;
+}
+
+@media (max-width: 768px) {
+    .stats-grid-gold { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .journal-card-gold { padding: 30px 20px !important; }
+}
+
+@media (max-width: 480px) {
+    .stats-grid-gold { grid-template-columns: 1fr; }
+}
+
+/* 獎狀與研究圖片專業相框 */
+.cert-item {
+    border: 8px solid #fff;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    border-radius: 4px;
+    transition: 0.3s;
+}
+.cert-item:hover {
+    transform: scale(1.02);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+}
+
+/* 超浮誇期刊證明外框 */
+.grand-journal-award {
+    position: relative;
+    margin: 60px 0;
+    padding: 20px;
+    background: linear-gradient(135deg, #c5a059 0%, #fff 50%, #c5a059 100%);
+    border-radius: 15px;
+    box-shadow: 0 0 40px rgba(197, 160, 89, 0.6);
+    text-align: center;
+    overflow: hidden;
+}
+
+.grand-journal-award::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: conic-gradient(transparent, rgba(197, 160, 89, 0.3), transparent 30%);
+    animation: rotateGold 6s linear infinite;
+}
+
+@keyframes rotateGold {
+    100% { transform: rotate(360deg); }
+}
+
+.journal-inner-frame {
+    position: relative;
+    background: #121212;
+    padding: 30px;
+    border-radius: 10px;
+    z-index: 1;
+}
+
+.journal-img-main {
+    width: 100%;
+    max-width: 800px;
+    border: 3px solid #c5a059;
+    border-radius: 5px;
+    box-shadow: 0 0 20px rgba(197, 160, 89, 0.5);
+}
+
+.award-shimmer {
+    font-weight: 900;
+    color: #c5a059;
+    font-size: 1.5em;
+    letter-spacing: 5px;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    text-shadow: 0 0 10px rgba(197, 160, 89, 0.8);
+}
+
+/* 確保圖片完整觀看且不裁切 */
+.gallery-grid-full {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+    margin-top: 20px;
+}
+
+.gallery-item-full {
+    background: #fff;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transition: transform 0.3s ease;
+}
+
+.gallery-item-full:hover {
+    transform: translateY(-5px);
+}
+
+.gallery-item-full img {
+    width: 100%;
+    height: auto; /* 關鍵：高度自動，確保比例完整 */
+    display: block;
+    border-radius: 4px;
+    border: 1px solid #eee;
+}
+
+.gallery-label-dark {
+    padding: 12px 5px 5px;
+    font-size: 0.95em;
+    font-weight: 600;
+    color: #1a237e;
+    text-align: center;
+}
+
+/* 針對手機版微調 */
+@media (max-width: 768px) {
+    .gallery-grid-full {
+        grid-template-columns: 1fr; /* 手機版單欄完整呈現 */
+    }
+}
+
+
+
+.lang-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+/* 延續網頁風格的黑金按鈕 */
+.btn-gold-outline {
+    background: rgba(26, 35, 126, 0.05);
+    color: #1a237e;
+    border: 2.5px solid #ffd000;
+    padding: 8px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(255, 204, 0, 0.1);
+}
+
+.btn-gold-outline:hover {
+    background: #ffcc00;
+    color: #1a237e;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 204, 0, 0.2);
+}
+
+.dropdown-arrow {
+    font-size: 10px;
+    transition: transform 0.3s ease;
+}
+
+/* 下拉選單主體：黑金半透明風格 */
+.dropdown-content {
+    display: none;
+    position: absolute;
+    top: calc(100% + 10px); /* 距離按鈕下方 10px */
+    right: 0;
+    background: rgba(255, 255, 255, 0.98);
+    min-width: 140px;
+    border-radius: 12px;
+    border: 1px solid #ffcc00;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    backdrop-filter: blur(10px);
+    overflow: hidden;
+    z-index: 1001;
+    /* 動畫前置準備 */
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s ease;
+}
+
+/* 選項顯示狀態 */
+.dropdown-content.show {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* 選單內的項目 */
+.dropdown-item {
+    color: #1a237e;
+    padding: 12px 20px;
+    text-decoration: none;
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.dropdown-item:not(:last-child) {
+    border-bottom: 1px solid rgba(255, 204, 0, 0.1);
+}
+
+.dropdown-item:hover {
+    background: #1a237e;
+    color: #ffcc00;
+}
+
+/* 手機版適配 */
+@media (max-width: 768px) {
+    .lang-switch-container {
+        justify-content: center;
+        padding: 10px;
+    }
+    .dropdown-content {
+        right: 50%;
+        transform: translateX(50%) translateY(10px);
+    }
+    .dropdown-content.show {
+        transform: translateX(50%) translateY(0);
+    }
+}
+
+/* 神魔之塔 */
+        .summoner-data-card {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            border-left: 6px solid #ffc400;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 30px 0;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .summoner-avatar-box {
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .summoner-avatar-box img {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            border: 3px solid #ffc400;
+            object-fit: cover;
+            background: #000;
+        }
+
+        .summoner-allmax-badge {
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ffc400;
+            color: #1a1a1a;
+            font-size: 10px;
+            font-weight: 900;
+            padding: 2px 8px;
+            border-radius: 10px;
+            white-space: nowrap;
+            letter-spacing: 1px;
+        }
+
+        .summoner-info-box {
+            flex-grow: 1;
+        }
+
+        .summoner-main-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .summoner-name {
+            font-size: 22px;
+            color: #000000;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .summoner-uid {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+            font-weight: 600;
+            color: #ffffff; 
+            /* 修改這裡：rgba 前三個值控制顏色，最後一個 0.7 代表 70% 不透明度 */
+            background: #1a1a1a; /* 使用深色背景營造對比 */
+            /* 選擇性加入：讓半透明背景帶有磨砂玻璃感 (需瀏覽器支援) */
+            backdrop-filter: blur(4px); 
+            
+            border: 1px solid #d4af37; 
+            padding: 4px 12px;
+            border-radius: 4px;
+            letter-spacing: 1.5px; 
+            box-shadow: inset 0 0 5px rgba(212, 175, 55, 0.2); 
+            display: inline-block;
+        }
+
+        .summoner-tags {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .s-tag {
+            font-size: 12px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            background: rgba(212, 175, 55, 0.1);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            color: #1c170f;
+        }
+
+        .s-tag-guild {
+            border-color: rgba(212, 175, 55, 0.3);
+            color: #1c170f;
+        }
+        @media (max-width: 768px) {
+            .summoner-data-card { 
+                flex-direction: column; 
+                text-align: center; 
+                gap: 20px; 
+            }
+
+            /* 手機版強制置中並調整間距 */
+            .summoner-main-row {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                gap: 12px !important; /* 增加名稱與 UID 的垂直間距 */
+                margin-bottom: 15px !important;
+            }
+
+            /* 調整手機版 UID 字體大小以防溢出 */
+            .summoner-uid {
+                font-size: 13px;
+                padding: 6px 15px;
+            }
+
+            .summoner-tags {
+                justify-content: center !important;
+            }
+        }
+        /* 神魔之塔 */
+
+        /* 聯絡我區塊專屬樣式 */
+        .contact-icon-box {
+            width: 90px;
+            height: 90px;
+            background: #1a1a1a;
+            border: 3px solid #ffc400;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 40px;
+            color: #ffc400;
+            box-shadow: 0 0 15px rgba(255, 196, 0, 0.3);
+        }
+
+        .email-link {
+            color: #000000;
+            text-decoration: none;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 16px;
+            transition: color 0.3s;
+        }
+
+        .email-link:hover {
+            color: #ffc400;
+            text-decoration: underline;
+        }
+        /* 聯絡我區塊專屬樣式 END*/
+
+        /* --- 5. 其他元件 --- */
+        .back-to-top {
+            position: fixed; bottom: 30px; right: 30px;
+            width: 50px; height: 50px; background-color: #1a237e;
+            color: white; border-radius: 50%; display: flex;
+            justify-content: center; align-items: center; z-index: 1000;
+            border: 2px solid #ffcc00; transition: 0.3s;
+            text-decoration: none;
+        }
+
+        .to-email {
+            position: fixed; bottom: 100px; right: 30px;
+            width: 50px; height: 50px; background-color: #1a237e;
+            color: white; border-radius: 50%; display: flex;
+            justify-content: center; align-items: center; z-index: 1000;
+            border: 2px solid #ffcc00; transition: 0.3s;
+            text-decoration: none;
+        }
+
+        footer { text-align: center; padding: 25px; background-color: #1a237e; color: white; font-size: 0.9em; }
+
+        /* 右上角功能容器 */
+        .header-actions {
+            position: absolute; /* 相對於 profile-header 定位 */
+            top: 20px;          /* 距離頂部 20px */
+            right: 20px;        /* 距離右側 20px */
+            display: flex;
+            flex-direction: column; /* 讓按鈕上下排列 */
+            align-items: flex-end;  /* 讓按鈕靠右對齊 */
+            gap: 12px;          /* 設定按鈕之間的間距，防止重疊 */
+            z-index: 10;        /* 確保選單彈出時不會被其他內容遮擋 */
+        }
+
+        /* 確保按鈕本身不會因為容器縮放而變形 */
+        .lang-dropdown, .social-link-item {
+            width: auto;
+        }
+
+        /* 如果是手機版，建議取消絕對定位以防重疊 */
+        @media (max-width: 768px) {
+            .header-actions {
+                position: static;   /* 回復普通流向 */
+                margin-top:-30px;
+                align-items: center; /* 居中對齊 */
+                width: 100%;
+            }
+
+            /* 手機版 標題列和黃字說明大小調整 Star */
+            .event-banner { /* 欄位高度大小*/
+                height: 160px; 
+            }
+            .event-banner h1 { /* 大標題*/
+                font-size: 30px; 
+            }        
+            .banner-info-wrap { /* 提示字*/
+                margin-top: 10px;
+                padding-bottom: 10px;
+                font-size: 16px;
+            }
+            /* 手機版 標題列和黃字說明大小調整 End */
+        }
+
+        /* =============================================
+           響應式優化 (RWD)
+           ============================================= */
+        @media (max-width: 768px) {
+            .navbar-full { flex-direction: column; padding: 10px 5px; }
+            .nav-links { 
+                margin-top: 10px; width: 100%; justify-content: center; display: flex;
+                flex-wrap: nowrap; padding: 10px 0 5px 0; border-top: 1px solid rgba(255,255,255,0.1);
+            }
+            .nav-links li { margin: 0 4px; flex-shrink: 1; }
+            .nav-links a { padding: 5px 8px; font-size: clamp(12px, 3.2vw, 14px); white-space: nowrap; }
+
+            .profile-header { flex-direction: column; text-align: center; padding: 30px 20px; }
+            .info-brief h1 { font-size: 32px; }
+            .blue-line { margin: 15px auto; }
+            
+            .member-grid { grid-template-columns: 1fr; gap: 20px; }
+
+            /* 1. 調整導覽列外殼，縮小內距 */
+            .navbar-full { 
+                flex-direction: column; 
+                padding: 10px 5px; 
+            }
+
+            /* 2. 調整導覽連結容器 */
+            .event-card-simple {
+                padding: 20px 15px;      /* 縮小手機版內距 */
+                width: 100%;             /* 寬度跟隨父層的 350px */
+                box-sizing: border-box;  /* 關鍵：確保 padding 不會撐破 350px */
+            }
+
+            /* 調整日期圓圈，讓 350px 內的空間分配合理 */
+            .event-date-circle {
+                width: 55px;
+                height: 55px;
+                margin-right: 15px;
+            }
+
+            /* 1. 調整導覽列外殼，縮小內距 */
+            .navbar-full { 
+                flex-direction: column; 
+                padding: 10px 5px; 
+            }
+
+            /* 2. 調整導覽連結容器 */
+            .nav-links { 
+                margin-top: 10px; 
+                width: 100%; 
+                justify-content: center; /* 置中 */
+                display: flex;
+                flex-wrap: nowrap;      /* 關鍵：強制絕對不換行 */
+                padding: 12px 0 5px 0;
+                border-top: 1px solid rgba(255,255,255,0.1);
+            }
+
+            /* 3. 調整清單項目 */
+            .nav-links li { 
+                margin: 0 4px;          /* 縮小項目間的間距 */
+                flex-shrink: 1;         /* 允許項目在必要時縮小 */
+            }
+
+            /* 4. 調整文字大小與行為 */
+            .nav-links a { 
+                padding: 5px 8px;       /* 縮小按鈕內距 */
+                
+                /* 使用 clamp 讓字體在 12px 到 14px 之間隨螢幕自動縮放 */
+                font-size: clamp(12px, 3.2vw, 14px); 
+                
+                white-space: nowrap;    /* 關鍵：文字絕對不換行 */
+                letter-spacing: -0.5px; /* 稍微縮小字距，節省空間 */
+            }
+
+            .ig-link-card {
+                /* 1. 將絕對定位取消，按鈕會回到 HTML 結構的最下方 */
+                position: static !important;
+                /* 2. 設置適當的上間距 (文字與按鈕之間) */
+                margin-top: -30px !important;                
+                /* 3. 設置下間距 (按鈕與卡片底部之間) */
+                margin-bottom: 5px !important;          
+                /* 4. 水平置中顯示 */
+                width: 100%;
+                display: flex;
+                justify-content: center;
+            }
+
+            .lang-switch-container{
+                /* 1. 將絕對定位取消，按鈕會回到 HTML 結構的最下方 */
+                position: static !important;
+                /* 2. 設置適當的上間距 (文字與按鈕之間) */
+                margin-top: -30px !important;                
+                /* 3. 設置下間距 (按鈕與卡片底部之間) */
+                margin-bottom: 5px !important;          
+                /* 4. 水平置中顯示 */
+                width: 100%;
+                display: flex;
+                justify-content: center;
+            }
+        }
+        
+    </style>
+</head>
+<body>
+
+    <header class="navbar-static">
+        <nav class="navbar-full">
+            <div class="logo"><div class="logo-circle">立</div> 立法院 Legislature</div>
+            <ul class="nav-links">
+                <li><a href="index.html">首頁</a></li>
+                <li><a href="about.html">關於我們</a></li> 
+                <li><a href="members.html"class="active-dark">成員介紹</a></li> 
+                <li><a href="events.html">活動行程</a></li>
+                <li><a href="Other.html">其他</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="event-banner">
+        <h1>成員簡介</h1>
+        <div class="banner-info-wrap">
+            <span>國立東華大學 電資訊工程院</span>
+            <span>人工智慧與資訊安全前瞻研究組</span>
+        </div>
+    </section>
+
+    <main class="event-content-area" style="position: relative;">
+        <div class="profile-header" style="position: relative;">
+            <div class="photo-section">
+                <img id="dynamic-avatar" src="https://via.placeholder.com/200?text=Loading..." alt="成員照片" class="avatar-img">
+            </div>
+            <div class="info-brief">
+                <span class="nickname">TING-CHUN-CHI</span>
+                <h1>丁俊齊</h1>
+                <div class="blue-line"></div>
+                <div style="font-size: 1.1em; color: #444; line-height: 2;">
+                    <strong>國籍：</strong>台灣 <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Flag_of_the_Republic_of_China.svg/1280px-Flag_of_the_Republic_of_China.svg.png" alt="ROC" style="height:15px; vertical-align: middle; border:1px solid #ddd;"><br>
+                    <strong>學術背景：</strong>國立東華大學 電資訊工程院<br>
+                    <strong>技術核心：</strong>網路科學(Network Science)、資訊安全、電腦機械<br>
+                    <strong>核心專長：</strong>Deep Learning / Edge Computing / High-Performance Computing
+                </div>
+            </div>
+    
+            <div class="header-actions">
+                <div class="lang-dropdown">
+                    <button class="lang-btn btn-gold-outline" id="langBtn">
+                        <i class="fa-solid fa-language"></i> Language
+                        <i class="fa-solid fa-chevron-down dropdown-arrow"></i>
+                    </button>
+                    <div class="dropdown-content" id="langMenu">
+                        <a href="info-Ting-chun_chi - zh-TW.html" class="dropdown-item">繁體中文</a>
+                        <a href="info-Ting-chun_chi - JP.html" class="dropdown-item">日本語</a>
+                        <a href="info-Ting-chun_chi - en.html" class="dropdown-item">English</a>
+                    </div>
+                </div>
+
+                <div class="social-link-item">
+                    <a href="https://www.instagram.com/ssindychen1/" target="_blank" class="ig-btn">
+                        <i class="fa-brands fa-instagram"></i> Instagram
+                    </a>
+                </div>
+
+                <div class="social-link-item">
+                    <a href="https://www.facebook.com/ding.jun.qi.991619?locale=zh_TW" target="_blank" class="fb-btn">
+                        <i class="fa-brands fa-facebook-f"></i> Facebook
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title">神魔之塔召喚師資訊</div>
+        <div class="summoner-data-card">
+            <!--
+            <div class="summoner-avatar-box">
+                <img src="https://github.com/ChengHan16/Legislature-Family-Website/blob/main/image/v20251-12th-iOS_1024.png?raw=true" alt="召喚師頭像">
+                <div class="summoner-allmax-badge">ALL MAX</div>
+            </div>
+            -->
+            <div class="summoner-info-box">
+                <div class="summoner-main-row">
+                    <h3 class="summoner-name">Ninarwe</h3>
+                    <span class="summoner-uid">UID: 944163516</span>
+                </div>
+                <div class="summoner-tags">
+                    <span class="s-tag"><i class="fa-solid fa-trophy"></i> 神魔宮府</span>
+                    <span class="s-tag s-tag-guild"><i class="fa-solid fa-shield-cat"></i> 歐拉歐拉</span>
+                    <span class="s-tag"><i class="fa-solid fa-check"></i> 認證召喚師</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title">核心研究與前瞻技術開發</div>
+        <div class="member-grid">
+            <div class="member-card">
+                <span class="tag">AI & Healthcare</span>
+                <strong class="m-title">狗疾病智慧檢測系統</strong>
+                <p class="m-desc">運用 <strong>TensorFlow</strong> 構建深度卷積神經網路 (CNN)，整合 <strong>NVIDIA CUDA</strong> 進行 GPU 加速訓練。將模型部署於 <strong>Raspberry Pi</strong> 嵌入式平台，實踐邊緣運算下的即時影像診斷，針對犬隻病理特徵提供亞秒級的疾病預判。</p>
+            </div>
+            <div class="member-card">
+                <span class="tag">Medical Computing</span>
+                <strong class="m-title">AI 肺部病徵辨識平台</strong>
+                <p class="m-desc">基於 <strong>Transfer Learning</strong> 技術優化大型卷積架構，專注於 X 光與 CT 影像中微小病灶的自動標註。結合電腦視覺演算法與醫療情境數據，解決了醫療影像在低功耗設備上推論效率不彰的技術痛點。</p>
+            </div>
+            <div class="member-card" style="grid-column: span 2;">
+                <span class="tag">Smart City</span>
+                <strong class="m-title">人工智慧輔助之交通流量節制與調控系統</strong>
+                <p class="m-desc">這是一套整合物聯網感測器與深度學習的高階調度系統。利用 <strong>Informer 架構</strong> 與 <strong>Transformer 生態系</strong>，針對大規模路網進行長序列時間維度分析。透過 Cuda 加速處理巨量交通數據，實現動態紅綠燈時序補償與車流節流決策，大幅降低都市通勤延遲。</p>
+            </div>
+        </div>
+
+        <div class="section-title">學術成果與國際期刊發表</div>
+        <div class="info-card" style="border-left-color: #1a237e;">
+            <ul style="line-height: 2; padding-left: 20px; color: #333;">
+                <li><i class="fa-solid fa-file-lines" style="color: #1a237e; margin-right: 10px;"></i> <strong>《混合式深度學習模型於台灣高速公路長期交通預測之研究》</strong> - 探討 CNN-LSTM 混合模型之效能。</li>
+                <li><i class="fa-solid fa-file-lines" style="color: #1a237e; margin-right: 10px;"></i> <strong>《基於 Informer 架構之台灣高速公路長期交通預測案例研究》</strong> - 解決長序列預測不穩定問題。</li>
+                <li><i class="fa-solid fa-earth-americas" style="color: #1a237e; margin-right: 10px;"></i> <strong>深度學習交通預測之國際期刊成果</strong> - 獲得多項 IEEE 相關領域專家高度引用與認證。</li>
+            </ul>
+        </div>
+
+        <div class="section-title">榮譽實績與競賽獲獎</div>
+        <div class="member-grid">
+            <div class="member-card award-card">
+                <span class="tag">Academic Excellence</span>
+                <strong class="m-title">英捷電資訊工程最佳優等生</strong>
+                <p class="m-desc">榮獲院所級最高榮譽，代表在電子、資訊、通訊三大領域均衡發展之卓越表現。</p>
+            </div>
+            <div class="member-card award-card">
+                <span class="tag">TWCC Winner</span>
+                <strong class="m-title">Open Hackathon 2022 最佳獎</strong>
+                <p class="m-desc">AI 輔助犬隻病理影像診斷與疾病風險判讀模型，於國網中心雲端平台完成超大規模資料集訓練。</p>
+            </div>
+            <div class="member-card award-card">
+                <span class="tag">AI CUP Runner-up</span>
+                <strong class="m-title">AI CUP 2022 全國亞軍</strong>
+                <p class="m-desc">「結合卷積神經網路（CNN）的犬隻 X 光影像病灶偵測應用」，在數百支團隊中脫穎而出。</p>
+            </div>
+            <div class="member-card award-card">
+                <span class="tag">Smart City Innovation</span>
+                <strong class="m-title">臺南智慧城市黑客松 創新獎</strong>
+                <p class="m-desc">開發「基於深度學習之智慧交通流量預測與節流決策系統」，解決真實世界交通壅塞痛點。</p>
+            </div>
+            <div class="member-card award-card">
+                <span class="tag">Robotics Best Award</span>
+                <strong class="m-title">全國 AI 機器人應用大賽 最佳獎</strong>
+                <p class="m-desc">打造結合電腦視覺之即時道路異常與事故風險 AI 辨識平台，將自動駕駛技術落實於安全監控。</p>
+            </div>
+            <div class="member-card award-card">
+                <span class="tag">Synopsys Top Award</span>
+                <strong class="m-title">Synopsys ARC AIoT 設計應用競賽 最佳獎</strong>
+                <p class="m-desc">結合低功耗晶片設計與深度預測模型，定義了下一代智慧交通物聯網節點。 (2023)</p>
+            </div>
+        </div>
+
+        <div class="section-title">相關獎狀與證明</div>
+        <div class="gallery-grid-full">
+            <div class="gallery-item-full">
+                <img src="https://github.com/ChengHan16/Legislature-Family-Website/blob/main/image/Andrew/58B42B5F-EC30-42D2-B164-1C7F17596F99.jpg?raw=true" alt="全國 AI CUP 競賽優等證明">
+                <div class="gallery-label-dark">全國 AI CUP 競賽優等證明</div>
+            </div>
+            <div class="gallery-item-full">
+                <img src="https://github.com/ChengHan16/Legislature-Family-Website/blob/main/image/Andrew/59849BD0-23D4-4C1A-A1F5-46D2DB14B6CE.jpg?raw=true" alt="學術優異榮譽狀">
+                <div class="gallery-label-dark">學術優異榮譽狀</div>
+            </div>
+        </div>
+
+        <div class="section-title">核心研究實錄</div>
+        <div class="gallery-grid-full">
+            <div class="gallery-item-full">
+                <img src="https://github.com/ChengHan16/Legislature-Family-Website/blob/main/image/Andrew/0B9C48C6-D5F9-49F9-9E8C-F0DE7088B24F.jpg?raw=true" alt="研究實地採樣紀錄">
+                <div class="gallery-label-dark">研究實地採樣與數據分析紀錄</div>
+            </div>
+            <div class="gallery-item-full">
+                <img src="https://github.com/ChengHan16/Legislature-Family-Website/blob/main/image/Andrew/37C04A8B-848D-4D3A-8330-719D8CEFB86D.jpg?raw=true" alt="實驗室多模態模型訓練環境">
+                <div class="gallery-label-dark">實驗室多模態模型訓練環境</div>
+            </div>
+        </div>
+
+        <div class="section-title" style="color: #c5a059;"><i class="fa-scroll fa-solid"></i> 國際學術期刊認證</div>
+        <div class="grand-journal-award">
+            <div class="journal-inner-frame">
+                <div class="award-shimmer">Academic Publication Excellence</div>
+                <img src="https://github.com/ChengHan16/Legislature-Family-Website/blob/main/image/Andrew/4141B1D7-6C3E-488F-B094-ADE98E89DEA6.jpg?raw=true" alt="期刊證明" class="journal-img-main">
+                <div style="margin-top: 25px; color: #fff;">
+                    <h3 style="color: #c5a059; margin-bottom: 10px;">國際學術論文錄用證明</h3>
+                    <p style="font-size: 0.9em; opacity: 0.8; line-height: 1.6;">
+                        丁俊齊講師於 113 年度 之研究成果已獲國際學術期刊正式收錄。<br>
+                        研究內容結合人工智慧、數學模型與時間序列分析技術，應用於交通流量預測，並通過嚴謹之國際同儕審查，獲得學術界高度認可。
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title">專業經歷與臨床背景</div>
+        <div class="member-grid">
+            <div class="member-card">
+                <span class="tag">Clinical Specialist</span>
+                <strong class="m-title">113年度急性腸胃炎病理機轉首席講師</strong>
+                <p class="m-desc">主導大規模群聚感染之臨床流行病學分析與預後管理策略研發。</p>
+            </div>
+            <div class="member-card">
+                <span class="tag">International Expert</span>
+                <strong class="m-title">WHO 腸道致病原應變小組 (模擬) 外部專家</strong>
+                <p class="m-desc">參與全球防疫策略模擬，提供消化道病原體之快速診斷技術諮詢。</p>
+            </div>
+        </div>
+
+        <div class="journal-card-gold" style="background: rgba(0, 0, 0, 0.85); color: #e0e0e0; border-radius: 8px; padding: 5%; margin-top: 30px; font-family: 'Times New Roman', 'Noto Sans TC', serif; box-sizing: border-box; position: relative; border: 1px solid #c5a059; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); overflow: hidden;">
+            <div style="border-bottom: 2px solid #c5a059; padding-bottom: 25px; margin-bottom: 40px; text-align: center;">
+                <h2 style="color: #c5a059; font-size: clamp(1.4em, 5vw, 2.4em); margin: 0; font-weight: 900; letter-spacing: 1px; line-height: 1.3;">
+                    113年度臨床研究特刊：多模態推論架構下之急性腸胃炎病理機轉與預後模型
+                </h2>
+                <div class="journal-meta" style="margin-top: 15px; display: flex; justify-content: center; gap: 15px; color: #aaa; font-weight: 600; flex-wrap: wrap; font-size: 0.9em; letter-spacing: 0.5px;">
+                    <span>Chief Lecturer: Junqi Ding</span>
+                    <span class="hide-mobile" style="color: #c5a059;">|</span>
+                    <span>NDHU EE-CSIE Medical AI Lab</span>
+                    <span class="hide-mobile" style="color: #c5a059;">|</span>
+                    <span>Status: Peer Reviewed</span>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 45px;">
+                <h3 style="color: #121212; background: #c5a059; display: inline-block; padding: 6px 20px; border-radius: 2px; margin-bottom: 20px; font-weight: 900;">I. Abstract & Introduction</h3>
+                <p style="line-height: 2.2; color: #dcdcdc; font-size: 1.05em; text-align: justify; border-left: 2px solid #c5a059; padding-left: 25px; margin-left: 5px;">
+                    本研究針對 113 年度爆發之諾羅病毒 GII.4 變異株及其誘發之急性腸胃炎進行系統性機轉分析。臨床觀測指出，新型病原體介導的炎症路徑已由單純的腸黏膜受損演化為複雜的跨器官應激反應。丁講師團隊利用高通量測序與分子動力學模擬，首度證實炎症因子透過干擾腸道上皮細胞之 AQP3 通道，引發量子級滲透壓失衡。
+                </p>
+            </div>
+
+            <div style="margin-bottom: 45px;">
+                <h3 style="color: #121212; background: #c5a059; display: inline-block; padding: 6px 20px; border-radius: 2px; margin-bottom: 20px; font-weight: 900;">II. Technical & Neural Architecture</h3>
+                <div style="background: rgba(255, 255, 255, 0.05); padding: 30px; border-radius: 8px; border: 1px solid rgba(197, 160, 89, 0.3);">
+                    <p style="line-height: 1.9; color: #bbb; font-family: 'Consolas', monospace; font-size: 0.95em;">
+                        <span style="color: #c5a059;">// Pathological Signal Inference Logic</span><br>
+                        模型採用 <strong>Transformer-based TFE</strong> 架構，導入 <strong>Multi-Head Self-Attention</strong> 進行時序特徵融合。利用 <strong>NVIDIA CUDA 12.2</strong> 實踐非線性張量優化，精準預判 AQP3 蛋白表達異常。<br><br>
+                        
+                        [Image of the human digestive system]
+                        <br><br>
+                        <strong style="color: #c5a059;">【Deployment Stack】</strong><br>
+                        1. <span>TensorFlow 2.15+ (XNNPACK Quantization)</span><br>
+                        2. <span>Scipy DWT (Discrete Wavelet Transform)</span><br>
+                        3. <span>NVIDIA TensorRT Acceleration</span><br><br>
+                        系統實測推論延遲控制於 <span style="color: #fff; font-weight: bold;">11.8ms</span>，達成臨床級實時監控基準。
+                    </p>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 45px;">
+                <h3 style="color: #121212; background: #c5a059; display: inline-block; padding: 6px 20px; border-radius: 2px; margin-bottom: 20px; font-weight: 900;">III. Clinical Horizons</h3>
+                <p style="line-height: 2.2; color: #dcdcdc; font-size: 1.05em; text-align: justify; margin-left: 5px;">
+                    透過 AI 分析 AQP3 蛋白趨勢，成功將重症預警時效提升至症狀爆發前 4 小時。丁講師團隊致力於 <strong>Digital Twin</strong> 技術，建立區域型公衛風險模型。將醫學嚴謹度與 AI 運算力高度融合，推動普惠醫療進入精準自動化時代。
+                </p>
+            </div>
+
+            <div class="stats-grid-gold">
+                <div class="stat-item-gold">
+                    <span class="stat-label">LATENCY</span>
+                    <strong class="stat-value">11.8 ms</strong>
+                </div>
+                <div class="stat-item-gold">
+                    <span class="stat-label">PRECISION</span>
+                    <strong class="stat-value">94.2%</strong>
+                </div>
+                <div class="stat-item-gold">
+                    <span class="stat-label">EPOCHS</span>
+                    <strong class="stat-value">450</strong>
+                </div>
+                <div class="stat-item-gold">
+                    <span class="stat-label">ENGINE</span>
+                    <strong class="stat-value">CUDA 12.2</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title" style="border-left-color: #2e7d32; color: #2e7d32;"><i class="fa-solid fa-graduation-cap" style="margin-right: 10px;"></i> 社會貢獻與社團領袖經歷</div>
+        <div class="info-card" style="border-left-color: #2e7d32;">
+            <h2 style="color: #2e7d32; margin-top: 0;"><i class="fa-solid fa-chalkboard-user"></i> 左鎮國小數位產學合作 - 指導老師</h2>
+            <p style="line-height: 1.8; color: #333;">
+                致力於偏鄉教育數位轉型，謝鈞儒將軍利用人工智慧（AI）與資工領域的專業，親自帶領學童接觸先端科技。指導過程中，導入圖形化編程技術引導學生製作簡易 APP，並透過 Arduino 開發板結合理論與實作，帶領孩子們從零開始組裝「智慧家電」原型。本計畫不僅強化了學童的邏輯思考能力，更縮短了偏鄉教育的數位落差，讓科技種子在基層深耕。
+            </p>
+            
+            <div style="display: flex; flex-wrap: wrap; gap: 20px; margin-top: 20px; justify-content: center;">
+                <div style="flex: 1; min-width: 250px; text-align: center;">
+                    <img src="https://github.com/ChengHan16/Legislature-Family-Website/blob/main/image/Guidance%20Process%20%E2%80%93%20Zuozhen%20Elementary%20School%20hsieh-chunju.jpg?raw=true" alt="指導過程1" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                    <p style="font-size: 0.9em; color: #666; margin-top: 8px;">圖：(左)丁俊齊 (中)謝鈞儒 (右)王文彥</p>
+                </div>
+                <div style="flex: 1; min-width: 250px; text-align: center;">
+                    <img src="https://github.com/ChengHan16/Legislature-Family-Website/blob/main/image/Guidance%20Process%20%E2%80%93%20Zuozhen%20Elementary%20School2%20hsieh-chunju.jpg?raw=true" alt="指導過程2" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                    <p style="font-size: 0.9em; color: #666; margin-top: 8px;">圖：(左)活動組主任 王美惠 (右)謝鈞儒</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title">醫學 AI 研究與專業證照</div>
+        <div class="member-grid">
+            <div class="member-card">
+                <span class="tag">IEEE Published</span>
+                <strong class="m-title">基於 Transformer 之自動化診斷系統</strong>
+                <p class="m-desc">發表論文："Transformer-based Inference for Acute Gastritis Diagnosis"，探討深度學習於病理識別之精準度。</p>
+            </div>
+            <div class="member-card">
+                <span class="tag">Credentials</span>
+                <strong class="m-title">NVIDIA & Google 專業認證</strong>
+                <p class="m-desc">持有 NVIDIA DLI 醫療成像分析專科認證及 Google Professional ML Engineer 證書。</p>
+            </div>
+        </div>
+        
+        <div class="info-card" style="margin-top: 40px; text-align: center; border-left-color: #ffcc00;">
+            <p style="color: #999; font-size: 0.9em; margin: 0;">Verified Researcher | Department of Electrical Engineering & Computer Science | ID: NDHU-EE-2026</p>
+        </div>
+
+        <div class="section-title">聯絡我</div>
+        <div class="summoner-data-card">
+            <div class="summoner-avatar-box">
+                <div class="contact-icon-box">
+                    <i class="fa-solid fa-envelope"></i>
+                </div>
+            </div>
+            <div class="summoner-info-box">
+                <div class="summoner-main-row">
+                    <h3 class="summoner-name">電子郵件信箱</h3>
+                </div>
+                <div class="summoner-tags">
+                    <a href="mailto:611221407@gms.ndhu.edu.tw" class="email-link">
+                        <i class="fa-solid fa-paper-plane" style="margin-right: 8px; font-size: 14px; color: black;"></i>611221407@gms.ndhu.edu.tw
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <a href="mailto:611221407@gms.ndhu.edu.tw" class="to-email">
+        <i class="fa-solid fa-envelope"></i>
+    </a>
+
+    <a href="#" class="back-to-top"><i class="fa-solid fa-chevron-up"></i></a>
+
+    <footer>
+        <p>© 2026 立法院 Legislature - 數位資訊發展處 版權所有</p>
+    </footer>
+
+</body>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const langBtn = document.getElementById('langBtn');
+            const langMenu = document.getElementById('langMenu');
+            const arrow = langBtn.querySelector('.dropdown-arrow');
+
+            langBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const isOpen = langMenu.classList.contains('show');
+                
+                // 切換選單
+                langMenu.classList.toggle('show');
+                
+                // 箭頭旋轉動畫
+                arrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+            });
+
+            // 點擊空白處關閉
+            document.addEventListener('click', function(e) {
+                if (!langBtn.contains(e.target)) {
+                    langMenu.classList.remove('show');
+                    arrow.style.transform = 'rotate(0deg)';
+                }
+            });
+        });
+
+        // 1. Firebase 配置 (沿用您的設定)
+        const firebaseConfig = {
+            apiKey: "AIzaSyACnoimIASfb1rb59SbgLDkUmyYR6ODbUU",
+            authDomain: "llwb-ed686.firebaseapp.com",
+            projectId: "llwb-ed686",
+            storageBucket: "llwb-ed686.firebasestorage.app", 
+            messagingSenderId: "940345852074",
+            appId: "1:940345852074:web:7a30cca5a6d997a92350d3",
+            measurementId: "G-KWL4ZE3D18"
+        };
+
+        // 2. 初始化
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
+
+        // 3. 定義抓取函數
+        async function loadMemberImage(targetName) {
+            const avatarEl = document.getElementById('dynamic-avatar');
+
+            try {
+                // 在 'content' 集合中尋找 text 欄位等於指定姓名的人
+                const snapshot = await db.collection("content")
+                                    .where("text", "==", targetName)
+                                    .get();
+
+                if (!snapshot.empty) {
+                    // 取得第一筆匹配到的資料
+                    const data = snapshot.docs[0].data();
+                    if (data.imageUrl) {
+                        avatarEl.src = data.imageUrl;
+                        avatarEl.alt = targetName + " 照片";
+                    }
+                } else {
+                    console.warn("找不到成員：" + targetName);
+                    avatarEl.src = "https://via.placeholder.com/200?text=No+Photo";
+                }
+            } catch (error) {
+                console.error("Firebase 讀取錯誤:", error);
+            }
+        }
+
+        // 4. 網頁載入後執行：輸入您要顯示的名字
+        document.addEventListener("DOMContentLoaded", () => {
+            loadMemberImage("俊齊"); 
+        });
+        </script>
+</html>

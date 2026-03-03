@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>立法院 - 成員介紹：王尊玄</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    
+    <style>
+        /* --- 基礎樣式與防溢出 --- */
+        html { scroll-behavior: smooth; }
+        html, body { max-width: 100%; overflow-x: hidden; margin: 0; padding: 0; }
+
+        body {
+            font-family: "Noto Sans TC", "Arial", sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* --- 1. 導覽列樣式 --- */
+        .navbar-static {
+            background-color: #1a237e;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            width: 100%;
+        }
+
+        .navbar-full {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: white;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+        }
+
+        .logo-circle {
+            background-color: #ffcc00;
+            color: #1a237e;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 10px;
+            font-weight: 700;
+        }
+
+        .nav-links {
+            list-style: none;
+            display: flex;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-links li { margin-left: 30px; }
+        .nav-links a { color: white; text-decoration: none; font-weight: 500; padding: 8px 15px; transition: 0.3s; }
+        .nav-links a:hover { border-bottom: 2px solid #ffcc00; }
+        .nav-links a.active-dark { background-color: #004d99; border-radius: 4px; color: white !important; }
+
+        /* --- 2. Banner 樣式 (固定高度) --- */
+        .event-banner {
+            background: linear-gradient(135deg, #1a237e 0%, #0d1241 100%);
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+            border-bottom: 4px solid #ffcc00;
+            height: 240px; 
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .event-banner h1 { font-size: 3.5em; margin: 0; letter-spacing: 2px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+
+        .banner-info-wrap {
+            display: flex;
+            flex-direction: column; /* 關鍵：由水平改為垂直排列 */
+            align-items: center;    /* 讓內容在垂直排列時依然保持居中 */
+            gap: 15px;             /* 設定兩行之間的距離 */
+            margin-top: 20px;
+            font-size: 1.1em;
+            color: #ffcc00;
+        }
+
+        /* --- 3. 主要內容區域 --- */
+        .event-content-area {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            flex: 1;
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            margin-bottom: 40px;
+        }
+
+        /*語言切換|Instagram|Facebook 按鈕設定位置*/
+        .ig-btn {
+            text-decoration: none;
+            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+            color: white;
+            padding: 8px 18px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(188, 24, 136, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .ig-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(188, 24, 136, 0.5);
+            color: white;
+        }
+
+        .fb-link-card {
+            position: absolute;
+            top: 85px; /* 維持原位 */
+            right: 35px;
+            z-index: 5;
+        }
+
+        .fb-btn {
+            text-decoration: none;
+            /* 修改為 Facebook 官方藍色 */
+            background: #1877F2; 
+            color: white;
+            padding: 8px 18px;
+            border-radius: 25px; /* 維持圓角膠囊狀 */
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            /* 修改陰影顏色為 Facebook 藍的擴散感 */
+            box-shadow: 0 4px 15px rgba(24, 119, 242, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .fb-btn:hover {
+            /* 滑過時稍微加深藍色 */
+            background: #166fe5;
+            transform: translateY(-3px);
+            /* 加強 Facebook 藍的發光效果 */
+            box-shadow: 0 6px 20px rgba(24, 119, 242, 0.5);
+            color: white;
+        }
+
+        .fb-btn i {
+            font-size: 16px; /* 控制 f 圖標的大小 */
+            margin-right: 5px; /* 與文字 Facebook 之間的距離 */
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .header-actions {
+            position: absolute; /* 相對於 profile-header 定位 */
+            top: 20px;          /* 距離頂部 20px */
+            right: 20px;        /* 距離右側 20px */
+            display: flex;
+            flex-direction: column; /* 讓按鈕上下排列 */
+            align-items: flex-end;  /* 讓按鈕靠右對齊 */
+            gap: 12px;          /* 設定按鈕之間的間距，防止重疊 */
+            z-index: 10;        /* 確保選單彈出時不會被其他內容遮擋 */
+        }
+
+        /*語言切換|Instagram|Facebook 按鈕設定位置 End*/
+
+        .photo-section { flex-shrink: 0; text-align: center; }
+        .avatar-img {
+            width: 200px; height: 200px; border-radius: 12px;
+            border: 4px solid #f0f0f0; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            object-fit: cover;
+        }
+
+        .info-brief h1 { font-size: 42px; color: #1a237e; margin: 0; letter-spacing: 4px; }
+        .nickname { font-size: 20px; color: #666; font-weight: 400; }
+        .blue-line { height: 3px; background: linear-gradient(to right, #1a237e, transparent); width: 300px; margin: 15px 0; }
+
+        .info-card {
+            background: white; 
+            padding: 30px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
+            margin-bottom: 40px; 
+            border-left: 6px solid #ffcc00;
+        }
+
+        .section-title {
+            border-left: 6px solid #1a237e;
+            padding-left: 15px;
+            margin: 40px 0 20px;
+            color: #1a237e;
+            font-size: 1.6em;
+            font-weight: bold;
+        }
+
+        /* --- 4. 網格佈局 (經歷與研究) --- */
+        .member-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 25px;
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        .member-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            border-top: 5px solid #1a237e;
+            transition: all 0.3s ease;
+        }
+
+        .tag {
+            display: inline-block; background: #e8eaf6; color: #3f51b5;
+            padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-bottom: 10px;
+        }
+
+        .m-title { font-weight: bold; font-size: 1.2em; color: #111; margin-bottom: 8px; display: block; }
+        .m-desc { font-size: 0.95em; color: #666; line-height: 1.6; }
+
+        /* --- 5. 其他元件 --- */
+        .back-to-top {
+            position: fixed; bottom: 30px; right: 30px;
+            width: 50px; height: 50px; background-color: #1a237e;
+            color: white; border-radius: 50%; display: flex;
+            justify-content: center; align-items: center; z-index: 1000;
+            border: 2px solid #ffcc00; transition: 0.3s;
+            text-decoration: none;
+        }
+
+        footer { text-align: center; padding: 25px; background-color: #1a237e; color: white; font-size: 0.9em; }
+
+        /* 神魔之塔 */
+        .summoner-data-card {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            border-left: 6px solid #ffc400;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 30px 0;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .summoner-avatar-box {
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .summoner-avatar-box img {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            border: 3px solid #ffc400;
+            object-fit: cover;
+            background: #000;
+        }
+
+        .summoner-allmax-badge {
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ffc400;
+            color: #1a1a1a;
+            font-size: 10px;
+            font-weight: 900;
+            padding: 2px 8px;
+            border-radius: 10px;
+            white-space: nowrap;
+            letter-spacing: 1px;
+        }
+
+        .summoner-info-box {
+            flex-grow: 1;
+        }
+
+        .summoner-main-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .summoner-name {
+            font-size: 22px;
+            color: #000000;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .summoner-uid {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+            font-weight: 600;
+            color: #ffffff; /* 提升文字亮度 */
+            background: #1a1a1a; /* 使用深色背景營造對比 */
+            border: 1px solid #d4af37; /* 加上金邊呼應主色調 */
+            padding: 4px 12px;
+            border-radius: 4px;
+            letter-spacing: 1.5px; /* 增加字距更具科技感 */
+            box-shadow: inset 0 0 5px rgba(212, 175, 55, 0.2); /* 內部微光效果 */
+            display: inline-block;
+        }
+
+        .summoner-tags {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .s-tag {
+            font-size: 12px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            background: rgba(212, 175, 55, 0.1);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            color: #1c170f;
+        }
+
+        .s-tag-guild {
+            border-color: rgba(212, 175, 55, 0.3);
+            color: #1c170f;
+        }
+        
+/* --- 專業區域樣式優化 --- */
+        .boss-card {
+            background: linear-gradient(135deg, #1a1a1a 0%, #333 100%);
+            color: #ffcc00;
+            padding: 30px;
+            border-radius: 12px;
+            margin-top: 40px;
+            border-left: 6px solid #ffcc00;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .boss-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-transform: uppercase;
+        }
+
+        .boss-desc {
+            color: #eee;
+            line-height: 1.8;
+            font-size: 1em;
+        }
+
+        .highlight-text {
+            color: #ffcc00;
+            font-weight: bold;
+        }
+
+        .award-year {
+            display: inline-block;
+            background: #ffcc00;
+            color: #1a237e;
+            padding: 2px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .summoner-data-card { 
+                flex-direction: column; 
+                text-align: center; 
+                gap: 20px; 
+            }
+
+            /* 手機版強制置中並調整間距 */
+            .summoner-main-row {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                gap: 12px !important; /* 增加名稱與 UID 的垂直間距 */
+                margin-bottom: 15px !important;
+            }
+
+            /* 調整手機版 UID 字體大小以防溢出 */
+            .summoner-uid {
+                font-size: 13px;
+                padding: 6px 15px;
+            }
+
+            .summoner-tags {
+                justify-content: center !important;
+            }
+        }
+        /* 神魔之塔 */
+
+        /* =============================================
+           響應式優化 (RWD)
+           ============================================= */
+        @media (max-width: 768px) {
+            .navbar-full { flex-direction: column; padding: 10px 5px; }
+            .nav-links { 
+                margin-top: 10px; width: 100%; justify-content: center; display: flex;
+                flex-wrap: nowrap; padding: 10px 0 5px 0; border-top: 1px solid rgba(255,255,255,0.1);
+            }
+            .nav-links li { margin: 0 4px; flex-shrink: 1; }
+            .nav-links a { padding: 5px 8px; font-size: clamp(12px, 3.2vw, 14px); white-space: nowrap; }
+
+            .profile-header { flex-direction: column; text-align: center; padding: 30px 20px; }
+            .info-brief h1 { font-size: 32px; }
+            .blue-line { margin: 15px auto; }
+            
+            .member-grid { grid-template-columns: 1fr; gap: 20px; }
+
+            /* 1. 調整導覽列外殼，縮小內距 */
+            .navbar-full { 
+                flex-direction: column; 
+                padding: 10px 5px; 
+            }
+
+            /* 2. 調整導覽連結容器 */
+            .event-card-simple {
+                padding: 20px 15px;      /* 縮小手機版內距 */
+                width: 100%;             /* 寬度跟隨父層的 350px */
+                box-sizing: border-box;  /* 關鍵：確保 padding 不會撐破 350px */
+            }
+
+            /* 調整日期圓圈，讓 350px 內的空間分配合理 */
+            .event-date-circle {
+                width: 55px;
+                height: 55px;
+                margin-right: 15px;
+            }
+
+            /* 1. 調整導覽列外殼，縮小內距 */
+            .navbar-full { 
+                flex-direction: column; 
+                padding: 10px 5px; 
+            }
+
+            /* 2. 調整導覽連結容器 */
+            .nav-links { 
+                margin-top: 10px; 
+                width: 100%; 
+                justify-content: center; /* 置中 */
+                display: flex;
+                flex-wrap: nowrap;      /* 關鍵：強制絕對不換行 */
+                padding: 12px 0 5px 0;
+                border-top: 1px solid rgba(255,255,255,0.1);
+            }
+
+            /* 3. 調整清單項目 */
+            .nav-links li { 
+                margin: 0 4px;          /* 縮小項目間的間距 */
+                flex-shrink: 1;         /* 允許項目在必要時縮小 */
+            }
+
+            /* 4. 調整文字大小與行為 */
+            .nav-links a { 
+                padding: 5px 8px;       /* 縮小按鈕內距 */
+                
+                /* 使用 clamp 讓字體在 12px 到 14px 之間隨螢幕自動縮放 */
+                font-size: clamp(12px, 3.2vw, 14px); 
+                
+                white-space: nowrap;    /* 關鍵：文字絕對不換行 */
+                letter-spacing: -0.5px; /* 稍微縮小字距，節省空間 */
+            }
+            
+            /*語言切換|Instagram|Facebook 按鈕設定位置*/
+            .header-actions {
+                position: static;   /* 回復普通流向 */
+                margin-top: -30px;
+                align-items: center; /* 居中對齊 */
+                width: 100%;
+            }
+
+            /* 手機版 標題列和黃字說明大小調整 Star */
+            .event-banner { /* 欄位高度大小*/
+                height: 160px; 
+            }
+            .event-banner h1 { /* 大標題*/
+                font-size: 30px; 
+            }        
+            .banner-info-wrap { /* 提示字*/
+                margin-top: 10px;
+                padding-bottom: 10px;
+                font-size: 16px;
+            }
+            /* 手機版 標題列和黃字說明大小調整 End */
+        }
+    </style>
+</head>
+<body>
+
+    <header class="navbar-static">
+        <nav class="navbar-full">
+            <div class="logo"><div class="logo-circle">立</div> 立法院 Legislature</div>
+            <ul class="nav-links">
+                <li><a href="index.html">首頁</a></li>
+                <li><a href="about.html">關於我們</a></li> 
+                <li><a href="members.html"class="active-dark">成員介紹</a></li> 
+                <li><a href="events.html">活動行程</a></li>
+                <li><a href="Other.html">其他</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="event-banner">
+        <h1>成員簡介</h1>
+        <div class="banner-info-wrap">
+            <span>廠房機電系統規劃委員會</span>
+            <span>海域巡防與跆拳道競技研究組</span>
+        </div>
+    </section>
+
+    <main class="event-content-area" style="position: relative;">
+        <div class="profile-header" style="position: relative;">
+            <div class="photo-section">
+                <img id="dynamic-avatar" src="https://via.placeholder.com/200?text=Loading..." alt="成員照片" class="avatar-img">
+            </div>
+            <div class="info-brief">
+                <span class="nickname">Wang zunxian</span>
+                <h1>王尊玄</h1>
+                <div class="blue-line"></div>
+                <div style="font-size: 1.1em; color: #444; line-height: 2;">
+                    國籍：台灣 <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Flag_of_the_Republic_of_China.svg/1280px-Flag_of_the_Republic_of_China.svg.png" alt="ROC" style="height:15px; vertical-align: middle; border:1px solid #ddd;"><br>
+                    畢業院校：曾文高級農工職業學校 (雙修 化工科 / 體育班)<br>
+                    專業造詣：跆拳道黑帶師傅<br>
+                    技術職稱：現役廠房機電系統規劃工程師 / 中華民國台灣安南地頭蛇
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <div class="social-link-item">
+                    <a href="https://www.instagram.com/mochi_xuan/" target="_blank" class="ig-btn">
+                        <i class="fa-brands fa-instagram"></i> Instagram
+                    </a>
+                </div>
+                <div class="social-link-item">
+                    <a href="https://www.facebook.com/wang.zun.xuan.430799?locale=zh_TW" target="_blank" class="fb-btn">
+                        <i class="fa-brands fa-facebook-f"></i> Facebook
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title" style="color: #d32f2f;"><i class="fa-solid fa-trophy"></i> 跆拳道競賽榮譽榜 (黑帶菁英)</div>
+        <div class="info-card" style="border-left-color: #d32f2f; background-color: #fffde7;">
+            <ul style="list-style: none; padding: 0;">
+                <li style="margin-bottom: px;">
+                    <span class="award-year">2020</span> <strong>全國跆拳道黑段排名對抗賽 — 台北總決賽 (年度總冠軍)</strong>
+                    <p style="font-size: 0.9em; color: #555; margin-top: 5px;">面對頂尖好手，展現完整且成熟的黑段技術體系，在攻防節奏與臨場應變具明顯優勢，確立全國頂尖地位。</p>
+                </li>
+                <li style="margin-bottom: 20px;">
+                    <span class="award-year">2018</span> <strong>海峽兩岸跆拳道黑帶國際邀請賽 (廈門站 — 冠軍)</strong>
+                    <p style="font-size: 0.9em; color: #555; margin-top: 5px;">代表參加國際邀請賽，成功壓制多國頂尖選手，展現高度國際賽適應能力與成熟戰術思維。</p>
+                </li>
+                <li style="margin-bottom: 20px;">
+                    <span class="award-year">2017</span> <strong>台北市跆拳道黑帶公開錦標賽 (冠軍)</strong>
+                    <p style="font-size: 0.9em; color: #555; margin-top: 5px;">在密集賽程中展現反擊時機掌握與攻防轉換能力，多場比賽提前拉開比分差距勝出。</p>
+                </li>
+                <li>
+                    <span class="award-year">2015</span> <strong>全國跆拳道黑帶菁英邀請賽 (台南站 — 冠軍)</strong>
+                    <p style="font-size: 0.9em; color: #555; margin-top: 5px;">以精準距離控制與得分策略擊敗多名資深選手，最終以全勝戰績奪得壓倒性冠軍。</p>
+                </li>
+            </ul>
+        </div>
+
+        <div class="section-title">國軍海巡服役經歷 Coast Guard Service</div>
+        <div class="info-card">
+            <p style="font-weight: 500; margin-bottom: 20px;">
+                王尊玄曾任職於中華民國台灣國軍海巡單位，服役期間主要投入於海域巡防、邊境安全維護與民生協助任務，具備高壓情境下之判斷與執行力。
+            </p>
+            
+            <div class="member-grid">
+                <div class="member-card">
+                    <span class="tag">海上治安</span>
+                    <strong class="m-title">查緝偷渡客與治安維護</strong>
+                    <p class="m-desc">多次參與沿岸與近海巡防任務，針對重點海域進行攔查，有效查緝偷渡案件，維護國境安全。</p>
+                </div>
+                <div class="member-card">
+                    <span class="tag">邊境管控</span>
+                    <strong class="m-title">非法入境防制與雷達監控</strong>
+                    <p class="m-desc">參與非法入境防制專案，執行夜間海巡與現場警戒，成功阻斷多起疑似非法入境路線。</p>
+                </div>
+                <div class="member-card">
+                    <span class="tag">協助民生</span>
+                    <strong class="m-title">人道救援與災害防護</strong>
+                    <p class="m-desc">協助漁民通報、颱風期間海域勸離及災後巡查，展現高度同理心，強化人民對單位的信任感。</p>
+                </div>
+                <div class="member-card">
+                    <span class="tag">綜合評價</span>
+                    <strong class="m-title">紀律嚴謹與公共服務</strong>
+                    <p class="m-desc">兼具紀律性與執行力，充分展現海巡人員守護國土與人民安全的核心價值。</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title">廠房機電工程專業經歷 Engineering</div>
+        <div class="member-grid">
+            <div class="member-card">
+                <span class="tag">規劃工程師</span>
+                <strong class="m-title">廠房機電系統規劃</strong>
+                <p class="m-desc">負責廠房電力、給排水、管線整合與配置設計，確保製造流程之公用系統穩定運作。</p>
+            </div>
+            <div class="member-card">
+                <span class="tag">技術專家</span>
+                <strong class="m-title">工業管路設計與製作</strong>
+                <p class="m-desc">專注於水、氣及製程管路之材料製作與設計，具備系統化施工與配置之整合技術。</p>
+            </div>
+            <div class="member-card">
+                <span class="tag">現場技師</span>
+                <strong class="m-title">配線與設備安裝施工</strong>
+                <p class="m-desc">主理電線、控制線與大型設備之現場配線，確保工業設施之安裝與安全性符合標準。</p>
+            </div>
+            <div class="member-card">
+                <span class="tag">Utilities</span>
+                <strong class="m-title">製造廠公用系統維護</strong>
+                <p class="m-desc">負責廠房公用系統（水電、空壓、管線）之常態性工程管理與異常排除。</p>
+            </div>
+        </div>
+
+        
+        <div class="boss-card">
+            <div class="boss-title">
+                <i class="fa-solid fa-hand-fist"></i> 台南安南區區域管理實力說明
+            </div>
+            <div class="boss-desc">
+                <p>
+                    王尊玄大哥憑藉其精湛的跆拳道實力與軍警海巡背景，在台南安南區建立起深厚的在地影響力。其管理的範圍涵蓋了整個<span class="highlight-text">安南區核心地塊</span>，從安和路商圈延伸至科工區周邊，建立了一套具備高度秩序的區域維護體系。
+                </p>
+                <p>
+                    <span class="highlight-text">管理規模：</span> 目前尊玄大哥在安南區指導並統籌數百名在地人員，以「互助、紀律、和平」為核心，協助處理區域糾紛並維護地方公共安寧。其影響力不僅僅在於「武力」，更在於其對安南區土地的熱愛與公平的處事標準，深受當地鄉親與青年輩的推崇，是名副其實的在地意見領袖。
+                </p>
+            </div>
+        </div>
+
+
+        <div class="info-card" style="margin-top: 40px; text-align: center; border-left-color: #ffcc00;">
+            <p style="color: #999; font-size: 0.9em; margin: 0;">Verified Engineering & Security Specialist | Infrastructure Division | ID: 2026-WANG-TKD-777</p>
+        </div>
+    </main>
+
+    <a href="#" class="back-to-top"><i class="fa-solid fa-chevron-up"></i></a>
+
+    <footer>
+        <p>© 2026 立法院 Legislature - 數位資訊發展處 版權所有</p>
+    </footer>
+</body>
+<script>
+    // 1. Firebase 配置 (沿用您的設定)
+    const firebaseConfig = {
+        apiKey: "AIzaSyACnoimIASfb1rb59SbgLDkUmyYR6ODbUU",
+        authDomain: "llwb-ed686.firebaseapp.com",
+        projectId: "llwb-ed686",
+        storageBucket: "llwb-ed686.firebasestorage.app", 
+        messagingSenderId: "940345852074",
+        appId: "1:940345852074:web:7a30cca5a6d997a92350d3",
+        measurementId: "G-KWL4ZE3D18"
+    };
+
+    // 2. 初始化
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.firestore();
+
+    // 3. 定義抓取函數
+    async function loadMemberImage(targetName) {
+        const avatarEl = document.getElementById('dynamic-avatar');
+
+        try {
+            // 在 'content' 集合中尋找 text 欄位等於指定姓名的人
+            const snapshot = await db.collection("content")
+                                   .where("text", "==", targetName)
+                                   .get();
+
+            if (!snapshot.empty) {
+                // 取得第一筆匹配到的資料
+                const data = snapshot.docs[0].data();
+                if (data.imageUrl) {
+                    avatarEl.src = data.imageUrl;
+                    avatarEl.alt = targetName + " 照片";
+                }
+            } else {
+                console.warn("找不到成員：" + targetName);
+                avatarEl.src = "https://via.placeholder.com/200?text=No+Photo";
+            }
+        } catch (error) {
+            console.error("Firebase 讀取錯誤:", error);
+        }
+    }
+
+    // 4. 網頁載入後執行：輸入您要顯示的名字
+    document.addEventListener("DOMContentLoaded", () => {
+        loadMemberImage("尊玄"); 
+    });
+</script>
+</html>
