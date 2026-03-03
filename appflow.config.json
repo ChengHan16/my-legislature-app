@@ -1,14 +1,10 @@
 {
-  "apps": [
-    {
-      "appId": "1cbfeba1",
-      "root": "./",
-      "ios": {
-        "root": "ios/App"
-      },
-      "android": {
-        "root": "android"
-      }
-    }
-  ]
+  "appId": "1cbfeba1",
+  "root": "./",
+  "ios": {
+    "root": "ios/App"
+  },
+  "android": {
+    "root": "android"
+  }
 }
