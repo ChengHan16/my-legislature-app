@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>對話視窗 - 行政通訊系統</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --ly-blue: #003153; 
+            --ly-blue-trans: rgba(0, 49, 83, 0.85); /* 半透明主藍 */
+            --ly-gold: #cfa900; /* 亮金色 */
+            --bg-gray: #f2f4f7;
+            --white: #ffffff;
+            --border-color: #dee2e6;
+            --container-width: 790px; /* 縮小網頁版框度至 750px */
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        html, body {
+            margin: 0; padding: 0;
+            height: 100dvh !important;
+            width: 100vw !important;
+            overflow: hidden; 
+            background-color: var(--bg-gray);
+            font-family: "Noto Sans TC", sans-serif;
+        }
+
+        body { 
+            display: flex; 
+            flex-direction: column; 
+            position: fixed; 
+            top: 0; left: 0; 
+            color: #333;
+        }
+
+        /* 1. 頂部導覽列 (與模板一致) */
+        .messenger-header {
+            background: var(--ly-blue-trans); 
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            position: sticky; 
+            top: 0; 
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            flex: 0 0 auto !important; /* 強制橫幅不參與 flex 壓縮 */
+            box-sizing: border-box !important;
+        }
+
+        .header-content {
+            height: 89px;
+            max-width: var(--container-width);
+            margin: 0 auto;
+            padding: 15px 20px;
+            display: flex; 
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .user-profile { display: flex; align-items: center; }
+
+        .back-btn {
+            background: none; border: none; margin-right: 15px; 
+            cursor: pointer; color: var(--ly-gold); font-size: 1.4rem;
+            transition: 0.3s;
+            display: flex; align-items: center;
+        }
+
+        .user-avatar { 
+            width: 58.43px; height: 58.43px;
+            border-radius: 50%; object-fit: cover; 
+            margin-right: 15px; 
+            border: 2px solid var(--ly-gold);
+            background: #fff;
+            flex-shrink: 0;
+        }
+
+        .user-name { 
+            font-weight: 800; 
+            font-size: 1.35rem;
+            color: white; 
+            letter-spacing: 1px;
+        }
+
+        /* 2. 訊息滾動區域 (置中優化) */
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            background: var(--bg-gray);
+            -webkit-overflow-scrolling: touch;
+            max-width: var(--container-width); /* 置中關鍵：設定最大寬度 */
+            margin: 0 auto; /* 置中關鍵：左右自動外距 */
+            width: 100%;
+        }
+
+        /* 訊息包裝容器 */
+        .msg-wrapper { display: flex; flex-direction: column; width: 100%; margin-bottom: 4px; }
+        .msg-wrapper.mine { align-items: flex-end; }
+        .msg-wrapper.theirs { align-items: flex-start; }
+
+        .msg-row { display: flex; align-items: flex-end; gap: 10px; width: 100%; }
+        .msg-row.mine { justify-content: flex-end; }
+        .msg-row.theirs { justify-content: flex-start; }
+
+        .msg-avatar {
+            width: 35px; height: 35px; border-radius: 50%;
+            flex-shrink: 0; border: 1px solid #ddd;
+            object-fit: cover; background: #fff;
+        }
+
+        .msg {
+            max-width: 75%; padding: 12px 16px; font-size: 15px;
+            line-height: 1.5; word-wrap: break-word;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-radius: 18px;
+        }
+
+        .msg.mine {
+            background: var(--ly-blue); color: var(--white);
+            border-radius: 18px 18px 4px 18px; border-right: 3px solid var(--ly-gold);
+        }
+
+        .msg.theirs {
+            background: var(--white); color: #333;
+            border-radius: 18px 18px 18px 4px; border: 1px solid #dee2e6;
+        }
+
+        .time-divider {
+            align-self: center; font-size: 0.75rem; color: #888;
+            margin: 20px 0 10px 0; background: rgba(0,0,0,0.05);
+            padding: 4px 14px; border-radius: 20px; font-weight: 500;
+        }
+
+        .read-status { font-size: 0.7rem; color: #999; margin-top: 3px; padding-right: 5px; height: 14px; }
+
+        /* 3. 底部輸入區域 (置中優化) */
+        .input-area {
+            flex-shrink: 0;
+            background: var(--white);
+            padding: 12px 15px;
+            padding-bottom: calc(12px + env(safe-area-inset-bottom));
+            display: flex;
+            justify-content: center; /* 置中輸入框內容 */
+            border-top: 1px solid #e9ecef;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.03);
+            width: 100%;
+        }
+
+        .input-container {
+            max-width: var(--container-width); /* 同步 750px 寬度 */
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        #msgInput {
+            flex: 1; height: 44px; padding: 0 18px; border: 1.5px solid #eee;
+            border-radius: 25px; outline: none; font-size: 16px; background: #f8f9fa;
+            transition: border-color 0.3s;
+        }
+        #msgInput:focus { border-color: var(--ly-gold); background: #fff; }
+
+        .send-btn {
+            background: var(--ly-blue); color: var(--white); border: none;
+            width: 44px; height: 44px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: 0.3s; box-shadow: 0 4px 10px rgba(0, 49, 83, 0.2);
+        }
+        .send-btn:hover { background: #004675; transform: scale(1.05); }
+        .send-btn i { color: var(--ly-gold); font-size: 1.1rem; }
+
+        @media (max-width: 750px) {
+            .user-name { font-size: 1.2rem; }
+            .msg { max-width: 82%; }
+        }
+    </style>
+</head>
+<body>
+
+<header class="messenger-header">
+    <div class="header-content">
+        <div class="user-profile">
+            <button class="back-btn" onclick="location.href='Messenger.html'">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <img id="targetAvatar" class="user-avatar" src="https://via.placeholder.com/55">
+            <span id="chatTitle" class="user-name">載入中...</span>
+        </div>
+    </div>
+</header>
+
+<div class="messages" id="messageList"></div>
+
+<div class="input-area">
+    <div class="input-container"> <input type="text" id="msgInput" placeholder="請輸入訊息..." autocomplete="off">
+        <button class="send-btn" onclick="sendMessage()">
+            <i class="fas fa-paper-plane"></i>
+        </button>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+
+<script>
+    function formatChatDate(timestamp) {
+        if (!timestamp) return "";
+        const date = timestamp.toDate();
+        const now = new Date();
+        const isSameDay = date.toDateString() === now.toDateString();
+        
+        if (isSameDay) {
+            return date.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: true });
+        } else {
+            return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+        }
+    }
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyACnoimIASfb1rb59SbgLDkUmyYR6ODbUU",
+        authDomain: "llwb-ed686.firebaseapp.com",
+        projectId: "llwb-ed686",
+        storageBucket: "llwb-ed686.firebasestorage.app",
+        messagingSenderId: "940345852074",
+        appId: "1:940345852074:web:7a30cca5a6d997a92350d3"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+    const urlParams = new URLSearchParams(window.location.search);
+    const chatId = urlParams.get('id');
+
+    let messagesSnapshot = null;
+let opponentInChat = false; 
+let opponentReadTime = new Date(0);
+
+auth.onAuthStateChanged(async (user) => {
+    if (!user) return window.location.href = "login.html";
+
+    const chatRef = db.collection("chats").doc(chatId);
+
+    // --- 在線狀態監聽 (Focus/Blur) ---
+    // --- 修改後的在線與已讀狀態監聽 ---
+const updateMyStatus = (isInChat) => {
+    const updateData = {
+        [`presence.${user.uid}`]: isInChat
+    };
+    
+    // 如果使用者在對話中 (Focus)，同時更新最後讀取時間
+    if (isInChat) {
+        updateData[`lastReadAt.${user.uid}`] = firebase.firestore.FieldValue.serverTimestamp();
+    }
+    
+    chatRef.update(updateData);
+};
+
+// 監聽視窗聚焦與模糊
+window.addEventListener('focus', () => updateMyStatus(true));
+window.addEventListener('blur', () => updateMyStatus(false));
+
+// 初始進入網頁時執行一次
+if (document.hasFocus()) {
+    updateMyStatus(true);
+} else {
+    updateMyStatus(false);
+}
+
+    // --- 監聽主文件 (同步對方的在線與已讀狀態) ---
+    chatRef.onSnapshot(doc => {
+        if (doc.exists) {
+            const data = doc.data();
+            const targetUid = data.members.find(uid => uid !== user.uid);
+            
+            opponentInChat = data.presence ? data.presence[targetUid] : false;
+            if (data.lastReadAt && data.lastReadAt[targetUid]) {
+                opponentReadTime = data.lastReadAt[targetUid].toDate();
+            }
+
+            db.collection("act").doc(targetUid).get().then(uDoc => {
+                if (uDoc.exists) {
+                    document.getElementById('chatTitle').innerText = uDoc.data().displayName;
+                    document.getElementById('targetAvatar').src = uDoc.data().photoURL || targetPhotoURL;
+                }
+                renderChatUI(user.uid); // 當對方狀態變動，立即重繪
+            });
+        }
+    });
+
+    // --- 監聽訊息內容 (修正後的版本) ---
+    chatRef.collection("messages").orderBy("timestamp", "asc").onSnapshot(snapshot => {
+        messagesSnapshot = snapshot;
+        
+        // [核心邏輯]：如果新訊息進來時我正在對話中，立刻更新我的讀取時間
+        // 使用 user.uid 確保變數穩定，並檢查 document.hasFocus()
+        if (user && document.hasFocus()) {
+            chatRef.update({
+                [`lastReadAt.${user.uid}`]: firebase.firestore.FieldValue.serverTimestamp()
+            }).catch(err => console.error("自動更新已讀失敗:", err));
+        }
+        
+        // 渲染 UI
+        if (user) {
+            renderChatUI(user.uid);
+        }
+    }, error => {
+        console.error("監聽訊息失敗:", error);
+    });
+
+    });
+    
+
+function renderChatUI(currentUid) {
+    if (!messagesSnapshot) return;
+    const list = document.getElementById('messageList');
+    list.innerHTML = "";
+    let lastTime = null;
+    const docs = messagesSnapshot.docs;
+
+    // --- 關鍵步驟：先找出對方讀過的「最後一則」屬於使用者的訊息索引 ---
+    let lastReadIndex = -1;
+    for (let i = docs.length - 1; i >= 0; i--) {
+        const msg = docs[i].data();
+        const msgTime = msg.timestamp ? msg.timestamp.toDate() : new Date();
+        // 如果是我發的，且發送時間早於對方最後讀取時間
+        if (msg.senderId === currentUid && msgTime <= opponentReadTime) {
+            lastReadIndex = i;
+            break; // 找到最新的一則就跳出
+        }
+    }
+
+    docs.forEach((msgDoc, i) => {
+        const msg = msgDoc.data();
+        const isMine = msg.senderId === currentUid;
+        const msgTime = msg.timestamp ? msg.timestamp.toDate() : new Date();
+
+        // 智慧時間戳 (超過30分鐘才顯示)
+        if (!lastTime || (msgTime - lastTime > 30 * 60 * 1000)) {
+            const timeDiv = document.createElement('div');
+            timeDiv.className = 'time-divider';
+            timeDiv.innerText = formatChatDate(msg.timestamp);
+            list.appendChild(timeDiv);
+        }
+        lastTime = msgTime;
+
+        const nextMsg = docs[i + 1] ? docs[i + 1].data() : null;
+        const isLastInSequence = !nextMsg || nextMsg.senderId !== msg.senderId;
+
+        const wrapper = document.createElement('div');
+        wrapper.className = `msg-wrapper ${isMine ? 'mine' : 'theirs'} ${isLastInSequence ? 'last-in-group' : ''}`;
+
+        // 建立氣泡行
+        let html = `<div class="msg-row ${isMine ? 'mine' : 'theirs'}">`;
+        if (!isMine) {
+            const avatarVisibility = isLastInSequence ? 'visible' : 'hidden';
+            html += `<img src="${document.getElementById('targetAvatar').src}" class="msg-avatar" style="visibility: ${avatarVisibility}">`;
+        }
+        html += `<div class="msg ${isMine ? 'mine' : 'theirs'}">${msg.text}</div></div>`;
+
+        // --- 已讀顯示邏輯修正 ---
+        // 1. 索引必須是剛剛找到的最後一則已讀訊息 (i === lastReadIndex)
+        // 2. 如果對方不在對話框內 (opponentInChat === false)，文字依然保留
+        if (i === lastReadIndex) {
+            html += `<div class="read-status">已讀</div>`;
+        }
+
+        wrapper.innerHTML = html;
+        list.appendChild(wrapper);
+    });
+    list.scrollTop = list.scrollHeight;
+}
+
+// --- D. 渲染函式 ---
+function renderMessages(currentUid) {
+    if (!messagesSnapshot) return;
+    const list = document.getElementById('messageList');
+    list.innerHTML = "";
+    const docs = messagesSnapshot.docs;
+
+    docs.forEach((msgDoc, i) => {
+        const msg = msgDoc.data();
+        const isMine = msg.senderId === currentUid;
+        const msgTime = msg.timestamp ? msg.timestamp.toDate() : new Date();
+
+        const wrapper = document.createElement('div');
+        wrapper.className = `msg-wrapper ${isMine ? 'mine' : 'theirs'}`;
+
+        let html = `<div class="msg-row ${isMine ? 'mine' : 'theirs'}">`;
+        if (!isMine) {
+            html += `<img src="${document.getElementById('targetAvatar').src}" class="msg-avatar">`;
+        }
+        html += `<div class="msg ${isMine ? 'mine' : 'theirs'}">${msg.text}</div></div>`;
+
+        // 已讀顯示邏輯：
+        // 1. 是我發的訊息 
+        // 2. 對方正在對話中 (opponentInChat == true)
+        // 3. 這則訊息的時間早於或等於對方的最後讀取時間
+        if (isMine && opponentInChat && msgTime <= opponentReadTime) {
+            html += `<div class="read-status">已讀</div>`;
+        }
+
+        wrapper.innerHTML = html;
+        list.appendChild(wrapper);
+    });
+    list.scrollTop = list.scrollHeight;
+}
+
+    async function sendMessage() {
+    const input = document.getElementById('msgInput');
+    const text = input.value.trim();
+    if (!text || !chatId) return;
+
+    const user = auth.currentUser;
+    input.value = ""; 
+
+    try {
+        const batch = db.batch();
+        const chatRef = db.collection("chats").doc(chatId);
+        const msgRef = chatRef.collection("messages").doc();
+        
+        batch.set(msgRef, {
+            text: text,
+            senderId: user.uid,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        // [關鍵修正]：發信時同步更新 lastReadAt，讓系統知道這則訊息發出的瞬間我已經讀過了
+        batch.update(chatRef, {
+            lastMessage: text,
+            lastSenderId: user.uid,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            [`lastReadAt.${user.uid}`]: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        await batch.commit();
+        // 發信後不需要手動呼叫 render，onSnapshot 會自動處理
+    } catch (error) {
+        console.error("發送失敗:", error);
+    }
+}
+
+    document.getElementById('msgInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendMessage();
+    });
+
+    document.getElementById('messageList').addEventListener('click', () => {
+        document.getElementById('msgInput').blur();
+    });
+</script>
+</body>
+</html>

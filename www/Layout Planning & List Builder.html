@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>全能佈局與清單生成器 V9</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #4F46E5; 
+            --primary-dark: #4338ca;
+            --bg: #F3F4F6;
+            --panel-bg: #FFFFFF;
+            --text: #1F2937;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg); color: var(--text);
+            margin: 0; padding: 0; display: flex; height: 100vh; overflow: hidden;
+            flex-direction: row;
+        }
+
+        /* 左側控制面板 */
+        .controls {
+            width: 380px; background: var(--panel-bg); display: flex; flex-direction: column;
+            border-right: 1px solid #e5e7eb; z-index: 20; box-sizing: border-box; flex-shrink: 0;
+        }
+        .controls-content {
+            padding: 20px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; flex: 1;
+        }
+
+        /* 手機版拖曳條 */
+        .drag-handle-container {
+            display: none; width: 100%; padding: 12px 0 8px 0; background: var(--panel-bg);
+            cursor: grab; align-items: center; justify-content: center;
+            border-radius: 20px 20px 0 0; touch-action: none;
+        }
+        .drag-handle { width: 45px; height: 5px; background: #cbd5e1; border-radius: 4px; }
+
+        /* 右側預覽區 */
+        .preview-container {
+            flex: 1; background: #e5e5e5; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; padding: 20px; position: relative; min-height: 0;
+        }
+
+        h2 { margin: 0 0 5px 0; font-size: 1.1rem; border-bottom: 2px solid var(--bg); padding-bottom: 8px; color: var(--primary); }
+        .form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 5px; }
+        label { font-size: 0.9rem; font-weight: 600; color: #374151; }
+        
+        input, select, textarea, button { padding: 8px 10px; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 0.95rem; outline: none; font-family: inherit;}
+        input:focus, select:focus, textarea:focus { border-color: var(--primary); }
+        textarea { resize: vertical; min-height: 70px; }
+
+        button { background-color: var(--primary); color: white; border: none; cursor: pointer; font-weight: bold; transition: all 0.2s; }
+        button:hover { background-color: var(--primary-dark); }
+        button:disabled { background-color: #9CA3AF; cursor: not-allowed; }
+        button.secondary { background-color: #6B7280; }
+        button.danger { background-color: #EF4444; }
+        button.action-btn { padding: 4px 8px; font-size: 0.8rem; margin-left: 5px; border-radius: 4px;}
+        button.translate-btn { background-color: #3B82F6; padding: 8px; flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px;}
+        button.translate-btn:hover { background-color: #2563EB; }
+
+        .item-list-container { 
+            flex: 1; min-height: 140px; overflow-y: auto; border: 1px solid #D1D5DB; 
+            background-color: #F9FAFB; border-radius: 8px; padding: 8px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); 
+        }
+        .item-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
+        .item-row {
+            display: flex; justify-content: space-between; align-items: center;
+            background: #FFFFFF; padding: 8px; border-radius: 6px; 
+            border-left: 4px solid var(--primary); box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .item-info { display: flex; flex-direction: column; }
+        .item-name { font-weight: bold; font-size: 0.95rem;}
+        .item-note { font-size: 0.8rem; color: #6B7280; margin-top: 2px;}
+        
+        .add-row { display: flex; gap: 8px; }
+        .add-row input[type="number"] { width: 70px; }
+
+        canvas {
+            max-width: 100%; max-height: 100%; object-fit: contain; width: auto; height: auto;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); background: white; transition: all 0.1s;
+        }
+
+        .mode-selector { background: #EEF2FF; padding: 10px; border-radius: 8px; border: 1px solid #C7D2FE; margin-bottom: 5px; }
+
+        /* 返回按鈕：已修正為跟隨在 controls-content 內部排版 */
+        #close-btn {
+            background: #EF4444; color: white; border: none; padding: 12px 15px; 
+            border-radius: 8px; font-weight: bold; display: flex;
+            align-items: center; justify-content: center; gap: 8px; font-size: 1rem; width: 100%;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: background 0.2s;
+            margin-bottom: 15px; cursor: pointer;
+        }
+        #close-btn:hover { background: #DC2626; }
+
+        /* 手機版 RWD 樣式 */
+        @media (max-width: 768px) {
+            body { flex-direction: column; } 
+            
+            .controls {
+                position: fixed; bottom: 0; left: 0; width: 100%; height: 55vh; border-right: none;
+                border-radius: 20px 20px 0 0; box-shadow: 0 -4px 15px rgba(0,0,0,0.15); z-index: 10;
+            }
+            .controls-content { padding: 10px 20px 20px 20px; }
+            .drag-handle-container { display: flex; }
+            
+            /* 手機版：將預覽區固定在畫面上方，並移除多餘的 padding，確保空間最大化 */
+            .preview-container { 
+                position: fixed; top: 0; left: 0; width: 100%; height: 45vh; 
+                padding: 15px; 
+                background: #2a2a2a; box-sizing: border-box; z-index: 1;
+                display: flex; justify-content: center; align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="controls" id="controlsPanel">
+        <div class="drag-handle-container" id="dragHandle"><div class="drag-handle"></div></div>
+
+        <div class="controls-content">
+            
+            <button id="close-btn" onclick="closeOverlay()">
+                <i class="fa-solid fa-arrow-left"></i> 返回系統儀表板
+            </button>
+
+            <div class="form-group mode-selector" style="background: #E0F2FE; border-color: #BAE6FD;">
+                <label style="color: #0284C7; font-size: 0.85rem;">切換核心功能模組</label>
+                <select id="mainAppMode" onchange="toggleMainApp()" style="border-color: #38BDF8; font-weight: bold; font-size: 1rem; color: #0369A1;">
+                    <option value="layout">📦 物品放置平面圖產生器</option>
+                    <option value="checklist">📝 清單與標語檢查表產生器</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="flex-direction: row; gap: 8px;">
+                <button id="btnZhToJa" class="translate-btn" onclick="translateAll('zh-TW|ja')">🇹🇼 轉日文</button>
+                <button id="btnJaToZh" class="translate-btn" onclick="translateAll('ja|zh-TW')">🇯🇵 轉繁中</button>
+            </div>
+
+            <div id="layoutControlsSection">
+                <h2 style="margin-top: 5px;">📦 物品層級設定</h2>
+                <div class="form-group">
+                    <input type="text" id="layoutItemName" placeholder="物品名稱 (必填，如：收納箱)">
+                    <input type="text" id="layoutItemNote" placeholder="提醒/內容物 (選填，如：換季衣物)">
+                    <div class="add-row">
+                        <input type="number" id="layoutItemLevel" value="1" min="1" max="10" placeholder="空間層級">
+                        <button id="layoutAddBtn" onclick="handleLayoutSubmit()" style="flex:1;">新增物品</button>
+                        <button id="layoutCancelBtn" onclick="resetLayoutInput()" class="secondary" style="display:none;">取消</button>
+                    </div>
+                </div>
+                <div class="item-list-container">
+                    <ul class="item-list" id="layoutItemList"></ul>
+                </div>
+            </div>
+
+            <div id="checklistControlsSection" style="display:none;">
+                <h2 style="margin-top: 5px;">📝 清單與標語設定</h2>
+                
+                <div class="form-group mode-selector" style="background: #F3F4F6; border-color: #D1D5DB; padding: 8px;">
+                    <label style="font-size: 0.85rem;">✨ 排版模式</label>
+                    <select id="checklistMode" onchange="toggleChecklistMode()" style="font-weight: bold;">
+                        <option value="list">📝 多項清單模式</option>
+                        <option value="single">🛑 單一標語模式 (大字置中)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label id="checklistTitleLabel">主要標題</label>
+                    <input type="text" id="checklistMainTitle" value="注意!!" oninput="drawPreview()">
+                </div>
+
+                <div id="checklistSingleInputs" style="display: none; margin-top: 5px;">
+                    <div class="form-group">
+                        <label>標語內容 (可換行)</label>
+                        <textarea id="checklistSingleMessage" oninput="drawPreview()">出門記得鎖上門。</textarea>
+                    </div>
+                </div>
+
+                <div id="checklistListInputs" style="margin-top: 5px;">
+                    <div class="form-group">
+                        <label>新增檢查項目</label>
+                        <input type="text" id="checklistItemName" placeholder="主項目 (例：錢包)">
+                        <input type="text" id="checklistItemNote" placeholder="補充內容 (例：請檢查卡片)">
+                        <div class="add-row">
+                            <button id="checklistAddBtn" onclick="handleChecklistSubmit()" style="flex:1;">加入清單</button>
+                            <button id="checklistCancelBtn" onclick="resetChecklistInput()" class="secondary" style="display:none;">取消</button>
+                        </div>
+                    </div>
+                    <div class="item-list-container" style="min-height: 100px;">
+                        <ul class="item-list" id="checklistItemList"></ul>
+                    </div>
+                </div>
+            </div>
+
+            <h2 style="margin-top: 10px;">🎨 輸出與風格設定</h2>
+            <div class="form-group">
+                <select id="paperSize" onchange="drawPreview()">
+                    <option value="A1">A1 (594 × 841 mm)</option>
+                    <option value="A2">A2 (420 × 594 mm)</option>
+                    <option value="A3">A3 (297 × 420 mm)</option>
+                    <option value="A4" selected>A4 (210 × 297 mm)</option>
+                    <option value="A5">A5 (148 × 210 mm)</option>
+                    <option value="B1">B1 (707 × 1000 mm)</option>
+                    <option value="B2">B2 (500 × 707 mm)</option>
+                    <option value="B3">B3 (353 × 500 mm)</option>
+                    <option value="B4">B4 (250 × 353 mm)</option>
+                    <option value="B5">B5 (176 × 250 mm)</option>
+                </select>
+                <select id="orientation" onchange="drawPreview()">
+                    <option value="landscape">橫向佈局 (預設)</option>
+                    <option value="portrait">直向佈局</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <select id="style" onchange="drawPreview()">
+                    <option value="professional">1. 專業極簡 (◉ 經典黑白)</option>
+                    <option value="professional-pink">2. 專業粉色系 (✿ 莫蘭迪粉)</option>
+                    <option value="transparent-blue">3. 透明藍科技風 (◈ 玻璃擬態)</option>
+                    <option value="fancy">4. 設計顯眼風格 (● 馬卡龍色)</option>
+                    <option value="luxury">5. 華麗奢華風格 (◆ 黑金質感)</option>
+                    <option value="kawaii">6. 日系可愛 (♥ 粉彩柔和)</option>
+                    <option value="blueprint">7. 工程藍圖 (☐ 藍底白線)</option>
+                    <option value="cyberpunk">8. 賽博龐克 (> 霓虹科技)</option>
+                    <option value="nature">9. 自然無印 (✦ 大地色系)</option>
+                    <option value="retro">10. 復古電玩 (■ 8-bit 色彩)</option>
+                    <option value="autocad-dark">11. AutoCAD 深色經典</option>
+                    <option value="autocad-light">12. AutoCAD 淺色輔助</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <select id="format">
+                    <option value="svg">SVG (真正向量圖，無限放大)</option>
+                    <option value="image/jpeg">JPEG (300 DPI 印刷級高畫質)</option>
+                    <option value="image/png">PNG (300 DPI 透明無損)</option>
+                </select>
+            </div>
+            
+            <button onclick="downloadImage()" style="background-color: #10B981; margin-top: 5px; padding: 12px; font-size: 1.05rem;">📥 下載圖表</button>
+            <div style="height: 30px;"></div>
+        </div>
+    </div>
+
+    <div class="preview-container" id="previewContainer">
+        <canvas id="previewCanvas"></canvas>
+    </div>
+
+    <script>
+        // --- 狀態管理 ---
+        let layoutItems = [
+            { id: 1, name: "主機", note: "含電源線與網卡", level: 1 },
+            { id: 2, name: "文件夾", note: "2023-2024財報", level: 2 },
+            { id: 3, name: "螢幕", note: "HDMI線收於後方", level: 2 },
+            { id: 4, name: "鍵盤滑鼠", note: "", level: 3 }
+        ];
+        let checklistItems = [
+            { id: 1, name: "鑰匙", note: "" },
+            { id: 2, name: "錢包", note: "請檢查：卡片、身分證" },
+            { id: 3, name: "手機", note: "確認電量超過 80%" }
+        ];
+        
+        let editingLayoutId = null;
+        let editingChecklistId = null;
+
+        const sizes = { A1: {w: 7016, h: 9933}, A2: {w: 4960, h: 7016}, A3: {w: 3508, h: 4960}, A4: {w: 2480, h: 3508}, A5: {w: 1748, h: 2480}, B1: {w: 8350, h: 11811}, B2: {w: 5906, h: 8350}, B3: {w: 4169, h: 5906}, B4: {w: 2953, h: 4169}, B5: {w: 2079, h: 2953} };
+        const fancyColors = ['#FFE4E1', '#E0FFFF', '#F0FFF0', '#FFFACD', '#E6E6FA', '#FFEBCD'];
+        const natureColors = ['#E5E3D2', '#D4DAC9', '#D9CDA6', '#C2C9B8', '#EAE6D9'];
+        const kawaiiColors = ['#FFD1DC', '#BFE6FF', '#FFF8B0', '#CFFFC4', '#E6D3FF'];
+        const retroColors = ['#FF4136', '#0074D9', '#2ECC40', '#FFDC00', '#B10DC9'];
+        const cyberColors = ['#FF003C', '#00F0FF', '#7000FF', '#00FF00', '#FF00EA'];
+
+        // --- UI 切換邏輯 ---
+        function toggleMainApp() {
+            const app = document.getElementById('mainAppMode').value;
+            const root = document.documentElement;
+            
+            if (app === 'layout') {
+                document.getElementById('layoutControlsSection').style.display = 'block';
+                document.getElementById('checklistControlsSection').style.display = 'none';
+                root.style.setProperty('--primary', '#4F46E5');
+                root.style.setProperty('--primary-dark', '#4338ca');
+            } else {
+                document.getElementById('layoutControlsSection').style.display = 'none';
+                document.getElementById('checklistControlsSection').style.display = 'block';
+                root.style.setProperty('--primary', '#059669');
+                root.style.setProperty('--primary-dark', '#047857');
+            }
+            drawPreview();
+        }
+
+        function toggleChecklistMode() {
+            const mode = document.getElementById('checklistMode').value;
+            if (mode === 'single') {
+                document.getElementById('checklistListInputs').style.display = 'none';
+                document.getElementById('checklistSingleInputs').style.display = 'block';
+                document.getElementById('checklistTitleLabel').innerText = "主要標題 (如：注意!!)";
+            } else {
+                document.getElementById('checklistListInputs').style.display = 'block';
+                document.getElementById('checklistSingleInputs').style.display = 'none';
+                document.getElementById('checklistTitleLabel').innerText = "清單大標題";
+            }
+            drawPreview();
+        }
+
+        // --- 手機版拖曳與佈局連動邏輯 ---
+        const controlsPanel = document.getElementById('controlsPanel');
+        const dragHandle = document.getElementById('dragHandle');
+        let isDragging = false; let startY, startHeight;
+
+        dragHandle.addEventListener('touchstart', (e) => {
+            isDragging = true; startY = e.touches[0].clientY; startHeight = controlsPanel.getBoundingClientRect().height;
+        }, { passive: true });
+        
+        document.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            const deltaY = startY - e.touches[0].clientY; let newHeight = startHeight + deltaY;
+            const windowHeight = window.innerHeight;
+            
+            // 限制拖曳範圍在畫面 15% 到 85% 之間
+            if (newHeight < windowHeight * 0.15) newHeight = windowHeight * 0.15;
+            if (newHeight > windowHeight * 0.85) newHeight = windowHeight * 0.85;
+            
+            controlsPanel.style.height = `${newHeight}px`;
+            
+            // 手機版：拖拉抽屜時，上方預覽區高度自動動態變化，保證完全不被遮擋
+            if (window.innerWidth <= 768) {
+                document.getElementById('previewContainer').style.height = `${windowHeight - newHeight}px`;
+            }
+        }, { passive: true });
+        
+        document.addEventListener('touchend', () => { isDragging = false; });
+        
+        // 螢幕翻轉或視窗大小改變時重置
+        window.addEventListener('resize', () => { 
+            if (window.innerWidth > 768) { 
+                controlsPanel.style.height = ''; 
+                document.getElementById('previewContainer').style.height = ''; 
+            } else {
+                const currentDrawerHeight = controlsPanel.getBoundingClientRect().height;
+                document.getElementById('previewContainer').style.height = `${window.innerHeight - currentDrawerHeight}px`;
+            }
+            drawPreview(); 
+        });
+
+        // 頁面載入完成時觸發一次 resize 以防手機版初始高度異常
+        window.addEventListener('DOMContentLoaded', () => {
+            window.dispatchEvent(new Event('resize'));
+        });
+
+        // --- 雙語翻譯邏輯 ---
+        async function translateText(text, langpair) {
+            if (!text) return "";
+            try {
+                const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${langpair}`);
+                const data = await res.json();
+                return data.responseData.translatedText || text;
+            } catch (error) { return text; }
+        }
+
+        async function translateAll(direction) {
+            const btnId = direction === 'zh-TW|ja' ? 'btnZhToJa' : 'btnJaToZh';
+            const btn = document.getElementById(btnId);
+            const originalText = btn.innerText;
+            
+            btn.innerText = "⏳ 翻譯中...";
+            document.getElementById('btnZhToJa').disabled = true;
+            document.getElementById('btnJaToZh').disabled = true;
+
+            try {
+                const app = document.getElementById('mainAppMode').value;
+                if (app === 'layout') {
+                    for (let i = 0; i < layoutItems.length; i++) {
+                        if (layoutItems[i].name) layoutItems[i].name = await translateText(layoutItems[i].name, direction);
+                        if (layoutItems[i].note) layoutItems[i].note = await translateText(layoutItems[i].note, direction);
+                    }
+                    updateLayoutList();
+                } else {
+                    const mode = document.getElementById('checklistMode').value;
+                    const titleInput = document.getElementById('checklistMainTitle');
+                    if (titleInput.value) titleInput.value = await translateText(titleInput.value, direction);
+
+                    if (mode === 'single') {
+                        const msgInput = document.getElementById('checklistSingleMessage');
+                        if (msgInput.value) msgInput.value = await translateText(msgInput.value, direction);
+                        drawPreview();
+                    } else {
+                        for (let i = 0; i < checklistItems.length; i++) {
+                            if (checklistItems[i].name) checklistItems[i].name = await translateText(checklistItems[i].name, direction);
+                            if (checklistItems[i].note) checklistItems[i].note = await translateText(checklistItems[i].note, direction);
+                        }
+                        updateChecklistList();
+                    }
+                }
+            } catch (e) {
+                alert("翻譯發生錯誤，請檢查網路！");
+            } finally {
+                btn.innerText = originalText;
+                document.getElementById('btnZhToJa').disabled = false;
+                document.getElementById('btnJaToZh').disabled = false;
+            }
+        }
+
+        // ================= Layout (平面圖) CRUD =================
+        function handleLayoutSubmit() {
+            const name = document.getElementById('layoutItemName').value.trim();
+            const note = document.getElementById('layoutItemNote').value.trim();
+            const level = parseInt(document.getElementById('layoutItemLevel').value);
+            if (!name) return alert("請輸入物品名稱");
+
+            if (editingLayoutId) {
+                const index = layoutItems.findIndex(i => i.id === editingLayoutId);
+                if (index !== -1) { layoutItems[index].name = name; layoutItems[index].note = note; layoutItems[index].level = level; }
+                resetLayoutInput();
+            } else {
+                layoutItems.push({ id: Date.now(), name, note, level });
+                document.getElementById('layoutItemName').value = '';
+                document.getElementById('layoutItemNote').value = '';
+                setTimeout(() => { document.querySelector('#layoutControlsSection .item-list-container').scrollTop = 9999; }, 50);
+            }
+            updateLayoutList();
+        }
+
+        function editLayoutItem(id) {
+            const item = layoutItems.find(i => i.id === id);
+            if (!item) return;
+            document.getElementById('layoutItemName').value = item.name;
+            document.getElementById('layoutItemNote').value = item.note || '';
+            document.getElementById('layoutItemLevel').value = item.level;
+            editingLayoutId = id;
+            document.getElementById('layoutAddBtn').innerText = "更新物品";
+            document.getElementById('layoutAddBtn').style.backgroundColor = "#F59E0B";
+            document.getElementById('layoutCancelBtn').style.display = "inline-block";
+        }
+
+        function resetLayoutInput() {
+            editingLayoutId = null;
+            document.getElementById('layoutItemName').value = '';
+            document.getElementById('layoutItemNote').value = '';
+            document.getElementById('layoutItemLevel').value = '1';
+            document.getElementById('layoutAddBtn').innerText = "新增物品";
+            document.getElementById('layoutAddBtn').style.backgroundColor = "";
+            document.getElementById('layoutCancelBtn').style.display = "none";
+        }
+
+        function removeLayoutItem(id) {
+            if (confirm('確定要刪除嗎？')) {
+                layoutItems = layoutItems.filter(item => item.id !== id);
+                if (editingLayoutId === id) resetLayoutInput();
+                updateLayoutList();
+            }
+        }
+
+        function updateLayoutList() {
+            const list = document.getElementById('layoutItemList');
+            list.innerHTML = '';
+            layoutItems.forEach(item => {
+                const li = document.createElement('li'); li.className = 'item-row';
+                let noteHtml = item.note ? `<div class="item-note">📝 ${item.note}</div>` : '';
+                li.innerHTML = `
+                    <div class="item-info">
+                        <span class="item-name">${item.name}</span>${noteHtml}
+                        <span class="item-note" style="color:#9CA3AF;">層級: ${item.level}</span>
+                    </div>
+                    <div>
+                        <button class="action-btn secondary" onclick="editLayoutItem(${item.id})">修改</button>
+                        <button class="action-btn danger" onclick="removeLayoutItem(${item.id})">刪除</button>
+                    </div>`;
+                list.appendChild(li);
+            });
+            if (document.getElementById('mainAppMode').value === 'layout') drawPreview();
+        }
+
+        // ================= Checklist (清單) CRUD =================
+        function handleChecklistSubmit() {
+            const name = document.getElementById('checklistItemName').value.trim();
+            const note = document.getElementById('checklistItemNote').value.trim();
+            if (!name) return alert("請輸入項目名稱");
+
+            if (editingChecklistId) {
+                const index = checklistItems.findIndex(i => i.id === editingChecklistId);
+                if (index !== -1) { checklistItems[index].name = name; checklistItems[index].note = note; }
+                resetChecklistInput();
+            } else {
+                checklistItems.push({ id: Date.now(), name, note });
+                document.getElementById('checklistItemName').value = '';
+                document.getElementById('checklistItemNote').value = '';
+                setTimeout(() => { document.querySelector('#checklistControlsSection .item-list-container').scrollTop = 9999; }, 50);
+            }
+            updateChecklistList();
+        }
+
+        function editChecklistItem(id) {
+            const item = checklistItems.find(i => i.id === id);
+            if (!item) return;
+            document.getElementById('checklistItemName').value = item.name;
+            document.getElementById('checklistItemNote').value = item.note || '';
+            editingChecklistId = id;
+            document.getElementById('checklistAddBtn').innerText = "更新項目";
+            document.getElementById('checklistAddBtn').style.backgroundColor = "#F59E0B";
+            document.getElementById('checklistCancelBtn').style.display = "inline-block";
+        }
+
+        function resetChecklistInput() {
+            editingChecklistId = null;
+            document.getElementById('checklistItemName').value = '';
+            document.getElementById('checklistItemNote').value = '';
+            document.getElementById('checklistAddBtn').innerText = "加入清單";
+            document.getElementById('checklistAddBtn').style.backgroundColor = "";
+            document.getElementById('checklistCancelBtn').style.display = "none";
+        }
+
+        function removeChecklistItem(id) {
+            if (confirm('確定要刪除嗎？')) {
+                checklistItems = checklistItems.filter(item => item.id !== id);
+                if (editingChecklistId === id) resetChecklistInput();
+                updateChecklistList();
+            }
+        }
+
+        function updateChecklistList() {
+            const list = document.getElementById('checklistItemList');
+            list.innerHTML = '';
+            checklistItems.forEach(item => {
+                const li = document.createElement('li'); li.className = 'item-row';
+                let noteHtml = item.note ? `<div class="item-note">📝 ${item.note}</div>` : '';
+                li.innerHTML = `
+                    <div class="item-info">
+                        <span class="item-name">${item.name}</span>${noteHtml}
+                    </div>
+                    <div>
+                        <button class="action-btn secondary" onclick="editChecklistItem(${item.id})">修改</button>
+                        <button class="action-btn danger" onclick="removeChecklistItem(${item.id})">刪除</button>
+                    </div>`;
+                list.appendChild(li);
+            });
+            if (document.getElementById('mainAppMode').value === 'checklist' && document.getElementById('checklistMode').value === 'list') drawPreview();
+        }
+
+        // ================= Style Configs =================
+        function getLayoutStyleConfig(style, index, w) {
+            let conf = { bg:'#FFF', fill:'#FFF', stroke:'#000', sw:Math.max(w*0.003,1), nC:'#000', ntC:'#555', font:'"Segoe UI", sans-serif', dash:[] };
+            if (style === 'luxury') { conf.bg='#1a1a1a'; conf.fill='#222'; conf.nC='#FCF6BA'; conf.ntC='#BF953F'; conf.font='"Times New Roman", serif'; conf.sw=Math.max(w*0.006,2); }
+            else if (style === 'cyberpunk') { conf.bg='#050510'; conf.fill='#1a1a2e'; conf.stroke=cyberColors[index%cyberColors.length]; conf.nC='#FFF'; conf.ntC=conf.stroke; conf.sw=Math.max(w*0.004,2); }
+            else if (style === 'blueprint') { conf.bg='#0A369D'; conf.fill='rgba(255,255,255,0.05)'; conf.stroke='#FFF'; conf.nC='#FFF'; conf.ntC='#A0C4FF'; conf.font='"Courier New", monospace'; conf.dash=[w*0.01, w*0.01]; conf.sw=Math.max(w*0.002,1); }
+            else if (style === 'nature') { conf.bg='#F4F1EA'; conf.fill=natureColors[index%natureColors.length]; conf.stroke='#78716C'; conf.nC='#44403C'; conf.ntC='#78716C'; }
+            else if (style === 'retro') { conf.bg='#222'; conf.fill=retroColors[index%retroColors.length]; conf.stroke='#000'; conf.nC='#000'; conf.ntC='#FFF'; conf.font='"Courier New", monospace'; conf.sw=Math.max(w*0.008,4); }
+            else if (style === 'kawaii') { conf.bg='#FFF5F8'; conf.fill=kawaiiColors[index%kawaiiColors.length]; conf.stroke='#FF69B4'; conf.nC='#5C4033'; conf.ntC='#FF69B4'; conf.font='"Comic Sans MS", "Segoe UI", sans-serif'; conf.dash=[w*0.008, w*0.008]; conf.sw=Math.max(w*0.004,2); }
+            else if (style === 'autocad-dark') { conf.bg='#000'; conf.fill='rgba(0,255,0,0.05)'; conf.stroke='#0F0'; conf.nC='#FF0'; conf.ntC='#0F0'; conf.font='"Consolas", "Courier New", monospace'; conf.sw=Math.max(w*0.002,1); }
+            else if (style === 'autocad-light') { conf.bg='#F8F9FA'; conf.fill='#FFF'; conf.stroke='#0055A4'; conf.nC='#000'; conf.ntC='#0055A4'; conf.font='"Consolas", "Courier New", monospace'; conf.sw=Math.max(w*0.002,1); }
+            else if (style === 'professional-pink') { conf.bg='#FFF5F7'; conf.fill='#F8BBD0'; conf.stroke='#C2185B'; conf.nC='#880E4F'; conf.ntC='#D81B60'; }
+            else if (style === 'transparent-blue') { conf.bg='#F0F4F8'; conf.fill='rgba(0,120,215,0.15)'; conf.stroke='#0078D7'; conf.nC='#004085'; conf.ntC='#0056B3'; }
+            else if (style === 'fancy') { conf.bg='#FAFAFA'; conf.fill=fancyColors[index%fancyColors.length]; conf.stroke='#374151'; conf.nC='#111827'; conf.ntC='#4B5563'; conf.sw=Math.max(w*0.004,2); }
+            return conf;
+        }
+
+        function getChecklistStyleConfig(style, w) {
+            let conf = { bg:'#FFF', tC:'#000', iC:'#111827', ntC:'#6B7280', bullet:'◉', font:'"Segoe UI", Tahoma, sans-serif', bC:'#000', dC:'#E5E7EB' };
+            if (style === 'professional-pink') { conf.bg='#FFF5F7'; conf.tC='#880E4F'; conf.iC='#4A148C'; conf.ntC='#D81B60'; conf.bullet='✿'; conf.bC='#C2185B'; conf.dC='#F8BBD0'; }
+            else if (style === 'transparent-blue') { conf.bg='#F0F4F8'; conf.tC='#004085'; conf.iC='#003366'; conf.ntC='#0056B3'; conf.bullet='◈'; conf.bC='#0078D7'; conf.dC='#CCE5FF'; }
+            else if (style === 'luxury') { conf.bg='#1a1a1a'; conf.tC='#FCF6BA'; conf.iC='#FFF'; conf.ntC='#BF953F'; conf.bullet='◆'; conf.font='"Times New Roman", serif'; conf.bC='#BF953F'; conf.dC='#333'; }
+            else if (style === 'kawaii') { conf.bg='#FFF5F8'; conf.tC='#D81B60'; conf.iC='#5C4033'; conf.ntC='#FF69B4'; conf.bullet='♥'; conf.font='"Comic Sans MS", "Segoe UI", sans-serif'; conf.bC='#FF69B4'; conf.dC='#FBCFE8'; }
+            else if (style === 'blueprint') { conf.bg='#0A369D'; conf.tC='#FFF'; conf.iC='#FFF'; conf.ntC='#A0C4FF'; conf.bullet='☐'; conf.font='"Courier New", monospace'; conf.bC='#FFF'; conf.dC='rgba(255,255,255,0.3)'; }
+            else if (style === 'cyberpunk') { conf.bg='#050510'; conf.tC='#00F0FF'; conf.iC='#FFF'; conf.ntC='#FF00EA'; conf.bullet='>'; conf.font='"Segoe UI", Tahoma, sans-serif'; conf.bC='#0F0'; conf.dC='#1a1a2e'; }
+            else if (style === 'nature') { conf.bg='#F4F1EA'; conf.tC='#44403C'; conf.iC='#57534E'; conf.ntC='#78716C'; conf.bullet='✦'; conf.bC='#A8A29E'; conf.dC='#E7E5E4'; }
+            else if (style === 'retro') { conf.bg='#222'; conf.tC='#FFF'; conf.iC='#FFF'; conf.ntC='#A0A0A0'; conf.bullet='■'; conf.font='"Courier New", monospace'; conf.bC='#FF4136'; conf.dC='#FFDC00'; }
+            else if (style === 'fancy') { conf.bg='#FAFAFA'; conf.tC='#111827'; conf.iC='#111827'; conf.ntC='#4B5563'; conf.bullet='●'; conf.bC='#F472B6'; conf.dC='#D1D5DB'; }
+            else if (style === 'autocad-dark') { conf.bg='#000'; conf.tC='#0F0'; conf.iC='#FFF'; conf.ntC='#A0A0A0'; conf.bullet='+'; conf.font='"Consolas", "Courier New", monospace'; conf.bC='#FF00FF'; conf.dC='#0F0'; }
+            else if (style === 'autocad-light') { conf.bg='#F8F9FA'; conf.tC='#0055A4'; conf.iC='#000'; conf.ntC='#555'; conf.bullet='+'; conf.font='"Consolas", "Courier New", monospace'; conf.bC='#FF3333'; conf.dC='#0055A4'; }
+            return conf;
+        }
+
+        // ================= Core Math Logic =================
+        function sliceAndDiceLayout(x, y, width, height, itemsList) {
+            if (itemsList.length === 0) return [];
+            if (itemsList.length === 1) return [{ ...itemsList[0], x, y, w: width, h: height }];
+            const totalWeight = itemsList.reduce((sum, item) => sum + (100 / item.level), 0);
+            let firstHalf = [], secondHalf = [], currentWeight = 0;
+            for(let i = 0; i < itemsList.length; i++) {
+                if ((currentWeight < totalWeight / 2 && firstHalf.length < itemsList.length - 1) || firstHalf.length === 0) {
+                    firstHalf.push(itemsList[i]); currentWeight += (100 / itemsList[i].level);
+                } else { secondHalf.push(itemsList[i]); }
+            }
+            const ratio = currentWeight / totalWeight; let res = [];
+            if (width > height) {
+                const w1 = width * ratio;
+                res = res.concat(sliceAndDiceLayout(x, y, w1, height, firstHalf));
+                res = res.concat(sliceAndDiceLayout(x + w1, y, width - w1, height, secondHalf));
+            } else {
+                const h1 = height * ratio;
+                res = res.concat(sliceAndDiceLayout(x, y, width, h1, firstHalf));
+                res = res.concat(sliceAndDiceLayout(x, y + h1, width, height - h1, secondHalf));
+            }
+            return res;
+        }
+
+        function calcChecklistListLayout(w, h) {
+            const marginX = w * 0.1; const marginY = h * 0.08;
+            const usableW = w - marginX * 2; const usableH = h - marginY * 2;
+            let titleSize = usableW * 0.07; let itemSize = usableW * 0.04; let noteSize = itemSize * 0.7;
+            const titleGap = titleSize * 1.5; const itemGap = itemSize * 2.0; 
+            let totalNeededHeight = titleGap;
+            checklistItems.forEach(item => {
+                totalNeededHeight += itemGap;
+                if (item.note) totalNeededHeight += noteSize * 1.5;
+            });
+            let scale = totalNeededHeight > usableH ? usableH / totalNeededHeight : 1;
+            return { marginX, marginY, usableW, scale, titleSize: titleSize*scale, itemSize: itemSize*scale, noteSize: noteSize*scale, titleGap: titleGap*scale, itemGap: itemGap*scale };
+        }
+
+        function calcChecklistSingleLayout(w, h, title, messageLines) {
+            let maxLen = Math.max(...messageLines.map(l => l.length), 1);
+            let titleLen = title.length || 1;
+            let maxTitleFs = w * 0.15; let maxMsgFs = w * 0.08;
+            let titleFs = Math.min(maxTitleFs, (w * 0.8) / titleLen);
+            let msgFs = Math.min(maxMsgFs, (w * 0.9) / maxLen);
+            let titleGap = titleFs * 0.8; let msgGap = msgFs * 1.5;
+            let totalHeight = titleFs + titleGap + (messageLines.length * msgGap);
+            let scale = totalHeight > h * 0.8 ? (h * 0.8) / totalHeight : 1;
+            return { titleFs: titleFs*scale, msgFs: msgFs*scale, titleGap: titleGap*scale, msgGap: msgGap*scale, totalHeight: totalHeight*scale };
+        }
+
+        // ================= Rendering Logic =================
+        function drawPreview() {
+            const canvas = document.getElementById('previewCanvas');
+            const appMode = document.getElementById('mainAppMode').value;
+            const isLandscape = document.getElementById('orientation').value === 'landscape';
+            const sizeKey = document.getElementById('paperSize').value;
+            let w = sizes[sizeKey].w; let h = sizes[sizeKey].h;
+            if (isLandscape) { [w, h] = [h, w]; }
+            
+            // Preview scaling
+            const scale = (window.innerWidth < 768 ? 600 : 800) / Math.max(w, h);
+            w *= scale; h *= scale;
+            
+            canvas.width = w; canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            const style = document.getElementById('style').value;
+
+            if (appMode === 'layout') {
+                renderLayoutCanvas(ctx, w, h, style, true);
+            } else {
+                renderChecklistCanvas(ctx, w, h, style, true);
+            }
+        }
+
+        function renderLayoutCanvas(ctx, w, h, style, isPreview) {
+            const conf = getLayoutStyleConfig(style, 0, w);
+            ctx.fillStyle = conf.bg; ctx.fillRect(0, 0, w, h);
+
+            if (layoutItems.length === 0) {
+                ctx.fillStyle = '#9CA3AF'; ctx.font = `${w*0.05}px sans-serif`;
+                ctx.textAlign = 'center'; ctx.fillText("請新增佈局物品", w/2, h/2); return;
+            }
+
+            let sortedItems = [...layoutItems].sort((a, b) => a.level - b.level);
+            const margin = w * 0.02; 
+            const layoutBoxes = sliceAndDiceLayout(margin, margin, w - margin*2, h - margin*2, sortedItems);
+            const roundedStyles = ['kawaii', 'fancy', 'nature', 'professional-pink', 'transparent-blue'];
+            const radius = roundedStyles.includes(style) ? Math.min(layoutBoxes[0].w, layoutBoxes[0].h) * 0.05 : 0;
+
+            layoutBoxes.forEach((rect, index) => {
+                const boxConf = getLayoutStyleConfig(style, index, w);
+                ctx.save(); ctx.beginPath();
+                if (ctx.roundRect && radius > 0) ctx.roundRect(rect.x, rect.y, rect.w, rect.h, radius);
+                else ctx.rect(rect.x, rect.y, rect.w, rect.h);
+                ctx.fillStyle = boxConf.fill; ctx.fill();
+                
+                if (style === 'luxury') {
+                    let grad = ctx.createLinearGradient(rect.x, rect.y, rect.x + rect.w, rect.y + rect.h);
+                    grad.addColorStop(0, '#BF953F'); grad.addColorStop(0.5, '#FCF6BA'); grad.addColorStop(1, '#B38728');
+                    ctx.strokeStyle = grad; 
+                } else { ctx.strokeStyle = boxConf.stroke; }
+                
+                ctx.lineWidth = boxConf.sw;
+                if (boxConf.dash.length > 0) ctx.setLineDash(boxConf.dash);
+                ctx.stroke(); ctx.setLineDash([]);
+
+                if (style === 'autocad-dark' || style === 'autocad-light') {
+                    const ch = Math.min(rect.w, rect.h) * 0.05; ctx.beginPath();
+                    if(style === 'autocad-dark'){
+                        ctx.moveTo(rect.x-ch/2, rect.y); ctx.lineTo(rect.x+ch, rect.y); ctx.moveTo(rect.x, rect.y-ch/2); ctx.lineTo(rect.x, rect.y+ch);
+                        ctx.moveTo(rect.x+rect.w-ch, rect.y+rect.h); ctx.lineTo(rect.x+rect.w+ch/2, rect.y+rect.h); ctx.moveTo(rect.x+rect.w, rect.y+rect.h-ch); ctx.lineTo(rect.x+rect.w, rect.y+rect.h+ch/2);
+                        ctx.strokeStyle = '#FF00FF'; ctx.lineWidth = Math.max(w*0.001, 1); ctx.stroke();
+                    } else {
+                        ctx.setLineDash([w*0.015, w*0.005, w*0.003, w*0.005]);
+                        ctx.moveTo(rect.x, rect.y+rect.h/2); ctx.lineTo(rect.x+rect.w, rect.y+rect.h/2); ctx.moveTo(rect.x+rect.w/2, rect.y); ctx.lineTo(rect.x+rect.w/2, rect.y+rect.h);
+                        ctx.strokeStyle = '#FF3333'; ctx.lineWidth = Math.max(w*0.001, 1); ctx.stroke(); ctx.setLineDash([]);
+                    }
+                }
+
+                let maxNameFs = (rect.w * 0.8) / rect.name.length;
+                let nameFs = Math.min(maxNameFs, rect.h * (rect.note ? 0.22 : 0.3));
+                let noteFs = rect.note ? Math.min((rect.w * 0.8) / rect.note.length, rect.h * 0.12) : 0;
+                let centerY = rect.y + rect.h/2; let nameY = centerY; let noteY = centerY;
+                if (rect.note) { let tH = nameFs + noteFs*1.5; nameY = centerY - tH/2 + nameFs/2; noteY = centerY + tH/2 - noteFs/2; }
+
+                ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                if (style === 'luxury') { ctx.shadowColor = "#000"; ctx.shadowBlur = 4; }
+                if (style === 'cyberpunk') { ctx.shadowColor = boxConf.stroke; ctx.shadowBlur = 10; }
+
+                ctx.font = `bold ${nameFs}px ${boxConf.font}`; ctx.fillStyle = boxConf.nC;
+                ctx.fillText(rect.name, rect.x + rect.w/2, nameY); ctx.shadowBlur = 0;
+                
+                if (rect.note) {
+                    ctx.font = `normal ${noteFs}px ${boxConf.font}`; ctx.fillStyle = boxConf.ntC;
+                    ctx.fillText(rect.note, rect.x + rect.w/2, noteY);
+                }
+                ctx.restore();
+            });
+        }
+
+        function renderChecklistCanvas(ctx, w, h, style, isPreview) {
+            const conf = getChecklistStyleConfig(style, w);
+            const mode = document.getElementById('checklistMode').value;
+            const mainTitle = document.getElementById('checklistMainTitle').value || ' ';
+            
+            ctx.fillStyle = conf.bg; ctx.fillRect(0, 0, w, h);
+
+            if (mode === 'single') {
+                const rawMsg = document.getElementById('checklistSingleMessage').value || '';
+                const msgs = rawMsg.split('\n');
+                const layout = calcChecklistSingleLayout(w, h, mainTitle, msgs);
+                let startY = (h - layout.totalHeight) / 2;
+
+                ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                let titleY = startY + (layout.titleFs / 2);
+                ctx.font = `bold ${layout.titleFs}px ${conf.font}`; ctx.fillStyle = conf.tC;
+                if (style === 'cyberpunk') { ctx.shadowColor = conf.tC; ctx.shadowBlur = layout.titleFs*0.2; }
+                if (style === 'luxury') { ctx.shadowColor = "#000"; ctx.shadowBlur = layout.titleFs*0.1; }
+                ctx.fillText(mainTitle, w/2, titleY); ctx.shadowBlur = 0;
+
+                let msgY = titleY + (layout.titleFs / 2) + layout.titleGap;
+                ctx.font = `bold ${layout.msgFs}px ${conf.font}`; ctx.fillStyle = conf.iC;
+                msgs.forEach((line) => { ctx.fillText(line, w/2, msgY); msgY += layout.msgGap; });
+            } else {
+                const layout = calcChecklistListLayout(w, h);
+                let currentY = layout.marginY + layout.titleSize;
+
+                ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
+                ctx.font = `bold ${layout.titleSize}px ${conf.font}`; ctx.fillStyle = conf.tC;
+                if (style === 'cyberpunk') { ctx.shadowColor = conf.tC; ctx.shadowBlur = layout.titleSize*0.2; }
+                if (style === 'luxury') { ctx.shadowColor = "#000"; ctx.shadowBlur = layout.titleSize*0.1; }
+                ctx.fillText(mainTitle, w/2, currentY); ctx.shadowBlur = 0; 
+
+                currentY += layout.titleSize * 0.5; ctx.beginPath();
+                ctx.moveTo(layout.marginX, currentY); ctx.lineTo(w - layout.marginX, currentY);
+                if(['blueprint', 'autocad-light'].includes(style)) ctx.setLineDash([w*0.01, w*0.01]);
+                ctx.strokeStyle = conf.dC; ctx.lineWidth = Math.max(w*0.003, 2);
+                ctx.stroke(); ctx.setLineDash([]);
+                
+                currentY += layout.titleGap;
+                ctx.textAlign = "left";
+                checklistItems.forEach((item) => {
+                    ctx.font = `bold ${layout.itemSize}px ${conf.font}`; ctx.fillStyle = conf.bC;
+                    if (style === 'cyberpunk') { ctx.shadowColor = conf.bC; ctx.shadowBlur = layout.itemSize*0.2; }
+                    ctx.fillText(conf.bullet, layout.marginX, currentY); ctx.shadowBlur = 0;
+
+                    let textX = layout.marginX + layout.itemSize * 1.5;
+                    ctx.fillStyle = conf.iC; ctx.fillText(item.name, textX, currentY);
+                    if (item.note) {
+                        ctx.font = `normal ${layout.noteSize}px ${conf.font}`; ctx.fillStyle = conf.ntC;
+                        currentY += layout.noteSize * 1.5; ctx.fillText(`(${item.note})`, textX, currentY);
+                    }
+                    currentY += layout.itemGap;
+                });
+            }
+        }
+
+        // ================= SVG Export Generation =================
+        function generateSVG() {
+            const appMode = document.getElementById('mainAppMode').value;
+            const isLandscape = document.getElementById('orientation').value === 'landscape';
+            const sizeKey = document.getElementById('paperSize').value;
+            const style = document.getElementById('style').value;
+            let w = sizes[sizeKey].w; let h = sizes[sizeKey].h;
+            if (isLandscape) { [w, h] = [h, w]; }
+
+            let svgStr = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">`;
+            
+            // Defs for luxury gradient
+            svgStr += `<defs><linearGradient id="luxGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#BF953F" /><stop offset="50%" stop-color="#FCF6BA" /><stop offset="100%" stop-color="#B38728" /></linearGradient></defs>`;
+
+            if (appMode === 'layout') {
+                const baseConf = getLayoutStyleConfig(style, 0, w);
+                svgStr += `<rect width="${w}" height="${h}" fill="${baseConf.bg}" />`;
+                let sortedItems = [...layoutItems].sort((a, b) => a.level - b.level);
+                const margin = w * 0.02; 
+                const layoutBoxes = sliceAndDiceLayout(margin, margin, w - margin*2, h - margin*2, sortedItems);
+                
+                layoutBoxes.forEach((rect, index) => {
+                    const conf = getLayoutStyleConfig(style, index, w);
+                    const roundedStyles = ['kawaii', 'fancy', 'nature', 'professional-pink', 'transparent-blue'];
+                    const radius = roundedStyles.includes(style) ? Math.min(layoutBoxes[0].w, layoutBoxes[0].h) * 0.05 : 0;
+                    let strokeColor = style === 'luxury' ? 'url(#luxGrad)' : conf.stroke;
+                    let dashArray = conf.dash.length > 0 ? `stroke-dasharray="${conf.dash.join(',')}"` : '';
+                    
+                    svgStr += `<rect x="${rect.x}" y="${rect.y}" width="${rect.w}" height="${rect.h}" rx="${radius}" fill="${conf.fill}" stroke="${strokeColor}" stroke-width="${conf.sw}" ${dashArray} />`;
+
+                    if (style === 'autocad-dark') {
+                        const ch = Math.min(rect.w, rect.h) * 0.05; const sw = Math.max(w * 0.001, 1);
+                        svgStr += `<path d="M${rect.x-ch/2},${rect.y} L${rect.x+ch},${rect.y} M${rect.x},${rect.y-ch/2} L${rect.x},${rect.y+ch} M${rect.x+rect.w-ch},${rect.y+rect.h} L${rect.x+rect.w+ch/2},${rect.y+rect.h} M${rect.x+rect.w},${rect.y+rect.h-ch} L${rect.x+rect.w},${rect.y+rect.h+ch/2}" stroke="#FF00FF" stroke-width="${sw}" fill="none"/>`;
+                    } else if (style === 'autocad-light') {
+                        const sw = Math.max(w * 0.001, 1);
+                        svgStr += `<path d="M${rect.x},${rect.y+rect.h/2} L${rect.x+rect.w},${rect.y+rect.h/2} M${rect.x+rect.w/2},${rect.y} L${rect.x+rect.w/2},${rect.y+rect.h}" stroke="#FF3333" stroke-width="${sw}" stroke-dasharray="${w*0.015},${w*0.005},${w*0.003},${w*0.005}" fill="none"/>`;
+                    }
+
+                    let nameFs = Math.min((rect.w * 0.8) / rect.name.length, rect.h * (rect.note ? 0.22 : 0.3));
+                    let noteFs = rect.note ? Math.min((rect.w * 0.8) / rect.note.length, rect.h * 0.12) : 0;
+                    let centerY = rect.y + rect.h / 2; let nameY = centerY; let noteY = centerY;
+                    if (rect.note) { let tH = nameFs + noteFs * 1.5; nameY = centerY - tH/2 + nameFs/2; noteY = centerY + tH/2 - noteFs/2; }
+
+                    svgStr += `<text x="${rect.x + rect.w/2}" y="${nameY}" font-family='${conf.font}' font-size="${nameFs}" font-weight="bold" fill="${conf.nC}" text-anchor="middle" dominant-baseline="central">${rect.name}</text>`;
+                    if (rect.note) svgStr += `<text x="${rect.x + rect.w/2}" y="${noteY}" font-family='${conf.font}' font-size="${noteFs}" font-weight="normal" fill="${conf.ntC}" text-anchor="middle" dominant-baseline="central">${rect.note}</text>`;
+                });
+            } else {
+                const conf = getChecklistStyleConfig(style, w);
+                const mode = document.getElementById('checklistMode').value;
+                const mainTitle = document.getElementById('checklistMainTitle').value || ' ';
+                
+                svgStr += `<rect width="${w}" height="${h}" fill="${conf.bg}" />`;
+
+                if (mode === 'single') {
+                    const rawMsg = document.getElementById('checklistSingleMessage').value || '';
+                    const msgs = rawMsg.split('\n');
+                    const layout = calcChecklistSingleLayout(w, h, mainTitle, msgs);
+                    let startY = (h - layout.totalHeight) / 2;
+                    let titleY = startY + (layout.titleFs / 2);
+
+                    svgStr += `<text x="${w/2}" y="${titleY}" font-family='${conf.font}' font-size="${layout.titleFs}" font-weight="bold" fill="${conf.tC}" text-anchor="middle" dominant-baseline="central">${mainTitle}</text>`;
+                    let msgY = titleY + (layout.titleFs / 2) + layout.titleGap;
+                    msgs.forEach((line) => {
+                        svgStr += `<text x="${w/2}" y="${msgY}" font-family='${conf.font}' font-size="${layout.msgFs}" font-weight="bold" fill="${conf.iC}" text-anchor="middle" dominant-baseline="central">${line}</text>`;
+                        msgY += layout.msgGap;
+                    });
+                } else {
+                    const layout = calcChecklistListLayout(w, h);
+                    let currentY = layout.marginY + layout.titleSize;
+
+                    svgStr += `<text x="${w/2}" y="${currentY}" font-family='${conf.font}' font-size="${layout.titleSize}" font-weight="bold" fill="${conf.tC}" text-anchor="middle">${mainTitle}</text>`;
+                    currentY += layout.titleSize * 0.5;
+                    let dash = ['blueprint','autocad-light'].includes(style) ? `stroke-dasharray="${w*0.01},${w*0.01}"` : '';
+                    svgStr += `<line x1="${layout.marginX}" y1="${currentY}" x2="${w - layout.marginX}" y2="${currentY}" stroke="${conf.dC}" stroke-width="${Math.max(w*0.003, 2)}" ${dash} />`;
+
+                    currentY += layout.titleGap;
+                    checklistItems.forEach((item) => {
+                        svgStr += `<text x="${layout.marginX}" y="${currentY}" font-family='${conf.font}' font-size="${layout.titleSize}" font-weight="bold" fill="${conf.bC}">${conf.bullet}</text>`;
+                        let textX = layout.marginX + layout.itemSize * 1.5;
+                        svgStr += `<text x="${textX}" y="${currentY}" font-family='${conf.font}' font-size="${layout.itemSize}" font-weight="bold" fill="${conf.iC}">${item.name}</text>`;
+                        if (item.note) {
+                            currentY += layout.noteSize * 1.5;
+                            svgStr += `<text x="${textX}" y="${currentY}" font-family='${conf.font}' font-size="${layout.noteSize}" font-weight="normal" fill="${conf.ntC}">(${item.note})</text>`;
+                        }
+                        currentY += layout.itemGap;
+                    });
+                }
+            }
+            svgStr += `</svg>`;
+            return svgStr;
+        }
+
+        // ================= Export & Initialization =================
+        function downloadImage() {
+            const appMode = document.getElementById('mainAppMode').value;
+            if (appMode === 'layout' && layoutItems.length === 0) return alert("請先新增至少一個平面圖物品！");
+            if (appMode === 'checklist' && document.getElementById('checklistMode').value === 'list' && checklistItems.length === 0) return alert("請先新增至少一個清單項目！");
+            
+            const format = document.getElementById('format').value;
+            const ext = format === 'svg' ? 'svg' : (format === 'image/jpeg' ? 'jpg' : 'png');
+            let dataUrl;
+
+            if (format === 'svg') {
+                const svgString = generateSVG();
+                const blob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
+                dataUrl = URL.createObjectURL(blob);
+            } else {
+                const offScreenCanvas = document.createElement('canvas');
+                const sizeKey = document.getElementById('paperSize').value;
+                const isLandscape = document.getElementById('orientation').value === 'landscape';
+                let w = sizes[sizeKey].w; let h = sizes[sizeKey].h;
+                if (isLandscape) { [w, h] = [h, w]; }
+                offScreenCanvas.width = w; offScreenCanvas.height = h;
+                const ctx = offScreenCanvas.getContext('2d');
+                const style = document.getElementById('style').value;
+                
+                if (appMode === 'layout') renderLayoutCanvas(ctx, w, h, style, false);
+                else renderChecklistCanvas(ctx, w, h, style, false);
+                
+                dataUrl = offScreenCanvas.toDataURL(format, format === 'image/jpeg' ? 0.95 : 1.0);
+            }
+            
+            const link = document.createElement('a');
+            const prefix = appMode === 'layout' ? '物品平面圖' : '注意事項清單';
+            link.download = `${prefix}_${Date.now()}.${ext}`;
+            link.href = dataUrl; link.click();
+            
+            if(format === 'svg') URL.revokeObjectURL(dataUrl);
+        }
+        
+        function closeOverlay() {
+            window.location.href = 'Other.html';
+        }
+
+        // 初始化執行
+        toggleMainApp();
+        toggleChecklistMode();
+        updateLayoutList();
+        updateChecklistList();
+    </script>
+</body>
+</html>

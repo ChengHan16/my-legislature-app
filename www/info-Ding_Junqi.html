@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>立法院 - 成員介紹：丁俊齊</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        /* --- 基礎樣式與防溢出 --- */
+        html { scroll-behavior: smooth; }
+        html, body { max-width: 100%; overflow-x: hidden; margin: 0; padding: 0; }
+
+        body {
+            font-family: "Noto Sans TC", "Arial", sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* --- 1. 導覽列樣式 --- */
+        .navbar-static {
+            background-color: #1a237e;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            width: 100%;
+        }
+
+        .navbar-full {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: white;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+        }
+
+        .logo-circle {
+            background-color: #ffcc00;
+            color: #1a237e;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 10px;
+            font-weight: 700;
+        }
+
+        .nav-links {
+            list-style: none;
+            display: flex;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-links li { margin-left: 30px; }
+        .nav-links a { color: white; text-decoration: none; font-weight: 500; padding: 8px 15px; transition: 0.3s; }
+        .nav-links a:hover { border-bottom: 2px solid #ffcc00; }
+        .nav-links a.active-dark { background-color: #004d99; border-radius: 4px; color: white !important; }
+
+        /* --- 2. Banner 樣式 (固定高度) --- */
+        .event-banner {
+            background: linear-gradient(135deg, #1a237e 0%, #0d1241 100%);
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+            border-bottom: 4px solid #ffcc00;
+            height: 240px; 
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .event-banner h1 { font-size: 3.5em; margin: 0; letter-spacing: 2px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+
+        .banner-info-wrap {
+            display: flex;
+            flex-direction: column; 
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+            font-size: 1.1em;
+            color: #ffcc00;
+        }
+
+        /* --- 3. 主要內容區域 --- */
+        .event-content-area {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            flex: 1;
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            margin-bottom: 40px;
+        }
+
+        .photo-section { flex-shrink: 0; text-align: center; }
+        .avatar-img {
+            width: 200px; height: 200px; border-radius: 12px;
+            border: 4px solid #f0f0f0; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            object-fit: cover;
+        }
+
+        .info-brief h1 { font-size: 42px; color: #1a237e; margin: 0; letter-spacing: 4px; }
+        .nickname { font-size: 20px; color: #666; font-weight: 400; }
+        .blue-line { height: 3px; background: linear-gradient(to right, #1a237e, transparent); width: 300px; margin: 15px 0; }
+
+        .info-card {
+            background: white; 
+            padding: 30px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
+            margin-bottom: 40px; 
+            border-left: 6px solid #ffcc00;
+        }
+
+        .section-title {
+            border-left: 6px solid #1a237e;
+            padding-left: 15px;
+            margin: 40px 0 20px;
+            color: #1a237e;
+            font-size: 1.6em;
+            font-weight: bold;
+        }
+
+        /* --- 4. 網格佈局 (經歷與研究) --- */
+        .member-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 25px;
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        .member-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            border-top: 5px solid #1a237e;
+            transition: all 0.3s ease;
+        }
+
+        .tag {
+            display: inline-block; background: #e8eaf6; color: #3f51b5;
+            padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-bottom: 10px;
+        }
+
+        .m-title { font-weight: bold; font-size: 1.2em; color: #111; margin-bottom: 8px; display: block; }
+        .m-desc { font-size: 0.95em; color: #666; line-height: 1.6; }
+        
+        /* --- 電腦版樣式 --- */
+        /* 將按鈕釘在 profile-header 右上角 */
+        .ig-link-card {
+            position: absolute;
+            top: 55px;
+            right: 35px;
+            z-index: 5;
+        }
+
+        .ig-btn {
+            text-decoration: none;
+            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+            color: white;
+            padding: 8px 18px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(188, 24, 136, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .ig-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(188, 24, 136, 0.5);
+            color: white;
+        }
+
+        /* --- 5. 其他元件 --- */
+        .back-to-top {
+            position: fixed; bottom: 30px; right: 30px;
+            width: 50px; height: 50px; background-color: #1a237e;
+            color: white; border-radius: 50%; display: flex;
+            justify-content: center; align-items: center; z-index: 1000;
+            border: 2px solid #ffcc00; transition: 0.3s;
+            text-decoration: none;
+        }
+
+        footer { text-align: center; padding: 25px; background-color: #1a237e; color: white; font-size: 0.9em; }
+
+        /* =============================================
+           響應式優化 (RWD)
+           ============================================= */
+        @media (max-width: 768px) {
+            .navbar-full { flex-direction: column; padding: 10px 5px; }
+            .nav-links { 
+                margin-top: 10px; width: 100%; justify-content: center; display: flex;
+                flex-wrap: nowrap; padding: 10px 0 5px 0; border-top: 1px solid rgba(255,255,255,0.1);
+            }
+            .nav-links li { margin: 0 4px; flex-shrink: 1; }
+            .nav-links a { padding: 5px 8px; font-size: clamp(12px, 3.2vw, 14px); white-space: nowrap; }
+
+            .profile-header { flex-direction: column; text-align: center; padding: 30px 20px; }
+            .info-brief h1 { font-size: 32px; }
+            .blue-line { margin: 15px auto; }
+            
+            .member-grid { grid-template-columns: 1fr; gap: 20px; }
+
+            /* 1. 調整導覽列外殼，縮小內距 */
+            .navbar-full { 
+                flex-direction: column; 
+                padding: 10px 5px; 
+            }
+
+            /* 2. 調整導覽連結容器 */
+            .event-card-simple {
+                padding: 20px 15px;      /* 縮小手機版內距 */
+                width: 100%;             /* 寬度跟隨父層的 350px */
+                box-sizing: border-box;  /* 關鍵：確保 padding 不會撐破 350px */
+            }
+
+            /* 調整日期圓圈，讓 350px 內的空間分配合理 */
+            .event-date-circle {
+                width: 55px;
+                height: 55px;
+                margin-right: 15px;
+            }
+
+            /* 1. 調整導覽列外殼，縮小內距 */
+            .navbar-full { 
+                flex-direction: column; 
+                padding: 10px 5px; 
+            }
+
+            /* 2. 調整導覽連結容器 */
+            .nav-links { 
+                margin-top: 10px; 
+                width: 100%; 
+                justify-content: center; /* 置中 */
+                display: flex;
+                flex-wrap: nowrap;      /* 關鍵：強制絕對不換行 */
+                padding: 12px 0 5px 0;
+                border-top: 1px solid rgba(255,255,255,0.1);
+            }
+
+            /* 3. 調整清單項目 */
+            .nav-links li { 
+                margin: 0 4px;          /* 縮小項目間的間距 */
+                flex-shrink: 1;         /* 允許項目在必要時縮小 */
+            }
+
+            /* 4. 調整文字大小與行為 */
+            .nav-links a { 
+                padding: 5px 8px;       /* 縮小按鈕內距 */
+                
+                /* 使用 clamp 讓字體在 12px 到 14px 之間隨螢幕自動縮放 */
+                font-size: clamp(12px, 3.2vw, 14px); 
+                
+                white-space: nowrap;    /* 關鍵：文字絕對不換行 */
+                letter-spacing: -0.5px; /* 稍微縮小字距，節省空間 */
+            }
+
+            .ig-link-card {
+                /* 1. 將絕對定位取消，按鈕會回到 HTML 結構的最下方 */
+                position: static !important;
+                /* 2. 設置適當的上間距 (文字與按鈕之間) */
+                margin-top: -30px !important;                
+                /* 3. 設置下間距 (按鈕與卡片底部之間) */
+                margin-bottom: 5px !important;          
+                /* 4. 水平置中顯示 */
+                width: 100%;
+                display: flex;
+                justify-content: center;
+            }
+
+            /* 手機版 標題列和黃字說明大小調整 Star */
+            .event-banner { /* 欄位高度大小*/
+                height: 160px; 
+            }
+            .event-banner h1 { /* 大標題*/
+                font-size: 35px; 
+            }        
+            .banner-info-wrap { /* 提示字*/
+                margin-top: 10px;
+                padding-bottom: 10px;
+                font-size: 16px;
+            }
+            /* 手機版 標題列和黃字說明大小調整 End */
+        }
+    </style>
+</head>
+<body>
+
+    <header class="navbar-static">
+        <nav class="navbar-full">
+            <div class="logo"><div class="logo-circle">立</div> 立法院 Legislature</div>
+            <ul class="nav-links">
+                <li><a href="index.html">首頁</a></li>
+                <li><a href="about.html">關於我們</a></li> 
+                <li><a href="members.html"class="active-dark">成員介紹</a></li> 
+                <li><a href="events.html">活動行程</a></li>
+                <li><a href="index.html">其他</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="event-banner">
+        <h1>成員簡介</h1>
+        <div class="banner-info-wrap">
+            <span>數位轉型委員會</span>
+            <span>醫學人工智慧與公共衛生策略組</span>
+        </div>
+    </section>
+
+    <main class="event-content-area"style="position: relative;">
+        <div class="profile-header">
+            <div class="photo-section">
+                <img src="https://github.com/ChengHan16/Legislature-Family-Website/blob/main/image/Ding_Junqi.png?raw=true" alt="丁俊齊照片" class="avatar-img">
+            </div>
+            <div class="info-brief">
+                <span class="nickname">Dr. Andre Ding</span>
+                <h1>丁俊齊</h1>
+                <div class="blue-line"></div>
+                <div style="font-size: 1.1em; color: #444; line-height: 2;">
+                    國籍：台灣 <img src="https://raw.githubusercontent.com/ChengHan16/Legislature-Family-Website/c5599eac05dbcdaf97afd7dfabdf762d8d4f7e3a/image/Flag_of_the_Republic_of_China.svg" alt="ROC" style="height:15px; vertical-align: middle; border:1px solid #ddd;"><br>
+                    出生年：2001 年<br>
+                    技術職稱：AI 推論架構師<br>
+                    兵役狀態：免役 (專案研究替代人員)
+                </div>
+            </div>
+
+            <!--instagram Link-->
+            <div class="ig-link-card">
+                <a href="https://www.instagram.com/ssindychen1/" target="_blank" class="ig-btn">
+                    <i class="fa-brands fa-instagram"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="section-title">專業經歷與臨床背景</div>
+        <div class="member-grid">
+            <div class="member-card">
+                <span class="tag">Clinical Specialist</span>
+                <strong class="m-title">113年度急性腸胃炎病理機轉首席講師</strong>
+                <p class="m-desc">主導大規模群聚感染之臨床流行病學分析與預後管理策略研發。</p>
+            </div>
+            <div class="member-card">
+                <span class="tag">International Expert</span>
+                <strong class="m-title">WHO 腸道致病原應變小組 (模擬) 外部專家</strong>
+                <p class="m-desc">參與全球防疫策略模擬，提供消化道病原體之快速診斷技術諮詢。</p>
+            </div>
+        </div>
+
+        <div class="section-title">醫學 AI 研究與專業證照</div>
+        <div class="member-grid">
+            <div class="member-card">
+                <span class="tag">IEEE Published</span>
+                <strong class="m-title">基於 Transformer 之自動化診斷系統</strong>
+                <p class="m-desc">發表論文："Transformer-based Inference for Acute Gastritis Diagnosis"，探討深度學習於病理識別之精準度。</p>
+            </div>
+            <div class="member-card">
+                <span class="tag">Credentials</span>
+                <strong class="m-title">NVIDIA & Google 專業認證</strong>
+                <p class="m-desc">持有 NVIDIA DLI 醫療成像分析專科認證及 Google Professional ML Engineer 證書。</p>
+            </div>
+        </div>
+        
+        <div class="info-card" style="margin-top: 40px; text-align: center;">
+            <p style="color: #999; font-size: 0.9em; margin: 0;">Verified Member | Medical AI Division | ID: 2001-AI-092</p>
+        </div>
+    </main>
+
+    <a href="#" class="back-to-top"><i class="fa-solid fa-chevron-up"></i></a>
+
+    <footer>
+        <p>© 2026 立法院 Legislature - 數位資訊發展處 版權所有</p>
+    </footer>
+
+</body>
+</html>

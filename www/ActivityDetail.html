@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>活動詳情 - 立法院系統</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="./css/authenticated.css">
+    <style>
+        .detail-container { max-width: 1100px; margin: 40px auto; padding: 40px; background: white; border-radius: 15px; border-top: 5px solid var(--ly-gold); }
+        .info-row { margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #eee; }
+        .info-label { font-weight: bold; color: var(--ly-blue); width: 120px; display: inline-block; }
+    </style>
+</head>
+<body>
+    <div id="header-layout"></div>
+    <main class="event-content-area">
+        <div class="section-title" id="page-title"><i class="fas fa-gavel"></i> 載入中...</div>
+        
+        <div class="detail-container" id="detail-content">
+            </div>
+    </main>
+
+    <div id="footer-layout"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="./js/dashboard.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", async () => {
+            await loadLayout('Dashboard');
+            
+            // 1. 從 URL 抓取活動 ID (例如 ?id=xxxx)
+            const urlParams = new URLSearchParams(window.location.search);
+            const eventId = urlParams.get('id');
+            if (!eventId) return alert("無效的活動 ID");
+
+            // 2. 從 Firestore 抓取資料
+            const doc = await db.collection("events").doc(eventId).get();
+            if (!doc.exists) return alert("查無活動資料");
+
+            const data = doc.data();
+            document.getElementById('page-title').innerText = data.title;
+            
+            // 3. 渲染動態欄位
+            let html = "";
+            data.fields.forEach(f => {
+                html += `<div class="info-row"><span class="info-label">${f.label}</span><span>${f.content}</span></div>`;
+            });
+
+            // 4. 渲染投票截止時間
+            if (data.deadline) {
+                html += `<div class="info-row" style="color:red;"><span class="info-label">投票截止</span><span>${data.deadline}</span></div>`;
+            }
+
+            document.getElementById('detail-content').innerHTML = html;
+        });
+    </script>
+</body>
+</html>

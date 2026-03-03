@@ -1,0 +1,470 @@
+
+/* --- 基礎樣式與防溢出 --- */
+        html { scroll-behavior: smooth; }
+        html, body { max-width: 100%; overflow-x: hidden; margin: 0; padding: 0; }
+
+        body {
+            font-family: "Noto Sans TC", "Arial", sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* --- 1. 導覽列樣式 --- */
+        .navbar-static {
+            background-color: #1a237e;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            width: 100%;
+        }
+
+        .navbar-full {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: white;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+        }
+
+        .logo-circle {
+            background-color: #ffcc00;
+            color: #1a237e;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 10px;
+            font-weight: 700;
+        }
+
+        .nav-links {
+            list-style: none;
+            display: flex;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-links li { margin-left: 30px; }
+        .nav-links a { color: white; text-decoration: none; font-weight: 500; padding: 8px 15px; transition: 0.3s; }
+        .nav-links a:hover { border-bottom: 2px solid #ffcc00; }
+        .nav-links a.active-dark { background-color: #004d99; border-radius: 4px; color: white !important; }
+
+        /* --- 2. Banner 樣式 (固定高度) --- */
+        .event-banner {
+            background: linear-gradient(135deg, #1a237e 0%, #0d1241 100%);
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+            border-bottom: 4px solid #ffcc00;
+            height: 240px; 
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .event-banner h1 { font-size: 3.5em; margin: 0; letter-spacing: 2px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+
+        .banner-info-wrap {
+            display: flex;
+            flex-direction: column; /* 關鍵：由水平改為垂直排列 */
+            align-items: center;    /* 讓內容在垂直排列時依然保持居中 */
+            gap: 15px;             /* 設定兩行之間的距離 */
+            margin-top: 20px;
+            font-size: 1.1em;
+            color: #ffcc00;
+        }
+
+        /* --- 3. 主要內容區域 --- */
+        .event-content-area {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            flex: 1;
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            margin-bottom: 40px;
+        }
+
+        /*語言切換|Instagram|Facebook 按鈕設定位置*/
+        .ig-btn {
+            text-decoration: none;
+            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+            color: white;
+            padding: 8px 18px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(188, 24, 136, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .ig-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(188, 24, 136, 0.5);
+            color: white;
+        }
+
+        .fb-link-card {
+            position: absolute;
+            top: 85px; /* 維持原位 */
+            right: 35px;
+            z-index: 5;
+        }
+
+        .fb-btn {
+            text-decoration: none;
+            /* 修改為 Facebook 官方藍色 */
+            background: #1877F2; 
+            color: white;
+            padding: 8px 18px;
+            border-radius: 25px; /* 維持圓角膠囊狀 */
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            /* 修改陰影顏色為 Facebook 藍的擴散感 */
+            box-shadow: 0 4px 15px rgba(24, 119, 242, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .fb-btn:hover {
+            /* 滑過時稍微加深藍色 */
+            background: #166fe5;
+            transform: translateY(-3px);
+            /* 加強 Facebook 藍的發光效果 */
+            box-shadow: 0 6px 20px rgba(24, 119, 242, 0.5);
+            color: white;
+        }
+
+        .fb-btn i {
+            font-size: 16px; /* 控制 f 圖標的大小 */
+            margin-right: 5px; /* 與文字 Facebook 之間的距離 */
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .header-actions {
+            position: absolute; /* 相對於 profile-header 定位 */
+            top: 20px;          /* 距離頂部 20px */
+            right: 20px;        /* 距離右側 20px */
+            display: flex;
+            flex-direction: column; /* 讓按鈕上下排列 */
+            align-items: flex-end;  /* 讓按鈕靠右對齊 */
+            gap: 12px;          /* 設定按鈕之間的間距，防止重疊 */
+            z-index: 10;        /* 確保選單彈出時不會被其他內容遮擋 */
+        }
+
+        /*語言切換|Instagram|Facebook 按鈕設定位置 End*/
+
+        .photo-section { flex-shrink: 0; text-align: center; }
+        .avatar-img {
+            width: 200px; height: 200px; border-radius: 12px;
+            border: 4px solid #f0f0f0; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            object-fit: cover;
+        }
+
+        .info-brief h1 { font-size: 42px; color: #1a237e; margin: 0; letter-spacing: 4px; }
+        .nickname { font-size: 20px; color: #666; font-weight: 400; }
+        .blue-line { height: 3px; background: linear-gradient(to right, #1a237e, transparent); width: 300px; margin: 15px 0; }
+
+        .info-card {
+            background: white; 
+            padding: 30px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
+            margin-bottom: 40px; 
+            border-left: 6px solid #ffcc00;
+        }
+
+        .section-title {
+            border-left: 6px solid #1a237e;
+            padding-left: 15px;
+            margin: 40px 0 20px;
+            color: #1a237e;
+            font-size: 1.6em;
+            font-weight: bold;
+        }
+
+        /* --- 4. 網格佈局 (經歷與研究) --- */
+        .member-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 25px;
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        .member-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            border-top: 5px solid #1a237e;
+            transition: all 0.3s ease;
+        }
+
+        .tag {
+            display: inline-block; background: #e8eaf6; color: #3f51b5;
+            padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-bottom: 10px;
+        }
+
+        .m-title { font-weight: bold; font-size: 1.2em; color: #111; margin-bottom: 8px; display: block; }
+        .m-desc { font-size: 0.95em; color: #666; line-height: 1.6; }
+
+        /* --- 5. 其他元件 --- */
+        .back-to-top {
+            position: fixed; bottom: 30px; right: 30px;
+            width: 50px; height: 50px; background-color: #1a237e;
+            color: white; border-radius: 50%; display: flex;
+            justify-content: center; align-items: center; z-index: 1000;
+            border: 2px solid #ffcc00; transition: 0.3s;
+            text-decoration: none;
+        }
+
+        footer { text-align: center; padding: 25px; background-color: #1a237e; color: white; font-size: 0.9em; }
+
+        /* 神魔之塔 */
+        .summoner-data-card {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            border-left: 6px solid #ffc400;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 30px 0;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .summoner-avatar-box {
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .summoner-avatar-box img {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            border: 3px solid #ffc400;
+            object-fit: cover;
+            background: #000;
+        }
+
+        .summoner-allmax-badge {
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ffc400;
+            color: #1a1a1a;
+            font-size: 10px;
+            font-weight: 900;
+            padding: 2px 8px;
+            border-radius: 10px;
+            white-space: nowrap;
+            letter-spacing: 1px;
+        }
+
+        .summoner-info-box {
+            flex-grow: 1;
+        }
+
+        .summoner-main-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .summoner-name {
+            font-size: 22px;
+            color: #000000;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .summoner-uid {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+            font-weight: 600;
+            color: #ffffff; /* 提升文字亮度 */
+            background: #1a1a1a; /* 使用深色背景營造對比 */
+            border: 1px solid #d4af37; /* 加上金邊呼應主色調 */
+            padding: 4px 12px;
+            border-radius: 4px;
+            letter-spacing: 1.5px; /* 增加字距更具科技感 */
+            box-shadow: inset 0 0 5px rgba(212, 175, 55, 0.2); /* 內部微光效果 */
+            display: inline-block;
+        }
+
+        .summoner-tags {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .s-tag {
+            font-size: 12px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            background: rgba(212, 175, 55, 0.1);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            color: #1c170f;
+        }
+
+        .s-tag-guild {
+            border-color: rgba(212, 175, 55, 0.3);
+            color: #1c170f;
+        }
+        @media (max-width: 768px) {
+            .summoner-data-card { 
+                flex-direction: column; 
+                text-align: center; 
+                gap: 20px; 
+            }
+
+            /* 手機版強制置中並調整間距 */
+            .summoner-main-row {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                gap: 12px !important; /* 增加名稱與 UID 的垂直間距 */
+                margin-bottom: 15px !important;
+            }
+
+            /* 調整手機版 UID 字體大小以防溢出 */
+            .summoner-uid {
+                font-size: 13px;
+                padding: 6px 15px;
+            }
+
+            .summoner-tags {
+                justify-content: center !important;
+            }
+        }
+        /* 神魔之塔 */
+
+        /* =============================================
+           響應式優化 (RWD)
+           ============================================= */
+        @media (max-width: 768px) {
+            .navbar-full { flex-direction: column; padding: 10px 5px; }
+            .nav-links { 
+                margin-top: 10px; width: 100%; justify-content: center; display: flex;
+                flex-wrap: nowrap; padding: 10px 0 5px 0; border-top: 1px solid rgba(255,255,255,0.1);
+            }
+            .nav-links li { margin: 0 4px; flex-shrink: 1; }
+            .nav-links a { padding: 5px 8px; font-size: clamp(12px, 3.2vw, 14px); white-space: nowrap; }
+
+            .profile-header { flex-direction: column; text-align: center; padding: 30px 20px; }
+            .info-brief h1 { font-size: 32px; }
+            .blue-line { margin: 15px auto; }
+            
+            .member-grid { grid-template-columns: 1fr; gap: 20px; }
+
+            /* 1. 調整導覽列外殼，縮小內距 */
+            .navbar-full { 
+                flex-direction: column; 
+                padding: 10px 5px; 
+            }
+
+            /* 2. 調整導覽連結容器 */
+            .event-card-simple {
+                padding: 20px 15px;      /* 縮小手機版內距 */
+                width: 100%;             /* 寬度跟隨父層的 350px */
+                box-sizing: border-box;  /* 關鍵：確保 padding 不會撐破 350px */
+            }
+
+            /* 調整日期圓圈，讓 350px 內的空間分配合理 */
+            .event-date-circle {
+                width: 55px;
+                height: 55px;
+                margin-right: 15px;
+            }
+
+            /* 1. 調整導覽列外殼，縮小內距 */
+            .navbar-full { 
+                flex-direction: column; 
+                padding: 10px 5px; 
+            }
+
+            /* 2. 調整導覽連結容器 */
+            .nav-links { 
+                margin-top: 10px; 
+                width: 100%; 
+                justify-content: center; /* 置中 */
+                display: flex;
+                flex-wrap: nowrap;      /* 關鍵：強制絕對不換行 */
+                padding: 12px 0 5px 0;
+                border-top: 1px solid rgba(255,255,255,0.1);
+            }
+
+            /* 3. 調整清單項目 */
+            .nav-links li { 
+                margin: 0 4px;          /* 縮小項目間的間距 */
+                flex-shrink: 1;         /* 允許項目在必要時縮小 */
+            }
+
+            /* 4. 調整文字大小與行為 */
+            .nav-links a { 
+                padding: 5px 8px;       /* 縮小按鈕內距 */
+                
+                /* 使用 clamp 讓字體在 12px 到 14px 之間隨螢幕自動縮放 */
+                font-size: clamp(12px, 3.2vw, 14px); 
+                
+                white-space: nowrap;    /* 關鍵：文字絕對不換行 */
+                letter-spacing: -0.5px; /* 稍微縮小字距，節省空間 */
+            }
+            
+            /*語言切換|Instagram|Facebook 按鈕設定位置*/
+            .header-actions {
+                position: static;   /* 回復普通流向 */
+                margin-top: -30px;
+                align-items: center; /* 居中對齊 */
+                width: 100%;
+            }
+
+            /* 手機版 標題列和黃字說明大小調整 Star */
+            .event-banner { /* 欄位高度大小*/
+                height: 160px; 
+            }
+            .event-banner h1 { /* 大標題*/
+                font-size: 30px; 
+            }        
+            .banner-info-wrap { /* 提示字*/
+                margin-top: 10px;
+                padding-bottom: 10px;
+                font-size: 16px;
+            }
+            /* 手機版 標題列和黃字說明大小調整 End */
+        }

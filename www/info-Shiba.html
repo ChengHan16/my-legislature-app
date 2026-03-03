@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>立法院 - 成員介紹：可愛柴</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        /* --- 基礎樣式與防溢出 --- */
+        html { scroll-behavior: smooth; }
+        html, body { max-width: 100%; overflow-x: hidden; margin: 0; padding: 0; }
+
+        body {
+            font-family: "Noto Sans TC", "Arial", sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* --- 1. 導覽列樣式 --- */
+        .navbar-static {
+            background-color: #1a237e;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            width: 100%;
+        }
+
+        .navbar-full {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: white;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+        }
+
+        .logo-circle {
+            background-color: #ffcc00;
+            color: #1a237e;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 10px;
+            font-weight: 700;
+        }
+
+        .nav-links {
+            list-style: none;
+            display: flex;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-links li { margin-left: 30px; }
+        .nav-links a { color: white; text-decoration: none; font-weight: 500; padding: 8px 15px; transition: 0.3s; }
+        .nav-links a:hover { border-bottom: 2px solid #ffcc00; }
+        .nav-links a.active-dark { background-color: #004d99; border-radius: 4px; color: white !important; }
+
+        /* --- 2. Banner 樣式 (固定高度) --- */
+        .event-banner {
+            background: linear-gradient(135deg, #1a237e 0%, #0d1241 100%);
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+            border-bottom: 4px solid #ffcc00;
+            height: 240px; 
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .event-banner h1 { font-size: 3.5em; margin: 0; letter-spacing: 2px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+
+        .banner-info-wrap {
+            display: flex;
+            flex-direction: column; /* 關鍵：由水平改為垂直排列 */
+            align-items: center;    /* 讓內容在垂直排列時依然保持居中 */
+            gap: 15px;             /* 設定兩行之間的距離 */
+            margin-top: 20px;
+            font-size: 1.1em;
+            color: #ffcc00;
+        }
+
+        /* --- 3. 主要內容區域 --- */
+        .event-content-area {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            flex: 1;
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            margin-bottom: 40px;
+        }
+
+        .photo-section { flex-shrink: 0; text-align: center; }
+        .avatar-img {
+            width: 200px; height: 200px; border-radius: 12px;
+            border: 4px solid #f0f0f0; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            object-fit: cover;
+        }
+
+        .info-brief h1 { font-size: 42px; color: #1a237e; margin: 0; letter-spacing: 4px; }
+        .nickname { font-size: 20px; color: #666; font-weight: 400; }
+        .blue-line { height: 3px; background: linear-gradient(to right, #1a237e, transparent); width: 300px; margin: 15px 0; }
+
+        .info-card {
+            background: white; 
+            padding: 30px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
+            margin-bottom: 40px; 
+            border-left: 6px solid #ffcc00;
+        }
+
+        .section-title {
+            border-left: 6px solid #1a237e;
+            padding-left: 15px;
+            margin: 40px 0 20px;
+            color: #1a237e;
+            font-size: 1.6em;
+            font-weight: bold;
+        }
+
+        /* --- 4. 網格佈局 (經歷與研究) --- */
+        .member-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 25px;
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        .member-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            border-top: 5px solid #1a237e;
+            transition: all 0.3s ease;
+        }
+
+        .tag {
+            display: inline-block; background: #e8eaf6; color: #3f51b5;
+            padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-bottom: 10px;
+        }
+
+        .m-title { font-weight: bold; font-size: 1.2em; color: #111; margin-bottom: 8px; display: block; }
+        .m-desc { font-size: 0.95em; color: #666; line-height: 1.6; }
+
+        /*語言切換|Instagram|Facebook 按鈕設定位置*/
+        .ig-btn {
+            text-decoration: none;
+            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+            color: white;
+            padding: 8px 18px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(188, 24, 136, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .ig-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(188, 24, 136, 0.5);
+            color: white;
+        }
+
+        .fb-link-card {
+            position: absolute;
+            top: 85px; /* 維持原位 */
+            right: 35px;
+            z-index: 5;
+        }
+
+        .fb-btn {
+            text-decoration: none;
+            /* 修改為 Facebook 官方藍色 */
+            background: #1877F2; 
+            color: white;
+            padding: 8px 18px;
+            border-radius: 25px; /* 維持圓角膠囊狀 */
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            /* 修改陰影顏色為 Facebook 藍的擴散感 */
+            box-shadow: 0 4px 15px rgba(24, 119, 242, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .fb-btn:hover {
+            /* 滑過時稍微加深藍色 */
+            background: #166fe5;
+            transform: translateY(-3px);
+            /* 加強 Facebook 藍的發光效果 */
+            box-shadow: 0 6px 20px rgba(24, 119, 242, 0.5);
+            color: white;
+        }
+
+        .fb-btn i {
+            font-size: 16px; /* 控制 f 圖標的大小 */
+            margin-right: 5px; /* 與文字 Facebook 之間的距離 */
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .header-actions {
+            position: absolute; /* 相對於 profile-header 定位 */
+            top: 20px;          /* 距離頂部 20px */
+            right: 20px;        /* 距離右側 20px */
+            display: flex;
+            flex-direction: column; /* 讓按鈕上下排列 */
+            align-items: flex-end;  /* 讓按鈕靠右對齊 */
+            gap: 12px;          /* 設定按鈕之間的間距，防止重疊 */
+            z-index: 10;        /* 確保選單彈出時不會被其他內容遮擋 */
+        }
+
+        /*語言切換|Instagram|Facebook 按鈕設定位置 End*/
+
+/* 照片集樣式設計 */
+.photo-gallery-title {
+    text-align: center;
+    margin: 50px 0 30px;
+}
+
+.shiba-gallery {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    padding: 0 10px;
+    margin-bottom: 50px;
+}
+
+.gallery-item {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    transition: 0.3s;
+}
+
+.gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.gallery-item:hover {
+    transform: scale(1.03);
+}
+
+.gallery-item:hover img {
+    transform: scale(1.1);
+}
+
+/* 手機版適配 */
+@media (max-width: 768px) {
+    .ig-link-card { justify-content: center; }
+    .shiba-gallery { grid-template-columns: repeat(2, 1fr); }
+    .shiba-header {
+        display: grid !important; /* 切換為網格佈局 */
+        grid-template-areas: 
+            "photo"
+            "info"
+            "ig"; /* 定義垂直排列順序：照片 > 資訊 > IG按鈕 */
+        text-align: center;
+        justify-items: center;
+        gap: 15px;
+    }
+
+    .shiba-photo { grid-area: photo; }
+    .shiba-info { 
+        grid-area: info; 
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .shiba-ig { 
+        grid-area: ig; 
+        position: static; /* 取消絕對定位，回到網格流 */
+        margin-top: 10px;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+    }
+
+    /* 隱藏手機版過長的藍色橫線 */
+    .blue-line {
+        margin: 15px auto !important;
+    }
+}
+
+/* 可愛柴爬101 專屬樣式 */
+.shiba-101-section {
+    text-align: center;
+    margin: 60px 0;
+    display: flex;          /* 新增：使用 flex 佈局 */
+    flex-direction: column; /* 新增：垂直排列標題與卡片 */
+    align-items: center;    /* 新增：讓內容物（卡片）在畫面水平置中 */
+}
+
+.title-101 {
+    color: #008080; /* 101建築常見的藍綠配色 */
+    font-size: 1.8em;
+    font-weight: bold;
+    margin-bottom: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.shiba-101-card {
+    background: white;
+    padding: 15px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    display: inline-block;
+    max-width: 90%;
+    transition: 0.3s;
+    border: 2px solid #008080; /* 101配色外框 */
+
+    /* 修改點：改為 flex 並設定寬度 */
+    display: flex;
+    flex-direction: column;
+    align-items: center;    /* 關鍵：確保內部的圖片與文字在框框內置中 */
+    width: fit-content;     /* 寬度隨內容縮放 */
+    max-width: 90%;
+    transition: 0.3s;
+}
+
+.shiba-101-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0,128,128,0.2);
+}
+
+.shiba-101-card img {
+    width: 100%;
+    max-width: 600px;
+    border-radius: 10px;
+    display: block;
+}
+
+.shiba-101-desc {
+    margin-top: 15px;
+    color: #555;
+    font-size: 1em;
+    line-height: 1.6;
+}
+
+        /* --- 5. 其他元件 --- */
+        .back-to-top {
+            position: fixed; bottom: 30px; right: 30px;
+            width: 50px; height: 50px; background-color: #1a237e;
+            color: white; border-radius: 50%; display: flex;
+            justify-content: center; align-items: center; z-index: 1000;
+            border: 2px solid #ffcc00; transition: 0.3s;
+            text-decoration: none;
+        }
+
+        footer { text-align: center; padding: 25px; background-color: #1a237e; color: white; font-size: 0.9em; }
+
+        /* =============================================
+           響應式優化 (RWD)
+           ============================================= */
+        @media (max-width: 768px) {
+            .navbar-full { flex-direction: column; padding: 10px 5px; }
+            .nav-links { 
+                margin-top: 10px; width: 100%; justify-content: center; display: flex;
+                flex-wrap: nowrap; padding: 10px 0 5px 0; border-top: 1px solid rgba(255,255,255,0.1);
+            }
+            .nav-links li { margin: 0 4px; flex-shrink: 1; }
+            .nav-links a { padding: 5px 8px; font-size: clamp(12px, 3.2vw, 14px); white-space: nowrap; }
+
+            .profile-header { flex-direction: column; text-align: center; padding: 30px 20px; }
+            .info-brief h1 { font-size: 32px; }
+            .blue-line { margin: 15px auto; }
+            
+            .member-grid { grid-template-columns: 1fr; gap: 20px; }
+
+            /* 1. 調整導覽列外殼，縮小內距 */
+            .navbar-full { 
+                flex-direction: column; 
+                padding: 10px 5px; 
+            }
+
+            /* 2. 調整導覽連結容器 */
+            .event-card-simple {
+                padding: 20px 15px;      /* 縮小手機版內距 */
+                width: 100%;             /* 寬度跟隨父層的 350px */
+                box-sizing: border-box;  /* 關鍵：確保 padding 不會撐破 350px */
+            }
+
+            /* 調整日期圓圈，讓 350px 內的空間分配合理 */
+            .event-date-circle {
+                width: 55px;
+                height: 55px;
+                margin-right: 15px;
+            }
+
+            /* 1. 調整導覽列外殼，縮小內距 */
+            .navbar-full { 
+                flex-direction: column; 
+                padding: 10px 5px; 
+            }
+
+            /* 2. 調整導覽連結容器 */
+            .nav-links { 
+                margin-top: 10px; 
+                width: 100%; 
+                justify-content: center; /* 置中 */
+                display: flex;
+                flex-wrap: nowrap;      /* 關鍵：強制絕對不換行 */
+                padding: 12px 0 5px 0;
+                border-top: 1px solid rgba(255,255,255,0.1);
+            }
+
+            /* 3. 調整清單項目 */
+            .nav-links li { 
+                margin: 0 4px;          /* 縮小項目間的間距 */
+                flex-shrink: 1;         /* 允許項目在必要時縮小 */
+            }
+
+            /* 4. 調整文字大小與行為 */
+            .nav-links a { 
+                padding: 5px 8px;       /* 縮小按鈕內距 */
+                
+                /* 使用 clamp 讓字體在 12px 到 14px 之間隨螢幕自動縮放 */
+                font-size: clamp(12px, 3.2vw, 14px); 
+                
+                white-space: nowrap;    /* 關鍵：文字絕對不換行 */
+                letter-spacing: -0.5px; /* 稍微縮小字距，節省空間 */
+            }
+
+            /*語言切換|Instagram|Facebook 按鈕設定位置*/
+            .header-actions {
+                position: static;   /* 回復普通流向 */
+                margin-top: -5px;
+                align-items: center; /* 居中對齊 */
+                width: 100%;
+            }
+
+            /* 手機版 標題列和黃字說明大小調整 Star */
+            .event-banner { /* 欄位高度大小*/
+                height: 160px; 
+            }
+            .event-banner h1 { /* 大標題*/
+                font-size: 30px; 
+            }        
+            .banner-info-wrap { /* 提示字*/
+                margin-top: 10px;
+                padding-bottom: 10px;
+                font-size: 16px;
+            }
+            /* 手機版 標題列和黃字說明大小調整 End */
+        }
+    </style>
+</head>
+<body>
+
+    <header class="navbar-static">
+        <nav class="navbar-full">
+            <div class="logo"><div class="logo-circle">立</div> 立法院 Legislature</div>
+            <ul class="nav-links">
+                <li><a href="index.html">首頁</a></li>
+                <li><a href="about.html">關於我們</a></li> 
+                <li><a href="members.html"class="active-dark">成員介紹</a></li> 
+                <li><a href="events.html">活動行程</a></li>
+                <li><a href="Other.html">其他</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="event-banner">
+        <h1>成員簡介</h1>
+        <div class="banner-info-wrap">
+            <span>立法院高度偵查組</span>
+            <span>和平親善與場域安全維護小組</span>
+        </div>
+    </section>
+
+    <main class="event-content-area" style="position: relative;">
+        <div class="profile-header shiba-header" style="position: relative;">
+
+            <div class="photo-section shiba-photo" style="position: relative;">
+                <div style="position: absolute; top: -10px; right: -10px; background: linear-gradient(45deg, #ffcc00, #ffffff); color: #1a237e; padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 14px; box-shadow: 0 0 15px rgba(255,204,0,0.8); z-index: 10; border: 2px solid #1a237e;">
+                    <i class="fa-solid fa-sparkles"></i> 法院吉祥物
+                </div>
+                <img id="dynamic-avatar" src="https://via.placeholder.com/200?text=Loading..." alt="成員照片" class="avatar-img">
+            </div>
+
+            <div class="info-brief shiba-info">
+                <span class="nickname">Cute Shiba</span>
+                <h1>可愛柴</h1>
+                <div class="blue-line"></div>
+                <div style="font-size: 1.1em; color: #444; line-height: 1.8;">
+                    出生地：台灣 <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Flag_of_the_Republic_of_China.svg/1280px-Flag_of_the_Republic_of_China.svg.png" alt="ROC" style="height:15px; vertical-align: middle; border:1px solid #ddd;"><br>
+                    職務隸屬：立法院高度偵查尋血犬 (特種勤務員)<br>
+                    誕生年份：2017 年<br>
+                    核心任務：守護立院和諧、場域安全偵蒐、執行萌力任務
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <div class="social-link-item">
+                    <a href="https://www.instagram.com/shiba_very_kawaii/" target="_blank" class="ig-btn">
+                        <i class="fa-brands fa-instagram"></i> Instagram
+                    </a>
+                </div>
+
+                <div class="social-link-item">
+                    <a href="#" target="_blank" class="fb-btn">
+                        <i class="fa-brands fa-facebook-f"></i> Facebook
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-card">
+            <h2 style="color: #1a237e; margin-top: 0;">守護議場的萌之力</h2>
+            <p style="line-height: 1.8; color: #555;">
+                可愛柴 Shiba 誕生於 2017 年，自進入立法院以來，便肩負著守護大家的重任。身為高度偵查尋血犬，牠的主要行動內容包含每日定期的場域巡邏與安全偵蒐，確保議場內的秩序與和諧。在緊張的議事環境中，Shiba 總能以特有的療癒魅力執行「萌力任務」，有效舒緩場內氣氛。無論是嗅覺精準的偵查作業，還是親善的接待工作，Shiba 始終忠於職守，成為立法院裡最溫暖、最可靠的守護者。
+            </p>
+        </div>
+
+        <div class="section-title">專業偵蒐與研究經歷</div>
+        <div class="member-grid">
+            <div class="member-card">
+                <span class="tag">Security Intelligence</span>
+                <strong class="m-title">高壓環境下的穩定度分析</strong>
+                <p class="m-desc">研究如何在激烈的議事辯論環境中，維持犬隻的心率穩定與警覺性。透過 Shiba 的實戰觀察，開發出一套適用於公部門場域的壓力釋放指引。 </p>
+            </div>
+            <div class="member-card">
+                <span class="tag">Olfactory Detection</span>
+                <strong class="m-title">精密嗅覺與化學標記偵測</strong>
+                <p class="m-desc">針對場域內可能出現的不明化學物品進行標記研究。Shiba 憑藉其高度敏銳的嗅覺，成功優化了尋血犬在室內複雜氣味干擾下的辨識模型。</p>
+            </div>
+        </div>
+
+        <div class="section-title">卓越表現與競賽得名</div>
+        <div class="info-card" style="background: linear-gradient(135deg, #fff9c4 0%, #ffffff 100%); border-left: 6px solid #fbc02d; box-shadow: 0 5px 15px rgba(251,192,45,0.2);">
+            <h2 style="color: #f57f17; margin-top: 0;"><i class="fa-solid fa-trophy"></i> 年度特種任務卓越獎</h2>
+            <p style="font-weight: bold; color: #333;">2023 全國親善犬特殊功績鑑定 — 總冠軍</p>
+            <p style="color: #666; font-size: 0.95em; line-height: 1.6;">
+                Shiba 在全國各級機關親善犬評選中，以「情緒穩定性」與「高效率偵蒐」雙項指標榮獲滿分。其在 2023 年多次成功預警議場突發狀況，對場域和諧貢獻極大。
+            </p>
+            
+            <hr style="border: 0; border-top: 1px solid #fbc02d; margin: 15px 0;">
+            
+            <h2 style="color: #f57f17; margin-top: 0;"><i class="fa-solid fa-medal"></i> 最受歡迎公部門吉祥物</h2>
+            <p style="font-weight: bold; color: #333;">2022 立院人氣投票 — 萌力巔峰獎</p>
+            <p style="color: #666; font-size: 0.95em; line-height: 1.6;">
+                憑藉著 2017 年以來的親民服務與「無死角」的微笑，蟬聯立法院全體同仁最受歡迎吉祥物。這不只是人氣的證明，更是其執行「和諧任務」的最佳實績。
+            </p>
+        </div>
+        
+        <div class="photo-gallery-title">
+            <h2 class="section-title" style="border: none; padding: 0; display: inline-block;">
+                <i class="fa-solid fa-camera-retro" style="color: #1a237e;"></i> 柴柴日常照片集
+            </h2>
+        </div>
+        
+        <div class="shiba-gallery">
+            <div class="gallery-item">
+                <img src="https://github.com/ChengHan16/Other_File/blob/master/photo/Shiba/Shiba01.png?raw=true" alt="Shiba 01">
+            </div>
+            <div class="gallery-item">
+                <img src="https://github.com/ChengHan16/Other_File/blob/master/photo/Shiba/Shiba02.jpg?raw=true" alt="Shiba 02">
+            </div>
+            <div class="gallery-item">
+                <img src="https://github.com/ChengHan16/Other_File/blob/master/photo/Shiba/Shiba03.jpg?raw=true" alt="Shiba 03">
+            </div>
+            <div class="gallery-item">
+                <img src="https://github.com/ChengHan16/Other_File/blob/master/photo/Shiba/Shiba04.jpg?raw=true" alt="Shiba 04">
+            </div>
+            <div class="gallery-item">
+                <img src="https://github.com/ChengHan16/Other_File/blob/master/photo/Shiba/Shiba05.jpg?raw=true" alt="Shiba 05">
+            </div>
+            <div class="gallery-item">
+                <img src="https://github.com/ChengHan16/Other_File/blob/master/photo/Shiba/Shiba06.jpg?raw=true" alt="Shiba 06">
+            </div>
+        </div>
+
+        <div class="shiba-101-section">
+            <div class="title-101">
+                <i class="fa-solid fa-building"></i> 勇闖高峰：可愛柴爬台北 101
+            </div>
+            <div class="shiba-101-card">
+                <img src="https://github.com/ChengHan16/Other_File/blob/master/photo/Shiba/shiba-101.jpg?raw=true" alt="可愛柴爬101">
+                <div class="shiba-101-desc">
+                    <strong>2026 年度挑戰任務：</strong> Shiba 展現驚人體力，成功「登頂」台北 101，象徵立院守護力更上一層樓！<br>畫家：Nina
+                </div>
+            </div>
+        </div>
+
+        <div class="info-card" style="margin-top: 40px; text-align: center; border-left-color: #ffcc00;">
+            <p style="color: #999; font-size: 0.9em; margin: 0;">Certified Detective Dog | Legislative Yuan | ID: 2017-SHIBA-001</p>
+        </div>
+
+    </main>
+
+    <a href="#" class="back-to-top"><i class="fa-solid fa-chevron-up"></i></a>
+
+    <footer>
+        <p>© 2026 立法院 Legislature - 數位資訊發展處 版權所有</p>
+    </footer>
+
+</body>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+
+<script>
+    // 1. Firebase 配置 (沿用您的設定)
+    const firebaseConfig = {
+        apiKey: "AIzaSyACnoimIASfb1rb59SbgLDkUmyYR6ODbUU",
+        authDomain: "llwb-ed686.firebaseapp.com",
+        projectId: "llwb-ed686",
+        storageBucket: "llwb-ed686.firebasestorage.app", 
+        messagingSenderId: "940345852074",
+        appId: "1:940345852074:web:7a30cca5a6d997a92350d3",
+        measurementId: "G-KWL4ZE3D18"
+    };
+
+    // 2. 初始化
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.firestore();
+
+    // 3. 定義抓取函數
+    async function loadMemberImage(targetName) {
+        const avatarEl = document.getElementById('dynamic-avatar');
+
+        try {
+            // 在 'content' 集合中尋找 text 欄位等於指定姓名的人
+            const snapshot = await db.collection("content")
+                                   .where("text", "==", targetName)
+                                   .get();
+
+            if (!snapshot.empty) {
+                // 取得第一筆匹配到的資料
+                const data = snapshot.docs[0].data();
+                if (data.imageUrl) {
+                    avatarEl.src = data.imageUrl;
+                    avatarEl.alt = targetName + " 照片";
+                }
+            } else {
+                console.warn("找不到成員：" + targetName);
+                avatarEl.src = "https://via.placeholder.com/200?text=No+Photo";
+            }
+        } catch (error) {
+            console.error("Firebase 讀取錯誤:", error);
+        }
+    }
+
+    // 4. 網頁載入後執行：輸入您要顯示的名字
+    document.addEventListener("DOMContentLoaded", () => {
+        loadMemberImage("可愛柴"); 
+    });
+</script>
+</html>
