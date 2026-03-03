@@ -1,0 +1,14 @@
+{
+  "apps": [
+    {
+      "appId": "my-legislature-app",
+      "root": "./",
+      "ios": {
+        "root": "ios/App"
+      },
+      "android": {
+        "root": "android"
+      }
+    }
+  ]
+}
