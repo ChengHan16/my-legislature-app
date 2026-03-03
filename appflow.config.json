@@ -1,7 +1,7 @@
 {
   "apps": [
     {
-      "appId": "my-legislature-app",
+      "appId": "37d20a16",
       "root": "./",
       "ios": {
         "root": "ios/App"
