@@ -1,0 +1,65 @@
+<header class="navbar-static">
+    <nav class="navbar-full">
+        <!--<div class="logo"><div class="logo-circle">立</div> 立法院 Legislature</div>-->
+        <div style="display: flex; align-items: center;">
+            <button class="mobile-menu-btn" onclick="toggleNav()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="logo"><div class="logo-circle">立</div> 立法院 Legislature</div>
+        </div>
+  
+        <!--正式版本測試用-->
+        
+        <ul class="nav-links">
+            <li><a href="../Dashboard-index.html" data-nav="index">首頁</a></li>
+            <li><a href="../Dashboard-about.html" data-nav="about">關於我們</a></li> 
+            <li><a href="../Dashboard-members.html" data-nav="members">成員介紹</a></li> 
+            <li><a href="../event-documentation.html" data-nav="events">活動行程</a></li>
+            <li><a href="../Dashboard-Other.html" data-nav="other">其他</a></li>
+        </ul>
+  
+        <!--版測試用-->
+        <!--
+        <ul class="nav-links">
+            <li><a href="/public/Dashboard-index.html" data-nav="index">首頁</a></li>
+            <li><a href="/public/Dashboard-about.html" data-nav="about">關於我們</a></li> 
+            <li><a href="/public/Dashboard-members.html" data-nav="members">成員介紹</a></li> 
+            <li><a href="/public/event-documentation.html" data-nav="events">活動行程</a></li>
+            <li><a href="/public/Dashboard-Other.html" data-nav="other">其他</a></li>
+        </ul>    -->  
+        
+    </nav>
+</header>
+
+<!--
+<section class="event-banner">
+    <h1>成員簡介</h1>
+    <div class="banner-info-wrap">
+        <span id="banner-dept">部門讀取中...</span>
+        <span id="banner-group">小組讀取中...</span>
+    </div>
+</section>
+-->  
+
+<div id="mySidebar" class="sidebar">
+    <span class="close-btn" onclick="toggleNav()">&times;</span>
+    <a href="Profile.html"><i class="fas fa-user-edit"></i> 個人設定</a>
+    <a href="Dashboard-about.html"><i class="fas fa-users"></i> 關於我們</a>
+    <a href="Messenger.html"><i class="fas fa-bullhorn"></i> 法院通訊</a>
+    
+    <a href="UploadFiles.html" id="admin-add-event" style="display: none;">
+    <i class="fas fa-file-upload"></i><span style="margin-left: 12px;">上傳檔案</span></a>
+
+    <a href="createAccount.html" id="admin-add-act" style="display: none;">
+    <i class="fas fa-tasks"></i><span style="margin-left: 12px;">新增帳號</span></a>
+
+    <a href="terms-admin.html" id="admin-add-terms" style="display: none;">
+    <i class="fa-solid fa-users"></i><span style="margin-left: 12px;">成員狀態</span></a>
+
+    <a href="add-event.html"><i class="fas fa-edit"></i> 新增活動</a>
+    <a href="event-documentation.html"><i class="fas fa-calendar-check"></i>  活動期程</a>
+
+    <a href="administrative-planning.html"><i class="fas fa-project-diagram"></i> 行政計畫系統</a>
+    <button class="logout-icon-btn" onclick="confirmLogout()"><i class="fas fa-power-off"> 登出</i></button>
+</div>
+<div id="overlay" class="overlay" onclick="toggleNav()"></div>

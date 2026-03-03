@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>立法院 - 成員介紹：丁俊齊</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    
+    <style>
+        /* --- 基礎樣式與防溢出 --- */
+        html { scroll-behavior: smooth; }
+        html, body { max-width: 100%; overflow-x: hidden; margin: 0; padding: 0; }
+
+        body {
+            font-family: "Noto Sans TC", "Arial", sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* --- 1. 導覽列樣式 --- */
+        .navbar-static {
+            background-color: #1a237e;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            width: 100%;
+        }
+
+        .navbar-full {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: white;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+        }
+
+        .logo-circle {
+            background-color: #ffcc00;
+            color: #1a237e;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 10px;
+            font-weight: 700;
+        }
+
+        .nav-links {
+            list-style: none;
+            display: flex;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-links li { margin-left: 30px; }
+        .nav-links a { color: white; text-decoration: none; font-weight: 500; padding: 8px 15px; transition: 0.3s; }
+        .nav-links a:hover { border-bottom: 2px solid #ffcc00; }
+        .nav-links a.active-dark { background-color: #004d99; border-radius: 4px; color: white !important; }
+
+        /* --- 2. Banner 樣式 (固定高度) --- */
+        .event-banner {
+            background: linear-gradient(135deg, #1a237e 0%, #0d1241 100%);
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+            border-bottom: 4px solid #ffcc00;
+            height: 240px; 
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .event-banner h1 { font-size: 3.5em; margin: 0; letter-spacing: 2px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+
+        .banner-info-wrap {
+            display: flex;
+            flex-direction: column; 
+            align-items: center;
+            gap: 15px;
+            margin-top: 20px;
+            font-size: 1.1em;
+            color: #ffcc00;
+        }
+
+        /* --- 3. 主要內容區域 --- */
+        .event-content-area {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            flex: 1;
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            margin-bottom: 40px;
+        }
+
+        .photo-section { flex-shrink: 0; text-align: center; }
+        .avatar-img {
+            width: 200px; height: 200px; border-radius: 12px;
+            border: 4px solid #f0f0f0; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            object-fit: cover;
+        }
+
+        .info-brief h1 { font-size: 42px; color: #1a237e; margin: 0; letter-spacing: 4px; }
+        .nickname { font-size: 20px; color: #666; font-weight: 400; }
+        .blue-line { height: 3px; background: linear-gradient(to right, #1a237e, transparent); width: 300px; margin: 15px 0; }
+
+        .info-card {
+            background: white; 
+            padding: 30px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
+            margin-bottom: 40px; 
+            border-left: 6px solid #ffcc00;
+        }
+
+        .section-title {
+            border-left: 6px solid #1a237e;
+            padding-left: 15px;
+            margin: 40px 0 20px;
+            color: #1a237e;
+            font-size: 1.6em;
+            font-weight: bold;
+        }
+
+        /* --- 4. 網格佈局 (經歷與研究) --- */
+        .member-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 25px;
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        .member-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            border-top: 5px solid #1a237e;
+            transition: all 0.3s ease;
+        }
+
+        .tag {
+            display: inline-block; background: #e8eaf6; color: #3f51b5;
+            padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-bottom: 10px;
+        }
+
+        .m-title { font-weight: bold; font-size: 1.2em; color: #111; margin-bottom: 8px; display: block; }
+        .m-desc { font-size: 0.95em; color: #666; line-height: 1.6; }
+        
+        /* --- 電腦版樣式 --- */
+        /* 將按鈕釘在 profile-header 右上角 */
+
+        .ig-btn {
+            text-decoration: none;
+            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+            color: white;
+            padding: 8px 18px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(188, 24, 136, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .ig-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(188, 24, 136, 0.5);
+            color: white;
+        }
+
+        .fb-link-card {
+            position: absolute;
+            top: 85px; /* 維持原位 */
+            right: 35px;
+            z-index: 5;
+        }
+
+        .fb-btn {
+            text-decoration: none;
+            /* 修改為 Facebook 官方藍色 */
+            background: #1877F2; 
+            color: white;
+            padding: 8px 18px;
+            border-radius: 25px; /* 維持圓角膠囊狀 */
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            /* 修改陰影顏色為 Facebook 藍的擴散感 */
+            box-shadow: 0 4px 15px rgba(24, 119, 242, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .fb-btn:hover {
+            /* 滑過時稍微加深藍色 */
+            background: #166fe5;
+            transform: translateY(-3px);
+            /* 加強 Facebook 藍的發光效果 */
+            box-shadow: 0 6px 20px rgba(24, 119, 242, 0.5);
+            color: white;
+        }
+
+        .fb-btn i {
+            font-size: 16px; /* 控制 f 圖標的大小 */
+            margin-right: 5px; /* 與文字 Facebook 之間的距離 */
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+
+        /* 強化得獎項目的顯眼風格 */
+.award-card {
+    background: linear-gradient(135deg, #fff9c4 0%, #ffffff 100%);
+    border-left: 6px solid #fbc02d !important;
+    box-shadow: 0 6px 15px rgba(251,192,45,0.2) !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.award-card::after {
+    content: '\f091'; /* Trophy icon */
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    position: absolute;
+    right: 20px;
+    bottom: 10px;
+    font-size: 4em;
+    color: rgba(251,192,45,0.1);
+}
+
+/* 證照/照片集網格 */
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.gallery-item {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    background: white;
+    transition: 0.3s;
+}
+
+.gallery-item:hover {
+    transform: translateY(-5px);
+}
+
+.gallery-item img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    display: block;
+}
+
+.gallery-label {
+    padding: 10px;
+    font-size: 0.9em;
+    text-align: center;
+    color: #555;
+    background: #fdfdfd;
+}
+
+/* 純粹黑金半透明專用樣式 - 無暈光 */
+.stats-grid-gold {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    border-top: 1px solid rgba(197, 160, 89, 0.4);
+    padding-top: 30px;
+}
+
+.stat-item-gold {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 20px 10px;
+    border-radius: 4px;
+    text-align: center;
+    border: 1px solid rgba(197, 160, 89, 0.2);
+    transition: all 0.3s ease;
+}
+
+.stat-item-gold:hover {
+    background: rgba(197, 160, 89, 0.15);
+    border-color: #c5a059;
+    transform: translateY(-5px); /* 保留輕微位移感以示互動 */
+}
+
+.stat-label {
+    font-size: 0.7em;
+    color: #888;
+    font-weight: 800;
+    display: block;
+    margin-bottom: 8px;
+    letter-spacing: 2px;
+}
+
+.stat-value {
+    font-size: 1.3em;
+    color: #c5a059;
+    font-weight: 800;
+}
+
+@media (max-width: 768px) {
+    .stats-grid-gold { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .journal-card-gold { padding: 30px 20px !important; }
+}
+
+@media (max-width: 480px) {
+    .stats-grid-gold { grid-template-columns: 1fr; }
+}
+
+/* 獎狀與研究圖片專業相框 */
+.cert-item {
+    border: 8px solid #fff;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    border-radius: 4px;
+    transition: 0.3s;
+}
+.cert-item:hover {
+    transform: scale(1.02);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+}
+
+/* 超浮誇期刊證明外框 */
+.grand-journal-award {
+    position: relative;
+    margin: 60px 0;
+    padding: 20px;
+    background: linear-gradient(135deg, #c5a059 0%, #fff 50%, #c5a059 100%);
+    border-radius: 15px;
+    box-shadow: 0 0 40px rgba(197, 160, 89, 0.6);
+    text-align: center;
+    overflow: hidden;
+}
+
+.grand-journal-award::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: conic-gradient(transparent, rgba(197, 160, 89, 0.3), transparent 30%);
+    animation: rotateGold 6s linear infinite;
+}
+
+@keyframes rotateGold {
+    100% { transform: rotate(360deg); }
+}
+
+.journal-inner-frame {
+    position: relative;
+    background: #121212;
+    padding: 30px;
+    border-radius: 10px;
+    z-index: 1;
+}
+
+.journal-img-main {
+    width: 100%;
+    max-width: 800px;
+    border: 3px solid #c5a059;
+    border-radius: 5px;
+    box-shadow: 0 0 20px rgba(197, 160, 89, 0.5);
+}
+
+.award-shimmer {
+    font-weight: 900;
+    color: #c5a059;
+    font-size: 1.5em;
+    letter-spacing: 5px;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    text-shadow: 0 0 10px rgba(197, 160, 89, 0.8);
+}
+
+/* 確保圖片完整觀看且不裁切 */
+.gallery-grid-full {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+    margin-top: 20px;
+}
+
+.gallery-item-full {
+    background: #fff;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transition: transform 0.3s ease;
+}
+
+.gallery-item-full:hover {
+    transform: translateY(-5px);
+}
+
+.gallery-item-full img {
+    width: 100%;
+    height: auto; /* 關鍵：高度自動，確保比例完整 */
+    display: block;
+    border-radius: 4px;
+    border: 1px solid #eee;
+}
+
+.gallery-label-dark {
+    padding: 12px 5px 5px;
+    font-size: 0.95em;
+    font-weight: 600;
+    color: #1a237e;
+    text-align: center;
+}
+
+/* 針對手機版微調 */
+@media (max-width: 768px) {
+    .gallery-grid-full {
+        grid-template-columns: 1fr; /* 手機版單欄完整呈現 */
+    }
+}
+
+
+.lang-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+/* 延續網頁風格的黑金按鈕 */
+.btn-gold-outline {
+    background: rgba(26, 35, 126, 0.05);
+    color: #1a237e;
+    border: 2.5px solid #ffd000;
+    padding: 8px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(255, 204, 0, 0.1);
+}
+
+.btn-gold-outline:hover {
+    background: #ffcc00;
+    color: #1a237e;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 204, 0, 0.2);
+}
+
+.dropdown-arrow {
+    font-size: 10px;
+    transition: transform 0.3s ease;
+}
+
+/* 下拉選單主體：黑金半透明風格 */
+.dropdown-content {
+    display: none;
+    position: absolute;
+    top: calc(100% + 10px); /* 距離按鈕下方 10px */
+    right: 0;
+    background: rgba(255, 255, 255, 0.98);
+    min-width: 140px;
+    border-radius: 12px;
+    border: 1px solid #ffcc00;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    backdrop-filter: blur(10px);
+    overflow: hidden;
+    z-index: 1001;
+    /* 動畫前置準備 */
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s ease;
+}
+
+/* 選項顯示狀態 */
+.dropdown-content.show {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* 選單內的項目 */
+.dropdown-item {
+    color: #1a237e;
+    padding: 12px 20px;
+    text-decoration: none;
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.dropdown-item:not(:last-child) {
+    border-bottom: 1px solid rgba(255, 204, 0, 0.1);
+}
+
+.dropdown-item:hover {
+    background: #1a237e;
+    color: #ffcc00;
+}
+
+/* 手機版適配 */
+@media (max-width: 768px) {
+
+    .dropdown-content {
+        right: 50%;
+        transform: translateX(50%) translateY(10px);
+    }
+    .dropdown-content.show {
+        transform: translateX(50%) translateY(0);
+    }
+}
+
+/* 神魔之塔 */
+        .summoner-data-card {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            border-left: 6px solid #ffc400;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 30px 0;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .summoner-avatar-box {
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .summoner-avatar-box img {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            border: 3px solid #ffc400;
+            object-fit: cover;
+            background: #000;
+        }
+
+        .summoner-allmax-badge {
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ffc400;
+            color: #1a1a1a;
+            font-size: 10px;
+            font-weight: 900;
+            padding: 2px 8px;
+            border-radius: 10px;
+            white-space: nowrap;
+            letter-spacing: 1px;
+        }
+
+        .summoner-info-box {
+            flex-grow: 1;
+        }
+
+        .summoner-main-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .summoner-name {
+            font-size: 22px;
+            color: #000000;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .summoner-uid {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+            font-weight: 600;
+            color: #ffffff; 
+            /* 修改這裡：rgba 前三個值控制顏色，最後一個 0.7 代表 70% 不透明度 */
+            background: rgba(26, 26, 26, 0.8); 
+            /* 選擇性加入：讓半透明背景帶有磨砂玻璃感 (需瀏覽器支援) */
+            backdrop-filter: blur(4px); 
+            
+            border: 1px solid #d4af37; 
+            padding: 4px 12px;
+            border-radius: 4px;
+            letter-spacing: 1.5px; 
+            box-shadow: inset 0 0 5px rgba(212, 175, 55, 0.2); 
+            display: inline-block;
+        }
+
+        .summoner-tags {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .s-tag {
+            font-size: 12px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            background: rgba(212, 175, 55, 0.1);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            color: #1c170f;
+        }
+
+        .s-tag-guild {
+            border-color: rgba(212, 175, 55, 0.3);
+            color: #1c170f;
+        }
+        @media (max-width: 768px) {
+            .summoner-data-card { 
+                flex-direction: column; 
+                text-align: center; 
+                gap: 20px; 
+            }
+
+            /* 手機版強制置中並調整間距 */
+            .summoner-main-row {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                gap: 12px !important; /* 增加名稱與 UID 的垂直間距 */
+                margin-bottom: 15px !important;
+            }
+
+            /* 調整手機版 UID 字體大小以防溢出 */
+            .summoner-uid {
+                font-size: 13px;
+                padding: 6px 15px;
+            }
+
+            .summoner-tags {
+                justify-content: center !important;
+            }
+        }
+        /* 神魔之塔 */
+
+        /* --- 5. 其他元件 --- */
+        .back-to-top {
+            position: fixed; bottom: 30px; right: 30px;
+            width: 50px; height: 50px; background-color: #1a237e;
+            color: white; border-radius: 50%; display: flex;
+            justify-content: center; align-items: center; z-index: 1000;
+            border: 2px solid #ffcc00; transition: 0.3s;
+            text-decoration: none;
+        }
+
+        .to-email {
+            position: fixed; bottom: 100px; right: 30px;
+            width: 50px; height: 50px; background-color: #1a237e;
+            color: white; border-radius: 50%; display: flex;
+            justify-content: center; align-items: center; z-index: 1000;
+            border: 2px solid #ffcc00; transition: 0.3s;
+            text-decoration: none;
+        }
+
+        footer { text-align: center; padding: 25px; background-color: #1a237e; color: white; font-size: 0.9em; }
+
+        /* 右上角功能容器 */
+        .header-actions {
+            position: absolute; /* 相對於 profile-header 定位 */
+            top: 20px;          /* 距離頂部 20px */
+            right: 20px;        /* 距離右側 20px */
+            display: flex;
+            flex-direction: column; /* 讓按鈕上下排列 */
+            align-items: flex-end;  /* 讓按鈕靠右對齊 */
+            gap: 12px;          /* 設定按鈕之間的間距，防止重疊 */
+            z-index: 10;        /* 確保選單彈出時不會被其他內容遮擋 */
+        }
+
+        /* 確保按鈕本身不會因為容器縮放而變形 */
+        .lang-dropdown, .social-link-item {
+            width: auto;
+        }
+        /* 右上角功能容器 END */
+
+        /* =============================================
+           響應式優化 (RWD)
+           ============================================= */
+        @media (max-width: 768px) {
+            .navbar-full { flex-direction: column; padding: 10px 5px; }
+            .nav-links { 
+                margin-top: 10px; width: 100%; justify-content: center; display: flex;
+                flex-wrap: nowrap; padding: 10px 0 5px 0; border-top: 1px solid rgba(255,255,255,0.1);
+            }
+            .nav-links li { margin: 0 4px; flex-shrink: 1; }
+            .nav-links a { padding: 5px 8px; font-size: clamp(12px, 3.2vw, 14px); white-space: nowrap; }
+
+            .profile-header { flex-direction: column; text-align: center; padding: 30px 20px; }
+            .info-brief h1 { font-size: 32px; }
+            .blue-line { margin: 15px auto; }
+            
+            .member-grid { grid-template-columns: 1fr; gap: 20px; }
+
+            /* 1. 調整導覽列外殼，縮小內距 */
+            .navbar-full { 
+                flex-direction: column; 
+                padding: 10px 5px; 
+            }
+
+            /* 2. 調整導覽連結容器 */
+            .event-card-simple {
+                padding: 20px 15px;      /* 縮小手機版內距 */
+                width: 100%;             /* 寬度跟隨父層的 350px */
+                box-sizing: border-box;  /* 關鍵：確保 padding 不會撐破 350px */
+            }
+
+            /* 調整日期圓圈，讓 350px 內的空間分配合理 */
+            .event-date-circle {
+                width: 55px;
+                height: 55px;
+                margin-right: 15px;
+            }
+
+            /* 1. 調整導覽列外殼，縮小內距 */
+            .navbar-full { 
+                flex-direction: column; 
+                padding: 10px 5px; 
+            }
+
+            /* 2. 調整導覽連結容器 */
+            .nav-links { 
+                margin-top: 10px; 
+                width: 100%; 
+                justify-content: center; /* 置中 */
+                display: flex;
+                flex-wrap: nowrap;      /* 關鍵：強制絕對不換行 */
+                padding: 12px 0 5px 0;
+                border-top: 1px solid rgba(255,255,255,0.1);
+            }
+
+            /* 3. 調整清單項目 */
+            .nav-links li { 
+                margin: 0 4px;          /* 縮小項目間的間距 */
+                flex-shrink: 1;         /* 允許項目在必要時縮小 */
+            }
+
+            /* 4. 調整文字大小與行為 */
+            .nav-links a { 
+                padding: 5px 8px;       /* 縮小按鈕內距 */
+                
+                /* 使用 clamp 讓字體在 12px 到 14px 之間隨螢幕自動縮放 */
+                font-size: clamp(12px, 3.2vw, 14px); 
+                
+                white-space: nowrap;    /* 關鍵：文字絕對不換行 */
+                letter-spacing: -0.5px; /* 稍微縮小字距，節省空間 */
+            }
+
+            .ig-link-card {
+                /* 1. 將絕對定位取消，按鈕會回到 HTML 結構的最下方 */
+                position: static !important;
+                /* 2. 設置適當的上間距 (文字與按鈕之間) */
+                margin-top: -30px !important;                
+                /* 3. 設置下間距 (按鈕與卡片底部之間) */
+                margin-bottom: 5px !important;          
+                /* 4. 水平置中顯示 */
+                width: 100%;
+                display: flex;
+                justify-content: center;
+            }
+
+            .lang-switch-container{
+                /* 1. 將絕對定位取消，按鈕會回到 HTML 結構的最下方 */
+                position: static !important;
+                /* 2. 設置適當的上間距 (文字與按鈕之間) */
+                margin-top: -30px !important;                
+                /* 3. 設置下間距 (按鈕與卡片底部之間) */
+                margin-bottom: 5px !important;          
+                /* 4. 水平置中顯示 */
+                width: 100%;
+                display: flex;
+                justify-content: center;
+            }
+
+            /* 右上角功能容器 END */    
+            .header-actions {        
+                position: static;    /* 回復普通流向 */
+                margin-top: -30px;
+                align-items: center; /* 居中對齊 */
+                width: 100%;
+            }
+
+            /* 手機版 標題列和黃字說明大小調整 Star */
+            .event-banner { /* 欄位高度大小*/
+                height: 160px; 
+            }
+            .event-banner h1 { /* 大標題*/
+                font-size: 35px; 
+            }        
+            .banner-info-wrap { /* 提示字*/
+                margin-top: 10px;
+                padding-bottom: 10px;
+                font-size: 12px;
+            }
+            /* 手機版 標題列和黃字說明大小調整 End */
+
+        }
+    </style>
+</head>
+<body>
+
+    <header class="navbar-static">
+        <nav class="navbar-full">
+            <div class="logo"><div class="logo-circle">立</div> 立法院 Legislature</div>
+            <ul class="nav-links">
+                <li><a href="index.html">首頁</a></li>
+                <li><a href="about.html">關於我們</a></li> 
+                <li><a href="members.html"class="active-dark">成員介紹</a></li> 
+                <li><a href="events.html">活動行程</a></li>
+                <li><a href="index.html">其他</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="event-banner">
+        <h1>Member Profile</h1>
+        <div class="banner-info-wrap">
+            <span>College of Electrical Engineering and Computer Science, NDHU</span>
+            <span>Advanced Research Group for Artificial Intelligence and Cyber Security</span>
+        </div>
+    </section>
+
+    <main class="event-content-area" style="position: relative;">
+        <div class="profile-header" style="position: relative;">
+            <div class="photo-section">
+                <img id="dynamic-avatar" src="https://via.placeholder.com/200?text=Loading..." alt="成員照片" class="avatar-img">
+            </div>
+            <div class="info-brief">
+                <span class="nickname">丁 俊 齊</span>
+                <h1>TING-CHUN-CHI</h1>
+                <div class="blue-line"></div>
+                <div style="font-size: 1.1em; color: #444; line-height: 2;">
+                    <strong>Place of Birth:</strong>Taiwan <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Flag_of_the_Republic_of_China.svg/1280px-Flag_of_the_Republic_of_China.svg.png" alt="ROC" style="height:15px; vertical-align: middle; border:1px solid #ddd;"><br>
+                    <strong>Academic Background:</strong> College of EECS, National Dong Hwa University<br>
+                    <strong>Technical Core:</strong> Network Science, Information Security, Computer Mechanics<br>
+                    <strong>Core Expertise:</strong> Deep Learning / Edge Computing / High-Performance Computing
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <div class="lang-dropdown">
+                    <button class="lang-btn btn-gold-outline" id="langBtn">
+                        <i class="fa-solid fa-language"></i> Language
+                        <i class="fa-solid fa-chevron-down dropdown-arrow"></i>
+                    </button>
+                    <div class="dropdown-content" id="langMenu">
+                        <a href="info-Ting-chun_chi - zh-TW.html" class="dropdown-item">繁體中文</a>
+                        <a href="info-Ting-chun_chi - JP.html" class="dropdown-item">日本語</a>
+                        <a href="info-Ting-chun_chi - en.html" class="dropdown-item">English</a>
+                    </div>
+                </div>
+
+                <div class="social-link-item">
+                    <a href="https://www.instagram.com/ssindychen1/" target="_blank" class="ig-btn">
+                        <i class="fa-brands fa-instagram"></i> Instagram
+                    </a>
+                </div>
+
+                <div class="social-link-item">
+                    <a href="https://www.facebook.com/ding.jun.qi.991619?locale=zh_TW" target="_blank" class="fb-btn">
+                        <i class="fa-brands fa-facebook-f"></i> Facebook
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title">Tower of Saviors - Summoner Information</div>
+        <div class="summoner-data-card">
+            <!--
+            <div class="summoner-avatar-box">
+                <img src="https://github.com/ChengHan16/Legislature-Family-Website/blob/main/image/v20251-12th-iOS_1024.png?raw=true" alt="Summoner Avatar">
+                <div class="summoner-allmax-badge">ALL MAX</div>
+            </div>
+            -->
+            <div class="summoner-info-box">
+                <div class="summoner-main-row">
+                    <h3 class="summoner-name">Ninarwe</h3>
+                    <span class="summoner-uid">UID: 944163516</span>
+                </div>
+                <div class="summoner-tags">
+                    <span class="s-tag"><i class="fa-solid fa-trophy"></i> TOS Palace</span>
+                    <span class="s-tag s-tag-guild"><i class="fa-solid fa-shield-cat"></i> Ora Ora</span>
+                    <span class="s-tag"><i class="fa-solid fa-check"></i> Certified Summoner</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title">Core R&D and Advanced Technology Development</div>
+        <div class="member-grid">
+            <div class="member-card">
+                <span class="tag">AI & Healthcare</span>
+                <strong class="m-title">Intelligent Canine Disease Detection System</strong>
+                <p class="m-desc">Utilized <strong>TensorFlow</strong> to construct deep Convolutional Neural Networks (CNN) with <strong>NVIDIA CUDA</strong> for GPU acceleration. The model was deployed on <strong>Raspberry Pi</strong> embedded platforms to achieve real-time diagnostic inference based on pathological features.</p>
+            </div>
+            <div class="member-card">
+                <span class="tag">Medical Computing</span>
+                <strong class="m-title">AI Pulmonary Lesion Identification Platform</strong>
+                <p class="m-desc">Applied <strong>Transfer Learning</strong> to optimize large-scale convolutional architectures for the automated annotation of minor lesions in X-ray and CT imagery, effectively overcoming inference efficiency bottlenecks in low-power medical devices.</p>
+            </div>
+            <div class="member-card" style="grid-column: span 2;">
+                <span class="tag">Smart City</span>
+                <strong class="m-title">AI-Assisted Traffic Flow Regulation and Control System</strong>
+                <p class="m-desc">An advanced scheduling system utilizing <strong>Informer architecture</strong> and the <strong>Transformer ecosystem</strong> for long-term time-series analysis of large-scale road networks. It implements dynamic signal compensation and flow-throttling decisions via CUDA acceleration to significantly reduce urban congestion.</p>
+            </div>
+        </div>
+
+        <div class="section-title">Academic Achievements and International Publications</div>
+        <div class="info-card" style="border-left-color: #1a237e;">
+            <ul style="line-height: 2; padding-left: 20px; color: #333;">
+                <li><i class="fa-solid fa-file-lines" style="color: #1a237e; margin-right: 10px;"></i> <strong>"A Study on Hybrid Deep Learning Models for Long-term Traffic Forecasting on Taiwan's Expressways"</strong> - Analyzing CNN-LSTM hybrid model performance.</li>
+                <li><i class="fa-solid fa-file-lines" style="color: #1a237e; margin-right: 10px;"></i> <strong>"Case Study of Long-term Traffic Forecasting on Taiwan's Expressways based on Informer Architecture"</strong> - Solving instability in long-sequence forecasting.</li>
+                <li><i class="fa-solid fa-earth-americas" style="color: #1a237e; margin-right: 10px;"></i> <strong>Contributions to International Deep Learning Journals</strong> - Recognized and cited by experts in IEEE-related fields.</li>
+            </ul>
+        </div>
+
+        <div class="section-title">Honors and Awards</div>
+        <div class="member-grid">
+            <div class="member-card award-card">
+                <span class="tag">Academic Excellence</span>
+                <strong class="m-title">Outstanding Student in EECS</strong>
+                <p class="m-desc">The highest department-level honor, representing balanced excellence across Electronics, Information, and Communication Engineering.</p>
+            </div>
+            <div class="member-card award-card">
+                <span class="tag">TWCC Winner</span>
+                <strong class="m-title">TWCC Open Hackathon 2022 - Grand Prize</strong>
+                <p class="m-desc">AI-assisted model for canine pathological image diagnosis and disease risk interpretation, trained on the National Center for High-performance Computing cloud platform.</p>
+            </div>
+            <div class="member-card award-card">
+                <span class="tag">AI CUP Runner-up</span>
+                <strong class="m-title">AI CUP 2022 National Runner-up</strong>
+                <p class="m-desc">"Application of CNN in Canine X-ray Image Lesion Detection," distinguished among hundreds of competing teams.</p>
+            </div>
+            <div class="member-card award-card">
+                <span class="tag">Smart City Innovation</span>
+                <strong class="m-title">2022 Tainan Smart City Hackathon - Innovation Award</strong>
+                <p class="m-desc">Developed a deep learning-based smart traffic flow forecasting and decision-making system to solve real-world urban pain points.</p>
+            </div>
+            <div class="member-card award-card">
+                <span class="tag">Robotics Best Award</span>
+                <strong class="m-title">National AI Robotics Application Competition - Grand Prize</strong>
+                <p class="m-desc">Created a real-time road anomaly and accident risk AI identification platform integrating Computer Vision for enhanced surveillance safety.</p>
+            </div>
+            <div class="member-card award-card">
+                <span class="tag">Synopsys Top Award</span>
+                <strong class="m-title">2023 Synopsys ARC AIoT Design & Application - Grand Prize</strong>
+                <p class="m-desc">Combined low-power chip design with deep forecasting models to define next-generation smart traffic IoT nodes.</p>
+            </div>
+        </div>
+
+        <div class="section-title">Certificates and Photo Gallery</div>
+        <div class="gallery-grid-full">
+            <div class="gallery-item-full">
+                <img src="https://github.com/ChengHan16/Legislature-Family-Website/blob/main/image/Andrew/58B42B5F-EC30-42D2-B164-1C7F17596F99.jpg?raw=true" alt="National AI CUP Certificate">
+                <div class="gallery-label-dark">National AI CUP Excellence Certificate</div>
+            </div>
+            <div class="gallery-item-full">
+                <img src="https://github.com/ChengHan16/Legislature-Family-Website/blob/main/image/Andrew/59849BD0-23D4-4C1A-A1F5-46D2DB14B6CE.jpg?raw=true" alt="Academic Honor Certificate">
+                <div class="gallery-label-dark">Academic Excellence Honor Certificate</div>
+            </div>
+        </div>
+
+        <div class="section-title">Core Research Archives</div>
+        <div class="gallery-grid-full">
+            <div class="gallery-item-full">
+                <img src="https://github.com/ChengHan16/Legislature-Family-Website/blob/main/image/Andrew/0B9C48C6-D5F9-49F9-9E8C-F0DE7088B24F.jpg?raw=true" alt="Field Sampling Record">
+                <div class="gallery-label-dark">Field Research Sampling & Data Analysis Log</div>
+            </div>
+            <div class="gallery-item-full">
+                <img src="https://github.com/ChengHan16/Legislature-Family-Website/blob/main/image/Andrew/37C04A8B-848D-4D3A-8330-719D8CEFB86D.jpg?raw=true" alt="Multimodal Training Environment">
+                <div class="gallery-label-dark">Laboratory Multimodal Model Training Environment</div>
+            </div>
+        </div>
+
+        <div class="section-title" style="color: #c5a059;"><i class="fa-scroll fa-solid"></i> International Academic Journal Recognition</div>
+        <div class="grand-journal-award">
+            <div class="journal-inner-frame">
+                <div class="award-shimmer">Academic Publication Excellence</div>
+                <img src="https://github.com/ChengHan16/Legislature-Family-Website/blob/main/image/Andrew/4141B1D7-6C3E-488F-B094-ADE98E89DEA6.jpg?raw=true" alt="Journal Certificate" class="journal-img-main">
+                <div style="margin-top: 25px; color: #fff;">
+                    <h3 style="color: #c5a059; margin-bottom: 10px;">Official Acceptance Notice</h3>
+                    <p style="font-size: 0.9em; opacity: 0.8; line-height: 1.6;">
+                        The research findings of Junqi Ding for the 2025 academic year have been officially accepted for publication in leading international academic journals.<br>
+                        His work integrates AI, mathematical modeling, and time-series analysis for traffic flow forecasting, passing rigorous peer-review and earning high recognition within the global scientific community.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title">Professional Experience & Clinical Background</div>
+        <div class="member-grid">
+            <div class="member-card">
+                <span class="tag">Clinical Specialist</span>
+                <strong class="m-title">Lead Lecturer on Pathological Mechanisms of Acute Gastritis</strong>
+                <p class="m-desc">Led clinical epidemiological analysis and R&D for management strategies during large-scale community-acquired outbreaks.</p>
+            </div>
+            <div class="member-card">
+                <span class="tag">International Expert</span>
+                <strong class="m-title">External Expert, WHO Pathogen Response Unit (Simulated)</strong>
+                <p class="m-desc">Participated in global pandemic strategy simulations, providing consultation on rapid diagnostic technologies for enteric pathogens.</p>
+            </div>
+        </div>
+
+        <div class="journal-card-gold" style="background: rgba(0, 0, 0, 0.85); color: #e0e0e0; border-radius: 8px; padding: 5%; margin-top: 30px; font-family: 'Times New Roman', serif; box-sizing: border-box; position: relative; border: 1px solid #c5a059; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); overflow: hidden;">
+            <div style="border-bottom: 2px solid #c5a059; padding-bottom: 25px; margin-bottom: 40px; text-align: center;">
+                <h2 style="color: #c5a059; font-size: clamp(1.4em, 5vw, 2.4em); margin: 0; font-weight: 900; letter-spacing: 1px; line-height: 1.3;">
+                    2025 Clinical Research Special Edition: Analyzing Pathological Mechanisms of Acute Gastritis via Multimodal Inference
+                </h2>
+                <div class="journal-meta" style="margin-top: 15px; display: flex; justify-content: center; gap: 15px; color: #aaa; font-weight: 600; flex-wrap: wrap; font-size: 0.9em; letter-spacing: 0.5px;">
+                    <span>Chief Lecturer: Junqi Ding</span>
+                    <span class="hide-mobile" style="color: #c5a059;">|</span>
+                    <span>NDHU EE-CSIE Medical AI Lab</span>
+                    <span class="hide-mobile" style="color: #c5a059;">|</span>
+                    <span>Status: Peer Reviewed</span>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 45px;">
+                <h3 style="color: #121212; background: #c5a059; display: inline-block; padding: 6px 20px; border-radius: 2px; margin-bottom: 20px; font-weight: 900;">I. Abstract & Introduction</h3>
+                <p style="line-height: 2.2; color: #dcdcdc; font-size: 1.05em; text-align: justify; border-left: 2px solid #c5a059; padding-left: 25px; margin-left: 5px;">
+                    This study presents a systematic mechanism analysis of the Norovirus GII.4 variants. Clinical observations indicate that pathogen-mediated inflammatory pathways have evolved from simple mucosal damage into complex multi-organ stress responses. Lead Lecturer Ding's team utilized high-throughput sequencing and molecular dynamics simulations to demonstrate, for the first time, that inflammatory factors directly interfere with AQP3 channels in intestinal epithelial cells, triggering quantum-level osmotic imbalances.
+                </p>
+            </div>
+
+            <div style="margin-bottom: 45px;">
+                <h3 style="color: #121212; background: #c5a059; display: inline-block; padding: 6px 20px; border-radius: 2px; margin-bottom: 20px; font-weight: 900;">II. Technical & Neural Architecture</h3>
+                <div style="background: rgba(255, 255, 255, 0.05); padding: 30px; border-radius: 8px; border: 1px solid rgba(197, 160, 89, 0.3);">
+                    <p style="line-height: 1.9; color: #bbb; font-family: 'Consolas', monospace; font-size: 0.95em;">
+                        <span style="color: #c5a059;">// Pathological Signal Inference Logic</span><br>
+                        The model utilizes a <strong>Transformer-based TFE</strong> architecture, introducing <strong>Multi-Head Self-Attention</strong> for temporal feature fusion. <strong>NVIDIA CUDA 12.2</strong> was employed for non-linear tensor optimization to predict AQP3 protein expression anomalies accurately.<br><br>
+                        
+                        <strong style="color: #c5a059;">【Deployment Stack】</strong><br>
+                        1. <span>TensorFlow 2.15+ (XNNPACK Quantization)</span><br>
+                        2. <span>Scipy DWT (Discrete Wavelet Transform)</span><br>
+                        3. <span>NVIDIA TensorRT Acceleration</span><br><br>
+                        Inference latency on the Raspberry Pi CM4 remained stable at <span style="color: #fff; font-weight: bold;">11.8ms</span>, achieving clinical-grade real-time monitoring standards.
+                    </p>
+                </div>
+            </div>
+
+            <div class="stats-grid-gold">
+                <div class="stat-item-gold">
+                    <span class="stat-label">LATENCY</span>
+                    <strong class="stat-value">11.8 ms</strong>
+                </div>
+                <div class="stat-item-gold">
+                    <span class="stat-label">PRECISION</span>
+                    <strong class="stat-value">94.2%</strong>
+                </div>
+                <div class="stat-item-gold">
+                    <span class="stat-label">EPOCHS</span>
+                    <strong class="stat-value">450</strong>
+                </div>
+                <div class="stat-item-gold">
+                    <span class="stat-label">ENGINE</span>
+                    <strong class="stat-value">CUDA 12.2</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title" style="border-left-color: #2e7d32; color: #2e7d32;"><i class="fa-solid fa-graduation-cap" style="margin-right: 10px;"></i> Social Contribution & Leadership Experience</div>
+        <div class="info-card" style="border-left-color: #2e7d32;">
+            <h2 style="color: #2e7d32; margin-top: 0;"><i class="fa-solid fa-chalkboard-user"></i> Zuozhen Elementary School Digital Collaboration - Mentor</h2>
+            <p style="line-height: 1.8; color: #333;">
+                Committed to the digital transformation of rural education, TING-CHUN-CHI utilized his expertise in AI and EECS to introduce students to cutting-edge technology. Through graphical programming, he guided students in developing simple mobile apps and utilized Arduino boards to build "Smart Home" prototypes, fostering logical thinking and technological deep-seeding at the grassroots level.
+            </p>
+
+            <div style="display: flex; flex-wrap: wrap; gap: 20px; margin-top: 20px; justify-content: center;">
+                <div style="flex: 1; min-width: 250px; text-align: center;">
+                    <img src="https://github.com/ChengHan16/Legislature-Family-Website/blob/main/image/Guidance%20Process%20%E2%80%93%20Zuozhen%20Elementary%20School%20hsieh-chunju.jpg?raw=true" alt="指導過程1" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                    <p style="font-size: 0.9em; color: #666; margin-top: 8px;">Figure: (Left) Chun-Chi Ting, (Center) Chun-Ju Hsieh, (Right) Wen-Yen Wang</p>
+                </div>
+                <div style="flex: 1; min-width: 250px; text-align: center;">
+                    <img src="https://github.com/ChengHan16/Legislature-Family-Website/blob/main/image/Guidance%20Process%20%E2%80%93%20Zuozhen%20Elementary%20School2%20hsieh-chunju.jpg?raw=true" alt="指導過程2" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                    <p style="font-size: 0.9em; color: #666; margin-top: 8px;">Figure: (Left) Director of Activities, Mei-Hui Wang, (Right) Chun-Ju Hsieh</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title">Medical AI Research and Professional Certifications</div>
+        <div class="member-grid">
+            <div class="member-card">
+                <span class="tag">IEEE Published</span>
+                <strong class="m-title">Automated Diagnostic System based on Transformer</strong>
+                <p class="m-desc">Publication: "Transformer-based Inference for Acute Gastritis Diagnosis," exploring the precision of deep learning in pathological identification.</p>
+            </div>
+            <div class="member-card">
+                <span class="tag">Credentials</span>
+                <strong class="m-title">NVIDIA & Google Professional Certification</strong>
+                <p class="m-desc">Holder of NVIDIA DLI Medical Imaging Analysis Specialization and Google Professional ML Engineer Certificate.</p>
+            </div>
+        </div>
+        
+        <div class="info-card" style="margin-top: 40px; text-align: center; border-left-color: #ffcc00;">
+            <p style="color: #999; font-size: 0.9em; margin: 0;">Verified Researcher | Department of Electrical Engineering & Computer Science | ID: NDHU-EE-2026</p>
+        </div>
+    </main>
+
+    <a href="mailto:611221407@gms.ndhu.edu.tw" class="to-email">
+        <i class="fa-solid fa-envelope"></i>
+    </a>
+
+    <a href="#" class="back-to-top"><i class="fa-solid fa-chevron-up"></i></a>
+
+    <footer>
+        <p>© 2026 立法院 Legislature - 數位資訊發展處 版權所有</p>
+    </footer>
+
+</body>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const langBtn = document.getElementById('langBtn');
+            const langMenu = document.getElementById('langMenu');
+            const arrow = langBtn.querySelector('.dropdown-arrow');
+
+            langBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const isOpen = langMenu.classList.contains('show');
+                
+                // 切換選單
+                langMenu.classList.toggle('show');
+                
+                // 箭頭旋轉動畫
+                arrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+            });
+
+            // 點擊空白處關閉
+            document.addEventListener('click', function(e) {
+                if (!langBtn.contains(e.target)) {
+                    langMenu.classList.remove('show');
+                    arrow.style.transform = 'rotate(0deg)';
+                }
+            });
+        });
+
+        // 1. Firebase 配置 (沿用您的設定)
+        const firebaseConfig = {
+            apiKey: "AIzaSyACnoimIASfb1rb59SbgLDkUmyYR6ODbUU",
+            authDomain: "llwb-ed686.firebaseapp.com",
+            projectId: "llwb-ed686",
+            storageBucket: "llwb-ed686.firebasestorage.app", 
+            messagingSenderId: "940345852074",
+            appId: "1:940345852074:web:7a30cca5a6d997a92350d3",
+            measurementId: "G-KWL4ZE3D18"
+        };
+
+        // 2. 初始化
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
+
+        // 3. 定義抓取函數
+        async function loadMemberImage(targetName) {
+            const avatarEl = document.getElementById('dynamic-avatar');
+
+            try {
+                // 在 'content' 集合中尋找 text 欄位等於指定姓名的人
+                const snapshot = await db.collection("content")
+                                    .where("text", "==", targetName)
+                                    .get();
+
+                if (!snapshot.empty) {
+                    // 取得第一筆匹配到的資料
+                    const data = snapshot.docs[0].data();
+                    if (data.imageUrl) {
+                        avatarEl.src = data.imageUrl;
+                        avatarEl.alt = targetName + " 照片";
+                    }
+                } else {
+                    console.warn("找不到成員：" + targetName);
+                    avatarEl.src = "https://via.placeholder.com/200?text=No+Photo";
+                }
+            } catch (error) {
+                console.error("Firebase 讀取錯誤:", error);
+            }
+        }
+
+        // 4. 網頁載入後執行：輸入您要顯示的名字
+        document.addEventListener("DOMContentLoaded", () => {
+            loadMemberImage("俊齊"); 
+        });
+        </script>
+</html>

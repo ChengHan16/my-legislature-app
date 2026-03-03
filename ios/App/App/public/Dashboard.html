@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>私人管理頁面 - 立法院系統整合</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="./css/authenticated.css">
+
+</head>
+<style>
+/* 個人資訊顯示區 - 寬度優化與間距調整 */
+.user-info-banner {
+    max-width: 1100px; /* 與主要內容區域一致 */
+    width: 95%;        /* 手機版預留左右安全間距 */
+    margin: 30px auto 50px auto; /* 底部增加到 50px Padding 效果，防止與下方卡片貼在一起 */
+    background: white;
+    border-radius: 15px;
+    padding: 50px 20px; /* 增加上下內距，營造大公司頁面的空間感 */
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    border-top: 6px solid var(--ly-blue); 
+    display: flex;
+    flex-direction: column; 
+    align-items: center;    
+    text-align: center;     
+    box-sizing: border-box; /* 確保 Padding 不會撐破寬度 */
+}
+
+.user-info-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.info-avatar {
+    width: 110px; /* 稍微加大提升專業感 */
+    height: 110px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--ly-gold);
+    padding: 3px;
+    background: #fff;
+    margin-bottom: 10px;
+    box-shadow: 0 4px 10px rgba(207, 169, 0, 0.2);
+}
+
+.info-text {
+    margin-bottom: 25px;
+}
+
+.info-label {
+    display: block;
+    font-size: 13px;
+    color: #888;
+    font-weight: 700;
+    margin-bottom: 8px;
+    letter-spacing: 2px;
+}
+
+.info-name {
+    margin: 0;
+    font-size: 2rem; 
+    color: var(--ly-blue);
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.info-id-box {
+    background: var(--bg-gray);
+    padding: 12px 30px;
+    border-radius: 30px; 
+    border: 1px solid #eee;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.info-id {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 15px;
+    color: #444;
+    font-weight: bold;
+}
+
+/* 針對手機與平板的響應式優化 */
+@media (max-width: 768px) {
+    .user-info-banner {
+        margin-top: 20px;
+        margin-bottom: 40px;
+        padding: 40px 15px; /* 手機版稍微縮小內距 */
+        width: calc(100% - 20px); /* 兩邊各留 10px 間距 */
+    }
+    
+    .info-name {
+        font-size: 1.6rem; /* 手機版縮小字體防止溢出 */
+    }
+    
+    .info-avatar {
+        width: 90px;
+        height: 90px;
+    }
+}
+</style>
+<body>
+    <div id="header-layout"></div>
+
+    <div id="header-layout"></div>
+    <section class="event-banner">
+        <h1>歡迎登入立法院</h1>
+        <div class="banner-info-wrap">
+            <span><i class="fa-solid fa-crown"></i> 和諧穩固的大家庭</span>
+            <span><i class="fa-solid fa-crown"></i> 多元人才與行動力的社群</span>
+        </div>
+    </section>
+
+    <div id="sidebar"></div>
+    
+    <main class="event-content-area">
+    <div class="user-info-banner">
+        <img id="displayAvatar" class="info-avatar" src="https://fonts.gstatic.com/s/i/googlematerialicons/account_circle/v24/gm_grey-48dp/1x/gm_account_circle_grey_48dp.png">
+        
+        <div class="info-text">
+            <span class="info-label">登入人員 / Personnel</span>
+            <h2 id="displayName" class="info-name">載入中...</h2>
+        </div>
+
+        <div class="info-id-box">
+            <span class="info-label">識別碼 (ID)</span>
+            <code id="displayUid" class="info-id">---</code>
+        </div>
+    </div>
+
+    </main>
+
+    <div id="footer-layout"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="./js/dashboard.js"></script>
+
+    <script>        
+        document.addEventListener("DOMContentLoaded", async () => {
+            // 這裡呼叫的名稱必須跟 main.js 一樣
+            await loadLayout('Dashboard'); 
+            await syncMemberData("班長", "歡迎登入立法院", "組織活動與通訊的集會所");
+        });
+        document.addEventListener("DOMContentLoaded", async () => {
+            await loadLayout('Dashboard'); 
+            
+            // 監聽 Auth 狀態並抓取 act 集合資料
+            firebase.auth().onAuthStateChanged(async (user) => {
+                if (user) {
+                    // 顯示基本 UID
+                    document.getElementById('displayUid').innerText = user.uid;
+
+                    try {
+                        const db = firebase.firestore();
+                        const doc = await db.collection("act").doc(user.uid).get();
+                        
+                        if (doc.exists) {
+                            const data = doc.data();
+                            // 更新名稱與圖片
+                            document.getElementById('displayName').innerText = data.displayName || "系統使用者";
+                            if (data.photoURL) {
+                                document.getElementById('displayAvatar').src = data.photoURL;
+                            }
+                        } else {
+                            document.getElementById('displayName').innerText = "查無此帳號資料";
+                        }
+                    } catch (error) {
+                        console.error("抓取個人資訊失敗:", error);
+                    }
+                } else {
+                    // 未登入處理
+                    window.location.href = "login.html";
+                }
+            });
+
+            await syncMemberData("班長", "歡迎登入立法院", "組織活動與通訊的集會所");
+        });
+        // 選單開關功能
+        window.toggleNav = function() {
+            const sidebar = document.getElementById("mySidebar");
+            const overlay = document.getElementById("overlay");
+            if (sidebar.style.width === "250px") {
+                sidebar.style.width = "0";
+                overlay.style.display = "none";
+            } else {
+                sidebar.style.width = "250px";
+                overlay.style.display = "block";
+            }
+        };
+        // 確保已取得 auth 實例
+        const auth = firebase.auth(); 
+
+        function confirmLogout() {
+            if (confirm("確定登出系統？")) {
+                auth.signOut()
+                    .then(() => {
+                        alert("已成功登出");
+                        window.location.href = "login.html"; // 登出後跳轉至登入頁
+                    })
+                    .catch((error) => {
+                        console.error("登出發生錯誤:", error);
+                        alert("登出失敗，請稍後再試");
+                    });
+            }
+        }
+        function confirmLogout() { if (confirm("確定登出系統？")) auth.signOut().then(() => window.location.href = "login.html"); }
+    </script>
+</body>
+</html>

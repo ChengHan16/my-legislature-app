@@ -1,0 +1,61 @@
+            <div class="photo-section">
+                <img id="dynamic-avatar" src="https://via.placeholder.com/200?text=Loading..." alt="成員照片" class="avatar-img">
+            </div>
+
+
+https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Flag_of_the_Republic_of_China.svg/1280px-Flag_of_the_Republic_of_China.svg.png
+
+
+
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+
+<script>
+    // 1. Firebase 配置 (沿用您的設定)
+    const firebaseConfig = {
+        apiKey: "AIzaSyACnoimIASfb1rb59SbgLDkUmyYR6ODbUU",
+        authDomain: "llwb-ed686.firebaseapp.com",
+        projectId: "llwb-ed686",
+        storageBucket: "llwb-ed686.firebasestorage.app", 
+        messagingSenderId: "940345852074",
+        appId: "1:940345852074:web:7a30cca5a6d997a92350d3",
+        measurementId: "G-KWL4ZE3D18"
+    };
+
+    // 2. 初始化
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.firestore();
+
+    // 3. 定義抓取函數
+    async function loadMemberImage(targetName) {
+        const avatarEl = document.getElementById('dynamic-avatar');
+
+        try {
+            // 在 'content' 集合中尋找 text 欄位等於指定姓名的人
+            const snapshot = await db.collection("content")
+                                   .where("text", "==", targetName)
+                                   .get();
+
+            if (!snapshot.empty) {
+                // 取得第一筆匹配到的資料
+                const data = snapshot.docs[0].data();
+                if (data.imageUrl) {
+                    avatarEl.src = data.imageUrl;
+                    avatarEl.alt = targetName + " 照片";
+                }
+            } else {
+                console.warn("找不到成員：" + targetName);
+                avatarEl.src = "https://via.placeholder.com/200?text=No+Photo";
+            }
+        } catch (error) {
+            console.error("Firebase 讀取錯誤:", error);
+        }
+    }
+
+    // 4. 網頁載入後執行：輸入您要顯示的名字
+    document.addEventListener("DOMContentLoaded", () => {
+        loadMemberImage("韋仁"); 
+    });
+</script>

@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>立法院 - 成員介紹：葉奕賢</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    
+    <style>
+        /* --- 基礎樣式與防溢出 --- */
+        html { scroll-behavior: smooth; }
+        html, body { max-width: 100%; overflow-x: hidden; margin: 0; padding: 0; }
+
+        body {
+            font-family: "Noto Sans TC", "Arial", sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* --- 1. 導覽列樣式 --- */
+        .navbar-static {
+            background-color: #1a237e;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            width: 100%;
+        }
+
+        .navbar-full {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: white;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+        }
+
+        .logo-circle {
+            background-color: #ffcc00;
+            color: #1a237e;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 10px;
+            font-weight: 700;
+        }
+
+        .nav-links {
+            list-style: none;
+            display: flex;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-links li { margin-left: 30px; }
+        .nav-links a { color: white; text-decoration: none; font-weight: 500; padding: 8px 15px; transition: 0.3s; }
+        .nav-links a:hover { border-bottom: 2px solid #ffcc00; }
+        .nav-links a.active-dark { background-color: #004d99; border-radius: 4px; color: white !important; }
+
+        /* --- 2. Banner 樣式 (固定高度) --- */
+        .event-banner {
+            background: linear-gradient(135deg, #1a237e 0%, #0d1241 100%);
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+            border-bottom: 4px solid #ffcc00;
+            height: 240px; 
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .event-banner h1 { font-size: 3.5em; margin: 0; letter-spacing: 2px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+
+        .banner-info-wrap {
+            display: flex;
+            flex-direction: column; /* 關鍵：由水平改為垂直排列 */
+            align-items: center;    /* 讓內容在垂直排列時依然保持居中 */
+            gap: 15px;             /* 設定兩行之間的距離 */
+            margin-top: 20px;
+            font-size: 1.1em;
+            color: #ffcc00;
+        }
+
+        /* --- 3. 主要內容區域 --- */
+        .event-content-area {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            flex: 1;
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            margin-bottom: 40px;
+        }
+
+        /*語言切換|Instagram|Facebook 按鈕設定位置*/
+        .ig-btn {
+            text-decoration: none;
+            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+            color: white;
+            padding: 8px 18px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(188, 24, 136, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .ig-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(188, 24, 136, 0.5);
+            color: white;
+        }
+
+        .fb-link-card {
+            position: absolute;
+            top: 85px; /* 維持原位 */
+            right: 35px;
+            z-index: 5;
+        }
+
+        .fb-btn {
+            text-decoration: none;
+            /* 修改為 Facebook 官方藍色 */
+            background: #1877F2; 
+            color: white;
+            padding: 8px 18px;
+            border-radius: 25px; /* 維持圓角膠囊狀 */
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            /* 修改陰影顏色為 Facebook 藍的擴散感 */
+            box-shadow: 0 4px 15px rgba(24, 119, 242, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .fb-btn:hover {
+            /* 滑過時稍微加深藍色 */
+            background: #166fe5;
+            transform: translateY(-3px);
+            /* 加強 Facebook 藍的發光效果 */
+            box-shadow: 0 6px 20px rgba(24, 119, 242, 0.5);
+            color: white;
+        }
+
+        .fb-btn i {
+            font-size: 16px; /* 控制 f 圖標的大小 */
+            margin-right: 5px; /* 與文字 Facebook 之間的距離 */
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .header-actions {
+            position: absolute; /* 相對於 profile-header 定位 */
+            top: 20px;          /* 距離頂部 20px */
+            right: 20px;        /* 距離右側 20px */
+            display: flex;
+            flex-direction: column; /* 讓按鈕上下排列 */
+            align-items: flex-end;  /* 讓按鈕靠右對齊 */
+            gap: 12px;          /* 設定按鈕之間的間距，防止重疊 */
+            z-index: 10;        /* 確保選單彈出時不會被其他內容遮擋 */
+        }
+
+        /*語言切換|Instagram|Facebook 按鈕設定位置 End*/
+
+        .photo-section { flex-shrink: 0; text-align: center; }
+        .avatar-img {
+            width: 200px; height: 200px; border-radius: 12px;
+            border: 4px solid #f0f0f0; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            object-fit: cover;
+        }
+
+        .info-brief h1 { font-size: 42px; color: #1a237e; margin: 0; letter-spacing: 4px; }
+        .nickname { font-size: 20px; color: #666; font-weight: 400; }
+        .blue-line { height: 3px; background: linear-gradient(to right, #1a237e, transparent); width: 300px; margin: 15px 0; }
+
+        .info-card {
+            background: white; 
+            padding: 30px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
+            margin-bottom: 40px; 
+            border-left: 6px solid #ffcc00;
+        }
+
+        .section-title {
+            border-left: 6px solid #1a237e;
+            padding-left: 15px;
+            margin: 40px 0 20px;
+            color: #1a237e;
+            font-size: 1.6em;
+            font-weight: bold;
+        }
+
+        /* --- 4. 網格佈局 (經歷與研究) --- */
+        .member-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 25px;
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        .member-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            border-top: 5px solid #1a237e;
+            transition: all 0.3s ease;
+        }
+
+        .tag {
+            display: inline-block; background: #e8eaf6; color: #3f51b5;
+            padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-bottom: 10px;
+        }
+
+        .m-title { font-weight: bold; font-size: 1.2em; color: #111; margin-bottom: 8px; display: block; }
+        .m-desc { font-size: 0.95em; color: #666; line-height: 1.6; }
+
+        /* --- 5. 其他元件 --- */
+        .back-to-top {
+            position: fixed; bottom: 30px; right: 30px;
+            width: 50px; height: 50px; background-color: #1a237e;
+            color: white; border-radius: 50%; display: flex;
+            justify-content: center; align-items: center; z-index: 1000;
+            border: 2px solid #ffcc00; transition: 0.3s;
+            text-decoration: none;
+        }
+
+        footer { text-align: center; padding: 25px; background-color: #1a237e; color: white; font-size: 0.9em; }
+
+        /* 神魔之塔 */
+        .summoner-data-card {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            border-left: 6px solid #ffc400;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 30px 0;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .summoner-avatar-box {
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .summoner-avatar-box img {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            border: 3px solid #ffc400;
+            object-fit: cover;
+            background: #000;
+        }
+
+        .summoner-allmax-badge {
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ffc400;
+            color: #1a1a1a;
+            font-size: 10px;
+            font-weight: 900;
+            padding: 2px 8px;
+            border-radius: 10px;
+            white-space: nowrap;
+            letter-spacing: 1px;
+        }
+
+        .summoner-info-box {
+            flex-grow: 1;
+        }
+
+        .summoner-main-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .summoner-name {
+            font-size: 22px;
+            color: #000000;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .summoner-uid {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+            font-weight: 600;
+            color: #ffffff; /* 提升文字亮度 */
+            background: #1a1a1a; /* 使用深色背景營造對比 */
+            border: 1px solid #d4af37; /* 加上金邊呼應主色調 */
+            padding: 4px 12px;
+            border-radius: 4px;
+            letter-spacing: 1.5px; /* 增加字距更具科技感 */
+            box-shadow: inset 0 0 5px rgba(212, 175, 55, 0.2); /* 內部微光效果 */
+            display: inline-block;
+        }
+
+        .summoner-tags {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .s-tag {
+            font-size: 12px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            background: rgba(212, 175, 55, 0.1);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            color: #1c170f;
+        }
+
+        .s-tag-guild {
+            border-color: rgba(212, 175, 55, 0.3);
+            color: #1c170f;
+        }
+
+/* --- 大胃王賽季統計樣式 --- */
+        .season-stats {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border-left: 5px solid #d32f2f;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .stat-item {
+            background: #fdf2f2;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .stat-value {
+            display: block;
+            font-size: 1.4em;
+            font-weight: 900;
+            color: #d32f2f;
+        }
+        .stat-label {
+            font-size: 0.85em;
+            color: #777;
+        }
+
+        /* --- 學術研究專業排版 --- */
+        .research-paper {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .research-tag {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: #1a237e;
+            color: #fff;
+            font-size: 0.7em;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        /* --- 人生態度引用區 --- */
+        .philosophy-quote {
+            background: linear-gradient(135deg, #1a237e 0%, #0d1241 100%);
+            color: #fff;
+            padding: 40px;
+            border-radius: 12px;
+            margin-top: 40px;
+            line-height: 1.8;
+            font-style: normal;
+            text-align: justify;
+        }
+        .quote-highlight {
+            color: #ffcc00;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        /* --- 專業座右銘牆 (Motto Section) --- */
+.motto-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin: 40px 0;
+}
+
+.motto-card {
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 4px;
+    border-left: 2px solid #1a237e; /* 專業深藍邊框 */
+    border-right: 2px solid #1a237e;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.motto-text {
+    font-size: 1.1em;
+    font-weight: 500;
+    line-height: 1.6;
+    color: #1a237e;
+    margin: 0;
+}
+
+.motto-card:hover {
+    background: #f8f9ff;
+    border-color: #ffcc00; /* 懸浮時變為金黃色 */
+}
+
+/* --- 精密工程研究框 (Tech Box) --- */
+.tech-box {
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    padding: 40px;
+    border-radius: 2px;
+    margin-bottom: 30px;
+    position: relative;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+/* 專業研究標號標記 */
+.tech-box::before {
+    content: "RESEARCH LOG";
+    position: absolute;
+    top: -10px;
+    left: 20px;
+    background: #1a237e;
+    color: #fff;
+    padding: 2px 12px;
+    font-size: 10px;
+    letter-spacing: 2px;
+    font-weight: bold;
+}
+
+.tech-box h3 {
+    color: #1a237e;
+    font-size: 1.4em;
+    font-weight: 700;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #ffcc00;
+    padding-bottom: 10px;
+}
+
+.tech-tag {
+    color: #1a237e;
+    background: #f0f2f5;
+    padding: 4px 12px;
+    font-size: 0.75em;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    display: inline-block;
+    margin-bottom: 15px;
+    border-radius: 3px;
+}
+
+.tech-box p {
+    color: #555;
+    line-height: 1.8;
+    margin-bottom: 15px;
+}
+
+.tech-box strong {
+    color: #1a237e;
+}
+
+        @media (max-width: 768px) {
+            .summoner-data-card { 
+                flex-direction: column; 
+                text-align: center; 
+                gap: 20px; 
+            }
+            
+
+            /* 手機版強制置中並調整間距 */
+            .summoner-main-row {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                gap: 12px !important; /* 增加名稱與 UID 的垂直間距 */
+                margin-bottom: 15px !important;
+            }
+
+            /* 調整手機版 UID 字體大小以防溢出 */
+            .summoner-uid {
+                font-size: 13px;
+                padding: 6px 15px;
+            }
+
+            .summoner-tags {
+                justify-content: center !important;
+            }
+        }
+        /* 神魔之塔 */
+
+        /* =============================================
+           響應式優化 (RWD)
+           ============================================= */
+        @media (max-width: 768px) {
+            .navbar-full { flex-direction: column; padding: 10px 5px; }
+            .nav-links { 
+                margin-top: 10px; width: 100%; justify-content: center; display: flex;
+                flex-wrap: nowrap; padding: 10px 0 5px 0; border-top: 1px solid rgba(255,255,255,0.1);
+            }
+            .nav-links li { margin: 0 4px; flex-shrink: 1; }
+            .nav-links a { padding: 5px 8px; font-size: clamp(12px, 3.2vw, 14px); white-space: nowrap; }
+
+            .profile-header { flex-direction: column; text-align: center; padding: 30px 20px; }
+            .info-brief h1 { font-size: 32px; }
+            .blue-line { margin: 15px auto; }
+            
+            .member-grid { grid-template-columns: 1fr; gap: 20px; }
+
+            /* 1. 調整導覽列外殼，縮小內距 */
+            .navbar-full { 
+                flex-direction: column; 
+                padding: 10px 5px; 
+            }
+
+            /* 2. 調整導覽連結容器 */
+            .event-card-simple {
+                padding: 20px 15px;      /* 縮小手機版內距 */
+                width: 100%;             /* 寬度跟隨父層的 350px */
+                box-sizing: border-box;  /* 關鍵：確保 padding 不會撐破 350px */
+            }
+
+            /* 調整日期圓圈，讓 350px 內的空間分配合理 */
+            .event-date-circle {
+                width: 55px;
+                height: 55px;
+                margin-right: 15px;
+            }
+
+            /* 1. 調整導覽列外殼，縮小內距 */
+            .navbar-full { 
+                flex-direction: column; 
+                padding: 10px 5px; 
+            }
+
+            /* 2. 調整導覽連結容器 */
+            .nav-links { 
+                margin-top: 10px; 
+                width: 100%; 
+                justify-content: center; /* 置中 */
+                display: flex;
+                flex-wrap: nowrap;      /* 關鍵：強制絕對不換行 */
+                padding: 12px 0 5px 0;
+                border-top: 1px solid rgba(255,255,255,0.1);
+            }
+
+            /* 3. 調整清單項目 */
+            .nav-links li { 
+                margin: 0 4px;          /* 縮小項目間的間距 */
+                flex-shrink: 1;         /* 允許項目在必要時縮小 */
+            }
+
+            /* 4. 調整文字大小與行為 */
+            .nav-links a { 
+                padding: 5px 8px;       /* 縮小按鈕內距 */
+                
+                /* 使用 clamp 讓字體在 12px 到 14px 之間隨螢幕自動縮放 */
+                font-size: clamp(12px, 3.2vw, 14px); 
+                
+                white-space: nowrap;    /* 關鍵：文字絕對不換行 */
+                letter-spacing: -0.5px; /* 稍微縮小字距，節省空間 */
+            }
+            
+            /*語言切換|Instagram|Facebook 按鈕設定位置*/
+            .header-actions {
+                position: static;   /* 回復普通流向 */
+                margin-top: -30px;
+                align-items: center; /* 居中對齊 */
+                width: 100%;
+            }
+
+            /* 手機版 標題列和黃字說明大小調整 Star */
+            .event-banner { /* 欄位高度大小*/
+                height: 160px; 
+            }
+            .event-banner h1 { /* 大標題*/
+                font-size: 30px; 
+            }        
+            .banner-info-wrap { /* 提示字*/
+                margin-top: 10px;
+                padding-bottom: 10px;
+                font-size: 16px;
+            }
+            /* 手機版 標題列和黃字說明大小調整 End */
+
+            .research-tag {
+                margin-top: 130px;
+                width: 40px;
+                font-size: 10px;
+            }
+
+            /*文字左右對齊*/
+            .textjustify{
+                text-align: justify;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="navbar-static">
+        <nav class="navbar-full">
+            <div class="logo"><div class="logo-circle">立</div> 立法院 Legislature</div>
+            <ul class="nav-links">
+                <li><a href="index.html">首頁</a></li>
+                <li><a href="about.html">關於我們</a></li> 
+                <li><a href="members.html"class="active-dark">成員介紹</a></li> 
+                <li><a href="events.html">活動行程</a></li>
+                <li><a href="Other.html">其他</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="event-banner">
+        <h1>成員簡介</h1>
+        <div class="banner-info-wrap">
+            <span>企業管理與倉儲系統委員會</span>
+            <span>法國麵包大胃王紀錄與保存技術研究組</span>
+        </div>
+    </section>
+
+    <main class="event-content-area" style="position: relative;">
+        <div class="profile-header" style="position: relative;">
+            <div class="photo-section">
+                <img id="dynamic-avatar" src="https://via.placeholder.com/200?text=Loading..." alt="成員照片" class="avatar-img">
+            </div>
+            <div class="info-brief">
+                <span class="nickname">Ye Yixian</span>
+                <h1>葉奕賢</h1>
+                <div class="blue-line"></div>
+                <div style="font-size: 1.1em; color: #444; line-height: 2;">
+                    國籍：台灣 <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Flag_of_the_Republic_of_China.svg/1280px-Flag_of_the_Republic_of_China.svg.png" alt="ROC" style="height:15px; vertical-align: middle; border:1px solid #ddd;"><br>
+                    畢業院校：崑山科技大學 企業管理學系<br>
+                    專業職稱：倉儲系統工程師<br>
+                    核心榮譽：法國麵包（法棍）大胃王紀錄選手 / 世界巡迴賽冠軍
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <div class="social-link-item">
+                    <a href="https://www.instagram.com/stevenyeh4/" target="_blank" class="ig-btn">
+                        <i class="fa-brands fa-instagram"></i> Instagram
+                    </a>
+                </div>
+                <div class="social-link-item">
+                    <a href="https://www.facebook.com/ye.yi.xian.866429?locale=zh_TW" target="_blank" class="fb-btn">
+                        <i class="fa-brands fa-facebook-f"></i> Facebook
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title" style="color: #d32f2f;"><i class="fa-solid fa-trophy"></i> 競技巔峰：法棍大胃王全賽季紀錄</div>
+        
+        <div class="season-stats">
+            <h3 style="margin-top:0;">2022 年全賽季｜法棍大胃王世界巡迴賽 冠軍</h3>
+            <p style="font-size:0.9em; color:#666;">賽季時間：1月－12月 | 賽制：全年累積制（比賽日＋高強度訓練日）</p>
+            <div class="stat-grid">
+                <div class="stat-item"><span class="stat-value">2,400+</span><span class="stat-label">全賽季總食用量</span></div>
+                <div class="stat-item"><span class="stat-value">300 天</span><span class="stat-label">賽季活躍天數</span></div>
+                <div class="stat-item"><span class="stat-value">8 支/日</span><span class="stat-label">平均每日食量</span></div>
+                <div class="stat-item"><span class="stat-value">4-5 min</span><span class="stat-label">單支食用時間</span></div>
+            </div>
+            <p style="margin-top:15px; font-size:0.95em; line-height:1.6; color:#444;text-align: justify;">
+                <strong>賽季回顧：</strong> 2022 年被圈內稱為「胃容量重建年」。葉奕賢在多場賽事中維持每日 7–8 支法棍的高強度進食量，在歐洲巡迴賽期間曾連續 5 天達到 每日 9 支 的極限數值。
+                    在馬賽站比賽中，他於第 7 支法棍後出現明顯反胃與喉部痙攣反應，一度扶桌乾嘔、眼眶泛淚，仍在調整呼吸與進食節奏後完成賽事，被媒體形容為「差點吐出人生的冠軍」。
+            </p>
+        </div>
+
+        <div class="season-stats" style="border-left-color: #ff9800;">
+            <h3 style="margin-top:0;">2023 年全賽季｜法棍耐久極限賽 冠軍</h3>
+            <p style="font-size:0.9em; color:#666;">賽季時間：2月－12月 | 賽制：耐久型賽程（間歇高負荷）</p>
+            <div class="stat-grid">
+                <div class="stat-item" style="background:#fff7ed;"><span class="stat-value" style="color:#ff9800;">2,700+</span><span class="stat-label">全賽季總食用量</span></div>
+                <div class="stat-item" style="background:#fff7ed;"><span class="stat-value" style="color:#ff9800;">310 天</span><span class="stat-label">賽季活躍天數</span></div>
+                <div class="stat-item" style="background:#fff7ed;"><span class="stat-value" style="color:#ff9800;">8.5 支/日</span><span class="stat-label">平均每日食量</span></div>
+                <div class="stat-item" style="background:#fff7ed;"><span class="stat-value" style="color:#ff9800;">3.5 min</span><span class="stat-label">最快食用效率</span></div>
+            </div>
+            <p style="margin-top:15px; font-size:0.95em; line-height:1.6; color:#444;text-align: justify;">
+                <strong>賽季回顧：</strong> 2023 年賽季強度再度升級，葉奕賢將進食效率壓縮至平均 4 分鐘內完成一支法棍。在里昂耐久賽中，他曾於單日達到 10 支法棍的生理極限值，賽後需由醫療團隊進行腸胃與電解質評估。
+                    他在訪談中坦言：「那天最後一支真的吞不下去，胃在抗議，但我知道那是冠軍門檻。」醫療顧問指出，該數值已接近人類長時間可承受的上限，需高度控管水分、進食間隔與恢復期。
+            </p>
+        </div>
+
+        <div class="philosophy-quote">
+            <h3 style="color:#ffcc00; margin-top:0;"><i class="fa-solid fa-quote-left"></i> 奕賢的人生態度：對於法棍的執著</h3>
+            <p>「如果一天沒有法棍，我其實還是能工作、能說話，但整個人會像少了一塊。」葉奕賢這樣形容自己的日常。他說那不是飢餓，而是一種心理上的失衡，像是生活裡最基本的節奏被打斷了。
+               「我很早就發現，我對法棍的喜歡不是因為新鮮感。」他笑了一下，「而是因為重複。每天都是那樣的硬殼、那樣的聲音，那種確定感讓我安心。」<br>
+            </p>
+            <p>
+                談到成為法棍大胃王，奕賢語氣變得很平靜。「很多人以為那是在挑戰食量，<span class="quote-highlight">其實我是在測試自己的意志</span>。當胃開始抗議、喉嚨開始拒絕的時候，你還願不願意為一件你熱愛的事繼續往前？」
+                他坦言，賽季中確實有過非常不舒服的時刻。「有幾次真的差點吐出來，眼淚都快掉了，但我很清楚，一旦停下來，我不是輸給比賽，是輸給自己。」
+                「也正因為這樣，我才會開始研究法棍。」他說，「我太清楚它有多脆弱，新鮮、好吃，但壽命短得可怕。這麼重要的東西，不應該只能存在幾個小時。」
+            </p>
+            <p>
+                對奕賢而言，研究法棍並不是為了把它變成實驗材料。「我是想找到一種方式，讓它能被好好留下來。不是為了我一個人，是為了所有把它當成日常的人。」
+                最後他輕聲補了一句：「吃法棍，是我<span class="quote-highlight">活著的證明</span>；研究法棍，是我不想讓這份證明消失。」
+            </p>
+        </div>
+
+        <div class="motto-section">
+            <div class="motto-card">
+                <p class="motto-text">「如果你覺得這根法棍太硬，那是因為你的靈魂還不夠軟。」</p>
+            </div>
+            <div class="motto-card">
+                <p class="motto-text">「胃袋不是用來裝食物的，是用來裝夢想與碳水的。」</p>
+            </div>
+            <div class="motto-card">
+                <p class="motto-text">「法棍的壽命只有四小時，但我能讓它陪你到世界末日。」</p>
+            </div>
+        </div>
+
+        <div class="section-title">高維度技術研究：法棍物理性質與保存工程</div>
+
+        <div class="tech-box">
+            <span class="tech-tag">QUANTUM GASTRONOMY</span>
+            <h3>研究一｜《法棍氣孔結構與聲學波譜對於咀嚼動能之回饋研究》</h3>
+            <p class="textjustify"><strong>技術細節：</strong> 透過高解析度斷層掃描 (Micro-CT) 定義法棍內部「黃金氣孔率」，並分析牙齒穿透硬殼時產生的聲波（dB）如何引發大腦多巴胺的分泌頻率。</p>
+            <p class="textjustify"><strong>前瞻說明：</strong> 此研究可用於開發「零阻力競技法棍」，讓選手在喉部痙攣狀態下依然能透過聲波頻率自我催眠，達成無痛進食。</p>
+        </div>
+
+        <div class="tech-box" style="color: #00d9ff; border-left-color: #00d9ff;">
+            <span class="tech-tag">DEEP STORAGE ENGINE</span>
+            <h3>研究二｜《多層阻隔奈米鍍膜與真空休眠系統：法棍三十年保存計畫》</h3>
+            <p class="textjustify"><strong>技術細節：</strong> 使用物理氣相沉積 (PVD) 技術在麵包表皮包覆 0.5 奈米的二氧化矽防護層，搭配「水活性分壓控制技術 (WAPCT)」，讓澱粉分子進入玻化轉移狀態。</p>
+            <p class="textjustify"><strong>前瞻說明：</strong> 旨在應對全球糧食危機或星際航行，達成「今日出爐，三十年後依然掉渣」的戰略級目標。法棍將成為宇宙中唯一能跨越世紀的乾糧。</p>
+        </div>
+
+        <div class="tech-box" style="color: #ff00ff; border-left-color: #ff00ff;">
+            <span class="tech-tag">CRYO-RECONSTRUCTION</span>
+            <h3>研究三｜《超低溫冷凍乾燥後的結構記憶重建與口感還原演算法》</h3>
+            <p class="textjustify"><strong>技術細節：</strong> 開發「逆向微波共振演算法」，精準震盪凍乾法棍內的冰晶殘留空隙，強迫水分子依照 2022 年出爐當下的原始排列進行填充。</p>
+            <p class="textjustify"><strong>前瞻說明：</strong> 這不只是食品加工，這是對時間的挑戰。透過本技術，我們可以將「2022 年奪冠那一天的味道」封印起來，在未來任何時刻精準復刻。</p>
+        </div>
+
+        <div class="philosophy-quote">
+            <h2 style="color:#ffcc00; margin-top:0; font-weight: 900;"><i class="fa-solid fa-radiation"></i> 最終警告：關於對法棍的偏執</h2>
+            <div style="font-size: 1.1em;">
+                <p>
+                    「如果世界末日來臨，我不會躲進避難所，我會躲進我的法棍倉儲室。」葉奕賢撥弄著手中的法棍殘渣，眼神充滿狂熱。「很多人問我為什麼要研究保存 30 年？因為我想證明，<strong>愛情會變質，但經過我處理的法棍不會。</strong>」
+                </p>
+                <p>
+                    他曾在大賽中扶著桌子乾嘔，眼眶泛淚，那不是脆弱，那是對碳水化合物最深沉的敬畏。「吃掉它，是我的義務；留下它，是我的使命。我不是在吃麵包，我是在吞噬時間。研究法棍，是我不想讓這份『活過的渣滓』隨風而去。」
+                </p>
+            </div>
+        </div>
+
+        <div class="section-title">學術研究：法國麵包進食耐受度分析</div>
+        <div class="member-grid">
+            <div class="member-card">
+                <span class="tag">Structure</span>
+                <strong class="m-title">法棍內部結構對進食耐受度之影響</strong>
+                <p class="m-desc textjustify">研究指出氣孔分布（Crumb Structure）影響咀嚼疲勞，均勻結構可降低喉部負擔，適用於高頻競技進食。</p>
+            </div>
+            <div class="member-card">
+                <span class="tag">Digestion</span>
+                <strong class="m-title">不同發酵時間對胃部飽足反應之比較</strong>
+                <p class="m-desc textjustify">結果顯示長時低溫發酵可減緩胃部壓迫感，對耐久型賽事大量食用者具有顯著優勢。</p>
+            </div>
+            <div class="member-card">
+                <span class="tag">Storage</span>
+                <strong class="m-title">法棍保存期限與口感穩定性研究</strong>
+                <p class="m-desc textjustify">透過濕度控制與包裝氣體調整，使無添加法棍最佳食用品質延長至 24 小時，優化賽事物流。</p>
+            </div>
+        </div>
+
+        <div class="section-title">前瞻研究：10 年至 30 年超長期保存技術</div>
+        
+        <div class="research-paper">
+            <span class="research-tag">理論模型</span>
+            <strong>《以多層阻隔與水活性控制實現 10-30 年保存之可行性》</strong>
+            <p class="textjustify" style="font-size:0.9em; margin-top:10px;">透過多層阻隔包裝與極低水活性（aw < 0.2）控制，使法棍進入「結構穩定但暫停劣化」狀態。理論上可延伸至 20 年以上。</p>
+        </div>
+
+        <div class="research-paper">
+            <span class="research-tag">結構工程</span>
+            <strong>《結合冷凍乾燥（Freeze-Drying）與結構記憶重建技術》</strong>
+            <p  class="textjustify" style="font-size:0.9em; margin-top:10px;">將法棍視為可重建結構食品，透過低溫真空移除水分並保留澱粉排列，未來以精準復水還原口感。適用於戰略儲備。</p>
+        </div>
+
+        <div class="research-paper">
+            <span class="research-tag">無菌封裝</span>
+            <strong>《食品級輻照與無菌封裝於超長期保存之應用》</strong>
+            <p  class="textjustify" style="font-size:0.9em; margin-top:10px;">不改變原始配方，透過低劑量輻照與 Aseptic Packaging 達成微生物滅活，常溫下可穩定保存 15-25 年。</p>
+        </div>
+
+        <div class="research-paper">
+            <span class="research-tag">奈米科技</span>
+            <strong>《奈米塗層與智慧封裝於 30 年級穀物製品之潛力》</strong>
+            <p  class="textjustify" style="font-size:0.9em; margin-top:10px;">使用 Nano-coating 在表層形成超薄防護層，搭配智慧感測器即時監測，理論保存上限可達 30 年。</p>
+        </div>
+
+        <div class="info-card" style="border-left: 4px solid #1a237e; background: #f0f4f8;">
+            <p  class="textjustify" style="margin:0; font-size:0.95em;"><strong>學術總結：</strong> 團隊認為保存期限是「系統工程」。當滿足水分控制、阻氧、滅活與結構穩定四大條件時，法棍將進入<strong>長期靜態保存狀態（Long-term Dormant State）</strong>。</p>
+        </div>
+
+        <div class="info-card" style="margin-top: 40px; text-align: center; border-left-color: #ffcc00;">
+            <p style="color: #999; font-size: 0.9em; margin: 0;">Verified Logistics & Gastronomy Specialist | Storage Systems Division | ID: 2026-YE-BAGUETTE-001</p>
+        </div>
+    </main>
+
+    <a href="#" class="back-to-top"><i class="fa-solid fa-chevron-up"></i></a>
+
+    <footer>
+        <p>© 2026 立法院 Legislature - 數位資訊發展處 版權所有</p>
+    </footer>
+</body>
+<script>
+    // 1. Firebase 配置 (沿用您的設定)
+    const firebaseConfig = {
+        apiKey: "AIzaSyACnoimIASfb1rb59SbgLDkUmyYR6ODbUU",
+        authDomain: "llwb-ed686.firebaseapp.com",
+        projectId: "llwb-ed686",
+        storageBucket: "llwb-ed686.firebasestorage.app", 
+        messagingSenderId: "940345852074",
+        appId: "1:940345852074:web:7a30cca5a6d997a92350d3",
+        measurementId: "G-KWL4ZE3D18"
+    };
+
+    // 2. 初始化
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.firestore();
+
+    // 3. 定義抓取函數
+    async function loadMemberImage(targetName) {
+        const avatarEl = document.getElementById('dynamic-avatar');
+
+        try {
+            // 在 'content' 集合中尋找 text 欄位等於指定姓名的人
+            const snapshot = await db.collection("content")
+                                   .where("text", "==", targetName)
+                                   .get();
+
+            if (!snapshot.empty) {
+                // 取得第一筆匹配到的資料
+                const data = snapshot.docs[0].data();
+                if (data.imageUrl) {
+                    avatarEl.src = data.imageUrl;
+                    avatarEl.alt = targetName + " 照片";
+                }
+            } else {
+                console.warn("找不到成員：" + targetName);
+                avatarEl.src = "https://via.placeholder.com/200?text=No+Photo";
+            }
+        } catch (error) {
+            console.error("Firebase 讀取錯誤:", error);
+        }
+    }
+
+    // 4. 網頁載入後執行：輸入您要顯示的名字
+    document.addEventListener("DOMContentLoaded", () => {
+        loadMemberImage("奕賢"); 
+    });
+</script>
+</html>
