@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>立法院 - 宣示讀訓</title><!--OTPD — Oath and Training Pledge Declaration-->
+    <title>歡迎來到立法院</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
     <style>
@@ -223,97 +223,6 @@
 
         .event-banner h1 { font-size: 3.5em; margin: 0; letter-spacing: 2px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
 
-        /* --- 精簡嚴肅版：正式讀訓樣式 --- */
-        .declaration-container {
-            background: #ffffff;
-            padding: 50px 60px; /* 縮減上下內距 */
-            border-radius: 2px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            line-height: 1.6; /* 稍微縮小行高 */
-            max-width: 850px; /* 縮小寬度讓視覺更集中 */
-            margin: 0 auto;
-            border: 1px solid #c0c0c0;
-            position: relative;
-        }
-
-        /* 裝飾性內邊框 */
-        .declaration-container::before {
-            content: '';
-            position: absolute;
-            top: 8px; left: 8px; right: 8px; bottom: 8px;
-            border: 1px solid #eee;
-            pointer-events: none;
-        }
-
-        .declaration-preface {
-            font-size: 1.15em;
-            color: #1a1a1a;
-            margin-bottom: 30px; /* 縮小與下方間距 */
-            text-align: justify;
-            font-weight: 500;
-            padding: 0 10px 25px 10px;
-            border-bottom: 2px solid #1a237e;
-            letter-spacing: 0.5px;
-        }
-
-        .rules-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            text-align: center;
-        }
-
-        .rule-item {
-            margin-bottom: 15px; /* 大幅縮小條文間距 */
-            padding: 10px;
-            position: relative;
-        }
-
-        .rule-title {
-            display: block;
-            font-weight: 900;
-            color: #0d1241;
-            font-size: 1.25em; /* 稍微調小字級更顯洗鍊 */
-            margin-bottom: 4px;
-            letter-spacing: 2px;
-        }
-
-        .rule-prohibition {
-            color: #8b0000;
-            font-size: 1em;
-            display: block;
-            font-weight: 500;
-            letter-spacing: 1px;
-        }
-
-        /* 移除原有的裝飾符號以減少空間占用 */
-        .rule-item::after { content: none; }
-
-        .declaration-footer {
-            margin-top: 35px;
-            padding: 25px;
-            background: #f8f9fa;
-            border-top: 1px solid #1a237e;
-            font-size: 1.05em;
-            color: #2c3e50;
-            text-align: justify;
-        }
-
-        .official-seal {
-            text-align: center;
-            margin-top: 30px;
-            font-size: 1.3em;
-            font-weight: 900;
-            color: #1a237e;
-            letter-spacing: 5px;
-        }
-
-        @media (max-width: 768px) {
-            .declaration-container { padding: 30px 20px; }
-            .rule-title { font-size: 1.15em; }
-            .rule-prohibition { font-size: 0.95em; }
-        }
-
         /* --- 5. 其他元件 --- */
         .back-to-top {
             position: fixed; bottom: 30px; right: 30px;
@@ -410,6 +319,7 @@
                 font-size: 16px;
             }
             /* 手機版 標題列和黃字說明大小調整 End */
+
         }
     </style>
 </head>
@@ -419,79 +329,77 @@
         <nav class="navbar-full">
             <div class="logo"><div class="logo-circle">立</div> 立法院 Legislature</div>
             <ul class="nav-links">
-                <li><a href="index.html">首頁</a></li>
+                <li><a href="index.html" class="active-dark">首頁</a></li>
                 <li><a href="about.html">關於我們</a></li> 
                 <li><a href="members.html">成員介紹</a></li> 
                 <li><a href="events.html">活動行程</a></li>
-                <li><a href="Other.html" class="active-dark">其他</a></li>
+                <li><a href="Other.html">其他</a></li>
             </ul>
         </nav>
     </header>
 
     <section class="event-banner">
-        <h1>立法院讀訓</h1>
+        <h1>歡迎來到立法院</h1>
         <div class="banner-info-wrap">
-            <span><i class="fa-solid fa-shield-halved"></i> 修身立德 · 砥礪人格 · 守護道義</span>
-            <span><i class="fa-solid fa-fire"></i> 修心養性 · 淬鍊品格 · 堅守正義</span>
+            <span><i class="fa-solid fa-crown"></i> 和諧穩固的大家庭</span>
+            <span><i class="fa-solid fa-crown"></i> 多元人才與行動力的社群</span>
         </div>
     </section>
 
     <main class="event-content-area">
-        <div class="declaration-container">
-            <div class="declaration-preface">
-                夫君子立於世，以修身為本，以品德為基。人之人格，淬鍊於平日之自省，成形於道義之堅持。古往今來，凡成就卓越品行者，必先去其驕氣、戒其貪欲，處事以誠，待人以禮。人生之價值，不在於權位之高低，而在於人格之清高與志節之堅貞。願我全體同道，謙沖自牧，一心一德，發揚人性本然之善念，砥礪清廉奉公之精神。念念為道義而修持，時時作處事之警惕。
-                <br><br>
-                如何而後可以保我人格之純粹？如何而後可以使我信義生生不息而不墜？如何而後可以成就虛懷若谷之大氣？凡此皆為我輩追求修身者不可旁貸之責任。蓋人生永續之美德，實惟我全體同道之自律與自省是賴也！列舉十條俾供勗勉：
-            </div>
+        <div class="org-image-container">
+            <img src="https://github.com/ChengHan16/Other_File/blob/master/photo/%E7%AB%8B%E6%B3%95%E9%99%A2%E5%A4%A7%E9%A0%AD%E8%B2%BC.png?raw=true" alt="立法院大頭貼" class="org-logo">
+        </div>
 
-            <ul class="rules-list">
-                <li class="rule-item">
-                    <span class="rule-title">第一條：忠誠本心，純潔人格</span>
-                    <span class="rule-prohibition">不容有違背良知、自大虛妄之行為</span>
-                </li>
-                <li class="rule-item">
-                    <span class="rule-title">第二條：實行信義，言出必行</span>
-                    <span class="rule-prohibition">不容有背信棄義、言行不一之行為</span>
-                </li>
-                <li class="rule-item">
-                    <span class="rule-title">第三條：負責擔當，勇於任事</span>
-                    <span class="rule-prohibition">不容有推諉塞責、畏縮逃避之行為</span>
-                </li>
-                <li class="rule-item">
-                    <span class="rule-title">第四條：注重禮節，謙遜和藹</span>
-                    <span class="rule-prohibition">不容有倨傲不恭、傲慢無禮之行為</span>
-                </li>
-                <li class="rule-item">
-                    <span class="rule-title">第五條：誠心修身，潔身自愛</span>
-                    <span class="rule-prohibition">不容有卑劣詐偽、貪污舞弊之行為</span>
-                </li>
-                <li class="rule-item">
-                    <span class="rule-title">第六條：刻苦耐勞，樸實無華</span>
-                    <span class="rule-prohibition">不容有奢侈浮誇、貪圖安逸之行為</span>
-                </li>
-                <li class="rule-item">
-                    <span class="rule-title">第七條：服從真理，虛心受教</span>
-                    <span class="rule-prohibition">不容有執迷不悟、自傲自滿之行為</span>
-                </li>
-                <li class="rule-item">
-                    <span class="rule-title">第八條：嚴守紀律，自律甚嚴</span>
-                    <span class="rule-prohibition">不容有散漫荒廢、暴力粗鄙之行為</span>
-                </li>
-                <li class="rule-item">
-                    <span class="rule-title">第九條：互助關懷，博愛同儕</span>
-                    <span class="rule-prohibition">不容有冷漠自私、背叛欺凌之行為</span>
-                </li>
-                <li class="rule-item">
-                    <span class="rule-title">第十條：促進和平，守護和諧</span>
-                    <span class="rule-prohibition">不容有鬥狠好勇、破壞公理之行為</span>
-                </li>
-            </ul>
+        <div class="info-card">
+            <h2 style="color: #1a237e; margin-top: 0; display: flex; align-items: center;">
+                <i class="fa-solid fa-landmark" style="margin-right: 12px;"></i> 組織精神
+            </h2>
+            <p style="line-height: 1.8; color: #555; font-size: 1.1em;">
+                本組織致力於匯集各界專業人才，形成一個具備高度多元性與行動力的社群。我們強調成員間的緊密聯繫，並透過定期的活動交流，持續推動組織內部的成長，在不同領域展現獨特的影響力。
+            </p>
+        </div>
 
-            <div class="declaration-footer">
-                以上所揭，旨在立人極之規範，修身心之正道。凡我全體成員，均應視為典範，共同遵守。人人以此自勉，並以勉勵同道，朝夕警惕，拳拳服膺；俾得發揚浩然正氣，造就精粹剛健之人格，共同擔負維護世間道義之重大責任。
-                <div class="official-seal">
-                    我全體同道勉乎哉
-                </div>
+        <div class="info-card">
+            <h2 style="color: #1a237e; margin-top: 0; display: flex; align-items: center;">
+                <i class="fa-solid fa-handshake" style="margin-right: 12px;"></i> 法院和諧
+            </h2>
+            <p style="line-height: 1.8; color: #555; font-size: 1.1em;">
+                和諧是「立法院」的核心價值之一。我們重視每一位成員的獨特特質，在交流中保持尊重與包容。透過彼此的專業互補與深厚情誼，共同營造一個溫暖且具備向心力的環境，確保組織能穩定且長久地運作。
+            </p>
+        </div>
+
+        <div style="margin-top: 40px;">
+            <h2 style="color: #1a237e; margin-left: 15px; border-left: 6px solid #1a237e; padding-left: 15px;">近期活動</h2>
+            <div class="events-grid">
+                <a href="events.html" class="event-card-link">
+                    <article class="event-card-simple">
+                        <div class="event-date-circle">
+                            <span class="day">25</span>
+                            <span class="month">DEC</span>
+                        </div>
+                        <div class="event-info-box">
+                            <h3>年度聖誕聚會</h3>
+                            <p class="date-text"><i class="fa-regular fa-clock"></i> 2025-12-25 晚間</p>
+                        </div>
+                        <span class="action-arrow"><i class="fa-solid fa-arrow-right"></i></span>
+                    </article>
+                </a>
+                
+                
+                <a href="events.html" class="event-card-link">
+                    <article class="event-card-simple" style="background-color: #fafafa;">
+                        <div class="event-date-circle" style="background-color: #9e9e9e; border-color: #ccc;">
+                            <span class="day">?</span>
+                            <span class="month">TBA</span>
+                        </div>
+                        <div class="event-info-box">
+                            <h3>例行交流會議</h3>
+                            <p class="date-text">掌握最新委員會排程及重要活動資訊</p>
+                        </div>
+                        <span class="action-arrow"><i class="fa-solid fa-arrow-right"></i></span>
+                    </article>
+                </a>
             </div>
         </div>
     </main>
