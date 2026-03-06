@@ -1,5 +1,5 @@
 {
-	"appId": "tw.legislature.app",
+	"appId": "app.web.legislaturetw",
 	"appName": "Legislature",
 	"webDir": "www",
 	"packageClassList": []

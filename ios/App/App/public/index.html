@@ -2,28 +2,21 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>立法院 - 系統登入</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         /* --- 基礎設定 --- */
-        /* 【關鍵修改】：加入防呆與 iOS 字體縮放限制 */
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        * { box-sizing: border-box; }
         
-        html, body {
-            margin: 0; padding: 0;
-            width: 100vw;
-            /* 改用 dvh 解決 iOS 網址列與鍵盤高度問題 */
-            min-height: 100dvh; 
-            -webkit-text-size-adjust: 100%; 
-        }
-
         body { 
             font-family: 'Segoe UI', "Microsoft JhengHei", sans-serif; 
             background-color: #f0f2f5; 
+            margin: 0; 
             display: flex; 
             justify-content: center; 
             align-items: center; 
+            min-height: 100vh; 
             
             /* --- 關鍵修改：預設隱藏整個 body --- */
             opacity: 0;
@@ -43,11 +36,9 @@
             width: 100%; 
             background-color: #fff; 
             padding: 50px 40px; 
-            border-radius: 8px; /* 稍微增加圓角讓視覺更柔和 */
+            border-radius: 2px; 
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
             text-align: center;
-            display: flex;
-            flex-direction: column;
         }
 
         /* --- 標題設計 --- */
@@ -63,7 +54,6 @@
             height: 4px;
             background-color: #b8860b; 
             margin: 15px auto 35px auto;
-            border-radius: 2px;
         }
 
         /* --- 表單控制 --- */
@@ -91,14 +81,14 @@
         input { 
             width: 100%;
             padding: 12px 15px 12px 45px;
-            font-size: 16px; /* 必須為 16px，防止 iOS 點擊輸入框時畫面自動放大 */
+            font-size: 16px;
             border: 1px solid #ddd;
-            border-radius: 4px;
-            background-color: #fcfcfc;
+            border-radius: 2px;
+            background-color: #fff;
             outline: none;
             transition: border-color 0.2s;
         }
-        input:focus { border-color: #003153; box-shadow: 0 0 0 2px rgba(0,49,83,0.1); background-color: #fff; }
+        input:focus { border-color: #003153; box-shadow: 0 0 0 2px rgba(0,49,83,0.1); }
 
         /* --- 按鈕樣式 --- */
         .login-btn { 
@@ -107,83 +97,69 @@
             background-color: #003153;
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 2px;
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
             margin-top: 10px;
-            transition: background 0.2s, transform 0.1s;
+            transition: background 0.2s;
         }
         .login-btn:hover { background-color: #00233b; }
-        .login-btn:active { transform: scale(0.98); }
+        .login-btn:active { transform: scale(0.99); }
 
         #msg { height: 20px; margin-top: 15px; font-size: 14px; font-weight: 500; }
-
-        .footer-text {
-            font-size: 12px; 
-            color: #aaa; 
-            text-align: center;
-            margin-top: 40px;
-        }
 
         /* --- 行動裝置適應 (RWD) --- */
         @media (max-width: 600px) {
             body { 
                 background-color: #fff; 
-                align-items: flex-start; /* 讓內容靠上，避免鍵盤擋住 */
+                align-items: flex-start; 
             }
             .login-wrapper { 
                 max-width: none; 
                 width: 100%; 
-                /* 【關鍵修改】：不寫死 height: 100vh，改用 min-height 保留滾動空間 */
-                min-height: 100dvh; 
-                /* 【關鍵修改】：加入 iOS 安全距離，避開動態島與底線 */
-                padding: calc(40px + env(safe-area-inset-top)) 30px calc(20px + env(safe-area-inset-bottom)) 30px; 
+                height: 100vh; 
+                padding: 60px 30px; 
                 box-shadow: none; 
                 border-radius: 0; 
+                border: none;
             }
-            .brand-logo { font-size: 32px; margin-top: 10px; }
-            .login-btn { padding: 16px; font-size: 18px; } 
-            
-            /* 將版權文字自動推到畫面最底部 */
-            .footer-text { margin-top: auto; padding-top: 30px; }
+            .brand-logo { font-size: 32px; margin-top: 20px; }
+            .login-btn { padding: 18px; font-size: 18px; } 
         }
     </style>
 </head>
 <body>
 
 <div class="login-wrapper">
-    <div style="flex-shrink: 0;">
-        <div class="brand-logo"><i class="fas fa-landmark"></i> 立法院</div>
-        <div class="accent-line"></div>
-        
-        <div style="color:#666; margin-bottom: 30px; font-size: 14px; letter-spacing: 1px;">
-            ADMINISTRATION SYSTEM
+    <div class="brand-logo"><i class="fas fa-landmark"></i> 立法院</div>
+    <div class="accent-line"></div>
+    
+    <div style="color:#666; margin-bottom: 30px; font-size: 14px; letter-spacing: 1px;">
+        ADMINISTRATION SYSTEM
+    </div>
+
+    <div class="form-group">
+        <label>帳號 (Email)</label>
+        <div class="input-container">
+            <i class="fas fa-envelope"></i>
+            <input type="email" id="email" placeholder="請輸入公務帳號" autocomplete="email">
         </div>
     </div>
 
-    <div style="flex-shrink: 0;">
-        <div class="form-group">
-            <label>帳號 (Email)</label>
-            <div class="input-container">
-                <i class="fas fa-envelope"></i>
-                <input type="email" id="email" placeholder="請輸入公務帳號" autocomplete="email">
-            </div>
+    <div class="form-group">
+        <label>密碼 (Password)</label>
+        <div class="input-container">
+            <i class="fas fa-lock"></i>
+            <input type="password" id="password" placeholder="請輸入密碼" autocomplete="current-password">
         </div>
-
-        <div class="form-group">
-            <label>密碼 (Password)</label>
-            <div class="input-container">
-                <i class="fas fa-lock"></i>
-                <input type="password" id="password" placeholder="請輸入密碼" autocomplete="current-password">
-            </div>
-        </div>
-
-        <button id="loginBtn" class="login-btn">進入管理系統</button>
-        <p id="msg"></p>
     </div>
 
-    <div class="footer-text">
+    <button id="loginBtn" class="login-btn">進入管理系統</button>
+    
+    <p id="msg"></p>
+
+    <div style="margin-top: 40px; font-size: 12px; color: #aaa; text-align: center;">
         © 2026 立法院 Legislature. All rights reserved.
     </div>
 </div>
@@ -207,8 +183,10 @@
     // 檢查登入狀態
     auth.onAuthStateChanged((user) => {
         if (user) {
+            // 已登入：使用 replace 直接覆蓋歷史紀錄跳轉，使用者畫面會維持白底/灰底並直接跳過去
             window.location.replace("IOS-Messenger.html");
         } else {
+            // 未登入：將 body 加上 class，讓登入表單淡入顯示
             document.body.classList.add("auth-resolved");
         }
     });
@@ -227,6 +205,7 @@
         msg.innerText = "安全驗證中...";
         msg.style.color = "#003153";
 
+        // 鎖定按鈕避免重複點擊
         const btn = document.getElementById('loginBtn');
         btn.disabled = true;
         btn.style.opacity = "0.7";
