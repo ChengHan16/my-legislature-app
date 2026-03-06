@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>私人管理頁面 - 立法院系統整合</title>
+    <link rel="stylesheet" href="./css/authenticated.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        /* --- 基礎配色 --- */
+        :root { 
+            --ly-blue: #003153; 
+            --ly-blue-trans: rgba(0, 49, 83, 0.95);
+            --ly-gold: #cfa900; 
+            --ly-gold-bright: #ffd700;
+            --bg-gray: #f2f4f7; 
+            --border-color: #dee2e6; 
+        }
+
+        body {
+            background-color: var(--bg-gray);
+            overflow-x: hidden;
+            font-family: "Microsoft JhengHei", "Courier New", sans-serif;
+            margin: 0;
+        }
+
+        /* -----------------------------------------------------------
+           1. 機密檔案鎖定遮罩 (Gatekeeper)
+           ----------------------------------------------------------- */
+        #gate-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: radial-gradient(circle at center, #001f3f 0%, #000b1a 100%);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #gate-overlay.unlocked {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(1.1);
+            filter: blur(10px);
+        }
+
+        .gate-content {
+            position: relative;
+            max-width: 480px; width: 90%;
+            padding: 50px 40px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(207, 169, 0, 0.3);
+            backdrop-filter: blur(15px);
+            border-radius: 4px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        .gate-content::before, .gate-content::after {
+            content: ""; position: absolute; width: 20px; height: 20px;
+            border: 3px solid var(--ly-gold);
+            transition: all 0.5s ease;
+        }
+        .gate-content::before { top: -2px; left: -2px; border-right: 0; border-bottom: 0; }
+        .gate-content::after { bottom: -2px; right: -2px; border-left: 0; border-top: 0; }
+
+        .gate-title {
+            font-size: 1.5rem; letter-spacing: 3px; color: var(--ly-gold);
+            margin-bottom: 30px; font-weight: 700; text-transform: uppercase;
+            border-bottom: 1px solid rgba(207, 169, 0, 0.2); padding-bottom: 15px;
+        }
+
+        .gate-hint {
+            font-size: 0.85rem; color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 10px; text-align: left; padding-left: 10px;
+        }
+
+        .code-input {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid #4a5568; border-radius: 4px;
+            color: var(--ly-gold-bright); font-size: 2.2rem; text-align: center;
+            width: 100%; padding: 10px; letter-spacing: 12px; outline: none;
+            font-family: 'Courier New', monospace; margin-bottom: 25px; transition: 0.3s;
+            box-sizing: border-box;
+        }
+        .code-input:focus { border-color: var(--ly-gold); box-shadow: 0 0 15px rgba(207, 169, 0, 0.2); }
+
+        .terms-container {
+            display: flex; align-items: flex-start; gap: 12px; text-align: left;
+            margin-bottom: 25px; padding: 15px; background: rgba(255,255,255,0.05);
+            border-radius: 4px; border: 1px dashed rgba(255,255,255,0.1);
+        }
+
+        .terms-checkbox {
+            appearance: none; background-color: transparent; margin: 4px 0 0 0;
+            color: var(--ly-gold); width: 18px; height: 18px;
+            border: 2px solid var(--ly-gold); border-radius: 3px; display: grid; place-content: center;
+            cursor: pointer; flex-shrink: 0;
+        }
+        .terms-checkbox::before {
+            content: ""; width: 10px; height: 10px; transform: scale(0);
+            transition: 120ms transform ease-in-out; box-shadow: inset 1em 1em var(--ly-gold);
+            transform-origin: center; clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+        }
+        .terms-checkbox:checked::before { transform: scale(1); }
+        
+        .terms-label { font-size: 0.85rem; color: #ccc; line-height: 1.5; cursor: pointer; }
+        .terms-link { color: var(--ly-gold); text-decoration: none; font-weight: bold; border-bottom: 1px dashed var(--ly-gold); transition: 0.3s; }
+        .terms-link:hover { color: #fff; border-bottom-style: solid; }
+
+        .confirm-btn {
+            width: 100%; padding: 14px; background: #2d3748; color: rgba(255,255,255,0.3);
+            border: 1px solid #4a5568; font-size: 1rem; font-weight: 900; letter-spacing: 4px;
+            text-transform: uppercase; cursor: not-allowed; transition: all 0.4s ease;
+            position: relative; overflow: hidden; border-radius: 4px;
+        }
+        .confirm-btn.active {
+            background: var(--ly-gold); color: var(--ly-blue); border-color: var(--ly-gold);
+            cursor: pointer; box-shadow: 0 0 20px rgba(207, 169, 0, 0.4);
+        }
+        .confirm-btn.active:hover { background: var(--ly-gold-bright); transform: translateY(-2px); }
+
+        .shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        /* -----------------------------------------------------------
+           2. 條款彈窗
+           ----------------------------------------------------------- */
+        .modal-overlay {
+            display: none; position: fixed; z-index: 10000; left: 0; top: 0;
+            width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px); 
+            justify-content: center; 
+            align-items: center; 
+            padding: 20px; 
+            box-sizing: border-box;
+        }
+
+        .doc-paper {
+            background: #ffffff; width: 100%; max-width: 800px;
+            max-height: 85vh; 
+            overflow-y: auto; 
+            padding: 40px 50px;
+            position: relative; box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            color: #333; line-height: 1.8;
+            border-top: 8px solid var(--ly-blue);
+            background-image: linear-gradient(#fdfdfd 1px, transparent 1px);
+            background-size: 100% 2.5rem; border-radius: 4px;
+        }
+
+        .doc-paper::-webkit-scrollbar { width: 8px; }
+        .doc-paper::-webkit-scrollbar-track { background: #f1f1f1; }
+        .doc-paper::-webkit-scrollbar-thumb { background: var(--ly-gold); border-radius: 4px; }
+
+        .doc-header { text-align: center; border-bottom: 2px double var(--ly-blue); padding-bottom: 25px; margin-bottom: 30px; }
+        .doc-header h2 { color: var(--ly-blue); font-size: 1.8rem; font-weight: 900; letter-spacing: 2px; margin: 0; }
+        .term-section { margin-bottom: 25px; }
+        .term-title { color: var(--ly-blue); font-size: 1.1rem; font-weight: bold; border-left: 5px solid var(--ly-gold); padding-left: 15px; margin-bottom: 10px; }
+        .term-content { font-size: 0.95rem; color: #555; text-align: justify; padding-left: 20px;}
+        .term-content li { margin-bottom: 8px; }
+
+        .modal-close-btn {
+            display: block; margin: 30px auto 0; padding: 12px 60px;
+            background: var(--ly-blue); color: white; border: none; font-weight: bold;
+            font-size: 1rem; cursor: pointer; transition: 0.3s; border-radius: 4px;
+        }
+        .modal-close-btn:hover { background: #004c82; }
+
+        /* -----------------------------------------------------------
+           3. 進入後的內容
+           ----------------------------------------------------------- */
+        #header-layout, #footer-layout, #sidebar, .event-content-area {
+            opacity: 0; visibility: hidden; transition: opacity 1.5s ease 0.5s;
+        }
+        body.access-granted #header-layout,
+        body.access-granted #footer-layout,
+        body.access-granted #sidebar,
+        body.access-granted .event-content-area {
+            opacity: 1; visibility: visible;
+        }
+        
+        .event-content-area {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            padding-bottom: 50px;
+        }
+
+        .user-info-banner {
+            width: 90%; 
+            max-width: 900px;
+            margin-top: 40px; 
+            background: white;
+            border-radius: 15px; padding: 50px 30px; 
+            border: 1px solid rgba(207, 169, 0, 0.3);
+            box-shadow: 0 10px 40px rgba(0, 49, 83, 0.15); 
+            border-top: 6px solid var(--ly-blue);
+            display: flex; flex-direction: column; align-items: center; 
+            position: relative; overflow: hidden;
+        }
+        .user-info-banner::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: radial-gradient(circle at 50% 0%, rgba(207, 169, 0, 0.05) 0%, transparent 70%); pointer-events: none;
+        }
+
+        .info-avatar {
+            width: 140px; height: 140px; border-radius: 50%; object-fit: cover;
+            border: 4px solid var(--ly-gold); padding: 4px; background: #fff;
+            margin-bottom: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.15); z-index: 2;
+        }
+
+        .info-name {
+            margin: 0 0 10px 0; font-size: 2.2rem; color: var(--ly-blue);
+            font-weight: 900; letter-spacing: 2px;
+            display: block; width: 100%; text-align: center; z-index: 2;
+        }
+
+        /* --- 新增：專業登入按鈕樣式 --- */
+        .login-redirect-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 15px;
+            padding: 10px 30px;
+            background-color: transparent;
+            border: 1px solid var(--ly-blue);
+            color: var(--ly-blue);
+            font-size: 0.95rem;
+            font-weight: bold;
+            border-radius: 50px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            z-index: 2; /* 確保在背景之上 */
+        }
+
+        .login-redirect-btn:hover {
+            background-color: var(--ly-blue);
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 49, 83, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .credential-card {
+            background: linear-gradient(135deg, #fff 0%, #fdfbf7 100%);
+            border: 1px solid var(--ly-gold); border-radius: 8px; padding: 30px;
+            margin-top: 30px; width: 100%; max-width: 600px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.08);
+        }
+        .credential-header { color: var(--ly-gold); font-weight: bold; font-size: 1.1rem; margin-bottom: 20px; text-align: center; border-bottom: 1px solid #eee; padding-bottom: 15px; }
+        .credential-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px dashed #e0e0e0; }
+        .credential-row:last-child { border-bottom: none; }
+        .c-label { color: #555; font-weight: bold; font-size: 0.9rem; }
+        .c-value { font-family: 'Courier New', monospace; font-size: 1.1rem; color: var(--ly-blue); font-weight: bold; letter-spacing: 1px; }
+        .c-value.device-info { font-size: 0.85rem; color: #666; word-break: break-all; text-align: right; width: 60%; }
+
+    </style>
+</head>
+
+<body>
+
+    <div id="gate-overlay">
+        <div class="gate-content">
+            <div style="font-size: 3rem; color: var(--ly-gold); margin-bottom: 15px;">
+                <i class="fa-solid fa-user-shield"></i>
+            </div>
+            <div class="gate-title">System Access</div>
+            
+            <div class="gate-hint">
+                <i class="fas fa-key"></i> 請輸入四位生日日期 (Birthday Code)
+            </div>
+            
+            <input type="password" id="access-code" class="code-input" maxlength="4" placeholder="••••" autocomplete="off" inputmode="numeric">
+            
+            <div class="terms-container">
+                <input type="checkbox" id="terms-checkbox" class="terms-checkbox">
+                <label for="terms-checkbox" class="terms-label">
+                    我已詳閱並同意 <span class="terms-link" onclick="openTermsModal()">《系統使用授權與成員個資告知義務》</span>，並願遵守相關規範。
+                </label>
+            </div>
+
+            <button id="verify-btn" class="confirm-btn">執行身份核實</button>
+        </div>
+    </div>
+
+    <div id="terms-modal" class="modal-overlay" onclick="closeTermsModal(event)">
+        <div class="doc-paper">
+            <header class="doc-header">
+                <h2>系統使用與權利告知書</h2>
+                <p style="margin-top:10px; color:#666; font-size:0.9rem;">文件編號：LY-2026-TERMS-001</p>
+            </header>
+            
+            <div class="term-section">
+                <div class="term-title">一、個人資料之蒐集與運用</div>
+                <div class="term-content">
+                    本網站（以下稱本系統）為強化組織內部溝通與活動紀錄，將依法蒐集並使用成員之姓名、職稱、肖像照片及聯繫方式等資訊。
+                    <ul>
+                        <li>您同意本系統得於「活動紀實」、「成員介紹」及內部管理模組中，合法使用、重製及公開展示上述資料。</li>
+                        <li>本系統承諾上述資料僅限於組織內部營運與交流目的，絕不無故提供予無關之第三方進行商業廣告或非法用途。</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="term-section">
+                <div class="term-title">二、社群規範與使用者義務</div>
+                <div class="term-content">
+                    使用者在使用本系統（包括但不限於留言、投票、上傳檔案）時，應遵守良善社會風俗與組織規範。
+                    <ul>
+                        <li>嚴禁發布任何具備惡意詆毀、人身攻擊、歧視、虛假不實或損害他人名譽之文字與影像。</li>
+                        <li>嚴禁未經授權散佈系統內部之機密資訊或他人隱私資料。</li>
+                    </ul>
+                    若違反上述規範，管理員有權逕行刪除相關內容，並視情節輕重終止使用者的系統存取權限。
+                </div>
+            </div>
+
+            <div class="term-section">
+                <div class="term-title">三、法律責任與爭議處理</div>
+                <div class="term-content">
+                    使用者應對其帳號下產生之所有行為負完全法律責任。若因使用者之不當使用、惡意攻擊或侵權行為導致本系統或第三人受有損害（包括但不限於名譽受損、資料外洩），相關法律賠償與訴訟費用應由使用者自行負責。如涉及司法爭議，雙方同意以所在地之地方法院為第一審管轄法院。
+                </div>
+            </div>
+
+            <button class="modal-close-btn" onclick="document.getElementById('terms-modal').style.display='none'">我已閱讀完畢</button>
+        </div>
+    </div>
+
+    <div id="header-layout"></div>
+    <div id="sidebar"></div>
+    
+    <main class="event-content-area">
+        <div class="user-info-banner">
+            <div style="background:var(--ly-gold); color:white; padding:5px 15px; border-radius:20px; font-weight:bold; margin-bottom:20px; font-size:0.9rem;">身份驗證通過 / ACCESS GRANTED</div>
+            
+            <img id="displayAvatar" class="info-avatar" src="https://fonts.gstatic.com/s/i/googlematerialicons/account_circle/v24/gm_grey-48dp/1x/gm_account_circle_grey_48dp.png">
+            
+            <div class="info-text" style="text-align: center;">
+                <span style="color:#888; letter-spacing:2px; font-size:0.9rem;">歡迎歸隊 / Welcome Back</span>
+                <h2 id="displayName" class="info-name">---</h2>
+                
+                <a href="login.html" class="login-redirect-btn">
+                    <i class="fa-solid fa-right-to-bracket"></i> 前往登入系統
+                </a>
+            </div>
+
+            <div class="credential-card">
+                <div class="credential-header">
+                    <i class="fa-solid fa-shield-halved"></i> 您的專屬登入憑證
+                </div>
+                
+                <div class="credential-row">
+                    <span class="c-label">電子郵件 (Email)</span>
+                    <span id="show-email" class="c-value">---</span>
+                </div>
+                
+                <div class="credential-row">
+                    <span class="c-label">登入密碼 (Password)</span>
+                    <span id="show-pass" class="c-value">---</span>
+                </div>
+
+                <div class="credential-row" style="display: none;">
+                    <span class="c-label">登入裝置 (Device)</span>
+                    <span id="show-device" class="c-value device-info">偵測中...</span>
+                </div>
+
+                <div class="credential-row" style="display: none;">
+                    <span class="c-label">來源位址 (IP Addr)</span>
+                    <span id="show-ip" class="c-value">---.---.---.---</span>
+                </div>
+
+                <div style="margin-top: 15px; font-size: 0.8rem; color: #999; text-align:center;">
+                    * 系統已記錄您的來源 IP 與裝置特徵碼。<br>機密資訊僅供本次瀏覽，請妥善保管。
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="footer-layout"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <link rel="stylesheet" href="./css/authenticated.css">
+    <script src="users.json"></script>
+    <script src="./js/act.js"></script>
+
+    <script>
+    // 1. 全域變數
+    let db;
+    let USER_DB = [];
+
+    // 2. 介面控制邏輯
+    const checkbox = document.getElementById('terms-checkbox');
+    const verifyBtn = document.getElementById('verify-btn');
+    const accessInput = document.getElementById('access-code');
+    const modal = document.getElementById('terms-modal');
+
+    function openTermsModal() { modal.style.display = 'flex'; }
+    function closeTermsModal(e) { if(e.target === modal) modal.style.display = 'none'; }
+
+    function updateButtonState() {
+        if (checkbox.checked && accessInput.value.length === 4) {
+            verifyBtn.classList.add('active'); verifyBtn.disabled = false;
+        } else {
+            verifyBtn.classList.remove('active'); verifyBtn.disabled = true;
+        }
+    }
+
+    checkbox.addEventListener('change', updateButtonState);
+    accessInput.addEventListener('input', updateButtonState);
+    
+    verifyBtn.addEventListener('click', function() {
+        if (!this.classList.contains('active')) return;
+        checkAccessHybrid(accessInput.value);
+    });
+
+    accessInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && !verifyBtn.disabled) { verifyBtn.click(); }
+    });
+
+    // 3. 混合資料讀取與寫入邏輯
+    window.onload = async () => {
+        try {
+            db = firebase.firestore();
+            
+            const response = await fetch('./users.json');
+            if (!response.ok) throw new Error('無法讀取 users.json');
+            USER_DB = await response.json();
+            console.log("本地用戶資料已載入");
+            
+            if (accessInput) accessInput.focus();
+        } catch (e) { console.error("系統初始化失敗:", e); }
+    };
+
+    async function checkAccessHybrid(code) {
+        const gateContent = document.querySelector('.gate-content');
+        const localUser = USER_DB.find(u => u.code === code);
+
+        if (localUser) {
+            try {
+                // 1. 取得裝置與 IP 資訊
+                const info = await getLoginDetails();
+
+                // 2. 寫入 Firebase
+                await db.collection("T&C").doc(localUser.name).set({
+                    name: localUser.name,
+                    email: localUser.email,
+                    ip: info.ip,
+                    device: info.device, 
+                    userAgent: navigator.userAgent, 
+                    agreed: true,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    status: "active"
+                }, { merge: true });
+
+                console.log("條款同意紀錄已儲存");
+
+                // 3. Firebase 抓取頭像
+                let avatarUrl = "https://fonts.gstatic.com/s/i/googlematerialicons/account_circle/v24/gm_grey-48dp/1x/gm_account_circle_grey_48dp.png";
+                let displayNameFromDB = localUser.name;
+
+                try {
+                    const contentSnapshot = await db.collection("content")
+                        .where("text", "==", localUser.name).limit(1).get();
+                    if (!contentSnapshot.empty) {
+                        const contentData = contentSnapshot.docs[0].data();
+                        if (contentData.imageUrl) avatarUrl = contentData.imageUrl;
+                        if (contentData.text) displayNameFromDB = contentData.text; 
+                    }
+                } catch(err) { console.log("頭像讀取略過"); }
+
+                // 4. 更新 UI
+                document.getElementById('displayName').innerText = displayNameFromDB;
+                document.getElementById('displayAvatar').src = avatarUrl;
+                document.getElementById('show-email').innerText = localUser.email;
+                document.getElementById('show-pass').innerText = localUser.pass;
+                
+                document.getElementById('show-device').innerText = info.device;
+                document.getElementById('show-ip').innerText = info.ip;
+
+                // 5. 動畫與轉場
+                document.getElementById('gate-overlay').classList.add('unlocked');
+                document.body.classList.add('access-granted');
+
+                if (typeof loadLayout === 'function') { await loadLayout('Dashboard'); }
+
+            } catch (fbError) {
+                console.error("處理失敗:", fbError);
+                gateContent.classList.add('shake');
+                setTimeout(() => gateContent.classList.remove('shake'), 500);
+            }
+        } else {
+            gateContent.classList.add('shake');
+            accessInput.value = ""; accessInput.placeholder = "錯誤";
+            updateButtonState();
+            setTimeout(() => {
+                gateContent.classList.remove('shake'); accessInput.placeholder = "••••";
+            }, 500);
+        }
+    }
+
+    async function getLoginDetails() {
+        const ua = navigator.userAgent;
+        let os = "Unknown OS";
+        if (ua.indexOf("Win") !== -1) os = "Windows";
+        if (ua.indexOf("Mac") !== -1) os = "MacOS";
+        if (ua.indexOf("Linux") !== -1) os = "Linux";
+        if (ua.indexOf("Android") !== -1) os = "Android";
+        if (ua.indexOf("like Mac") !== -1) os = "iOS";
+
+        let browser = "Browser";
+        if (ua.indexOf("Chrome") !== -1) browser = "Chrome";
+        else if (ua.indexOf("Safari") !== -1) browser = "Safari";
+        else if (ua.indexOf("Firefox") !== -1) browser = "Firefox";
+        else if (ua.indexOf("Edg") !== -1) browser = "Edge";
+
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(ua) ? "(Mobile)" : "(PC)";
+        const deviceText = `${os} ${isMobile} / ${browser}`;
+
+        let ip = "Unknown IP";
+        try {
+            const response = await fetch('https://api.ipify.org?format=json');
+            const data = await response.json();
+            ip = data.ip;
+        } catch (error) {
+            console.error("IP Fetch Error:", error);
+            ip = "Private/Hidden";
+        }
+
+        return { device: deviceText, ip: ip };
+    }
+</script>
+</body>
+</html>

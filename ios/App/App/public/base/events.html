@@ -1,0 +1,2357 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>活動紀實 - 立法院系統整合</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="./css/style.css">
+
+    <style>
+        :root { 
+            --ly-blue: #1a237e;
+            --ly-blue-trans: rgba(0, 49, 83, 0.85); /* 半透明主藍 */
+            --ly-gold: #cfa900; 
+            --bg-gray: #f2f4f7; 
+            --border-color: #dee2e6; 
+        }
+
+        /* --- 專業檔案外框與清單風格 --- */
+        .event-content-area {
+            max-width: 1100px;
+            margin: 0 auto;
+            width: 95%;
+            padding-top: 5px;
+            padding-bottom: 40px;
+        }
+
+        .year-group-title {
+            font-size: 1.5rem;
+            color: var(--ly-blue); /* 深藍色調 */
+            font-weight: bold;
+            margin: 40px 0 20px;
+            padding-left: 15px;
+            border-left: 5px solid #ffcc00; /* 立法院金色 */
+            display: flex;
+            align-items: center;
+            background: linear-gradient(90deg, rgba(0,49,83,0.08) 0%, transparent 100%);
+            height: 45px;
+        }
+
+        .doc-list-item {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-left: 6px solid var(--ly-blue); /* 深藍側邊條 */
+            margin-bottom: 20px;
+            padding: 22px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        .doc-list-item:hover {
+            transform: translateX(8px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-color: #ffcc00; /* 懸停變金色 */
+        }
+
+        .doc-info h4 {
+            margin: 0 0 10px 0;
+            color: var(--ly-blue); /* 深藍標題 */
+            font-size: 1.3rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+
+        .doc-info p {
+            margin: 0;
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        .doc-action-hint {
+            color: #ffcc00; /* 金色圖示 */
+            font-weight: 900;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+
+        /* --- 文件預覽風格彈窗 CSS --- */
+        /* --- 修正：確保詳情彈窗固定於中央，禁止左右滑動 --- */
+        .doc-modal {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0; top: 0; 
+            width: 100vw; /* 使用視窗寬度 */
+            height: 100vh; /* 使用視窗高度 */
+            background: rgba(0, 20, 40, 0.75); /* 深藍透明背景 */
+            backdrop-filter: blur(8px);
+            justify-content: center;
+            align-items: flex-start;
+            padding: 20px 0; /* 增加上下邊距 */
+            overflow-y: auto; /* 僅允許垂直滑動 */
+            overflow-x: hidden; /* 強制禁止左右滑動 */
+        }
+
+        .doc-paper {
+            background: #ffffff;
+            width: 92%; /* 在手機上留出一點左右邊距 */
+            max-width: 850px;
+            margin: 20px auto 50px; /* 置中排列 */
+            padding: 60px 40px; 
+            position: relative;
+            border: 1px solid #dcdcdc;
+            box-shadow: 0 0 40px rgba(0,0,0,0.15);
+            box-sizing: border-box; /* 確保 padding 不會撐開寬度 */
+            
+            /* 專業行政公文紙紋理保持不變 */
+            background-image: 
+                linear-gradient(90deg, #003153 0px, #003153 4px, transparent 4px, transparent 7px, #cfaf3c 7px, #cfaf3c 9px, transparent 9px),
+                linear-gradient(#fdfdfd 1px, transparent 1px);
+            background-size: 100% 100%, 100% 2.5rem;
+        }
+
+        .doc-header {
+            text-align: center;
+            border-bottom: 2px double #003153;
+            padding-bottom: 25px;
+            margin-bottom: 40px;
+        }
+
+        .doc-watermark {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) rotate(-30deg);
+            font-size: 6rem;
+            color: rgba(0, 49, 83, 0.04);
+            pointer-events: none;
+            white-space: nowrap;
+            font-weight: 900;
+            z-index: 200000;
+        }
+        .doc-watermark-Legislature {
+            position: absolute;
+            top: 40%; left: 50%;
+            transform: translate(-50%, -50%) rotate(-30deg);
+            font-size: 32px;
+            color: rgba(0, 49, 83, 0.04);
+            pointer-events: none;
+            white-space: nowrap;
+            font-weight: 900;
+            z-index: 200000;
+        }
+
+        .doc-sub-title {
+            color: var(--ly-blue);
+            border-left: 5px solid #ffcc00;
+            padding-left: 15px;
+            margin: 50px 0 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .section-title{
+            margin-left: auto;
+        }
+
+/* --- 重新設計：專業化調查表單風格 --- */
+.vote-panel {
+    background: #ffffff;
+    padding: 0; /* 改為由內部元件撐開 */
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    border-top: 5px solid #003153; /* 頂部改為深藍 */
+    text-align: center;
+    margin-top: 40px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+    transition: all 0.4s ease;
+}
+/* 倒數時間：作為標題顯示在調查內容上方 */
+.countdown-header {
+    background: #fdfaf0; /* 改為極淡金底 */
+    color: #856404;      /* 深金褐色文字 */
+    padding: 12px;
+    margin: -35px -35px 25px -35px; /* 貼齊面板頂部 */
+    font-weight: 800;
+    font-size: 1.1rem;
+    border-bottom: 1px solid #f9f1d7;
+    letter-spacing: 1.5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.vote-panel h3.doc-sub-title {
+    margin-top: 10px !important;
+    border-left: none; /* 重新設計標題 */
+    padding-left: 0;
+    text-align: center;
+    font-size: 1.4rem;
+    color: #003153;
+    letter-spacing: 2px;
+}
+
+/* 摺疊狀態優化 */
+.vote-panel.collapsed {
+    padding: 15px;
+    height: auto;
+    background: #f0f4f8; /* 淡藍灰背景 */
+    border-top: 4px solid #b0bec5;
+    cursor: pointer;
+}
+
+.vote-panel.collapsed .countdown-header,
+.vote-panel.collapsed .vote-actions,
+.vote-panel.collapsed h3 {
+    display: none;
+}
+
+.vote-panel.collapsed::after {
+    content: "系統提示：您已完成回報 (點擊展開檢視/修改)";
+    font-size: 0.95rem;
+    color: #003153;
+    font-weight: bold;
+}
+
+/* 按鈕重新設計：更厚實專業 */
+.btn-vote {
+    padding: 14px 40px;
+    font-size: 1.05rem;
+    letter-spacing: 1px;
+    border-radius: 4px; /* 方正一點更顯專業 */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+        .btn-vote {
+            padding: 12px 35px;
+            margin: 10px;
+            border-radius: 50px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-join { background: #003153; color: white; } /* 統一深藍 */
+        .btn-next { background: #607d8b; color: white; } /* 灰藍色 */
+        .btn-join:hover { background: #cfaf3c; transform: translateY(-3px); } /* 懸停變金 */
+
+        /* 參與成員 */
+        .voter-grid { display: flex; flex-wrap: wrap; gap: 20px; margin-top: 20px; min-height: 80px; justify-content: center;}
+        .voter-box { text-align: center; width: 75px; }
+        .voter-box img { width: 60px; height: 60px; border-radius: 50%; border: 2px solid #cfaf3c; object-fit: cover; background: #eee;}
+        .voter-box span { display: block; font-size: 0.8rem; margin-top: 8px; font-weight: bold; color: #003153; }
+
+        /* 增加：出席狀況調查摺疊容器樣式 */
+.vote-panel {
+    background: #fdfdfd;
+    padding: 30px;
+    border-radius: 10px;
+    border: 1px dashed #cfaf3c; /* 改為金色虛線 */
+    text-align: center;
+    margin-top: 40px;
+    overflow: hidden; /* 確保內容超出時隱藏 */
+    transition: all 0.4s ease; /* 平滑摺疊動畫 */
+}
+
+/* 摺疊狀態的樣式 */
+.vote-panel.collapsed {
+    padding: 10px;
+    height: 50px; /* 只留一點點高度或完全隱藏 */
+    opacity: 0.9;
+    background: #f8f9fa;
+    border-style: solid;
+    cursor: pointer;
+}
+
+.vote-panel.collapsed .vote-actions,
+.vote-panel.collapsed h3 {
+    display: none; /* 摺疊時隱藏內部文字與按鈕 */
+}
+
+.vote-panel.collapsed::after {
+    content: "已完成回報 (點擊展開修改)";
+    font-size: 0.9rem;
+    color: #607d8b;
+    font-weight: bold;
+}
+
+        .doc-close-btn {
+            position: absolute;
+            right: 25px; top: 25px;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #999;
+            background: none; border: none;
+            z-index: 10;
+        }
+
+        /* --- 修正問題：圖片縮小設計 --- */
+.event-display-image {
+    max-width: 75%;       /* 縮小圖片至 75% */
+    height: auto;
+    max-height: 350px;    /* 限制最大高度 */
+    border-radius: 4px;
+    border: 4px solid #fff !important; /* 模擬相片邊框 */
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    margin: 20px auto;    /* 置中顯示 */
+    display: block;
+    object-fit: contain;
+}
+
+/* --- 手機頁面資訊垂直排列 --- */
+.doc-meta-container {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+/* 投票倒數警示樣式 */
+.countdown-alert {
+    color: #ff0000; /* 改為金色提醒 */
+    font-weight: 900;
+    font-size: 1.05rem;
+    letter-spacing: 1px;
+    white-space: nowrap;
+}
+
+/* 列表卡片：水平並排於日期右側 */
+.card-info-text {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.card-meta-line {
+    display: flex;
+    align-items: center;
+    gap: 15px; /* 設定日期與倒數的間距 */
+}
+
+/* 詳情彈窗：展開時垂直排列於按鈕下方 */
+.vote-panel:not(.collapsed) .countdown-alert {
+    display: block;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px dashed #eee;
+}
+
+/* 無效按鈕的專業風格：變灰、取消陰影並顯示禁止符號 */
+.btn-vote:disabled {
+    background-color: #e0e0e0 !important;
+    color: #a0a0a0 !important;
+    cursor: not-allowed !important;
+    box-shadow: none !important;
+    transform: none !important;
+    border: 1px solid #dcdcdc !important;
+}
+
+/* 複製連結按鈕樣式 */
+.copy-link-btn {
+    cursor: pointer;
+    color: #003153;
+    margin-left: 12px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+.copy-link-btn:hover { color: #cfaf3c; transform: scale(1.1); }
+
+/* 底部灰色資訊文字樣式 */
+.doc-creation-info {
+    color: rgba(255, 255, 255, 1); /* 採用深藍透明度 */
+    text-align: center;
+    font-size: 0.9rem; /* 稍微調大一點點 */
+    line-height: 1.8;
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 1px solid rgba(0, 49, 83, 0.1); /* 調整分隔線顏色 */
+    font-weight: 300; /* 使用細體字保持不顯眼 */
+}
+
+/* 底部返回按鍵樣式 */
+.doc-close-footer-btn {
+    display: block;
+    margin: 25px auto 0;
+    padding: 12px 45px; /* 增加寬度顯得更大器 */
+    background: #455a64; /* 深藍灰 */
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.2); /* 增加微弱邊框感 */
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1rem;
+    letter-spacing: 2px; /* 增加字距增加專業感 */
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+.doc-close-footer-btn:hover {
+    background: #263238; /* 懸停時更深 */
+    transform: translateY(-2px); /* 輕微上浮感 */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+/* --- 專業化搜尋方框設計：藍金風格 --- */
+.search-container {
+    max-width: 800px; /* 縮減寬度顯得更精煉 */
+    margin: 20px auto;
+    width: 90%;
+    display: flex;
+    gap: 0; /* 移除間距，改用組合式設計 */
+    background: #161d62; /* 深藍色背景，匹配 Banner */
+    padding: 8px 12px;
+    border-radius: 50px; /* 圓角膠囊設計更現代 */
+    border: 1.5px solid #cfaf3c; /* 金色外框 */
+    position: sticky;
+    top: 15px;
+    z-index: 100;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    align-items: center;
+    backdrop-filter: blur(5px); /* 背景模糊增加質感 */
+}
+
+.search-input {
+    flex-grow: 1;
+    padding: 8px 20px;
+    border: none;
+    background: transparent;
+    color: #ffffff; /* 輸入文字為白色提高對比 */
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+/* 修正輸入框預設文字顏色 */
+.search-input::placeholder {
+    color: rgba(255, 254, 254, 0.6); 
+}
+
+.search-input:focus {
+    outline: none;
+}
+
+/* 搜尋導覽群組 */
+.search-nav-group {
+    display: none; 
+    align-items: center;
+    padding-right: 10px;
+    border-left: 1px solid rgba(255, 255, 255, 0.2); /* 白色分隔線 */
+}
+
+.search-counter {
+    color: #cfaf3c; /* 金色計數器 */
+    font-weight: 900;
+    font-size: 0.85rem;
+    margin: 0 15px;
+    letter-spacing: 1px;
+}
+
+.search-nav-btn {
+    width: 32px;
+    height: 32px;
+    background: transparent;
+    color: #ffffff; /* 白色按鈕圖示 */
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%; /* 圓形按鈕 */
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    margin: 0 3px;
+}
+
+.search-nav-btn:hover {
+    background: #cfaf3c;
+    color: #003153;
+    transform: scale(1.1);
+}
+
+/* 搜尋選中時的活動卡片反饋 */
+.doc-list-item.search-highlight {
+    border: 3px solid #cfaf3c !important;
+    background-color: rgba(207, 169, 0, 0.05) !important;
+    box-shadow: 0 0 20px rgba(207, 169, 0, 0.2);
+}
+
+/* --- 修正：鎖定背景滾動的強制類別 --- */
+.body-scroll-lock {
+    overflow: hidden !important;
+    height: 100vh !important;
+    width: 100vw !important;
+    position: fixed !important; /* 對於手機端特別重要 */
+    top: 0;
+    left: 0;
+}
+/* 確保欄位區塊有足夠的下邊距 */
+#doc-content .detail-item {
+    margin-bottom: 25px; /* 每個項目的垂直間距 */
+}
+
+/* 欄位標頭樣式：[ 標籤 ] */
+#doc-content .detail-item strong {
+    display: block; /* 強制標籤自成一行 */
+    color: rgba(0, 49, 83, 0.85);    font-size: 1.1rem;
+    margin-bottom: 12px; /* 標籤與下方內容的垂直間距 */
+    letter-spacing: 1px;
+}
+
+/* 內容樣式 */
+#doc-content .detail-item .detail-text {
+    padding-left: 15px; /* 內容稍微縮進 */
+    color: rgba(0, 49, 83, 0.85);    line-height: 1.8;
+    white-space: pre-wrap !important; /* 確保換行功能正常 */
+}
+/* 增加：出席狀況調查摺疊容器樣式 */
+.vote-panel {
+    background: #fdfaf0;
+    padding: 30px;
+    border-radius: 10px;
+    border: 1px dashed var(--ly-gold);
+    text-align: center;
+    margin-top: 40px;
+    overflow: hidden; /* 確保內容超出時隱藏 */
+    transition: all 0.4s ease; /* 平滑摺疊動畫 */
+}
+
+/* 摺疊狀態的樣式 */
+.vote-panel.collapsed {
+    padding: 10px;
+    height: 50px; /* 只留一點點高度或完全隱藏 */
+    opacity: 0.6;
+    background: #f5f5f5;
+    border-style: solid;
+    cursor: pointer;
+}
+
+.vote-panel.collapsed .vote-actions,
+.vote-panel.collapsed h3 {
+    display: none; /* 摺疊時隱藏內部文字與按鈕 */
+}
+
+.vote-panel.collapsed::after {
+    content: "已完成回報 (點擊展開修改)";
+    font-size: 0.9rem;
+    color: #888;
+    font-weight: bold;
+}
+
+        .doc-close-btn {
+            position: absolute;
+            right: 25px; top: 25px;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #999;
+            background: none; border: none;
+            z-index: 10;
+        }
+
+        /* --- 修正問題：圖片縮小設計 --- */
+.event-display-image {
+    max-width: 75%;       /* 縮小圖片至 75% */
+    height: auto;
+    max-height: 350px;    /* 限制最大高度 */
+    border-radius: 4px;
+    border: 4px solid #fff !important; /* 模擬相片邊框 */
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    margin: 20px auto;    /* 置中顯示 */
+    display: block;
+    object-fit: contain;
+}
+
+/* --- 手機頁面資訊垂直排列 --- */
+.doc-meta-container {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+/* 投票倒數警示樣式 */
+.countdown-alert {
+    color: #ff0000; /* 紅色警示 */
+    font-weight: 900;
+    font-size: 1.05rem;
+    letter-spacing: 1px;
+    white-space: nowrap;
+}
+
+/* 列表卡片：水平並排於日期右側 */
+.card-info-text {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.card-meta-line {
+    display: flex;
+    align-items: center;
+    gap: 15px; /* 設定日期與倒數的間距 */
+}
+
+/* 詳情彈窗：展開時垂直排列於按鈕下方 */
+.vote-panel:not(.collapsed) .countdown-alert {
+    display: block;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px dashed #eee;
+}
+
+/* 無效按鈕的專業風格：變灰、取消陰影並顯示禁止符號 */
+.btn-vote:disabled {
+    background-color: #e0e0e0 !important;
+    color: #a0a0a0 !important;
+    cursor: not-allowed !important;
+    box-shadow: none !important;
+    transform: none !important;
+    border: 1px solid #dcdcdc !important;
+}
+
+/* 複製連結按鈕樣式 */
+.copy-link-btn {
+    cursor: pointer;
+    color: var(--ly-blue);
+    margin-left: 12px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+.copy-link-btn:hover { color: var(--ly-gold); transform: scale(1.1); }
+
+/* 底部灰色資訊文字樣式 */
+.doc-creation-info {
+    color: rgba(255, 255, 255, 0.65); /* 使用半透明白，比純灰色更清晰 */
+    text-align: center;
+    font-size: 0.9rem; /* 稍微調大一點點 */
+    line-height: 1.8;
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1); /* 調整分隔線顏色 */
+    font-weight: 300; /* 使用細體字保持不顯眼 */
+}
+
+/* 底部返回按鍵樣式 */
+.doc-close-footer-btn {
+    display: block;
+    margin: 25px auto 0;
+    padding: 12px 45px; /* 增加寬度顯得更大器 */
+    background: #4a5568; /* 改為專業的深藍灰色 */
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.2); /* 增加微弱邊框感 */
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1rem;
+    letter-spacing: 2px; /* 增加字距增加專業感 */
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+.doc-close-footer-btn:hover {
+    background: #2d3748; /* 懸停時變深 */
+    transform: translateY(-2px); /* 輕微上浮感 */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+/* --- 專業化搜尋方框設計：藍金風格 --- */
+.search-container {
+    max-width: 800px; /* 縮減寬度顯得更精煉 */
+    margin: 20px auto;
+    width: 90%;
+    display: flex;
+    gap: 0; /* 移除間距，改用組合式設計 */
+    background: rgba(22, 29, 98, 0.9);    
+    padding: 6px;
+    border-radius: 50px; /* 圓角膠囊設計更現代 */
+    border: 2px solid var(--ly-gold); /* 黃金色外框 */
+    position: sticky;
+    top: 15px;
+    z-index: 100;
+    box-shadow: 0 4px 15px rgba(0, 49, 83, 0.3);
+    align-items: center;
+    backdrop-filter: blur(5px); /* 背景模糊增加質感 */
+}
+
+.search-input {
+    flex-grow: 1;
+    padding: 8px 20px;
+    border: none;
+    background: transparent;
+    color: var(--border-color); /* 輸入文字為金色 */
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+/* 修正輸入框預設文字顏色 */
+.search-input::placeholder {
+    color: rgba(255, 255, 255, 0.6); 
+}
+
+.search-input:focus {
+    outline: none;
+}
+
+/* 搜尋導覽群組 */
+.search-nav-group {
+    display: none; 
+    align-items: center;
+    padding-right: 10px;
+    border-left: 1px solid rgba(207, 169, 0, 0.3); /* 金色分隔線 */
+}
+
+.search-counter {
+    color: var(--ly-gold);
+    font-weight: 900;
+    font-size: 0.85rem;
+    margin: 0 15px;
+    letter-spacing: 1px;
+}
+
+.search-nav-btn {
+    width: 32px;
+    height: 32px;
+    background: transparent;
+    color: var(--ly-gold);
+    border: 1px solid var(--ly-gold);
+    border-radius: 50%; /* 圓形按鈕 */
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    margin: 0 3px;
+}
+
+.search-nav-btn:hover {
+    background: var(--ly-gold);
+    color: var(--ly-blue);
+    transform: scale(1.1);
+}
+
+/* 搜尋選中時的活動卡片反饋 */
+.doc-list-item.search-highlight {
+    border: 3px solid var(--ly-gold) !important;
+    background-color: rgba(207, 169, 0, 0.05) !important;
+    box-shadow: 0 0 20px rgba(207, 169, 0, 0.2);
+}
+
+/* --- 修正：鎖定背景滾動的強制類別 --- */
+.body-scroll-lock {
+    overflow: hidden !important;
+    height: 100vh !important;
+    width: 100vw !important;
+    position: fixed !important; /* 對於手機端特別重要 */
+    top: 0;
+    left: 0;
+}
+/* 確保欄位區塊有足夠的下邊距 */
+#doc-content .detail-item {
+    margin-bottom: 25px; /* 每個項目的垂直間距 */
+}
+
+/* 欄位標頭樣式：[ 標籤 ] */
+#doc-content .detail-item strong {
+    display: block; /* 強制標籤自成一行 */
+    color: var(--ly-blue);    
+    font-size: 1.1rem;
+    margin-bottom: 12px; /* 標籤與下方內容的垂直間距，調整這裡可以控制圖片中的距離 */
+    letter-spacing: 1px;
+}
+
+/* 內容樣式 */
+#doc-content .detail-item .detail-text {
+    padding-left: 15px; /* 內容稍微縮進，更有層次感 */
+    color: #333;
+    line-height: 1.8;
+    white-space: pre-wrap !important; /* 確保換行功能正常 */
+}
+
+    /*照片*/
+/* --- 1. 相片堆疊 (Photo Stack) 風格 --- */
+/* --- 1. 相片堆疊 (Photo Stack) 風格 - 無白邊純淨版 --- */
+.photo-stack-container {
+    position: relative;
+    width: 260px;         /* 略為調整寬度 */
+    height: 260px;        /* 高度改為正方形，因為沒有下方留白了 */
+    margin: 30px auto;    /* 置中 */
+    cursor: pointer;
+    z-index: 1;
+}
+
+.photo-stack-item {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 0;           /* 關鍵：移除內距 (白邊來源) */
+    background: none;     /* 關鍵：移除白色背景 */
+    border: none;         /* 移除細邊框 */
+    
+    /* 保留陰影，並稍微加深一點以突顯層次 */
+    box-shadow: 0 8px 20px rgba(0,0,0,0.35); 
+    
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    border-radius: 8px;   /* 增加一點圓角讓視覺更柔和 */
+    overflow: hidden;     /* 確保圖片圓角不被切掉 */
+}
+
+.photo-stack-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;    /* 填滿區塊 */
+    display: block;       /* 消除圖片底部微小縫隙 */
+}
+
+/* 堆疊旋轉效果：維持散落感 */
+.photo-stack-item:nth-child(1) { z-index: 5; transform: rotate(-3deg); }
+.photo-stack-item:nth-child(2) { z-index: 4; transform: rotate(4deg) translate(4px, 4px); }
+.photo-stack-item:nth-child(3) { z-index: 3; transform: rotate(-5deg) translate(-4px, 6px); }
+.photo-stack-item:nth-child(4) { z-index: 2; transform: rotate(2deg) translate(6px, -4px); }
+
+/* 懸停互動：第一張照片稍微浮起放大 */
+.photo-stack-container:hover .photo-stack-item:nth-child(1) {
+    transform: rotate(0deg) scale(1.05);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.45); /* 懸停時陰影更明顯 */
+}
+
+/* 計數標籤 (+N) - 稍微調整位置 */
+.photo-count-badge {
+    position: absolute;
+    bottom: 10px;        /* 貼近底部 */
+    right: 10px;         /* 貼近右側 */
+    background: rgba(0, 0, 0, 0.7); /* 改用半透明黑底 */
+    color: #fff;
+    font-size: 1.2rem;
+    font-weight: bold;
+    padding: 5px 15px;
+    border-radius: 20px; /* 改為膠囊狀 */
+    z-index: 10;
+    backdrop-filter: blur(4px);
+    pointer-events: none;
+    border: 1px solid rgba(255,255,255,0.3); /* 增加微弱白邊增加質感 */
+}
+
+/* --- 2. 絲滑滑動瀏覽器 (Smooth Slider Modal) --- */
+#image-viewer-modal {
+    display: none;
+    position: fixed;
+    z-index: 20000;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.95);
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* 滑軌容器：這是實現絲滑拖曳的關鍵 */
+.slider-container {
+    flex-grow: 1;
+    width: 100%;
+    overflow: hidden; /* 隱藏超出的部分 */
+    display: flex;
+    align-items: center;
+    position: relative;
+    cursor: grab; /* 顯示抓取手勢 */
+}
+.slider-container:active {
+    cursor: grabbing;
+}
+
+/* 滑軌長條：存放所有圖片 */
+.slider-track {
+    display: flex;
+    height: 80vh; /* 圖片最大高度區 */
+    transition: transform 0.3s ease-out; /* 釋放時的平滑回彈 */
+    will-change: transform;
+}
+
+/* 單張幻燈片 */
+.slider-slide {
+    min-width: 100vw; /* 每一張佔滿螢幕寬度 */
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0 10px; /* 圖片間距 */
+    box-sizing: border-box;
+}
+
+.slider-slide img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    
+    /* --- 關鍵修正開始 --- */
+    pointer-events: auto;      /* 讓圖片可以被點擊 (這樣才能阻擋關閉) */
+    user-select: none;         /* 禁止反白選取 */
+    -webkit-user-drag: none;   /* 禁止瀏覽器預設的拖曳圖片行為 (避免干擾滑動) */
+    /* --- 關鍵修正結束 --- */
+    
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+}
+/* 關閉按鈕與頁碼 */
+.viewer-header {
+    position: absolute;
+    top: 0; 
+    left: 0; 
+    width: 100%;
+    height: 80px; /* 給予足夠高度容納手指點擊 */
+    display: flex;
+    justify-content: space-between; /* 左右分開 */
+    align-items: flex-start;        /* 靠上對齊 */
+    padding: 20px;
+    z-index: 20010;
+    box-sizing: border-box;
+    pointer-events: none; /* 關鍵：讓這一層不擋住下方的拖曳操作 */
+    
+    /* 動畫設定：針對 opacity 做變化 */
+    transition: opacity 1.5s ease-in-out; 
+    opacity: 1;
+}
+.viewer-close {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    font-size: 1.5rem;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 !important;
+}
+
+/* --- 新增：右上角按鈕群組 --- */
+.viewer-controls-group {
+    display: flex;
+    align-items: center;
+    gap: 12px; /* 按鈕之間的間距 */
+    pointer-events: auto; /* 確保按鈕可點擊 */
+}
+
+/* 文字按鈕樣式 (下載) */
+.viewer-btn-text {
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+    white-space: nowrap; /* 不換行 */
+}
+
+.viewer-btn-text:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: white;
+}
+
+/* 針對手機版的優化：按鈕稍微縮小或隱藏文字 */
+@media (max-width: 600px) {
+    .viewer-btn-text {
+        padding: 5px 8px;
+        font-size: 0.8rem;
+    }
+}
+
+/* 提示文字 */
+/* 閒置狀態：隱藏 UI */
+.user-idle .viewer-header,
+.user-idle .viewer-hint {
+    opacity: 0;
+}
+
+/* 計數器 */
+.viewer-counter {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 1rem;
+    font-family: sans-serif;
+    background: rgba(0,0,0,0.3);
+    padding: 5px 12px;
+    border-radius: 15px;
+    pointer-events: auto; /* 文字可選取 */
+    margin-top: 5px;
+}
+
+/* 關閉按鈕：固定在右上角 */
+.viewer-close {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white;
+    width: 44px;  /* 加大按鈕尺寸，方便手機點擊 */
+    height: 44px;
+    border-radius: 50%;
+    font-size: 1.8rem;
+    cursor: pointer;
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    pointer-events: auto; /* 關鍵：讓按鈕恢復可點擊 */
+    transition: background 0.2s;
+    /* 確保不會貼邊太近 */
+    margin-top: 0; 
+    margin-right: 0;
+}
+
+.viewer-close:hover {
+    background: rgba(255,255,255,0.4);
+}
+
+/* 底部提示文字 */
+.viewer-hint {
+    position: absolute;
+    bottom: 30px;
+    width: 100%;
+    text-align: center;
+    color: rgba(255,255,255,0.5);
+    font-size: 0.9rem;
+    pointer-events: none;
+    transition: opacity 1.5s ease-in-out; /* 配合閒置動畫 */
+    opacity: 1;
+    z-index: 20010;
+}
+
+@keyframes shimmer {
+    0% { left: -60%; }
+    20% { left: 120%; }
+    100% { left: 120%; }
+}
+
+/* --- 新增：底部縮圖預覽列 --- */
+.viewer-thumbnails {
+    position: absolute;
+    bottom: 70px; /* 位於提示文字上方 */
+    left: 0;
+    width: 100%;
+    height: 60px;
+    display: flex;
+    justify-content: center; /* 圖片少時置中 */
+    align-items: center;
+    gap: 12px;
+    padding: 0 20px;
+    box-sizing: border-box;
+    overflow-x: auto; /* 允許左右滑動 */
+    overflow-y: hidden;
+    z-index: 20010;
+    
+    /* 配合閒置動畫 */
+    transition: opacity 1.5s ease-in-out;
+    opacity: 1;
+    pointer-events: auto;
+    
+    /* 隱藏捲軸但保留功能 */
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+}
+
+/* 隱藏 Chrome/Safari 捲軸 */
+.viewer-thumbnails::-webkit-scrollbar {
+    display: none;
+}
+
+.thumbnail-item {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0; /* 防止被擠壓 */
+    border-radius: 6px;
+    overflow: hidden;
+    opacity: 0.4; /* 未選中時半透明 */
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    transform: scale(0.9);
+}
+
+.thumbnail-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* 選中狀態：不透明、金色邊框、放大 */
+.thumbnail-item.active {
+    opacity: 1;
+    border-color: var(--ly-gold);
+    transform: scale(1.15);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+
+/* --- 修改閒置狀態選擇器 --- */
+/* 當閒置時，同時隱藏 Header, Hint 和 Thumbnails */
+.user-idle .viewer-header,
+.user-idle .viewer-hint,
+.user-idle .viewer-thumbnails {
+    opacity: 0;
+    pointer-events: none; /* 隱藏後禁止點擊 */
+}
+
+    @media (max-width: 600px) {
+        .card-meta-line {
+            flex-direction: column; /* 手機版改為垂直，避免擠壓 */
+            align-items: flex-start;
+            gap: 5px;
+        }
+    }
+
+    @media (max-width: 600px) {
+        .doc-meta-container {
+            flex-direction: column; /* 強制垂直排列 */
+            align-items: center;
+            gap: 8px;
+        }
+        .doc-paper { 
+            padding: 40px 20px; 
+            width: 95%; /* 手機版佔比稍大 */
+        }
+    }
+    @media (max-width: 768px) {
+        .doc-meta-container {
+            flex-direction: column; /* 強制垂直排列 */
+            align-items: center;
+            gap: 8px;
+        }
+        .doc-paper { 
+            padding: 40px 20px; 
+            width: 95%; /* 手機版佔比稍大 */
+        }
+    }
+
+    @media (max-width: 600px) {
+        .search-container {
+            max-width: 300px;
+            width: 95%;
+            padding: 4px 8px; /* 顯著縮減內距，增加內部空間 */
+            top: 10px;
+            gap: 0;
+        }
+        .search-input {
+            padding: 6px 8px; /* 縮減輸入框左右間距 */
+            font-size: 0.85rem; /* 稍微縮小字體防止撐開 */
+            min-width: 0; /* 允許 flex 項目縮小 */
+        }
+
+        .search-nav-group {
+            padding-right: 5px;
+            gap: 2px; /* 縮小按鈕之間的間距 */
+        }
+
+        .search-counter {
+            font-size: 0.75rem; /* 縮小計數器文字 */
+            margin: 0 8px; /* 減少計數器左右外距 */
+            min-width: 35px; /* 固定最小寬度，防止數字變動造成排版抖動 */
+            text-align: center;
+        }
+
+        .search-nav-btn {
+            width: 26px; /* 縮小導覽按鈕尺寸 */
+            height: 26px;
+            margin: 0 1px;
+        }
+
+        .search-nav-btn i {
+            font-size: 0.7rem; /* 同步縮小圖示大小 */
+        }
+    }
+    /* 如果您希望預設不顯示，由 JS 決定何時開啟 */
+    #guest-only-tools, .doc-watermark {
+        display: none;
+    }
+    @media (max-width: 600px) {
+        .card-meta-line {
+            flex-direction: column; /* 手機版改為垂直，避免擠壓 */
+            align-items: flex-start;
+            gap: 5px;
+        }
+    }
+
+    @media (max-width: 600px) {
+        .doc-meta-container {
+            flex-direction: column; /* 強制垂直排列 */
+            align-items: center;
+            gap: 8px;
+        }
+        .doc-paper { 
+            padding: 40px 20px; 
+            width: 95%; /* 手機版佔比稍大 */
+        }
+    }
+    @media (max-width: 768px) {
+        .doc-meta-container {
+            flex-direction: column; /* 強制垂直排列 */
+            align-items: center;
+            gap: 8px;
+        }
+        .doc-paper { 
+            padding: 40px 20px; 
+            width: 95%; /* 手機版佔比稍大 */
+        }
+        .event-content-area {
+        width: 95% !important; /* 與照片比例一致的寬度 */
+        margin: 0 auto;
+        margin-left: -10px;
+    }
+    }
+
+    @media (max-width: 600px) {
+        .search-container {
+            max-width: 300px;
+            width: 95%;
+            padding: 4px 8px; /* 顯著縮減內距，增加內部空間 */
+            top: 10px;
+            gap: 0;
+        }
+        .search-input {
+            padding: 6px 8px; /* 縮減輸入框左右間距 */
+            font-size: 0.85rem; /* 稍微縮小字體防止撐開 */
+            min-width: 0; /* 允許 flex 項目縮小 */
+        }
+
+        .search-nav-group {
+            padding-right: 5px;
+            gap: 2px; /* 縮小按鈕之間的間距 */
+        }
+
+        .search-counter {
+            font-size: 0.75rem; /* 縮小計數器文字 */
+            margin: 0 8px; /* 減少計數器左右外距 */
+            min-width: 35px; /* 固定最小寬度，防止數字變動造成排版抖動 */
+            text-align: center;
+        }
+
+        .search-nav-btn {
+            width: 26px; /* 縮小導覽按鈕尺寸 */
+            height: 26px;
+            margin: 0 1px;
+        }
+
+        .search-nav-btn i {
+            font-size: 0.7rem; /* 同步縮小圖示大小 */
+        }
+/* 1. 修正列表容器寬度，產生左右間隔 */
+    .event-content-area {
+        width: 95% !important; /* 與照片比例一致的寬度 */
+        margin: 0 auto;
+        margin-left: -10px;
+    }
+        
+    }
+    /* 如果您希望預設不顯示，由 JS 決定何時開啟 */
+    #guest-only-tools, .doc-watermark {
+        display: none;
+    }
+
+    
+</style>
+</head>
+<body>
+
+    <div id="header-layout"></div>
+    <section class="event-banner">
+        <h1>活動籌辦</h1>
+        <div class="banner-info-wrap">
+            <span><i class="fa-solid fa-building-columns" style="padding-right: 5px;"></i> 院內活動籌辦</span>
+            <span><i class="fa-solid fa-scale-balanced" style="padding-right: 5px;"></i> 立法活動辦理</span>
+        </div>
+    </section>
+
+
+    <div class="search-container">
+        <i class="fas fa-search" style="color: white; opacity: 0.8; margin-right: 5px; margin-left: 10px;font-size: 0.8rem;"></i>
+        <input type="text" id="event-search-input" class="search-input" placeholder="搜尋...">
+        
+        <div id="search-nav-controls" class="search-nav-group">
+            <div class="search-counter" id="search-result-count">0/0</div>
+            <button class="search-nav-btn" onclick="navigateSearch(-1)"><i class="fas fa-chevron-up"></i></button>
+            <button class="search-nav-btn" onclick="navigateSearch(1)"><i class="fas fa-chevron-down"></i></button>
+        </div>
+    </div>
+
+    <div class="event-content-area">
+        <h2 class="section-title" style="margin-top: 10px;">活動辦理紀實</h2>
+        <div id="public-event-display"></div>
+    </div>
+
+    <div id="doc-preview-modal" class="doc-modal" onclick="handleOutsideClick(event)">        <article class="doc-paper">
+            <button class="doc-close-btn" onclick="closeDocPreview()">&times;</button>
+    
+    <div id="guest-only-tools">
+        <i class="fas fa-link copy-link-btn" onclick="copyEventLink()" title="複製活動連結"></i>
+        <div class="doc-watermark">活動檔案存查</div>
+    </div>
+    
+    <header class="doc-header">
+        </header>
+    
+    <div class="doc-watermark guest-only-watermark">活動檔案存查</div>
+            
+
+
+            <section id="doc-content" style="line-height: 1.8; color: #333;"></section>
+
+            <section id="vote-area" class="vote-panel" style="display: none;">
+                <h3 class="doc-sub-title">出席狀況調查</h3>
+                <div class="vote-actions">
+                    <button class="btn-vote btn-join" onclick="handleVote('join')">
+                        <i class="fas fa-check-circle"></i> 參與
+                    </button>
+                    <button class="btn-vote btn-next" onclick="handleVote('next')">
+                        <i class="fas fa-times-circle"></i> 下次再聚
+                    </button>
+                </div>
+            </section>
+
+            <section>
+                <h3 class="doc-sub-title">
+                    參與成員名單 
+                    <span id="participant-count-tag" style="font-size: 0.9rem; color: #666; margin-left: 10px; font-weight: normal;"></span>
+                </h3>
+                <div id="voter-list" class="voter-grid"></div>
+            </section>
+
+            <button class="doc-close-btn" onclick="closeDocPreview()">&times;</button>
+            <div class="doc-watermark">活動檔案存查</div>
+            
+            <section id="vote-area" class="vote-panel" style="display: none;"></section>
+
+            <div id="voter-list" class="voter-grid"></div>
+
+            <footer>
+                <div id="doc-creation-info" class="doc-creation-info">
+                    </div>
+                <button class="doc-close-footer-btn" onclick="closeDocPreview()">
+                    返回列表
+                </button>
+            </footer>
+        </article>
+    </div>
+
+    <div id="footer-layout"></div>
+
+    <div id="image-viewer-modal" onclick="handleViewerClick(event)">
+            
+        <div class="viewer-header">
+            <div class="viewer-counter" id="viewer-counter">1 / 1</div>
+            
+            <div class="viewer-controls-group">
+                <button class="viewer-btn-text" onclick="event.stopPropagation(); downloadCurrentImage()" style="display: none;">
+                    <i class="fas fa-download"></i> 下載此張
+                </button>
+                <button class="viewer-btn-text" onclick="event.stopPropagation(); downloadAllImages()" style="display: none;">
+                    <i class="fas fa-images"></i> 下載全部
+                </button>
+                
+                <button class="viewer-close" onclick="event.stopPropagation(); closeImageViewer()">&times;</button>
+            </div>
+        </div>
+        
+        <div class="slider-container" id="slider-container">
+            <div class="doc-watermark guest-only-watermark" style="color: rgba(0, 49, 83, 0.15);">活動檔案存查</div>
+            <div class="doc-watermark-Legislature guest-only-watermark" style="color: rgba(0, 49, 83, 0.15);">立法院 Legislature</div>
+            <div class="slider-track" id="slider-track"></div>
+        </div>
+        
+        <div class="viewer-thumbnails" id="viewer-thumbnails" onclick="event.stopPropagation()"></div>
+
+        <div class="viewer-hint">
+            <i class="fas fa-hand-pointer"></i> 左右拖曳或使用滾輪切換
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="./js/main.js"></script>
+
+    <script>
+        window.PAGE_HEADER_CONFIG = {
+            title: "活動籌辦",
+            dept: '<i class="fa-solid fa-calendar-check"></i> 院內活動籌辦',
+            group: '<i class="fa-solid fa-calendar-check"></i> 立法活動辦理'
+        };
+        const auth = firebase.auth();
+        let currentEventId = null;
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            await loadLayout('events');
+            await syncMemberData("班長");
+            if (typeof db !== 'undefined') {
+                startPublicEventListen();
+            }
+        });
+
+    function startPublicEventListen() {
+        const display = document.getElementById('public-event-display');
+        
+        // 監聽資料庫
+        db.collection("events").onSnapshot(snapshot => {
+            display.innerHTML = "";
+            let eventsArray = [];
+
+            snapshot.forEach(doc => {
+                const ev = doc.data();
+                const id = doc.id;
+                
+                // --- [修正] 過濾邏輯：隱藏私人活動 ---
+                // 如果 isPrivate 為 true，則跳過不顯示
+                if (ev.isPrivate === true) {
+                    return; 
+                }
+                // ----------------------------------
+
+                const timeField = ev.fields ? ev.fields.find(f => f.type === 'time') : null;
+                let sortDate = timeField ? new Date(timeField.content) : (ev.createdAt ? ev.createdAt.toDate() : new Date());
+                eventsArray.push({ id, ...ev, sortDate });
+            });
+
+            // 排序：由新到舊
+            eventsArray.sort((a, b) => b.sortDate - a.sortDate);
+
+            // 渲染畫面
+            if (eventsArray.length === 0) {
+                 display.innerHTML = `<div style="text-align:center; padding:40px; color:#999;">
+                    <i class="fas fa-folder-open" style="font-size:3em; margin-bottom:10px;"></i><br>
+                    目前沒有公開活動
+                </div>`;
+                return;
+            }
+
+            let currentYear = null;
+            eventsArray.forEach(ev => {
+                const year = ev.sortDate.getFullYear();
+                if (year !== currentYear) {
+                    currentYear = year;
+                    display.insertAdjacentHTML('beforeend', `<div class="year-group-title">${year} 年度活動紀實</div>`);
+                }
+
+                const countdownText = ev.deadline ? getCountdownText(ev.deadline) : "";
+                const countdownHtml = countdownText ? `<span class="countdown-alert">${countdownText}</span>` : "";
+
+                const itemHtml = `
+                    <div class="doc-list-item" onclick="openDocPreview('${ev.id}')">
+                        <div class="doc-info">
+                            <h4>${ev.title}</h4>
+                            <div class="card-meta-line">
+                                <p style="margin:0;"><i class="far fa-clock"></i> ${ev.sortDate.toLocaleString('zh-TW', { hour12: false }).replace(/\//g, '-')}</p>
+                                ${countdownHtml}
+                            </div>
+                        </div>
+                        <div class="doc-action-hint"><i class="fas fa-file-export"></i></div>
+                    </div>`;
+                display.insertAdjacentHTML('beforeend', itemHtml);
+            });
+        });
+    }
+
+    let currentGalleryImages = [];
+    let currentViewerIndex = 0;
+    async function openDocPreview(id) {
+        currentEventId = id;
+        
+        // 【修正 1】每次打開前，務必清空圖片陣列
+        currentGalleryImages = []; 
+
+        const doc = await db.collection("events").doc(id).get();
+        const ev = doc.data();
+        const eventTitle = ev.title || "未命名活動"; 
+
+        // 更新 Header 結構
+        const metaHtml = `
+            <div class="doc-meta-container">
+                <span>檔案編號：${id.substring(0, 8).toUpperCase()}</span>
+                <span>存檔日期：${ev.formattedDate || '--'}</span>
+            </div>`;
+        document.querySelector('.doc-header').innerHTML = `
+            <h1 id="doc-title" style="color: var(--ly-blue); margin-bottom: 10px;">${ev.title}</h1>
+            ${metaHtml}`;
+
+        let creatorDisplayName = ev.createdBy || "成員";
+        if (ev.creator) {
+            try {
+                const memberSnap = await db.collection("act").where("email", "==", ev.creator).get();
+                if (!memberSnap.empty) {
+                    creatorDisplayName = memberSnap.docs[0].data().displayName || creatorDisplayName;
+                }
+            } catch (e) { console.error("抓取發布者名稱失敗", e); }
+        }
+
+        const contentArea = document.getElementById('doc-content');
+        contentArea.innerHTML = "";
+
+        if (ev.fields) {
+            ev.fields.forEach(f => {
+                if (f.content === ev.title) return; 
+
+                // 【修正 2】如果是圖片，只存入陣列，不要印出 HTML！
+                if (f.type === 'image_upload' && f.content) {
+                    currentGalleryImages.push(f.content);
+                } 
+                // 其他文字欄位照常顯示
+                else if (f.label === '標題' || f.type === 'headline') {
+                    contentArea.innerHTML += `
+                        <div class="detail-item" style="border-bottom:1px solid #f2f2f2; padding-bottom:10px;">
+                            <div style="font-size:1.1rem; color:#333; font-weight:500;">${f.content.replace('T', ' ')}</div>
+                        </div>`;
+                } else {
+                    contentArea.innerHTML += `
+                        <div class="detail-item">
+                            <strong>[ ${f.label} ]</strong>
+                            <div class="detail-text">${f.content.replace('T', ' ')}</div>
+                        </div>`;
+                }
+            });
+        }
+
+        // 【修正 3】渲染相片堆疊 (這段原本的邏輯是對的，但現在才有資料)
+        if (currentGalleryImages.length > 0) {
+            const totalCount = currentGalleryImages.length;
+            // 決定要疊幾張圖 (視覺上最多疊 3 張)
+            const displayLimit = Math.min(totalCount, 3);
+            
+            let stackHtml = `
+                <div class="detail-item"><strong>[ 活動剪影 ]</strong></div>
+                <div class="photo-stack-container" onclick="openImageViewer(0)">
+            `;
+
+            // 生成堆疊的卡片
+            for (let i = 0; i < displayLimit; i++) {
+                stackHtml += `
+                    <div class="photo-stack-item">
+                        <img src="${currentGalleryImages[i]}" loading="lazy">
+                    </div>
+                `;
+            }
+
+            // 如果圖片超過 1 張，顯示 "+N" 標籤
+            if (totalCount > 1) {
+                stackHtml += `<div class="photo-count-badge">+${totalCount - 1}</div>`;
+            }
+
+            stackHtml += `</div>`;
+            contentArea.innerHTML += stackHtml;
+        }
+        
+        // ... (以下 auth 相關邏輯保持不變，無需修改) ...
+        auth.onAuthStateChanged(async (user) => {
+             // ... 保持您原本的代碼 ...
+             const voteArea = document.getElementById('vote-actions');
+             const themeLink = document.getElementById('dynamic-theme-css');
+             const guestTools = document.getElementById('guest-only-tools');
+             const guestWatermarks = document.querySelectorAll('.doc-watermark');
+
+             if (user) {
+                if (guestTools) guestTools.style.display = 'block';
+                guestWatermarks.forEach(wm => wm.style.display = 'block');
+                if (voteArea) voteArea.style.display = 'block';
+             } else {
+                if (guestTools) guestTools.style.display = 'block';
+                guestWatermarks.forEach(wm => wm.style.display = 'block');
+                if (voteArea) voteArea.style.display = 'none';
+             }
+             
+             // ... 保持您原本的代碼 (設定底部資訊、Banner等) ...
+             const timestamp = ev.createdAt ? ev.createdAt.toDate() : new Date();
+             // ...
+             const infoDiv = document.getElementById('doc-creation-info');
+             // ...
+             
+             // 投票區塊邏輯也保持不變 ...
+             if (voteArea) {
+                 // ... 保持您原本的代碼 ...
+                 // 這裡原本有一大段投票區塊的 HTML 生成與邏輯，請保持原樣
+                 if (user) {
+                    voteArea.style.display = 'block';
+                    const now = new Date().getTime();
+                    const deadline = ev.deadline ? new Date(ev.deadline).getTime() : 0;
+                    const isExpired = ev.deadline && (deadline - now <= 0);
+                    const countdownText = ev.deadline ? getCountdownText(ev.deadline) : "本案已結束調查";
+
+                    if (isExpired) voteArea.classList.add('expired');
+                    else voteArea.classList.remove('expired');
+                    
+                    // ... 插入 HTML ...
+                    voteArea.innerHTML = `
+                        <div class="countdown-header">
+                            <i class="fas ${isExpired ? 'fa-exclamation-triangle' : 'fa-hourglass-half'}"></i> 
+                            ${isExpired ? '系統提示：活動調查已截止' : countdownText}
+                        </div>
+                        <div class="vote-content-body" style="position:relative; z-index:1;">
+                            <h3 class="doc-sub-title">出席狀況調查表</h3>
+                            <p style="color:#666; margin-bottom:25px; font-size:0.95rem;">
+                                ${isExpired ? '本活動調查已截止，目前僅供讀取。' : '請確認您的行程後點選下方按鈕完成線上回報'}
+                            </p>
+                           <div class="vote-actions">
+                                <button class="btn-vote btn-join" onclick="handleVote('join')" ${isExpired ? 'disabled' : ''}>
+                                    <i class="fas ${isExpired ? 'fa-lock' : 'fa-check'}"></i> ${isExpired ? '禁止存取' : '確認參與'}
+                                </button>
+                                <button class="btn-vote btn-next" onclick="handleVote('next')" ${isExpired ? 'disabled' : ''}>
+                                    <i class="fas ${isExpired ? 'fa-lock' : 'fa-times'}"></i> ${isExpired ? '禁止存取' : '下次再聚'}
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    // ... 投票折疊邏輯保持原樣 ...
+                    const voteDoc = await db.collection("events").doc(id).collection("votes").doc(user.uid).get();
+                    if (voteDoc.exists && !isExpired) {
+                        voteArea.classList.add('collapsed');
+                        voteArea.onclick = () => voteArea.classList.toggle('collapsed');
+                    } else {
+                        voteArea.classList.remove('collapsed');
+                        voteArea.onclick = null;
+                    }
+
+                 } else {
+                    voteArea.style.display = 'none';
+                 }
+             }
+
+             document.title = `${eventTitle} - 活動紀實`; 
+             const infoArea = document.getElementById('doc-info');
+             if (infoArea) {
+                infoArea.innerHTML = `
+                    <div class="doc-header-main">
+                        <span class="doc-category-tag">活動紀錄</span>
+                        <h4>${eventTitle}</h4> 
+                    </div>
+                `;
+             }
+        });
+
+        // 以下這段設定底部資訊的代碼，原本在 auth 外面，保持原樣
+        const timestamp = ev.createdAt ? ev.createdAt.toDate() : new Date();
+        const days = ['週日', '週一', '週二', '週三', '週四', '週五', '週六'];
+        const formattedDateTime = `${timestamp.getFullYear()} / ${(timestamp.getMonth()+1).toString().padStart(2,'0')} / ${timestamp.getDate().toString().padStart(2,'0')} ${days[timestamp.getDay()]} ${timestamp.getHours().toString().padStart(2,'0')}:${timestamp.getMinutes().toString().padStart(2,'0')}`;
+        
+        const infoDiv = document.getElementById('doc-creation-info');
+        if (infoDiv) {
+            infoDiv.innerHTML = `
+                ${ev.createdBy || "系統管理員"} 所新增的活動<br>
+                ${formattedDateTime}
+            `;
+        }
+        
+        // 連結複製與 Hash 更新保持原樣
+        window.copyEventLink = function() {
+            const url = `${window.location.origin}${window.location.pathname}#${id}`;
+            navigator.clipboard.writeText(url).then(() => {
+                alert("活動連結已複製！分享此連結可直接導向本活動。");
+            }).catch(err => {
+                console.error("無法複製連結: ", err);
+            });
+        };
+
+        window.location.hash = id;
+        loadVotes(id);
+        
+        const modal = document.getElementById('doc-preview-modal');
+        modal.style.display = 'flex';
+        
+        const scrollY = window.scrollY;
+        document.body.style.top = `-${scrollY}px`;
+        document.body.classList.add('body-scroll-lock');
+    }
+
+    function loadDynamicScript(src, callback) {
+        if (document.querySelector(`script[src="${src}"]`)) {
+            if (callback) callback();
+            return;
+        }
+        const script = document.createElement('script');
+        script.src = src;
+        script.onload = callback;
+        document.body.appendChild(script);
+    }
+
+    function closeDocPreview() {
+        const modal = document.getElementById('doc-preview-modal');
+        modal.style.display = 'none';
+
+        // --- 修正：解除背景鎖定並恢復位置 ---
+        const scrollY = document.body.style.top;
+        document.body.classList.remove('body-scroll-lock');
+        document.body.style.top = '';
+        
+        // 恢復捲動位置 (移除負號並轉為數字)
+        if (scrollY) {
+            window.scrollTo(0, parseInt(scrollY || '0') * -1);
+        }
+    }
+    //0304
+    // 修正 1：在投票執行成功後加入刷新頁面動作
+    async function handleVote(choice) {
+        const user = auth.currentUser;
+        if (!user || !currentEventId) return;
+
+        const eventRef = db.collection("events").doc(currentEventId);
+
+        try {
+            // 更新資料庫中的參與名單
+            if (choice === 'join') {
+                await eventRef.update({
+                    participants: firebase.firestore.FieldValue.arrayUnion(user.uid)
+                });
+            } else {
+                await eventRef.update({
+                    participants: firebase.firestore.FieldValue.arrayRemove(user.uid)
+                });
+            }
+
+            // 紀錄詳細投票資訊
+            const userDoc = await db.collection("act").doc(user.uid).get();
+            const userData = userDoc.data() || {};
+            await eventRef.collection("votes").doc(user.uid).set({
+                name: userData.displayName || user.email.split('@')[0],
+                photo: userData.photoURL || "",
+                choice: choice,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            // 提示使用者，但不刷新頁面
+            alert(choice === 'join' ? "已記錄您的參與狀況：參與" : "已從參與名單中移除");
+            
+            // 移除location.reload(); 
+            
+        } catch (error) {
+            console.error("投票同步失敗:", error);
+        }
+    }
+
+    function loadVotes(eventId) {
+    const list = document.getElementById('voter-list');
+    const countTag = document.getElementById('participant-count-tag');
+    const user = auth.currentUser;
+
+    const memberOrder = [
+            { id: "001", name: "もも" }, { id: "002", name: "班長" }, { id: "003", name: "俊齊" },
+            { id: "004", name: "博峻" }, { id: "005", name: "佳偉" }, { id: "006", name: "書銘" },
+            { id: "007", name: "江旭" }, { id: "008", name: "尊玄" }, { id: "009", name: "俊諺" },
+            { id: "010", name: "成一" }, { id: "011", name: "宗航" }, { id: "012", name: "崇憲" },
+            { id: "013", name: "光庭" }, { id: "014", name: "威丞" }, { id: "015", name: "韋仁" },
+            { id: "016", name: "祐瑜" }, { id: "017", name: "至軒" }, { id: "018", name: "奕賢" },
+            { id: "019", name: "正德" }, { id: "020", name: "鈞儒" }, { id: "021", name: "凱瑞" },
+            { id: "022", name: "承遠" }, { id: "023", name: "皓鈞" }, { id: "024", name: "鎮遠" },
+            { id: "025", name: "智皓" }, { id: "026", name: "哲遠" }, { id: "027", name: "隆勳" },
+            { id: "028", name: "柏鑫" }, { id: "029", name: "承佑" }, { id: "030", name: "凱駿" },
+            { id: "031", name: "冠叡" }, { id: "032", name: "祐祥" }, { id: "033", name: "可愛柴" }
+        ];
+
+    // 實時監聽主文件變動
+    db.collection("events").doc(eventId).onSnapshot(async (doc) => {
+        if (!doc.exists) return;
+        const data = doc.data();
+        const participants = data.participants || [];
+        
+        // --- 修正 1：判斷投票是否截止 ---
+        const now = new Date().getTime();
+        const deadline = data.deadline ? new Date(data.deadline).getTime() : 0;
+        const isExpired = data.deadline && (now > deadline);
+
+// --- 核心修正：在渲染前務必先徹底清空容器，防止重複殘留 ---
+        list.innerHTML = "";
+
+        if (countTag) {
+            countTag.innerText = participants.length > 0 ? `[ 參加人數共 ${participants.length} 位 ]` : "[ 目前尚無人參加 ]";
+        }
+
+        // 2. 核心連動：更新按鈕狀態與鎖定邏輯
+        const joinBtn = document.querySelector('.btn-join');
+        const nextBtn = document.querySelector('.btn-next'); 
+
+        if (joinBtn && user) {
+            const isJoined = participants.includes(user.uid);
+            
+            if (isExpired) {
+                joinBtn.disabled = true;
+                if (nextBtn) nextBtn.disabled = true;
+                joinBtn.classList.remove('btn-joined-locked'); // 確保截止時不顯示華麗效果
+            } else if (isJoined) {
+                // 套用華麗鎖定類別
+                joinBtn.innerHTML = '<i class="fas fa-certificate"></i> 您已參與活動';
+                joinBtn.classList.add('btn-joined-locked');
+                joinBtn.disabled = true; 
+
+                if (nextBtn) {
+                    nextBtn.disabled = false; 
+                    nextBtn.style.opacity = '1';
+                }
+            } else {
+                // 恢復一般按鈕
+                joinBtn.innerHTML = '<i class="fas fa-check-circle"></i> 確認參與';
+                joinBtn.classList.remove('btn-joined-locked');
+                joinBtn.style.backgroundColor = 'var(--ly-blue)';
+                joinBtn.disabled = false; 
+            }
+        }
+
+        // 3. 渲染成員頭像 (強制清空再重建，防止重複顯示)
+        list.innerHTML = "";
+        if (participants.length === 0) {
+            list.innerHTML = "<p style='color:#ccc; font-size:0.9rem;'>尚無成員參與...</p>";
+            return;
+        }
+
+        // 抓取所有參與者詳細資料
+            const memberPromises = participants.map(uid => 
+                db.collection("content").doc(uid).get().then(snap => snap.exists ? snap : db.collection("act").doc(uid).get())
+            );
+            const memberSnaps = await Promise.all(memberPromises);
+            
+            const memberMap = {};
+            memberSnaps.forEach(mSnap => {
+                if (mSnap.exists) {
+                    memberMap[mSnap.id] = mSnap.data();
+                }
+            });
+
+            // 【核心修正 2】：建立一個臨時字串，一次性注入 HTML，效能更好且不會閃爍
+            let htmlContent = "";
+            memberOrder.forEach(orderItem => {
+                for (const uid in memberMap) {
+                    const m = memberMap[uid];
+                    const mName = m.text || m.displayName || "";
+                    if (mName === orderItem.name) {
+                        htmlContent += `
+                            <div class="voter-box">
+                                <img src="${m.imageUrl || m.photoURL || 'default.png'}" onerror="this.src='default.png'">
+                                <span>${mName}</span>
+                            </div>`;
+                        break; 
+                    }
+                }
+            });
+
+            // 將結果注入清空後的 list
+            list.innerHTML = htmlContent;
+        });
+    }
+
+    function confirmLogout() {
+        if (confirm("確定登出系統？")) {
+            auth.signOut().then(() => {
+                window.location.href = "login.html";
+            });
+        }
+    }
+
+    function getCountdownText(deadlineStr) {
+        if (!deadlineStr) return "";
+        const now = new Date().getTime();
+        const deadline = new Date(deadlineStr).getTime();
+        const diff = deadline - now;
+        if (diff <= 0) return "投票已截止";
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        return days >= 1 
+            ? `投票倒數 Day ${days} | ${hours.toString().padStart(2, '0')} 小時 ${minutes.toString().padStart(2, '0')} 分`
+            : `投票倒數 ${hours.toString().padStart(2, '0')} 小時 ${minutes.toString().padStart(2, '0')} 分`;
+    }
+
+    // 選單開關功能
+        window.toggleNav = function() {
+            const sidebar = document.getElementById("mySidebar");
+            const overlay = document.getElementById("overlay");
+            
+            // 如果 sidebar 寬度為 0 或尚未設定，則開啟
+            if (!sidebar.style.width || sidebar.style.width === "0px") {
+                sidebar.style.width = "250px";
+                overlay.style.display = "block"; // 顯示遮罩
+            } else {
+                sidebar.style.width = "0";
+                overlay.style.display = "none";  // 隱藏遮罩
+            }
+        };
+    // 確保已取得 auth 實例
+        function confirmLogout() {
+            if (confirm("確定登出系統？")) {
+                auth.signOut()
+                    .then(() => {
+                        alert("已成功登出");
+                        window.location.href = "login.html"; // 登出後跳轉至登入頁
+                    })
+                    .catch((error) => {
+                        console.error("登出發生錯誤:", error);
+                        alert("登出失敗，請稍後再試");
+                    });
+            }
+        }
+        function confirmLogout() { if (confirm("確定登出系統？")) auth.signOut().then(() => window.location.href = "login.html"); }
+
+// 頁面載入時，檢查網址是否有 #ID 並自動展開
+    window.addEventListener('load', () => {
+        const hashId = window.location.hash.replace('#', '');
+        if (hashId) {
+            // 延遲執行確保 Firebase 與數據載入完成
+            setTimeout(() => {
+                if (typeof openDocPreview === 'function') openDocPreview(hashId);
+            }, 800);
+        }
+    });
+
+    //搜尋
+    let searchResults = [];
+    let currentSearchIndex = -1;
+
+    document.getElementById('event-search-input').addEventListener('input', function(e) {
+        const keyword = e.target.value.trim().toLowerCase();
+        const items = document.querySelectorAll('.doc-list-item');
+        
+        // 清除舊的標記
+        searchResults = [];
+        currentSearchIndex = -1;
+        items.forEach(item => item.classList.remove('search-highlight'));
+
+        if (keyword === "") {
+            updateSearchUI();
+            return;
+        }
+
+        // 搜尋符合標題的活動
+        items.forEach((item, index) => {
+            const title = item.querySelector('h4').innerText.toLowerCase();
+            if (title.includes(keyword)) {
+                searchResults.push(item);
+            }
+        });
+
+        if (searchResults.length > 0) {
+            currentSearchIndex = 0;
+            jumpToSearchResult();
+        }
+        updateSearchUI();
+    });
+
+    function jumpToSearchResult() {
+        // 移除所有高亮，僅高亮當前選中項
+        searchResults.forEach(item => item.classList.remove('search-highlight'));
+        const target = searchResults[currentSearchIndex];
+        target.classList.add('search-highlight');
+
+        // 移動到該活動位置
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        updateSearchUI();
+    }
+
+    function navigateSearch(direction) {
+        if (searchResults.length === 0) return;
+        
+        currentSearchIndex += direction;
+        
+        // 循環處理
+        if (currentSearchIndex >= searchResults.length) currentSearchIndex = 0;
+        if (currentSearchIndex < 0) currentSearchIndex = searchResults.length - 1;
+        
+        jumpToSearchResult();
+    }
+
+    function updateSearchUI() {
+        const navGroup = document.getElementById('search-nav-controls');
+        const countDisplay = document.getElementById('search-result-count');
+        
+        if (searchResults.length > 0) {
+            // 有結果時才顯示導覽列
+            navGroup.style.display = 'flex';
+            countDisplay.innerText = `${currentSearchIndex + 1} / ${searchResults.length}`;
+        } else {
+            // 無結果或清空時隱藏
+            navGroup.style.display = 'none';
+        }
+    }
+
+    /**
+     * 處理點擊視窗外部關閉邏輯
+     * @param {Event} event 點擊事件物件
+     */
+    function handleOutsideClick(event) {
+        const modal = document.getElementById('doc-preview-modal');
+        // 如果點擊的對象正是 modal 背景本身（而非內部的 doc-paper）
+        if (event.target === modal) {
+            closeDocPreview();
+        }
+    }
+    // --- 滑動瀏覽器邏輯 (Slider Logic) ---
+    
+let currentSlideIndex = 0;
+    let isDragging = false;
+    let startPos = 0;
+    let currentTranslate = 0;
+    let prevTranslate = 0;
+    let animationID;
+    
+    // 【新增】動畫鎖定旗標 (解決滾輪卡住問題)
+    let isAnimating = false;
+    
+    let idleTimer = null;
+    
+    const sliderContainer = document.getElementById('slider-container');
+    const sliderTrack = document.getElementById('slider-track');
+    const viewerModal = document.getElementById('image-viewer-modal');
+
+    // 1. 開啟視窗
+function openImageViewer(startIndex) {
+        if (currentGalleryImages.length === 0) return;
+        
+        currentSlideIndex = startIndex || 0;
+        
+        // 1. 建構大圖軌道
+        sliderTrack.innerHTML = "";
+        currentGalleryImages.forEach(imgUrl => {
+            const slide = document.createElement('div');
+            slide.classList.add('slider-slide');
+            slide.innerHTML = `<img src="${imgUrl}" draggable="false" onclick="event.stopPropagation()">`; 
+            sliderTrack.appendChild(slide);
+        });
+
+        // 2. 【新增】建構底部縮圖列
+        const thumbsContainer = document.getElementById('viewer-thumbnails');
+        thumbsContainer.innerHTML = "";
+        
+        // 只有多於 1 張圖片時才顯示縮圖列，避免單張圖顯示多餘 UI
+        if (currentGalleryImages.length > 1) {
+            thumbsContainer.style.display = 'flex';
+            currentGalleryImages.forEach((imgUrl, index) => {
+                const thumb = document.createElement('div');
+                thumb.className = 'thumbnail-item';
+                // 點擊縮圖切換到該張圖片
+                thumb.onclick = () => {
+                    currentSlideIndex = index;
+                    updateSliderPosition();
+                    updateCounter();
+                    resetIdleTimer(); // 點擊算一次操作，重置閒置計時
+                };
+                thumb.innerHTML = `<img src="${imgUrl}" draggable="false">`;
+                thumbsContainer.appendChild(thumb);
+            });
+        } else {
+            thumbsContainer.style.display = 'none';
+        }
+
+        // 顯示視窗並重置狀態
+        viewerModal.style.display = 'flex';
+        viewerModal.classList.remove('user-idle'); 
+        
+        updateSliderPosition(true); 
+        updateCounter();
+        
+        attachSliderEvents();
+        resetIdleTimer();
+    }
+
+    // 2. 關閉視窗
+    function closeImageViewer() {
+        viewerModal.style.display = 'none';
+        cancelAnimationFrame(animationID);
+        detachSliderEvents();
+        
+        // 清除閒置計時器，避免背景執行
+        if (idleTimer) clearTimeout(idleTimer);
+    }
+
+    // 3. 點擊背景關閉功能 (點擊照片與按鈕以外的區域)
+function handleViewerClick(event) {
+        // 判斷點擊目標是否為背景
+        // 這裡確保點擊 viewer-thumbnails 及其子元素不會關閉視窗
+        if (event.target.closest('#viewer-thumbnails')) return;
+
+        if (event.target.id === 'image-viewer-modal' || 
+            event.target.classList.contains('slider-container') ||
+            event.target.classList.contains('slider-track') ||
+            event.target.classList.contains('slider-slide')) {
+            closeImageViewer();
+        }
+    }
+
+    // 4. 閒置自動隱藏 UI 邏輯
+    function resetIdleTimer() {
+        // 有動作時，移除隱藏 class，讓 UI 顯示
+        viewerModal.classList.remove('user-idle');
+        
+        if (idleTimer) clearTimeout(idleTimer);
+
+        // 設定 1.5 秒無動作後加入隱藏 class
+        // CSS 會處理 transition opacity 的動畫
+        idleTimer = setTimeout(() => {
+            viewerModal.classList.add('user-idle');
+        }, 1500);
+    }
+
+    function updateCounter() {
+        document.getElementById('viewer-counter').innerText = 
+            `${currentSlideIndex + 1} / ${currentGalleryImages.length}`;
+    }
+
+    // --- 核心：拖曳物理引擎與事件綁定 ---
+
+    function attachSliderEvents() {
+        // A. 綁定閒置偵測 (只要滑鼠動、點擊或觸控，就重置計時器)
+        ['touchstart', 'touchmove', 'touchend', 'mousemove', 'mousedown', 'mouseup', 'wheel', 'click'].forEach(evt => {
+            viewerModal.addEventListener(evt, resetIdleTimer);
+        });
+
+        // B. 綁定滑動拖曳 (Touch)
+        sliderContainer.addEventListener('touchstart', touchStart);
+        sliderContainer.addEventListener('touchend', touchEnd);
+        sliderContainer.addEventListener('touchmove', touchMove, { passive: false }); // passive: false 才能防止捲動
+
+        // C. 綁定滑動拖曳 (Mouse)
+        sliderContainer.addEventListener('mousedown', touchStart);
+        sliderContainer.addEventListener('mouseup', touchEnd);
+        sliderContainer.addEventListener('mouseleave', () => { if(isDragging) touchEnd() });
+        sliderContainer.addEventListener('mousemove', touchMove);
+        
+        // D. 綁定滾輪切換
+        sliderContainer.addEventListener('wheel', handleWheel);
+    }
+
+    function detachSliderEvents() {
+        // 解除所有綁定
+        ['touchstart', 'touchmove', 'touchend', 'mousemove', 'mousedown', 'mouseup', 'wheel', 'click'].forEach(evt => {
+            viewerModal.removeEventListener(evt, resetIdleTimer);
+        });
+
+        sliderContainer.removeEventListener('touchstart', touchStart);
+        sliderContainer.removeEventListener('touchend', touchEnd);
+        sliderContainer.removeEventListener('touchmove', touchMove);
+        sliderContainer.removeEventListener('mousedown', touchStart);
+        sliderContainer.removeEventListener('mouseup', touchEnd);
+        sliderContainer.removeEventListener('mousemove', touchMove);
+        sliderContainer.removeEventListener('wheel', handleWheel);
+    }
+
+    function getPositionX(event) {
+        return event.type.includes('mouse') ? event.pageX : event.touches[0].clientX;
+    }
+
+    function touchStart(e) {
+        isDragging = true;
+        startPos = getPositionX(e);
+        
+        // 紀錄當前軌道應該在的位置
+        prevTranslate = -currentSlideIndex * window.innerWidth;
+        
+        sliderContainer.style.cursor = 'grabbing';
+        sliderTrack.style.transition = 'none'; // 拖曳時移除 CSS 過渡，讓圖片緊跟手指
+        
+        animationID = requestAnimationFrame(animation);
+    }
+
+    function touchMove(e) {
+        if (isDragging) {
+            // 防止手機版在拖曳圖片時觸發網頁捲動
+            if(e.type.includes('touch')) e.preventDefault(); 
+            
+            const currentPosition = getPositionX(e);
+            const diff = currentPosition - startPos;
+            currentTranslate = prevTranslate + diff;
+        }
+    }
+
+    function touchEnd() {
+        isDragging = false;
+        cancelAnimationFrame(animationID);
+        sliderContainer.style.cursor = 'grab';
+        
+        const movedBy = currentTranslate - prevTranslate;
+        const threshold = 100; // 拖曳超過 100px 就切換
+
+        // 判斷切換方向
+        if (movedBy < -threshold && currentSlideIndex < currentGalleryImages.length - 1) {
+            currentSlideIndex += 1; // 下一張
+        } else if (movedBy > threshold && currentSlideIndex > 0) {
+            currentSlideIndex -= 1; // 上一張
+        }
+
+        updateSliderPosition(); // 這裡不傳參數，代表使用 CSS transition 平滑歸位
+        updateCounter();
+    }
+
+    function animation() {
+        setSliderPosition(currentTranslate);
+        if (isDragging) requestAnimationFrame(animation);
+    }
+
+    function setSliderPosition(xPosition) {
+        sliderTrack.style.transform = `translateX(${xPosition}px)`;
+    }
+
+function updateSliderPosition(instant = false) {
+        const targetTranslate = -currentSlideIndex * window.innerWidth;
+        prevTranslate = targetTranslate; 
+        currentTranslate = targetTranslate;
+
+        if (instant) {
+            sliderTrack.style.transition = 'none';
+            setSliderPosition(targetTranslate);
+        } else {
+            // 設定鎖定
+            isAnimating = true;
+            sliderTrack.style.transition = 'transform 0.3s ease-out';
+            setSliderPosition(targetTranslate);
+            
+            // 300ms 動畫結束後解鎖
+            setTimeout(() => {
+                isAnimating = false;
+            }, 300);
+        }
+
+        // 更新縮圖狀態
+        const allThumbs = document.querySelectorAll('.thumbnail-item');
+        if (allThumbs.length > 0) {
+            allThumbs.forEach((thumb, index) => {
+                if (index === currentSlideIndex) {
+                    thumb.classList.add('active');
+                    thumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                } else {
+                    thumb.classList.remove('active');
+                }
+            });
+        }
+    }
+
+    // 滾輪切換支援
+    function handleWheel(e) {
+        // 如果正在動畫中，直接忽略這次滾動
+        if (isAnimating) return; 
+
+        if (e.deltaY > 0) { // 向下滾 -> 下一張
+            if (currentSlideIndex < currentGalleryImages.length - 1) {
+                currentSlideIndex++;
+                updateSliderPosition(); // 這會觸發 0.3s 的鎖定
+                updateCounter();
+                resetIdleTimer();
+            }
+        } else { // 向上滾 -> 上一張
+            if (currentSlideIndex > 0) {
+                currentSlideIndex--;
+                updateSliderPosition();
+                updateCounter();
+                resetIdleTimer();
+            }
+        }
+    }
+
+    // 下載單張圖片 helper
+    // 核心下載/分享邏輯
+    async function forceDownload(url, filename) {
+        try {
+            // 1. 取得圖片的 Blob 資料
+            const response = await fetch(url, { mode: 'cors' }); // 確保開啟 CORS 模式
+            if (!response.ok) throw new Error('Network response was not ok');
+            const blob = await response.blob();
+
+            // 2. 判斷是否支援 Web Share API (主要針對手機/iOS)
+            // 條件：瀏覽器支援 share、支援檔案分享、且是 HTTPS 環境
+            const file = new File([blob], filename, { type: blob.type });
+            
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                try {
+                    await navigator.share({
+                        files: [file],
+                        title: filename,
+                        text: '分享這張照片'
+                    });
+                    // 手機版：使用者在分享選單點選「儲存影像」即可存入相簿
+                    return; 
+                } catch (shareError) {
+                    if (shareError.name !== 'AbortError') {
+                        console.error('分享失敗，嘗試轉為普通下載', shareError);
+                    } else {
+                        return; // 使用者取消分享
+                    }
+                }
+            }
+
+            // 3. 電腦版或不支援 Share API 的環境：使用傳統下載連結
+            const blobUrl = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = blobUrl;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // 釋放記憶體
+            setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100);
+
+        } catch (err) {
+            console.error('下載流程錯誤:', err);
+            // 4. 如果上述都失敗 (通常是 CORS 沒設好)，只好退回到開新視窗
+            // 這是最後的手段，至少讓使用者看得到圖
+            if (confirm("無法直接下載 (可能是權限設定問題)，是否在新視窗開啟圖片？")) {
+                window.open(url, '_blank');
+            }
+        }
+    }
+
+    // 下載當前照片
+    function downloadCurrentImage() {
+        const currentUrl = currentGalleryImages[currentSlideIndex];
+        // 產生更友善的檔名
+        const ext = currentUrl.includes('.png') ? 'png' : 'jpg';
+        const filename = `photo_${new Date().getTime()}_${currentSlideIndex + 1}.${ext}`;
+        
+        forceDownload(currentUrl, filename);
+    }
+
+    // 下載全部照片 (批次下載)
+    async function downloadAllImages() {
+        // iOS 限制：Web Share API 一次通常只能處理單一操作，且不能連續自動呼叫
+        // 所以在手機上，建議只提示使用者逐張下載，或只提供電腦版批次下載
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        
+        if (isMobile) {
+            alert("系統提示：\n手機系統限制無法「一鍵儲存」多張照片到相簿。\n請使用「下載此張」功能，並在跳出的選單中點選「儲存影像」來逐一儲存。");
+            return;
+        }
+
+        if (!confirm(`即將下載共 ${currentGalleryImages.length} 張照片，這可能需要一點時間，確定嗎？`)) return;
+        
+        for (let i = 0; i < currentGalleryImages.length; i++) {
+            const url = currentGalleryImages[i];
+            const ext = url.includes('.png') ? 'png' : 'jpg';
+            const filename = `batch_photo_${i + 1}.${ext}`;
+            
+            // 這裡呼叫 forceDownload，但在電腦版它會走 Blob 下載路徑
+            await forceDownload(url, filename);
+            
+            // 間隔 800ms 避免瀏覽器認定為惡意彈窗或造成卡頓
+            await new Promise(resolve => setTimeout(resolve, 800));
+        }
+        alert("所有下載任務已送出！");
+    }
+
+    // 鍵盤左右鍵支援 (保持原有)
+    document.addEventListener('keydown', function(e) {
+        if (document.getElementById('image-viewer-modal').style.display === 'flex') {
+            resetIdleTimer(); // 按鍵也是動作
+            if (e.key === 'ArrowLeft' && currentSlideIndex > 0) {
+                currentSlideIndex--;
+                updateSliderPosition();
+                updateCounter();
+            }
+            if (e.key === 'ArrowRight' && currentSlideIndex < currentGalleryImages.length - 1) {
+                currentSlideIndex++;
+                updateSliderPosition();
+                updateCounter();
+            }
+            if (e.key === 'Escape') closeImageViewer();
+        }
+    });
+
+    // 視窗大小改變時，重新校正位置
+    window.addEventListener('resize', () => {
+        if (document.getElementById('image-viewer-modal').style.display === 'flex') {
+            updateSliderPosition(true);
+        }
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>立法院 - 成員介紹：お姫様ももちゃん</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        /* --- 基礎樣式與防溢出 --- */
+        html { scroll-behavior: smooth; }
+        html, body { max-width: 100%; overflow-x: hidden; margin: 0; padding: 0; }
+
+        body {
+            font-family: "Noto Sans TC", "Arial", sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* --- 1. 導覽列樣式 --- */
+        .navbar-static {
+            background-color: #1a237e;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            width: 100%;
+        }
+
+        .navbar-full {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: white;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+        }
+
+        .logo-circle {
+            background-color: #ffcc00;
+            color: #1a237e;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 10px;
+            font-weight: 700;
+        }
+
+        .nav-links {
+            list-style: none;
+            display: flex;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-links li { margin-left: 30px; }
+        .nav-links a { color: white; text-decoration: none; font-weight: 500; padding: 8px 15px; transition: 0.3s; }
+        .nav-links a:hover { border-bottom: 2px solid #ffcc00; }
+        .nav-links a.active-dark { background-color: #004d99; border-radius: 4px; color: white !important; }
+
+        /* --- 2. Banner 樣式 (固定高度) --- */
+        .event-banner {
+            background: linear-gradient(135deg, #1a237e 0%, #0d1241 100%);
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+            border-bottom: 4px solid #ffcc00;
+            height: 240px; 
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .event-banner h1 { font-size: 3.5em; margin: 0; letter-spacing: 2px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+
+        .banner-info-wrap {
+            display: flex;
+            flex-direction: column; /* 關鍵：由水平改為垂直排列 */
+            align-items: center;    /* 讓內容在垂直排列時依然保持居中 */
+            gap: 15px;             /* 設定兩行之間的距離 */
+            margin-top: 20px;
+            font-size: 1.1em;
+            color: #ffcc00;
+        }
+
+        /* --- 3. 主要內容區域 --- */
+        .event-content-area {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            flex: 1;
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            margin-bottom: 40px;
+        }
+
+        .photo-section { flex-shrink: 0; text-align: center; }
+        .avatar-img {
+            width: 200px; height: 200px; border-radius: 12px;
+            border: 4px solid #f0f0f0; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            object-fit: cover;
+        }
+
+        .info-brief h1 { font-size: 42px; color: #1a237e; margin: 0; letter-spacing: 4px; }
+        .nickname { font-size: 20px; color: #666; font-weight: 400; }
+        .blue-line { height: 3px; background: linear-gradient(to right, #1a237e, transparent); width: 300px; margin: 15px 0; }
+
+        .info-card {
+            background: white; 
+            padding: 30px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
+            margin-bottom: 40px; 
+            border-left: 6px solid #ffcc00;
+        }
+
+        .section-title {
+            border-left: 6px solid #1a237e;
+            padding-left: 15px;
+            margin: 40px 0 20px;
+            color: #1a237e;
+            font-size: 1.6em;
+            font-weight: bold;
+        }
+
+        /* --- 4. 網格佈局 (經歷與研究) --- */
+        .member-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 25px;
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        .member-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            border-top: 5px solid #1a237e;
+            transition: all 0.3s ease;
+        }
+
+        .tag {
+            display: inline-block; background: #e8eaf6; color: #3f51b5;
+            padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-bottom: 10px;
+        }
+
+        .m-title { font-weight: bold; font-size: 1.2em; color: #111; margin-bottom: 8px; display: block; }
+        .m-desc { font-size: 0.95em; color: #666; line-height: 1.6; }
+
+        /* 按鈕容器基礎樣式 - 電腦版預設靠右 */
+.lang-switch-container {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+/* 按鈕基礎設計 */
+.lang-btn {
+    text-decoration: none;
+    padding: 8px 18px;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 25px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+}
+
+/* 繁體中文鈕：金色調 */
+.btn-tw {
+    border: 1.5px solid #ffcc00;
+    color: #bc9b00;
+    background: #fff;
+    box-shadow: 0 2px 4px rgba(255, 204, 0, 0.1);
+}
+
+/* 日本語鈕：櫻粉調 */
+.btn-jp {
+    border: 1.5px solid #ffb7c5; /* 櫻花粉 */
+    color: #d87093; /* 櫻花紅 */
+    background: #fff;
+    box-shadow: 0 2px 4px rgba(255, 183, 197, 0.1);
+}
+
+/* 滑鼠懸停動畫效果 */
+.lang-btn:hover {
+    transform: translateY(-3px); /* 向上浮起 */
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.btn-tw:hover {
+    background: linear-gradient(135deg, #fffdf0 0%, #fff 100%);
+    border-color: #ffd700;
+    color: #8a7300;
+}
+
+.btn-jp:hover {
+    background: linear-gradient(135deg, #fff5f7 0%, #fff 100%);
+    border-color: #ff99aa;
+    color: #b34467;
+}
+
+/* 點綴動畫：點擊時的微反應 */
+.lang-btn:active {
+    transform: translateY(-1px);
+}
+
+/* --- 手機版裝置 RWD 設定 (螢幕寬度小於 768px 時) --- */
+@media (max-width: 768px) {
+    .lang-switch-container {
+        justify-content: center; /* 手機版置中顯示 */
+        width: 100%;
+        margin-top: 10px;
+    }
+    
+    .lang-btn {
+        padding: 10px 20px; /* 手機版按鈕稍微放大方便點擊 */
+        font-size: 15px;
+    }
+}
+
+        /* --- 5. 其他元件 --- */
+        .back-to-top {
+            position: fixed; bottom: 30px; right: 30px;
+            width: 50px; height: 50px; background-color: #1a237e;
+            color: white; border-radius: 50%; display: flex;
+            justify-content: center; align-items: center; z-index: 1000;
+            border: 2px solid #ffcc00; transition: 0.3s;
+            text-decoration: none;
+        }
+
+        footer { text-align: center; padding: 25px; background-color: #1a237e; color: white; font-size: 0.9em; }
+
+        /* =============================================
+           響應式優化 (RWD)
+           ============================================= */
+        @media (max-width: 768px) {
+            .navbar-full { flex-direction: column; padding: 10px 5px; }
+            .nav-links { 
+                margin-top: 10px; width: 100%; justify-content: center; display: flex;
+                flex-wrap: nowrap; padding: 10px 0 5px 0; border-top: 1px solid rgba(255,255,255,0.1);
+            }
+            .nav-links li { margin: 0 4px; flex-shrink: 1; }
+            .nav-links a { padding: 5px 8px; font-size: clamp(12px, 3.2vw, 14px); white-space: nowrap; }
+
+            .profile-header { flex-direction: column; text-align: center; padding: 30px 20px; }
+            .info-brief h1 { font-size: 32px; }
+            .blue-line { margin: 15px auto; }
+            
+            .member-grid { grid-template-columns: 1fr; gap: 20px; }
+
+            /* 1. 調整導覽列外殼，縮小內距 */
+            .navbar-full { 
+                flex-direction: column; 
+                padding: 10px 5px; 
+            }
+
+            /* 2. 調整導覽連結容器 */
+            .event-card-simple {
+                padding: 20px 15px;      /* 縮小手機版內距 */
+                width: 100%;             /* 寬度跟隨父層的 350px */
+                box-sizing: border-box;  /* 關鍵：確保 padding 不會撐破 350px */
+            }
+
+            /* 調整日期圓圈，讓 350px 內的空間分配合理 */
+            .event-date-circle {
+                width: 55px;
+                height: 55px;
+                margin-right: 15px;
+            }
+
+            /* 1. 調整導覽列外殼，縮小內距 */
+            .navbar-full { 
+                flex-direction: column; 
+                padding: 10px 5px; 
+            }
+
+            /* 2. 調整導覽連結容器 */
+            .nav-links { 
+                margin-top: 10px; 
+                width: 100%; 
+                justify-content: center; /* 置中 */
+                display: flex;
+                flex-wrap: nowrap;      /* 關鍵：強制絕對不換行 */
+                padding: 12px 0 5px 0;
+                border-top: 1px solid rgba(255,255,255,0.1);
+            }
+
+            /* 3. 調整清單項目 */
+            .nav-links li { 
+                margin: 0 4px;          /* 縮小項目間的間距 */
+                flex-shrink: 1;         /* 允許項目在必要時縮小 */
+            }
+
+            /* 4. 調整文字大小與行為 */
+            .nav-links a { 
+                padding: 5px 8px;       /* 縮小按鈕內距 */
+                
+                /* 使用 clamp 讓字體在 12px 到 14px 之間隨螢幕自動縮放 */
+                font-size: clamp(12px, 3.2vw, 14px); 
+                
+                white-space: nowrap;    /* 關鍵：文字絕對不換行 */
+                letter-spacing: -0.5px; /* 稍微縮小字距，節省空間 */
+            }
+
+            /* 手機版 標題列和黃字說明大小調整 Star */
+            .event-banner { /* 欄位高度大小*/
+                height: 160px; 
+            }
+            .event-banner h1 { /* 大標題*/
+                font-size: 30px; 
+            }        
+            .banner-info-wrap { /* 提示字*/
+                margin-top: 10px;
+                padding-bottom: 10px;
+                font-size: 16px;
+            }
+            /* 手機版 標題列和黃字說明大小調整 End */
+        }
+
+        /* 華麗皇室風格容器 */
+.royal-style {
+    background: linear-gradient(135deg, #fffafa 0%, #fff0f5 100%);
+    border: 2px solid #ffdae0;
+    box-shadow: 0 10px 30px rgba(216, 112, 147, 0.15) !important;
+}
+
+/* 照片邊框：金粉漸層雙框設計 */
+.avatar-wrapper {
+    position: relative;
+    padding: 8px; /* 金色外框厚度 */
+    background: linear-gradient(45deg, #ffd700, #ffb7c5, #ffd700);
+    border-radius: 50%; /* 圓形設計更顯高雅 */
+    display: inline-block;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.avatar-img {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    border: 4px solid #fff; /* 白色內嵌框 */
+    object-fit: cover;
+    display: block;
+}
+
+/* 頂部皇冠 */
+.royal-crown-icon {
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%) rotate(-5deg);
+    font-size: 35px;
+    color: #ffcc00;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+    z-index: 10;
+    animation: crownPulse 3s infinite ease-in-out;
+}
+
+@keyframes crownPulse {
+    0%, 100% { transform: translateX(-50%) rotate(-5deg) scale(1); }
+    50% { transform: translateX(-50%) rotate(5deg) scale(1.1); }
+}
+
+/* 公主標題標籤 */
+.princess-title-tag {
+    background: linear-gradient(135deg, #d87093 0%, #ff69b4 100%);
+    color: white;
+    padding: 5px 15px;
+    border-radius: 50px;
+    font-size: 0.9em;
+    font-weight: bold;
+    box-shadow: 0 4px 10px rgba(216, 112, 147, 0.3);
+    border: 1px solid #ffffff55;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* 粉色漸層橫線 */
+.royal-pink-line {
+    height: 4px !important;
+    background: linear-gradient(to right, #d87093, #ffb7c5, transparent) !important;
+    width: 100% !important;
+    max-width: 400px;
+    border-radius: 2px;
+}
+
+/* 櫻花裝飾物 */
+.sakura-deco {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background: #ffb7c5;
+    clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); /* 星形改櫻花形狀示意 */
+    opacity: 0.8;
+}
+.s1 { top: 10%; right: -5%; }
+.s2 { bottom: 10%; left: -5%; }
+
+/* 其他小圖示顏色 */
+.royal-info-list i {
+    color: #d87093;
+    margin-right: 8px;
+    width: 20px;
+    text-align: center;
+}
+
+.flag-icon {
+    height: 18px;
+    vertical-align: middle;
+    border: 1px solid #ddd;
+    border-radius: 2px;
+    margin-left: 5px;
+}
+
+.motto-box {
+    margin-top: 10px;
+    padding: 10px 15px;
+    background: white;
+    border-radius: 10px;
+    border-left: 5px solid #ffb7c5;
+    font-style: italic;
+}
+
+/* 手機版適配 */
+@media (max-width: 768px) {
+    .name-area { justify-content: center; }
+    .avatar-img { width: 160px; height: 160px; }
+}
+    </style>
+</head>
+<body>
+
+    <header class="navbar-static">
+        <nav class="navbar-full">
+            <div class="logo"><div class="logo-circle">立</div> 立法院 Legislature</div>
+            <ul class="nav-links">
+                <li><a href="index.html">首頁</a></li>
+                <li><a href="about.html">關於我們</a></li> 
+                <li><a href="members.html"class="active-dark">成員介紹</a></li> 
+                <li><a href="events.html">活動行程</a></li>
+                <li><a href="index.html">其他</a></li>
+            </ul>
+        </nav>
+    </header>
+    
+    <section class="event-banner">
+        <h1>メンバー紹介</h1>
+        <div class="banner-info-wrap">
+            <span>皇室文化芸術委員会</span>
+            <span>国家競技スポーツ・伝統書道研究チーム</span>
+        </div>
+    </section>
+
+    <main class="event-content-area">
+        <div class="profile-header royal-style" style="position: relative;">
+            <div class="photo-section">
+                <div class="avatar-wrapper">
+                    <div class="royal-crown-icon">
+                        <i class="fa-solid fa-crown"></i>
+                    </div>
+                    <img id="dynamic-avatar" src="https://via.placeholder.com/200?text=Loading..." alt="成員照片" class="avatar-img">
+                    <div class="sakura-deco s1"></div>
+                    <div class="sakura-deco s2"></div>
+                </div>
+            </div>
+            
+            <div class="info-brief" style="flex: 1;">
+                <div class="lang-switch-container">
+                    <a href="info-momoe - zh-TW.html" class="lang-btn btn-tw">
+                        <i class="fa-solid fa-language"></i> 繁體中文
+                    </a>
+                    <a href="info-momoe - JP.html" class="lang-btn btn-jp">
+                        <i class="fa-solid fa-language"></i> 日本語
+                    </a>
+                </div>
+
+                <div class="name-area" style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                    <div style="display: flex; flex-direction: column;">
+                        <span class="nickname" style="color: #d87093; font-weight: bold; letter-spacing: 2px;">MOMOE</span>
+                        <h1 style="margin: 0; line-height: 1;">もも</h1>
+                    </div>
+                    <div class="princess-title-tag">
+                        <i class="fa-solid fa-gem"></i> 日本國御姫様
+                    </div>
+                </div>
+
+                <div class="blue-line royal-pink-line"></div>
+                
+                <div class="royal-info-list" style="font-size: 1.1em; color: #444; line-height: 2;">
+                    <div><i class="fa-solid fa-location-dot"></i> <strong>出身地：</strong>日本 <img src="https://upload.wikimedia.org/wikipedia/commons/9/9e/Flag_of_Japan.svg" alt="Japan" class="flag-icon"></div>
+                    <div><i class="fa-solid fa-crown"></i> <strong>身分：</strong>日本お姫様 (Princess Momoe)</div>
+                    <div><i class="fa-solid fa-award"></i> <strong>役職：</strong>国家級書道家 / 世界級卓球競技選手</div>
+                    <div class="motto-box"><i class="fa-solid fa-quote-left"></i> モットー：文を以て道を載せ、武を以て友と会し、大和魂を体現する。</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title" style="color: #ffb300;"><i class="fa-solid fa-crown" style="margin-right: 10px;"></i> 主要実績：皇室の栄誉と国際的表彰</div>
+        <div class="info-card" style="border-left-color: #ffcc00; background-color: #fffdf0; box-sizing: border-box; border-right: 2px solid #ffcc00;">
+            <div style="display: flex; gap: 30px; align-items: flex-start; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 250px;">
+                    <h2 style="color: #bc9b00; margin-top: 0; font-size: 1.8em; display: flex; align-items: center;">
+                        <i class="fa-solid fa-chess-queen" style="margin-right: 12px;"></i> 至高の軌跡：文武両道の極致
+                    </h2>
+                    <p style="line-height: 1.8; color: #333; font-size: 1.1em; font-weight: 500;">
+                        桃子お姫様は、伝統芸術において深い造詣を持つだけでなく、現代スポーツ競技においても圧倒的な実力を誇ります。皇室代表として、優雅な立ち振る舞いと共に数々の国際大会を制し、「競技場の真珠」と称えられています。
+                    </p>
+                    
+                    <ul class="experience-list" style="margin-top: 15px; list-style: none; padding: 0;">
+                        <li style="margin-bottom: 20px; padding: 15px; border-left: 4px solid #ffcc00; background: white; border-radius: 0 8px 8px 0; box-shadow: 2px 2px 5px rgba(0,0,0,0.05);">
+                            <strong style="color: #bc9b00; font-size: 1.25em;"><i class="fa-solid fa-pen-nib"></i> 書道選出作品代表 — 文化の継承者</strong><br>
+                            <span style="color: #555;">国家文化交流展の代表作品に幾度も選出。その筆致は女性らしい繊細さと、皇族としての威厳を兼ね備えています。文字の構造と墨の濃淡を通じ、日本伝統美の深遠な精神を完璧に表現しています。</span>
+                        </li>
+                        <li style="margin-bottom: 20px; padding: 15px; border-left: 4px solid #ffcc00; background: white; border-radius: 0 8px 8px 0; box-shadow: 2px 2px 5px rgba(0,0,0,0.05);">
+                            <strong style="color: #bc9b00; font-size: 1.25em;"><i class="fa-solid fa-table-tennis-paddle-ball"></i> 皇后杯 全日本卓球選手権大会 優勝</strong><br>
+                            <span style="color: #555;">国内最高峰の大会で頂点に立ち、圧倒的なテクニックと精神力で皇后杯を戴冠。この栄誉は、個人の技術力のみならず、たゆまぬ鍛錬と強靭な意志の証でもあります。</span>
+                        </li>
+                        <li style="margin-bottom: 20px; padding: 15px; border-left: 4px solid #ffcc00; background: white; border-radius: 0 8px 8px 0; box-shadow: 2px 2px 5px rgba(0,0,0,0.05);">
+                            <strong style="color: #bc9b00; font-size: 1.25em;"><i class="fa-solid fa-earth-asia"></i> 卓球世界選手権 優勝 — 国際競技の光</strong><br>
+                            <span style="color: #555;">日本代表として世界選手権に臨み、熾烈な国際競争の中で全勝記録を維持し、世界の頂点へ。その独特な「ロイヤル・スピン」技術は、世界中の選手の研究対象となり、日本スポーツ界に輝かしい一ページを刻みました。</span>
+                        </li>
+                        <li style="margin-bottom: 10px; padding: 15px; border-left: 4px solid #ffcc00; background: white; border-radius: 0 8px 8px 0; box-shadow: 2px 2px 5px rgba(0,0,0,0.05);">
+                            <strong style="color: #bc9b00; font-size: 1.25em;"><i class="fa-solid fa-award"></i> 累計ワールドツアー・ポイント首位 (80点)</strong><br>
+                            <span style="color: #555;">長期間にわたり世界ランキング1位を保持。累計80点という圧倒的なスコアでツアーを支配しました。この実績は、キャリアを通じた安定感と卓球に対する深い理解を証明しており、現代卓球界における伝説となっています。</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title" style="color: #ffb300;"><i class="fa-solid fa-handshake-angle" style="margin-right: 10px;"></i> 日台外交ハイライト：文化交流大使としての軌跡</div>
+        <div class="info-card" style="border-left-color: #ffcc00; background-color: #fffdf0; box-sizing: border-box;">
+            <h2 style="color: #bc9b00; margin-top: 0; font-size: 1.8em;"><i class="fa-solid fa-earth-asia" style="margin-right: 12px;"></i> 親善外交：両国を繋ぐ絆の懸け橋</h2>
+            <p style="line-height: 1.8; color: #333; font-size: 1.1em; font-weight: 500;">
+                皇族としての影響力と親しみやすさを活かし、日台外交活動に尽力。多くの重要局面において、両国の深い対話と感情の繋がりを推進してきました。
+            </p>
+            
+            <div class="member-grid" style="margin-top: 20px;">
+                <div class="member-card" style="border-top-color: #ffcc00;">
+                    <span class="tag">2024.07.20</span>
+                    <strong class="m-title">立法院交流協会フォーラム</strong>
+                    <p class="m-desc">日台議会友好交流会議に出席。文化特別代表として、伝統芸術の保存と現代テクノロジーの応用について講演を行いました。</p>
+                </div>
+                <div class="member-card" style="border-top-color: #ffcc00;">
+                    <span class="tag">2024.10.16</span>
+                    <strong class="m-title">日台フラッシュ交流会談</strong>
+                    <p class="m-desc">東京・台北の両都市で同時開催された非公式外交会談。若手文化交流をテーマに即興演説を行い、親しみやすい皇室の姿を示しました。</p>
+                </div>
+                <div class="member-card" style="border-top-color: #ffcc00;">
+                    <span class="tag">2025.12.25</span>
+                    <strong class="m-title">心温まる日台クリスマス年次集会</strong>
+                    <p class="m-desc">日台チャリティー・クリスマス晩餐会を企画。芸術オークションや文化公演を通じて教育基金を募り、民間交流の絆を深めました。</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title">専門領域における経歴</div>
+        <div class="member-grid">
+            <div class="member-card">
+                <span class="tag">Royal Protocol</span>
+                <strong class="m-title">外交儀礼と国際親善</strong>
+                <p class="m-desc">国際的な王室プロトコルに精通し、多くの国賓訪問に随行。文化的なソフトパワー外交を推進しています。</p>
+            </div>
+            <div class="member-card">
+                <span class="tag">Art History</span>
+                <strong class="m-title">古典書道技法の研究</strong>
+                <p class="m-desc">平安時代の古筆様式を深く研究し、現代的な構成概念と融合させることで、独自の現代書道を確立しました。</p>
+            </div>
+            <div class="member-card">
+                <span class="tag">Language Education</span>
+                <strong class="m-title">立法院指定 日本語専任講師</strong>
+                <p class="m-desc">立法院職員への日本語指導を担当。ビジネス・外交用日本語の教育や、公式文書の翻訳監修を担っています。</p>
+            </div>
+            <div class="member-card">
+                <span class="tag">Multilingual Instructor</span>
+                <strong class="m-title">台湾語・中国語指導講師</strong>
+                <p class="m-desc">多言語教育モデルの開発に尽力。在台日本人や現地住民間のコミュニケーションの深化を促進しています。</p>
+            </div>
+            <div class="member-card">
+                <span class="tag">Traditional Arts</span>
+                <strong class="m-title">伝統芸術と美学鑑定</strong>
+                <p class="m-desc">伝統的筆法に基づいたマスタークラスを開催。皇室流派に伝わる書道の神髄を広く伝えています。</p>
+            </div>
+            <div class="member-card">
+                <span class="tag">Sports Strategy</span>
+                <strong class="m-title">競技卓球 戦術分析</strong>
+                <p class="m-desc">豊富な実戦経験を活かし、ナショナルチームへデータに基づいた対抗戦略を提供。競技力の向上に寄与しています。</p>
+            </div>
+        </div>
+
+        <div class="info-card" style="margin-top: 40px; text-align: center; border-left-color: #ffcc00; background-color: #fffbe6;">
+            <p style="color: #9c8b00; font-size: 0.9em; margin: 0; font-weight: bold;">Verified Royal Specialist | Cultural & Sporting Excellence | ID: JP-CROWN-MOMOE-001</p>
+        </div>
+    </main>
+
+    <a href="#" class="back-to-top"><i class="fa-solid fa-chevron-up"></i></a>
+
+    <footer>
+        <p>© 2026 立法院 Legislature - デジタル情報開発処 All Rights Reserved.</p>
+    </footer>
+
+</body>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+
+<script>
+    // 1. Firebase 配置 (沿用您的設定)
+    const firebaseConfig = {
+        apiKey: "AIzaSyACnoimIASfb1rb59SbgLDkUmyYR6ODbUU",
+        authDomain: "llwb-ed686.firebaseapp.com",
+        projectId: "llwb-ed686",
+        storageBucket: "llwb-ed686.firebasestorage.app", 
+        messagingSenderId: "940345852074",
+        appId: "1:940345852074:web:7a30cca5a6d997a92350d3",
+        measurementId: "G-KWL4ZE3D18"
+    };
+
+    // 2. 初始化
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.firestore();
+
+    // 3. 定義抓取函數
+    async function loadMemberImage(targetName) {
+        const avatarEl = document.getElementById('dynamic-avatar');
+
+        try {
+            // 在 'content' 集合中尋找 text 欄位等於指定姓名的人
+            const snapshot = await db.collection("content")
+                                   .where("text", "==", targetName)
+                                   .get();
+
+            if (!snapshot.empty) {
+                // 取得第一筆匹配到的資料
+                const data = snapshot.docs[0].data();
+                if (data.imageUrl) {
+                    avatarEl.src = data.imageUrl;
+                    avatarEl.alt = targetName + " 照片";
+                }
+            } else {
+                console.warn("找不到成員：" + targetName);
+                avatarEl.src = "https://via.placeholder.com/200?text=No+Photo";
+            }
+        } catch (error) {
+            console.error("Firebase 讀取錯誤:", error);
+        }
+    }
+
+    // 4. 網頁載入後執行：輸入您要顯示的名字
+    document.addEventListener("DOMContentLoaded", () => {
+        loadMemberImage("もも"); 
+    });
+</script>
+</html>

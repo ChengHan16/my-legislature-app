@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>對話視窗 - 行政通訊系統</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --ly-blue: #003153; 
+            --ly-blue-trans: rgba(0, 49, 83, 0.85); /* 半透明主藍 */
+            --ly-gold: #cfa900; /* 亮金色 */
+            --bg-gray: #f2f4f7;
+            --white: #ffffff;
+            --border-color: #dee2e6;
+            --container-width: 790px; /* 縮小網頁版框度至 750px */
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        html, body {
+            margin: 0; padding: 0;
+            height: 100dvh !important;
+            width: 100vw !important;
+            overflow: hidden; 
+            background-color: var(--bg-gray);
+            font-family: "Noto Sans TC", sans-serif;
+        }
+
+        body { 
+            display: flex; 
+            flex-direction: column; 
+            position: fixed; 
+            top: 0; left: 0; 
+            color: #333;
+        }
+
+        /* 1. 頂部導覽列 (與模板一致) */
+        .messenger-header {
+            background: var(--ly-blue-trans); 
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            position: sticky; 
+            top: 0; 
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            flex: 0 0 auto !important; /* 強制橫幅不參與 flex 壓縮 */
+            box-sizing: border-box !important;
+        }
+
+        .header-content {
+            height: 89px;
+            max-width: var(--container-width);
+            margin: 0 auto;
+            padding: 15px 20px;
+            display: flex; 
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .user-profile { display: flex; align-items: center; }
+
+        .back-btn {
+            background: none; border: none; margin-right: 15px; 
+            cursor: pointer; color: var(--ly-gold); font-size: 1.4rem;
+            transition: 0.3s;
+            display: flex; align-items: center;
+        }
+
+        .user-avatar { 
+            width: 58.43px; height: 58.43px;
+            border-radius: 50%; object-fit: cover; 
+            margin-right: 15px; 
+            border: 2px solid var(--ly-gold);
+            background: #fff;
+            flex-shrink: 0;
+        }
+
+        .user-name { 
+            font-weight: 800; 
+            font-size: 1.35rem;
+            color: white; 
+            letter-spacing: 1px;
+        }
+
+        /* 2. 訊息滾動區域 (置中優化) */
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            background: var(--bg-gray);
+            -webkit-overflow-scrolling: touch;
+            max-width: var(--container-width); /* 置中關鍵：設定最大寬度 */
+            margin: 0 auto; /* 置中關鍵：左右自動外距 */
+            width: 100%;
+        }
+
+        /* 訊息包裝容器 */
+        .msg-wrapper { display: flex; flex-direction: column; width: 100%; margin-bottom: 4px; }
+        .msg-wrapper.mine { align-items: flex-end; }
+        .msg-wrapper.theirs { align-items: flex-start; }
+
+        .msg-row { display: flex; align-items: flex-end; gap: 10px; width: 100%; }
+        .msg-row.mine { justify-content: flex-end; }
+        .msg-row.theirs { justify-content: flex-start; }
+
+        .msg-avatar {
+            width: 35px; height: 35px; border-radius: 50%;
+            flex-shrink: 0; border: 1px solid #ddd;
+            object-fit: cover; background: #fff;
+        }
+
+        .msg {
+            max-width: 75%; padding: 12px 16px; font-size: 15px;
+            line-height: 1.5; word-wrap: break-word;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-radius: 18px;
+        }
+
+        .msg.mine {
+            background: var(--ly-blue); color: var(--white);
+            border-radius: 18px 18px 4px 18px; border-right: 3px solid var(--ly-gold);
+        }
+
+        .msg.theirs {
+            background: var(--white); color: #333;
+            border-radius: 18px 18px 18px 4px; border: 1px solid #dee2e6;
+        }
+
+        .time-divider {
+            align-self: center; font-size: 0.75rem; color: #888;
+            margin: 20px 0 10px 0; background: rgba(0,0,0,0.05);
+            padding: 4px 14px; border-radius: 20px; font-weight: 500;
+        }
+
+        .read-status { font-size: 0.7rem; color: #999; margin-top: 3px; padding-right: 5px; height: 14px; }
+
+        /* 3. 底部輸入區域 (置中優化) */
+        .input-area {
+            flex-shrink: 0;
+            background: var(--white);
+            padding: 12px 15px;
+            padding-bottom: calc(12px + env(safe-area-inset-bottom));
+            display: flex;
+            justify-content: center; /* 置中輸入框內容 */
+            border-top: 1px solid #e9ecef;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.03);
+            width: 100%;
+        }
+
+        .input-container {
+            max-width: var(--container-width); /* 同步 750px 寬度 */
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        #msgInput {
+            flex: 1; height: 44px; padding: 0 18px; border: 1.5px solid #eee;
+            border-radius: 25px; outline: none; font-size: 16px; background: #f8f9fa;
+            transition: border-color 0.3s;
+        }
+        #msgInput:focus { border-color: var(--ly-gold); background: #fff; }
+
+        .send-btn {
+            background: var(--ly-blue); color: var(--white); border: none;
+            width: 44px; height: 44px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: 0.3s; box-shadow: 0 4px 10px rgba(0, 49, 83, 0.2);
+        }
+        .send-btn:hover { background: #004675; transform: scale(1.05); }
+        .send-btn i { color: var(--ly-gold); font-size: 1.1rem; }
+
+        /* 附加檔案按鈕樣式 */
+        .attach-btn {
+            background: none; 
+            border: none; 
+            color: #888;
+            font-size: 1.3rem; 
+            cursor: pointer; 
+            padding: 0 5px;
+            transition: color 0.3s;
+            display: flex;
+            align-items: center;
+        }
+        .attach-btn:hover { color: var(--ly-blue); }
+
+        /* 聊天室內的圖片與影片樣式 */
+        .msg-media { 
+            max-width: 100%; 
+            max-height: 250px;
+            border-radius: 12px; 
+            margin-top: 5px; 
+            display: block;
+            cursor: pointer;
+        }
+
+        /* --- 圖片點擊放大模態框樣式 --- */
+        .image-modal {
+            display: none; 
+            position: fixed; 
+            z-index: 9999; 
+            left: 0; top: 0; 
+            width: 100vw; height: 100dvh; 
+            background-color: rgba(0, 0, 0, 0.85); 
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            justify-content: center; 
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .image-modal-content {
+            max-width: 95%; 
+            max-height: 90%; 
+            object-fit: contain;
+            border-radius: 8px;
+            animation: zoomIn 0.3s ease-out;
+        }
+
+        .image-modal-close {
+            position: absolute; 
+            top: 20px; right: 30px; 
+            color: #f1f1f1; 
+            font-size: 40px; 
+            font-weight: bold; 
+            cursor: pointer;
+            z-index: 10000;
+        }
+
+        @keyframes zoomIn {
+            from { transform: scale(0.8); opacity: 0; } 
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        /* --- 透明背景去底色樣式 --- */
+        /* 當訊息只有圖片或影片時，移除背景、邊框與內距 */
+        .msg.media-only {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+        }
+
+        .msg.media-only .msg-media {
+            border: 1px solid rgba(0,0,0,0.05); /* 輕微邊框讓圖片不至於太飄 */
+        }
+
+        /* --- 收回訊息按鈕樣式 --- */
+.revoke-btn {
+    color: #ccc;
+    font-size: 0.9rem;
+    cursor: pointer;
+    padding: 5px 8px;
+    margin-right: 2px;
+    background: none;
+    border: none;
+    transition: color 0.3s;
+    display: flex;
+    align-items: center;
+}
+.revoke-btn:hover {
+    color: #ff4d4d; /* 滑鼠移過變紅色 */
+}
+
+/* --- 長按浮動選單樣式 (水平浮動版) --- */
+.context-menu {
+    display: none;
+    position: fixed; 
+    background: var(--white);
+    border-radius: 12px; /* 稍微圓角一點 */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    padding: 6px;
+    z-index: 10000;
+    user-select: none;
+    -webkit-user-select: none;
+    border: 1px solid rgba(0,0,0,0.05);
+}
+
+.context-menu button {
+    background: none;
+    border: none;
+    color: #444; /* 預設深灰色 */
+    font-size: 14px;
+    padding: 10px 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-family: inherit;
+    white-space: nowrap; /* 確保文字不換行 */
+    transition: 0.2s;
+}
+
+.context-menu button:hover {
+    background: #f2f4f7;
+}
+
+/* 獨立將收回按鈕設為紅色 */
+#revokeMenuBtn {
+    color: #ff4d4d;
+}
+#revokeMenuBtn:hover {
+    background: #ffe6e6;
+}
+
+/* --- 回覆預覽列 (輸入框上方) --- */
+.reply-preview-bar {
+    display: none;
+    background: #f2f4f7;
+    padding: 8px 15px;
+    font-size: 0.85rem;
+    color: #555;
+    border-left: 4px solid var(--ly-blue);
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    border-top: 1px solid #e9ecef;
+}
+.reply-preview-bar .close-reply {
+    cursor: pointer;
+    color: #999;
+    font-size: 1.1rem;
+    padding: 5px;
+}
+
+/* --- 對話框內的回覆片段 --- */
+.reply-snippet {
+    font-size: 0.75rem;
+    color: #666;
+    background: rgba(0, 0, 0, 0.05);
+    padding: 4px 8px;
+    border-radius: 4px;
+    border-left: 3px solid var(--ly-blue);
+    margin-bottom: 5px;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    display: block;
+}
+.msg.mine .reply-snippet {
+    background: rgba(255, 255, 255, 0.2);
+    color: #f1f1f1;
+    border-left: 3px solid var(--ly-gold);
+}
+
+/* --- 跳轉到特定訊息時的黃色外框動畫 --- */
+.highlight-animation {
+    animation: highlightMsg 2s ease-out;
+}
+
+/* --- 浮動最新訊息按鈕 (置中顯示) --- */
+.scroll-bottom-btn {
+    display: none; 
+    position: fixed;
+    bottom: 90px; 
+    left: 50%; /* 推到中間 */
+    transform: translateX(-50%); /* 完美置中校正 */
+    background: var(--white);
+    color: var(--ly-blue);
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    padding: 8px 15px;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    cursor: pointer;
+    z-index: 99;
+    transition: 0.3s;
+    align-items: center;
+    gap: 8px;
+    font-weight: bold;
+}
+.scroll-bottom-btn:hover {
+    background: #f8f9fa;
+    color: var(--ly-gold);
+}
+
+/* --- 頂部群組設定按鈕 --- */
+        .header-actions button {
+            background: rgba(255, 255, 255, 0.15); 
+            border: 1px solid rgba(255, 255, 255, 0.2); 
+            color: white;
+            width: 42px; height: 42px;
+            border-radius: 50%; cursor: pointer; margin-left: 12px;
+            font-size: 1.1rem;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .header-actions button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* --- 彈出表單 (Modal) 樣式 --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px);
+            display: none; justify-content: center; align-items: center; z-index: 3000;
+        }
+        .modal-card {
+            background: white; width: 90%; max-width: 400px;
+            border-radius: 15px; overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color);
+            animation: modalFadeIn 0.3s ease-out;
+        }
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .modal-header {
+            background: var(--ly-blue-trans); padding: 15px 20px; color: white;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 3px solid var(--ly-gold);
+        }
+        .modal-header h3 { margin: 0; font-size: 1.1rem; }
+        .modal-body { padding: 25px 20px; }
+        .modal-input-group { margin-bottom: 20px; text-align: left; }
+        .modal-input-group label { display: block; font-size: 13px; color: var(--ly-blue); font-weight: 700; margin-bottom: 8px; }
+        .modal-input-group input[type="text"] { 
+            width: 100%; padding: 12px 15px; border: 1px solid var(--border-color); 
+            border-radius: 8px; font-size: 1rem; outline: none; box-sizing: border-box;
+        }
+        .modal-footer { padding: 15px 20px; background: #f8f9fa; display: flex; justify-content: space-between; gap: 12px; }
+        .btn-modal { padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; border: none; }
+        .btn-confirm { background: var(--ly-blue); color: white; }
+        .btn-cancel { background: white; color: #666; border: 1px solid #ddd; }
+        .btn-danger { background: #ff4d4d; color: white; }
+        
+        /* 頭像預覽 */
+        .group-avatar-preview { 
+            width: 90px; height: 90px; border-radius: 50%; object-fit: cover; 
+            margin-bottom: 5px; border: 3px solid var(--ly-gold); cursor: pointer;
+            transition: 0.2s;
+        }
+        .group-avatar-preview:hover { opacity: 0.8; }
+
+@media (max-width: 750px) {
+    .scroll-bottom-btn { bottom: 85px; } /* 移除了原本的 right 設定 */
+}
+@keyframes highlightMsg {
+    0% { box-shadow: 0 0 0 3px var(--ly-gold); background-color: #fff8dc; }
+    100% { box-shadow: 0 0 0 0 transparent; background-color: inherit; }
+}
+
+        @media (max-width: 750px) {
+            .user-name { font-size: 1.2rem; }
+            .msg { max-width: 82%; }
+        }
+    </style>
+</head>
+<body>
+
+<header class="messenger-header">
+    <div class="header-content">
+        <div class="user-profile">
+            <button class="back-btn" onclick="location.href='Messenger.html'">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <img id="targetAvatar" class="user-avatar" src="https://via.placeholder.com/55">
+            <span id="chatTitle" class="user-name">載入中...</span>
+        </div>
+        <div class="header-actions" id="groupSettingsContainer" style="display: none;">
+            <button onclick="openGroupSettings()" title="群組設定">
+                <i class="fas fa-cog"></i>
+            </button>
+        </div>
+    </div>
+</header>
+
+<div class="messages" id="messageList"></div>
+<button class="scroll-bottom-btn" id="scrollBottomBtn" onclick="scrollToBottom(true)">
+    <i class="fas fa-arrow-down"></i> 最新訊息
+</button>
+
+<div class="input-area" style="flex-direction: column; align-items: center; padding: 0;">
+    <div id="replyPreview" class="reply-preview-bar" style="max-width: var(--container-width); width: 100%; box-sizing: border-box;">
+        <span>回覆：<span id="replyPreviewText" style="font-weight: bold;"></span></span>
+        <i class="fas fa-times close-reply" onclick="cancelReply()"></i>
+    </div>
+    
+    <div class="input-container" style="padding: 12px 15px; padding-bottom: calc(12px + env(safe-area-inset-bottom)); box-sizing: border-box;">
+        <input type="file" id="fileInput" accept="image/*,video/*" style="display: none;">
+        <button class="attach-btn" onclick="document.getElementById('fileInput').click()">
+            <i class="fas fa-paperclip"></i>
+        </button>
+
+        <input type="text" id="msgInput" placeholder="請輸入訊息..." autocomplete="off">
+        <button class="send-btn" onclick="sendMessage()">
+            <i class="fas fa-paper-plane"></i>
+        </button>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
+
+<script>
+    function formatChatDate(timestamp) {
+        if (!timestamp) return "";
+        const date = timestamp.toDate();
+        const now = new Date();
+        const isSameDay = date.toDateString() === now.toDateString();
+        
+        if (isSameDay) {
+            return date.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: true });
+        } else {
+            return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+        }
+    }
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyACnoimIASfb1rb59SbgLDkUmyYR6ODbUU",
+        authDomain: "llwb-ed686.firebaseapp.com",
+        projectId: "llwb-ed686",
+        storageBucket: "llwb-ed686.firebasestorage.app",
+        messagingSenderId: "940345852074",
+        appId: "1:940345852074:web:7a30cca5a6d997a92350d3"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const storage = firebase.storage();
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 限制大小為 10MB，可依需求調整
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+    const urlParams = new URLSearchParams(window.location.search);
+    const chatId = urlParams.get('id');
+
+    let messagesSnapshot = null;
+let opponentInChat = false; 
+let opponentReadTime = new Date(0);
+
+auth.onAuthStateChanged(async (user) => {
+    if (!user) return window.location.href = "login.html";
+
+    const chatRef = db.collection("chats").doc(chatId);
+
+    // --- 在線狀態監聽 (Focus/Blur) ---
+    // --- 修改後的在線與已讀狀態監聽 ---
+const updateMyStatus = (isInChat) => {
+    const updateData = {
+        [`presence.${user.uid}`]: isInChat
+    };
+    
+    // 如果使用者在對話中 (Focus)，同時更新最後讀取時間
+    if (isInChat) {
+        updateData[`lastReadAt.${user.uid}`] = firebase.firestore.FieldValue.serverTimestamp();
+    }
+    
+    chatRef.update(updateData);
+};
+
+// 監聽視窗聚焦與模糊
+window.addEventListener('focus', () => updateMyStatus(true));
+window.addEventListener('blur', () => updateMyStatus(false));
+
+// 初始進入網頁時執行一次
+if (document.hasFocus()) {
+    updateMyStatus(true);
+} else {
+    updateMyStatus(false);
+}
+
+    // --- 監聽主文件 (同步對方的在線與已讀狀態) ---
+    chatRef.onSnapshot(doc => {
+        if (doc.exists) {
+            const data = doc.data();
+            
+            if (data.isGroup) {
+                // 【群組模式】
+                const groupName = data.groupName || "未命名群組";
+                document.getElementById('chatTitle').innerText = groupName;
+                document.getElementById('targetAvatar').src = data.groupAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(groupName)}&background=003153&color=fff`;
+                document.getElementById('groupSettingsContainer').style.display = 'block'; // 顯示設定按鈕
+                
+                // 設定彈出視窗的預設值
+                document.getElementById('groupNameEdit').value = groupName;
+                document.getElementById('groupAvatarPreview').src = document.getElementById('targetAvatar').src;
+                
+                renderChatUI(user.uid); 
+            } else {
+                // 【一對一私訊模式】
+                document.getElementById('groupSettingsContainer').style.display = 'none'; // 隱藏設定按鈕
+                const targetUid = data.members.find(uid => uid !== user.uid);
+                
+                opponentInChat = data.presence ? data.presence[targetUid] : false;
+                if (data.lastReadAt && data.lastReadAt[targetUid]) {
+                    opponentReadTime = data.lastReadAt[targetUid].toDate();
+                }
+
+                db.collection("act").doc(targetUid).get().then(uDoc => {
+                    if (uDoc.exists) {
+                        document.getElementById('chatTitle').innerText = uDoc.data().displayName;
+                        document.getElementById('targetAvatar').src = uDoc.data().photoURL || 'https://via.placeholder.com/55';
+                    }
+                    renderChatUI(user.uid); 
+                });
+            }
+        } else {
+            // 如果對話已被刪除
+            alert("此對話已被刪除或不存在！");
+            window.location.href = "Messenger.html";
+        }
+    });
+
+    // --- 監聽訊息內容 (修正後的版本) ---
+    chatRef.collection("messages").orderBy("timestamp", "asc").onSnapshot(snapshot => {
+        messagesSnapshot = snapshot;
+        
+        // [核心邏輯]：如果新訊息進來時我正在對話中，立刻更新我的讀取時間
+        // 使用 user.uid 確保變數穩定，並檢查 document.hasFocus()
+        if (user && document.hasFocus()) {
+            chatRef.update({
+                [`lastReadAt.${user.uid}`]: firebase.firestore.FieldValue.serverTimestamp()
+            }).catch(err => console.error("自動更新已讀失敗:", err));
+        }
+        
+        // 渲染 UI
+        if (user) {
+            renderChatUI(user.uid);
+        }
+    }, error => {
+        console.error("監聽訊息失敗:", error);
+    });
+
+    });
+    
+
+function renderChatUI(currentUid) {
+    if (!messagesSnapshot) return;
+    const list = document.getElementById('messageList');
+    list.innerHTML = "";
+    let lastTime = null;
+    const docs = messagesSnapshot.docs;
+
+    // --- 關鍵步驟：先找出對方讀過的「最後一則」屬於使用者的訊息索引 ---
+    let lastReadIndex = -1;
+    for (let i = docs.length - 1; i >= 0; i--) {
+        const msg = docs[i].data();
+        const msgTime = msg.timestamp ? msg.timestamp.toDate() : new Date();
+        // 如果是我發的，且發送時間早於對方最後讀取時間
+        if (msg.senderId === currentUid && msgTime <= opponentReadTime) {
+            lastReadIndex = i;
+            break; // 找到最新的一則就跳出
+        }
+    }
+
+docs.forEach((msgDoc, i) => {
+    const msg = msgDoc.data();
+    const msgId = msgDoc.id; // 取得這則訊息的唯一 ID
+    const isMine = msg.senderId === currentUid;
+    const msgTime = msg.timestamp ? msg.timestamp.toDate() : new Date();
+
+    // 智慧時間戳 (超過30分鐘才顯示)
+    if (!lastTime || (msgTime - lastTime > 30 * 60 * 1000)) {
+        const timeDiv = document.createElement('div');
+        timeDiv.className = 'time-divider';
+        timeDiv.innerText = formatChatDate(msg.timestamp);
+        list.appendChild(timeDiv);
+    }
+    lastTime = msgTime;
+
+    const nextMsg = docs[i + 1] ? docs[i + 1].data() : null;
+    const isLastInSequence = !nextMsg || nextMsg.senderId !== msg.senderId;
+
+    const wrapper = document.createElement('div');
+    wrapper.className = `msg-wrapper ${isMine ? 'mine' : 'theirs'} ${isLastInSequence ? 'last-in-group' : ''}`;
+
+    // 建立氣泡行
+    let html = `<div class="msg-row ${isMine ? 'mine' : 'theirs'}">`;
+    
+    // 如果是對方，顯示頭像
+    if (!isMine) {
+        const avatarVisibility = isLastInSequence ? 'visible' : 'hidden';
+        html += `<img src="${document.getElementById('targetAvatar').src}" class="msg-avatar" style="visibility: ${avatarVisibility}">`;
+    }
+
+    let contentHtml = "";
+    let isMediaOnly = false;
+    // 處理純文字格式，避免雙引號破壞 HTML 結構，作為回覆引用的預覽字
+    const safeText = msg.text ? msg.text.replace(/"/g, '&quot;').replace(/'/g, "\\'") : '[圖片/影片]';
+
+    // 【新增】：如果這則訊息有回覆某人，在內容最前方加上回覆片段
+    if (msg.replyToId) {
+        contentHtml += `<div class="reply-snippet" onclick="scrollToOriginalMsg('${msg.replyToId}')">
+                            <i class="fas fa-reply"></i> ${msg.replyToText}
+                        </div>`;
+    }
+
+    if (msg.fileUrl) {
+        if (msg.fileType === 'video') {
+            contentHtml += `<video src="${msg.fileUrl}" controls class="msg-media" onloadeddata="scrollToBottom()"></video>`;
+        } else {
+            // 【修改】：加入 if(!skipNextClick) 防呆判斷
+            contentHtml += `<img src="${msg.fileUrl}" class="msg-media" loading="lazy" onclick="if(!skipNextClick) openModal(this.src)" onload="scrollToBottom()">`;
+        }
+    } 
+    
+    if (msg.text) {
+        contentHtml += (msg.fileUrl ? '<br>' : '') + msg.text;
+    } else if (msg.fileUrl && !msg.replyToId) { // 如果沒有回覆文字且沒有一般文字，才算純多媒體
+        isMediaOnly = true;
+    }
+
+    const mediaClass = isMediaOnly ? 'media-only' : '';
+    
+    let interactEvents = '';
+    if (isMine) {
+        // 自己的訊息：左滑回覆 + 0.3秒長按 (收回 + 回覆)
+        interactEvents = `
+            ontouchstart="handleSwipeStart(event, '${msgId}', '${safeText}', 'true'); handlePressStart(event, '${msgId}', 'true', '${safeText}')"
+            ontouchmove="handleSwipeMove(event, this); handlePressEnd(event)"
+            ontouchend="handleSwipeEnd(event, this); handlePressEnd(event)"
+            onmousedown="handlePressStart(event, '${msgId}', 'true', '${safeText}')" 
+            onmouseup="handlePressEnd(event)" 
+            onmouseleave="handlePressEnd(event)"
+            oncontextmenu="event.preventDefault(); activeMsgId='${msgId}'; activeMsgTextForMenu='${safeText}'; showContextMenu(event, true);"
+        `;
+    } else {
+        // 對方的訊息：右滑回覆 + 0.3秒長按 (僅回覆)
+        interactEvents = `
+            ontouchstart="handleSwipeStart(event, '${msgId}', '${safeText}', 'false'); handlePressStart(event, '${msgId}', 'false', '${safeText}')"
+            ontouchmove="handleSwipeMove(event, this); handlePressEnd(event)"
+            ontouchend="handleSwipeEnd(event, this); handlePressEnd(event)"
+            onmousedown="handlePressStart(event, '${msgId}', 'false', '${safeText}')" 
+            onmouseup="handlePressEnd(event)" 
+            onmouseleave="handlePressEnd(event)"
+            oncontextmenu="event.preventDefault(); activeMsgId='${msgId}'; activeMsgTextForMenu='${safeText}'; showContextMenu(event, false);"
+        `;
+    }
+
+    // 【修改】：加入 id="msg-${msgId}" 以便跳轉時定位
+    html += `<div id="msg-${msgId}" class="msg ${isMine ? 'mine' : 'theirs'} ${mediaClass}" ${interactEvents}>${contentHtml}</div></div>`;
+
+    if (i === lastReadIndex) {
+        html += `<div class="read-status">已讀</div>`;
+    }
+
+    wrapper.innerHTML = html;
+    list.appendChild(wrapper);
+}); // end of forEach
+
+// 執行第一次置底 (針對純文字)
+scrollToBottom();
+}
+
+    document.getElementById('fileInput').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        // 限制檔案大小
+        if (file.size > MAX_FILE_SIZE) {
+            alert("檔案過大！請上傳小於 10MB 的圖片或影片。");
+            e.target.value = ''; // 重置 input
+            return;
+        }
+
+        const user = auth.currentUser;
+        if (!user || !chatId) return;
+
+        // UI 提示正在上傳
+        const inputField = document.getElementById('msgInput');
+        const originalPlaceholder = inputField.placeholder;
+        inputField.placeholder = "檔案上傳中，請稍候...";
+        inputField.disabled = true;
+
+        try {
+            // 設定儲存路徑為 chat 類別下： chat/{chatId}/{timestamp}_{filename}
+            const fileRef = storage.ref(`chat/${chatId}/${Date.now()}_${file.name}`);
+            const snapshot = await fileRef.put(file);
+            const downloadUrl = await snapshot.ref.getDownloadURL();
+            
+            const fileType = file.type.startsWith('video/') ? 'video' : 'image';
+
+            // 寫入 Firestore 訊息資料庫
+            const batch = db.batch();
+            const chatRef = db.collection("chats").doc(chatId);
+            const msgRef = chatRef.collection("messages").doc();
+            
+            batch.set(msgRef, {
+                text: "", 
+                fileUrl: downloadUrl, // 記錄檔案網址
+                fileType: fileType,   // 記錄是圖片還是影片
+                senderId: user.uid,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            // 更新最後一則訊息狀態
+            batch.update(chatRef, {
+                lastMessage: fileType === 'image' ? '[圖片]' : '[影片]',
+                lastSenderId: user.uid,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                [`lastReadAt.${user.uid}`]: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            await batch.commit();
+
+        } catch (error) {
+            console.error("檔案上傳失敗:", error);
+            alert("上傳失敗，請稍後重試。");
+        } finally {
+            // 恢復 UI 狀態
+            inputField.placeholder = originalPlaceholder;
+            inputField.disabled = false;
+            e.target.value = '';
+        }
+    });
+
+// --- D. 渲染函式 ---
+function renderMessages(currentUid) {
+    if (!messagesSnapshot) return;
+    const list = document.getElementById('messageList');
+    list.innerHTML = "";
+    const docs = messagesSnapshot.docs;
+
+    docs.forEach((msgDoc, i) => {
+        const msg = msgDoc.data();
+        const isMine = msg.senderId === currentUid;
+        const msgTime = msg.timestamp ? msg.timestamp.toDate() : new Date();
+
+        const wrapper = document.createElement('div');
+        wrapper.className = `msg-wrapper ${isMine ? 'mine' : 'theirs'}`;
+
+        let html = `<div class="msg-row ${isMine ? 'mine' : 'theirs'}">`;
+        if (!isMine) {
+            html += `<img src="${document.getElementById('targetAvatar').src}" class="msg-avatar">`;
+        }
+        html += `<div class="msg ${isMine ? 'mine' : 'theirs'}">${msg.text}</div></div>`;
+
+        // 已讀顯示邏輯：
+        // 1. 是我發的訊息 
+        // 2. 對方正在對話中 (opponentInChat == true)
+        // 3. 這則訊息的時間早於或等於對方的最後讀取時間
+        if (isMine && opponentInChat && msgTime <= opponentReadTime) {
+            html += `<div class="read-status">已讀</div>`;
+        }
+
+        wrapper.innerHTML = html;
+        list.appendChild(wrapper);
+    });
+    list.scrollTop = list.scrollHeight;
+}
+
+    async function sendMessage() {
+        const input = document.getElementById('msgInput');
+        const text = input.value.trim();
+        if (!text || !chatId) return;
+
+        const user = auth.currentUser;
+        input.value = ""; 
+
+        // 按下傳送清空輸入框後，立刻平滑滾動到最底
+        scrollToBottom(true); 
+
+        try {
+            const batch = db.batch();
+            const chatRef = db.collection("chats").doc(chatId);
+            const msgRef = chatRef.collection("messages").doc();
+            
+            // 這裡只有純文字跟回覆資料，絕對沒有 downloadUrl！
+            batch.set(msgRef, {
+                text: text,
+                senderId: user.uid,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                replyToId: activeReplyId || null,
+                replyToText: activeReplyText || null
+            });
+
+            batch.update(chatRef, {
+                lastMessage: text,
+                lastSenderId: user.uid,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                [`lastReadAt.${user.uid}`]: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            await batch.commit();
+            
+            // 發送成功後，關閉回覆狀態
+            cancelReply();
+            
+        } catch (error) {
+            console.error("發送失敗:", error);
+        }
+    }
+
+    document.getElementById('msgInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendMessage();
+    });
+
+    document.getElementById('messageList').addEventListener('click', () => {
+        document.getElementById('msgInput').blur();
+    });
+
+    // 開啟圖片放大
+    function openModal(src) {
+        const modal = document.getElementById('imageModal');
+        const modalImg = document.getElementById('expandedImg');
+        modal.style.display = "flex";
+        modalImg.src = src;
+    }
+
+    // 關閉圖片放大
+    function closeModal() {
+        document.getElementById('imageModal').style.display = "none";
+    }
+
+    // --- 強制捲動到最底部的函式 ---
+function scrollToBottom() {
+    const list = document.getElementById('messageList');
+    if (list) {
+        list.scrollTop = list.scrollHeight;
+    }
+}
+
+// --- 收回（刪除）訊息函式 ---
+async function revokeMessage(msgId) {
+    // 再次確認是否要收回
+    if (!confirm("確定要收回這則訊息嗎？")) return;
+
+    try {
+        const msgRef = db.collection("chats").doc(chatId).collection("messages").doc(msgId);
+        const msgDoc = await msgRef.get();
+        
+        if (msgDoc.exists) {
+            const msgData = msgDoc.data();
+            
+            // 1. 如果這則訊息包含圖片或影片，先從 Firebase Storage 刪除檔案
+            if (msgData.fileUrl) {
+                // 透過網址找回 Storage 中的檔案參照並刪除
+                const fileRef = firebase.storage().refFromURL(msgData.fileUrl);
+                await fileRef.delete().catch(err => {
+                    console.warn("Storage 檔案可能已不存在或刪除失敗:", err);
+                });
+            }
+            
+            // 2. 將 Firestore 資料庫中的這則訊息節點刪除
+            await msgRef.delete();
+            
+            // 刪除後不需要手動重新整理，因為你的 onSnapshot 監聽器會自動偵測到變更並重新渲染畫面
+        }
+    } catch (error) {
+        console.error("收回訊息失敗:", error);
+        alert("收回失敗，請檢查網路連線或稍後重試。");
+    }
+}
+
+// ==========================================
+// 1. 完美防閃退版：長按與右鍵選單邏輯 (0.3秒觸發)
+// ==========================================
+let pressTimer;
+let activeMsgId = null;
+let activeMsgTextForMenu = "";
+let longPressActive = false; // 記錄長按是否已成功觸發
+let skipNextClick = false;   // 記錄是否要忽略接下來的點擊事件
+
+function handlePressStart(e, msgId, isMineStr, text) {
+    // 如果是電腦版按右鍵(e.button === 2)，交給 oncontextmenu 處理即可
+    if (e.button === 2) return;
+
+    activeMsgId = msgId;
+    activeMsgTextForMenu = text;
+    longPressActive = false; 
+    
+    const isMine = isMineStr === 'true';
+
+    // 【修改】：設置 0.3 秒 (300 毫秒) 的長按觸發時間
+    pressTimer = setTimeout(() => {
+        longPressActive = true; // 標記：選單已經被長按打開了
+        showContextMenu(e, isMine);
+    }, 300); 
+}
+
+function handlePressEnd(e) {
+    // 手指離開或滑鼠放開時取消計時
+    clearTimeout(pressTimer);
+    
+    // 【關鍵修復】：如果放開時選單已經打開了，就攔截接下來立刻發生的 click 事件
+    if (longPressActive) {
+        skipNextClick = true;
+        longPressActive = false;
+        // 設個保險：100毫秒後自動解除攔截狀態
+        setTimeout(() => { skipNextClick = false; }, 100);
+    }
+}
+
+// 顯示選單
+// 顯示選單 (定位在訊息正上方)
+function showContextMenu(e, isMine) {
+    if(e && e.cancelable) e.preventDefault(); 
+    
+    const menu = document.getElementById('contextMenu');
+    
+    // 判斷按鈕顯示邏輯
+    document.getElementById('revokeMenuBtn').style.display = isMine ? 'flex' : 'none';
+    document.getElementById('replyMenuBtn').style.display = 'flex';
+    
+    // 讓選單以 flex 的水平方向顯示
+    menu.style.display = 'flex';
+    menu.style.flexDirection = 'row'; 
+    menu.style.gap = '2px';
+    
+    // 透過 ID 抓取你剛剛長按的那則「訊息氣泡」DOM 元素
+    const msgEl = document.getElementById('msg-' + activeMsgId);
+    if (!msgEl) return;
+    
+    // 取得該訊息氣泡在畫面上的實際尺寸與位置
+    const rect = msgEl.getBoundingClientRect();
+    const menuWidth = menu.offsetWidth;
+    const menuHeight = menu.offsetHeight;
+
+    // --- 計算 Y 軸位置 (Top) ---
+    // 預設放在訊息的「正上方」，並保留 8px 的間距
+    let topPos = rect.top - menuHeight - 8;
+    
+    // 防呆：如果訊息太靠近螢幕頂端 (例如被你的上方藍色導覽列擋住)，就改顯示在訊息「正下方」
+    const headerHeight = 90; // 上方藍色導覽列的高度
+    if (topPos < headerHeight) {
+        topPos = rect.bottom + 8;
+    }
+
+    // --- 計算 X 軸位置 (Left) ---
+    // 預設將選單對齊訊息氣泡的「正中間」
+    let leftPos = rect.left + (rect.width / 2) - (menuWidth / 2);
+    
+    // 防呆：確保選單不會超出手機螢幕的最左邊或最右邊
+    if (leftPos < 10) leftPos = 10;
+    if (leftPos + menuWidth > window.innerWidth - 10) {
+        leftPos = window.innerWidth - menuWidth - 10;
+    }
+
+    // 將計算好的座標套用到選單上
+    menu.style.left = `${leftPos}px`;
+    menu.style.top = `${topPos}px`;
+}
+
+function triggerMenuReply() {
+    if (activeMsgId) {
+        setReplyMode(activeMsgId, activeMsgTextForMenu);
+        closeContextMenu();
+    }
+}
+
+function confirmRevoke() {
+    if (activeMsgId) {
+        revokeMessage(activeMsgId); 
+        closeContextMenu();
+    }
+}
+
+function closeContextMenu() {
+    const menu = document.getElementById('contextMenu');
+    if(menu) menu.style.display = 'none';
+    activeMsgId = null;
+}
+
+// 全域點擊監聽器
+document.addEventListener('click', (e) => {
+    // 【關鍵修復】：如果剛結束長按，就略過這次多餘的點擊，保護選單不消失，也不觸發圖片放大
+    if (skipNextClick) {
+        e.preventDefault();
+        e.stopPropagation(); // 徹底攔截點擊事件向下傳遞
+        // 注意：這裡不手動將 skipNextClick 設為 false，交給 handlePressEnd 裡的 100ms 計時器自然解除
+        return; 
+    }
+    
+    // 如果點擊的不是選單本身，才關閉選單
+    if (!e.target.closest('.context-menu')) {
+        closeContextMenu();
+    }
+}, true); // 加入 true (捕獲階段)，確保能最優先攔截點擊事件
+
+document.addEventListener('scroll', closeContextMenu, true);
+
+
+// ==========================================
+// 2. 雙向滑動回覆邏輯 (對方右滑、自己左滑)
+// ==========================================
+let touchStartX = 0;
+let swipeMsgId = null;
+let swipeMsgText = "";
+let isSwipeMine = false; // 新增：紀錄這是不是自己的訊息
+
+// 綁定事件時，多傳入一個 isMine 參數 ('true' 或 'false')
+function handleSwipeStart(e, id, text, isMineStr) {
+    touchStartX = e.touches[0].clientX;
+    swipeMsgId = id;
+    swipeMsgText = text;
+    isSwipeMine = isMineStr === 'true';
+}
+
+function handleSwipeMove(e, el) {
+    if (!touchStartX) return;
+    let diffX = e.touches[0].clientX - touchStartX;
+    
+    if (isSwipeMine) {
+        // 如果是自己的訊息：只能向左滑 (負數)
+        if (diffX < 0 && diffX > -80) {
+            el.style.transform = `translateX(${diffX}px)`;
+        }
+    } else {
+        // 如果是對方的訊息：只能向右滑 (正數)
+        if (diffX > 0 && diffX < 80) {
+            el.style.transform = `translateX(${diffX}px)`;
+        }
+    }
+}
+
+function handleSwipeEnd(e, el) {
+    if (!touchStartX) return;
+    let diffX = e.changedTouches[0].clientX - touchStartX;
+    
+    // 讓訊息泡泡彈回原位
+    el.style.transition = 'transform 0.3s ease';
+    el.style.transform = 'translateX(0px)';
+    setTimeout(() => { el.style.transition = ''; }, 300);
+
+    // 判斷滑動距離是否足夠觸發回覆 (自己要向左滑過 -45px，對方要向右滑過 45px)
+    if (isSwipeMine && diffX < -45) {
+        setReplyMode(swipeMsgId, swipeMsgText);
+    } else if (!isSwipeMine && diffX > 45) {
+        setReplyMode(swipeMsgId, swipeMsgText);
+    }
+    touchStartX = 0;
+}
+
+// ==========================================
+// 3. 回覆狀態控制與跳轉
+// ==========================================
+let activeReplyId = null;
+let activeReplyText = null;
+
+function setReplyMode(id, text) {
+    activeReplyId = id;
+    activeReplyText = text;
+    document.getElementById('replyPreview').style.display = 'flex';
+    // 擷取前 15 個字當預覽
+    document.getElementById('replyPreviewText').innerText = text.length > 15 ? text.substring(0, 15) + '...' : text;
+    document.getElementById('msgInput').focus();
+}
+
+function cancelReply() {
+    activeReplyId = null;
+    activeReplyText = null;
+    document.getElementById('replyPreview').style.display = 'none';
+}
+
+function scrollToOriginalMsg(id) {
+    const targetEl = document.getElementById('msg-' + id);
+    if (targetEl) {
+        // 平滑捲動
+        targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // 重置並重新觸發閃爍動畫
+        targetEl.classList.remove('highlight-animation');
+        void targetEl.offsetWidth; 
+        targetEl.classList.add('highlight-animation');
+    }
+}
+
+// --- 監聽訊息清單捲動，控制「最新訊息」按鈕的顯示與隱藏 ---
+document.getElementById('messageList').addEventListener('scroll', function() {
+    const btn = document.getElementById('scrollBottomBtn');
+    // 當距離最底部大於 150px 時，顯示按鈕
+    if (this.scrollHeight - this.scrollTop - this.clientHeight > 150) {
+        btn.style.display = 'flex';
+    } else {
+        btn.style.display = 'none';
+    }
+});
+
+// ==========================================
+// 4. 群組設定邏輯 (開啟、預覽、儲存、刪除)
+// ==========================================
+
+function openGroupSettings() {
+    document.getElementById('groupSettingsModal').style.display = 'flex';
+}
+
+function closeGroupSettings() {
+    document.getElementById('groupSettingsModal').style.display = 'none';
+}
+
+// 監聽圖片選擇，立即在畫面上預覽
+document.getElementById('groupAvatarInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('groupAvatarPreview').src = e.target.result;
+        }
+        reader.readAsDataURL(file);
+    }
+});
+
+// 儲存群組新設定
+async function saveGroupSettings() {
+    const newName = document.getElementById('groupNameEdit').value.trim();
+    if (!newName) return alert('群組名稱不能為空！');
+    
+    const fileInput = document.getElementById('groupAvatarInput');
+    const file = fileInput.files[0];
+    const saveBtn = document.querySelector('.btn-confirm');
+    
+    try {
+        saveBtn.innerText = "儲存中...";
+        saveBtn.disabled = true;
+        
+        const updateData = { groupName: newName };
+        
+        // 如果有選擇新圖片，先上傳到 Storage
+        if (file) {
+            const fileRef = storage.ref(`groupAvatars/${chatId}/${Date.now()}_${file.name}`);
+            const snapshot = await fileRef.put(file);
+            const downloadUrl = await snapshot.ref.getDownloadURL();
+            updateData.groupAvatar = downloadUrl; // 將新圖片網址存入資料庫
+        }
+        
+        await db.collection("chats").doc(chatId).update(updateData);
+        closeGroupSettings();
+        
+    } catch (error) {
+        console.error("更新群組失敗:", error);
+        alert("更新失敗，請稍後重試。");
+    } finally {
+        saveBtn.innerText = "儲存";
+        saveBtn.disabled = false;
+    }
+}
+
+// 刪除群組
+async function deleteGroup() {
+    if (!confirm("確定要刪除這個群組嗎？此操作無法還原，所有對話紀錄將被永久刪除。")) return;
+    
+    try {
+        // 直接刪除該群組的 document，這會觸發 onSnapshot 判斷 doc 不存在並自動跳回 Messenger.html
+        await db.collection("chats").doc(chatId).delete();
+        
+    } catch (error) {
+        console.error("刪除群組失敗:", error);
+        alert("刪除失敗，請確認網路連線或權限。");
+    }
+}
+</script>
+
+    <div id="imageModal" class="image-modal" onclick="closeModal()">
+        <span class="image-modal-close">&times;</span>
+        <img class="image-modal-content" id="expandedImg">
+    </div>
+
+    <div id="contextMenu" class="context-menu">
+        <button id="replyMenuBtn" onclick="triggerMenuReply()">
+            <i class="fas fa-reply"></i> 回覆訊息
+        </button>
+        <button id="revokeMenuBtn" onclick="confirmRevoke()">
+            <i class="fas fa-trash-alt"></i> 收回訊息
+        </button>
+    </div>
+
+    <div id="groupSettingsModal" class="modal-overlay">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3><i class="fas fa-cog"></i> 群組設定</h3>
+            <span style="cursor:pointer;" onclick="closeGroupSettings()">&times;</span>
+        </div>
+        <div class="modal-body" style="text-align: center;">
+            <div class="modal-input-group" style="text-align: center;">
+                <label>群組頭像 (點擊圖片更換)</label>
+                <input type="file" id="groupAvatarInput" accept="image/*" style="display: none;">
+                <img id="groupAvatarPreview" class="group-avatar-preview" src="https://via.placeholder.com/90" onclick="document.getElementById('groupAvatarInput').click()">
+            </div>
+            <div class="modal-input-group">
+                <label>群組名稱</label>
+                <input type="text" id="groupNameEdit" placeholder="輸入新的群組名稱...">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-modal btn-danger" onclick="deleteGroup()">刪除群組</button>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-modal btn-cancel" onclick="closeGroupSettings()">取消</button>
+                <button class="btn-modal btn-confirm" onclick="saveGroupSettings()">儲存</button>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

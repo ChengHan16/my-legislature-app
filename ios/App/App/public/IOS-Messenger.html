@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">    <title>法院通訊 - 訊息中心</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    
+    <style>
+        /* 【新增】：全域防呆與點擊優化 */
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        :root { 
+            --ly-blue: #003153; 
+            --ly-blue-trans: rgba(0, 49, 83, 0.85); 
+            --ly-gold: #cfa900; 
+            --bg-gray: #f2f4f7; 
+            --border-color: #dee2e6; 
+            --container-width: 750px; /* 縮小網頁版框度至 750px */
+        }
+
+        /* --- 修正外層容器，確保絕對不產生外側捲軸 --- */
+        html, body {
+            height: 100dvh !important;
+            width: 100vw !important;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+            -webkit-text-size-adjust: 100%; /* 防止 iOS 旋轉時字體自動放大 */
+        }
+
+        body { 
+            font-family: "Noto Sans TC", sans-serif; 
+            background: var(--bg-gray); 
+            color: #333;
+            /* 讓整個網頁變成垂直的彈性盒子 */
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- 修復對話清單的手機滑動問題 --- */
+        .chat-list { 
+            flex: 1;
+            min-height: 0; /* 【關鍵修復】：告訴瀏覽器它可以比內容小，強迫內部產生捲軸！ */
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch; /* 讓 iOS 手機滑動有慣性且順暢 */
+            
+            width: 100%;
+            max-width: var(--container-width); 
+            margin: 0 auto; /* 【關鍵修復】：移除原本的 margin-top，避免撐破 100dvh 的高度計算 */
+            padding: 15px 15px 100px 15px; /* 把間距改用 padding 留出來 */
+            box-sizing: border-box;
+        }
+
+        .messenger-header {
+            /* 強制橫幅不參與 flex 壓縮，確保高度與 Messenger.html 絕對一致 */
+            flex: 0 0 auto !important;
+            /* 確保寬度計算包含邊框，防止 1px 的解析度誤差 */
+            box-sizing: border-box !important;
+        }
+
+        
+        /* 【修改】：導覽列加入頂部安全距離 */
+.messenger-header {
+    background: var(--ly-blue-trans); 
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    position: sticky; 
+    top: 0; 
+    z-index: 100;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    flex: 0 0 auto !important;
+    box-sizing: border-box !important;
+
+    /* 關鍵：為動態島保留空間 */
+    padding-top: env(safe-area-inset-top); 
+}
+
+.header-content {
+    max-width: var(--container-width);
+    margin: 0 auto;
+    /* 稍微調整內距，並加入 min-height 確保高度正常 */
+    padding: 10px 20px;
+    min-height: 60px;
+    height: auto;
+    display: flex; 
+    align-items: center;
+    justify-content: space-between;
+}
+
+        .user-profile { display: flex; align-items: center; }
+
+        .back-btn {
+            background: none; border: none; margin-right: 15px; 
+            cursor: pointer; color: var(--ly-gold); font-size: 1.4rem; /* 加大返回圖示 */
+            transition: 0.3s;
+        }
+
+        /* 加大後的頭像 */
+        .user-avatar { 
+            width: 55px; height: 55px; 
+            border-radius: 50%; 
+            object-fit: cover; 
+            margin-right: 15px; 
+            background: transparent;
+            border: none; /* 移除金色外框 */
+            flex-shrink: 0; /* 【關鍵】：確保圖片絕對不會被文字擠壓縮小 */
+        }
+
+        /* 加大後的姓名 */
+        .user-name { 
+            font-weight: 800; 
+            font-size: 1.35rem; /* 從 1.1rem 放大 */
+            color: white; 
+            letter-spacing: 1px;
+        }
+
+        .header-actions button {
+            background: rgba(255, 255, 255, 0.15); 
+            border: 1px solid rgba(255, 255, 255, 0.2); 
+            color: white;
+            width: 42px; height: 42px; /* 按鈕同步放大 */
+            border-radius: 50%; cursor: pointer; margin-left: 12px;
+            font-size: 1.1rem;
+            transition: 0.3s;
+        }
+
+        /* 對話清單：限制寬度並置中 */
+        /* 對話清單：限制寬度並置中，加入獨立滾動 */
+        .chat-list { 
+            /* 【新增】：讓清單自動填滿剩餘高度，並開啟獨立垂直滾動 */
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch; /* 讓手機滑動更順暢 */
+            
+            width: 100%;
+            max-width: var(--container-width); 
+            margin: 15px auto 0 auto; 
+            /* 底部多加一點 padding，避免最後一個對話被新增對話按鈕(fab)擋住 */
+            padding: 10px 15px 100px 15px; 
+            box-sizing: border-box;
+        }
+
+        .chat-item {
+            background: white; 
+            display: flex; 
+            align-items: center; 
+            padding: 18px 20px; /* 增加內距 */
+            margin-bottom: 0px; 
+            border-radius: 6px; 
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-color);
+        }
+        
+        .chat-item:hover { 
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+            border-color: var(--ly-gold);
+        }
+
+        .chat-info { flex-grow: 1; padding-left: 5px; }
+
+        /* 加大清單中的名稱與訊息文字 */
+        .chat-info h4 { 
+            margin: 0 0 6px 0; 
+            font-size: 1.25rem; /* 從 1.05rem 放大 */
+            color: var(--ly-blue); 
+        }
+        .chat-info p { 
+            margin: 0; 
+            color: #666; 
+            font-size: 1.05rem; /* 從 0.9rem 放大 */
+            display: -webkit-box;
+            line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            word-break: break-all;
+        }
+        
+        .chat-time {
+            font-size: 0.85rem;
+            color: #999;
+            font-weight: 500;
+        }
+
+        /* 未讀標記強化 */
+        .chat-item.unread { border-left: 6px solid var(--ly-gold); background: #fdfcf5; }
+        .chat-item.unread h4 { font-weight: 900; }
+        .chat-item.unread p { color: #111 !important; font-weight: 700; }
+
+        /* 未讀/新訊息文字高亮顯示 */
+/* --- 專業版未讀/新訊息樣式 --- */
+
+/* --- 專業版即時更新樣式 --- */
+.chat-item {
+    border-left: 6px solid transparent; /* 預設透明，防止位置跳動 */
+    transition: all 0.3s ease, border-left 0.2s ease;
+}
+
+/* 當有新訊息（未讀）時的樣式 */
+.chat-item.unread {
+    background-color: #fdfcf5; /* 極淡米黃色背景 */
+    border-left: 6px solid var(--ly-gold) !important; /* 亮金標示條 */
+}
+
+/* 未讀訊息文字：深黑粗體 */
+.chat-item.unread h4 { font-weight: 900 !important; color: var(--ly-blue); }
+.chat-item.unread p { 
+    color: #000 !important; 
+    font-weight: 800 !important; 
+    background: transparent !important; /* 移除任何底色 */
+}
+
+/* 已讀訊息：恢復專業灰色 */
+.chat-item p { color: #666; font-weight: 500; }
+
+        /* 浮動按鈕同步亮化 */
+        .fab {
+            position: fixed; bottom: 40px; right: 40px;
+            background: var(--ly-gold); color: white;
+            width: 65px; height: 65px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 28px; box-shadow: 0 6px 20px rgba(207, 169, 0, 0.4);
+            cursor: pointer; border: none;
+        }
+
+        @media (max-width: 750px) {
+            .user-name { font-size: 1.2rem; }
+            .chat-info h4 { font-size: 1.15rem; }
+            .chat-info p { font-size: 0.95rem; }
+            .chat-item { padding: 15px; }
+        }
+
+        /* --- 彈出表單 (Modal) 基礎樣式 --- */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    display: none; /* 預設隱藏 */
+    justify-content: center;
+    align-items: center;
+    z-index: 3000;
+}
+
+/* 【修改】：Modal 卡片限制最大高度並讓內容可捲動 */
+.modal-card {
+    background: white;
+    width: 90%;
+    max-width: 450px;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    border: 1px solid var(--border-color);
+    animation: modalFadeIn 0.3s ease-out;
+
+    /* 關鍵：限制高度避開安全區域 */
+    max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 40px);
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-body { 
+    padding: 25px 20px; 
+    /* 關鍵：讓內部可以獨立滑動 */
+    overflow-y: auto; 
+    -webkit-overflow-scrolling: touch;
+}
+
+@keyframes modalFadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-header {
+    background: var(--ly-blue-trans);
+    backdrop-filter: blur(10px);
+    padding: 15px 20px;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 3px solid var(--ly-gold); /* 亮金強調線 */
+}
+
+.modal-header h3 { margin: 0; font-size: 1.1rem; letter-spacing: 1px; }
+
+.modal-body { padding: 25px 20px; }
+
+.modal-input-group { margin-bottom: 20px; }
+
+.modal-input-group label {
+    display: block;
+    font-size: 13px;
+    color: var(--ly-blue);
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.modal-input-group input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+.modal-input-group input:focus {
+    border-color: var(--ly-gold);
+}
+
+.modal-footer {
+    padding: 15px 20px;
+    background: #f8f9fa;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+/* 按鈕樣式 */
+.btn-modal {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-confirm {
+    background: var(--ly-blue);
+    color: white;
+    border: none;
+}
+
+.btn-confirm:hover { background: #004675; }
+
+.btn-cancel {
+    background: white;
+    color: #666;
+    border: 1px solid #ddd;
+}
+
+.btn-cancel:hover { background: #eee; }
+
+/* --- 群組成員選擇列表樣式 --- */
+.user-select-list {
+    max-height: 220px;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 5px;
+    background: #fafafa;
+}
+
+.user-select-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    transition: background 0.2s;
+    border-radius: 6px;
+}
+
+.user-select-item:hover {
+    background: #eef2f5;
+}
+
+.user-select-item:last-child {
+    border-bottom: none;
+}
+
+.user-select-item img {
+    width: 35px; height: 35px; 
+    border-radius: 50%; 
+    margin: 0 12px; 
+    object-fit: cover;
+    border: 1px solid #ccc;
+}
+
+.user-select-item input[type="checkbox"] {
+    width: 18px; height: 18px; 
+    cursor: pointer;
+    accent-color: var(--ly-blue);
+}
+
+.user-select-item span {
+    font-weight: 600;
+    color: #444;
+}
+
+
+        /* --- 圖片裁切與編輯樣式 (與 chat.html 相同) --- */
+        .group-avatar-preview { 
+            width: 90px; height: 90px; border-radius: 50%; object-fit: cover; 
+            margin-bottom: 5px; border: 3px solid var(--ly-gold); cursor: pointer;
+        }
+        .avatar-edit-wrapper { position: relative; display: inline-block; cursor: pointer; }
+        .avatar-edit-icon {
+            position: absolute; bottom: 5px; right: 0; background: var(--ly-blue); color: white;
+            border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center;
+            justify-content: center; border: 2px solid white; font-size: 12px;
+        }
+        .cropper-view-box, .cropper-face { border-radius: 50%; }
+        
+        /* 垂直拉霸樣式 */
+        .zoom-slider-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 250px; width: 40px; background: rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 15px 0; }
+        #cropperZoomSlider { -webkit-appearance: slider-vertical; writing-mode: bt-lr; height: 100%; width: 6px; cursor: pointer; accent-color: var(--ly-gold); outline: none; }
+        .zoom-icon { color: white; font-size: 14px; margin: 8px 0; }
+
+        /* --- 網格狀群組成員選擇列表 (新版卡片設計) --- */
+        /* --- 網格狀群組成員選擇列表 (修復重疊與優化比例) --- */
+        .user-select-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(85px, 1fr)); /* 稍微縮小最小寬度，讓排版更彈性 */
+            gap: 15px; /* 【關鍵修改】：加大上下左右的間距，徹底解決卡片重疊 */
+            max-height: 350px;
+            overflow-y: auto;
+            padding: 10px; /* 增加一點外圍內距，避免卡片陰影被切掉 */
+            background: transparent;
+            border: none;
+        }
+
+        /* 隱藏原生 checkbox */
+        .user-select-item {
+            display: block;
+            margin: 0;
+            padding: 0;
+            cursor: pointer;
+        }
+        .user-select-item input[type="checkbox"] {
+            display: none;
+        }
+
+        /* 卡片設計 */
+        .user-select-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 5px; /* 【關鍵修改】：大幅縮小上下內距，讓卡片變矮 */
+            background: white;
+            border: 1.5px solid #eee; /* 邊框稍微改細一點，提升精緻感 */
+            border-radius: 12px;
+            transition: all 0.2s ease;
+            /* 【關鍵修改】：已經移除 height: 100%，讓卡片高度自然由內容撐開，絕對不會重疊！ */
+            box-shadow: 0 2px 6px rgba(0,0,0,0.03); 
+        }
+
+        .user-select-card:hover {
+            border-color: #ddd;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+            transform: translateY(-2px); /* 加入滑鼠移過時微微上浮的動畫 */
+        }
+
+        /* 大頭貼 */
+        /* 大頭貼 */
+        .user-select-card img {
+            width: 55px; /* 稍微調大一點填滿空間 */
+            height: 55px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 8px; 
+            border: none; /* 移除原本的透明外框 */
+            flex-shrink: 0; /* 確保不被擠壓 */
+            transition: 0.2s;
+        }
+
+        /* 姓名 */
+        .user-select-card span {
+            font-size: 13px; /* 【修改】：字體微調，比例更好看 */
+            font-weight: 600;
+            color: #333;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+            padding: 0 4px;
+        }
+
+        /* --- 被選取時的狀態 --- */
+        /* --- 被選取時的狀態 (同時支援群組的多選 checkbox 與私訊的單選 radio) --- */
+        .user-select-item input[type="checkbox"]:checked + .user-select-card,
+        .user-select-item input[type="radio"]:checked + .user-select-card {
+            border-color: var(--ly-gold); 
+            background: #fffdf5; 
+            box-shadow: 0 4px 12px rgba(207, 169, 0, 0.15);
+        }
+        
+        .user-select-item input[type="checkbox"]:checked + .user-select-card img,
+        .user-select-item input[type="radio"]:checked + .user-select-card img {
+            border-color: var(--ly-gold); 
+        }
+        .user-select-item input[type="checkbox"]:checked + .user-select-card span,
+        .user-select-item input[type="radio"]:checked + .user-select-card span {
+            color: var(--ly-gold); 
+        }
+
+        /* 【修改】：對話清單底部加上安全距離 */
+.chat-list { 
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch; 
+    width: 100%;
+    max-width: var(--container-width); 
+    margin: 0 auto; 
+    /* 關鍵：原本的 100px 加上底部安全距離 */
+    padding: 15px 15px calc(100px + env(safe-area-inset-bottom)) 15px; 
+    box-sizing: border-box;
+}
+
+/* 【修改】：浮動按鈕位置上抬 */
+.fab {
+    position: fixed; 
+    /* 關鍵：原本的 40px 加上底部安全距離 */
+    bottom: calc(40px + env(safe-area-inset-bottom)); 
+    right: 40px;
+    background: var(--ly-gold); color: white;
+    width: 65px; height: 65px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; box-shadow: 0 6px 20px rgba(207, 169, 0, 0.4);
+    cursor: pointer; border: none;
+    z-index: 90; /* 確保不被其他元素蓋住 */
+}
+
+@media (max-width: 750px) {
+    .fab {
+        /* 手機版稍微靠邊一點 */
+        right: 20px;
+        bottom: calc(20px + env(safe-area-inset-bottom)); 
+    }
+}
+</style>
+</head>
+<body>
+    <header class="messenger-header">
+        <div class="header-content">
+            <div class="user-profile">
+                <button class="back-btn" onclick="window.location.href='Dashboard.html'">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <img id="myAvatar" class="user-avatar" src="https://via.placeholder.com/55" alt="Profile">
+                <span id="myName" class="user-name">載入中...</span>
+            </div>
+            <div class="header-actions">
+                <button title="新增對話" onclick="startNewChat()"><i class="fas fa-plus"></i></button>
+                <button title="建立群組" onclick="createGroup()"><i class="fas fa-users"></i></button>
+            </div>
+        </div>
+    </header>
+
+    <main class="chat-list" id="chatList"></main>
+
+    <button class="fab" onclick="startNewChat()" title="快速發起聊天">
+        <i class="fas fa-comment-dots"></i>
+    </button>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
+
+    <script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyACnoimIASfb1rb59SbgLDkUmyYR6ODbUU",
+        authDomain: "llwb-ed686.firebaseapp.com",
+        projectId: "llwb-ed686",
+        storageBucket: "llwb-ed686.firebasestorage.app",
+        messagingSenderId: "940345852074",
+        appId: "1:940345852074:web:7a30cca5a6d997a92350d3"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    const userCache = {};
+    const storage = firebase.storage(); // 【新增這行】初始化 Storage
+    // === 1. 推播通知初始化與全域變數 ===
+    let isInitialLoad = true;
+    let previousChatUpdates = {};
+
+    // iOS 規定必須由「使用者手動點擊」才能請求推播權限，因此我們綁定在全域點擊上
+    document.addEventListener('click', function requestNotificationPermission() {
+        if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
+            Notification.requestPermission();
+        }
+        document.removeEventListener('click', requestNotificationPermission);
+    }, { once: true });
+
+    // === 2. 觸發 iOS 推播的核心函式 ===
+    function triggerIOSNotification(title, body, targetChatId) {
+        // 策略 A: 如果是用 Xcode (Swift) 包裝的 App，將訊號丟給原生處理
+        if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.notificationHandler) {
+            window.webkit.messageHandlers.notificationHandler.postMessage({
+                title: title,
+                body: body,
+                chatId: targetChatId
+            });
+        }
+
+        // 策略 B: 如果是 iOS 16.4+ (已加入主畫面) 或一般電腦瀏覽器，使用網頁原生推播
+        if ("Notification" in window && Notification.permission === "granted") {
+            const notification = new Notification(title, {
+                body: body,
+                icon: "https://via.placeholder.com/150" // 可替換為你們的 Logo 網址
+            });
+            notification.onclick = function() {
+                // 點擊通知後自動跳轉進該聊天室
+                window.location.href = `IOS-chat.html?id=${targetChatId}`;
+            };
+        }
+    }
+
+    // === 3. 登入狀態與資料庫監聽 ===
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            db.collection("act").doc(user.uid).get().then(doc => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    document.getElementById('myName').innerText = data.displayName || "未設定名稱";
+                    document.getElementById('myAvatar').src = data.photoURL || 'https://via.placeholder.com/45';
+                }
+            });
+
+            db.collection("chats")
+                .where("members", "array-contains", user.uid)
+                .orderBy("updatedAt", "desc")
+                .onSnapshot(snapshot => {
+                    renderChatList(snapshot);
+
+                    // --- 智慧推播邏輯開始 ---
+                    snapshot.docChanges().forEach(change => {
+                        const chat = change.doc.data();
+                        const changeChatId = change.doc.id;
+
+                        // 1. 記錄初次載入的時間戳，避免一登入就狂跳歷史通知
+                        if (isInitialLoad) {
+                            previousChatUpdates[changeChatId] = chat.updatedAt ? chat.updatedAt.toMillis() : 0;
+                            return;
+                        }
+
+                        // 2. 絕對不通知「自己發送」的訊息
+                        if (chat.lastSenderId === user.uid) return;
+
+                        const currentUpdateTime = chat.updatedAt ? chat.updatedAt.toMillis() : 0;
+                        const prevUpdateTime = previousChatUpdates[changeChatId] || 0;
+
+                        // 3. 確認時間戳確實有更新（過濾掉純粹是別人「已讀」造成的資料庫靜默更新）
+                        if (currentUpdateTime > prevUpdateTime) {
+                            let title = "新訊息";
+                            let body = chat.lastMessage || "您有一則新訊息";
+
+                            // 判斷是新群組還是新私訊
+                            if (chat.isGroup) {
+                                title = change.type === 'added' ? `被加入新群組：${chat.groupName}` : chat.groupName;
+                            } else {
+                                const targetUid = chat.members.find(uid => uid !== user.uid);
+                                if (userCache[targetUid]) {
+                                    title = change.type === 'added' ? `新對話邀請：${userCache[targetUid].displayName}` : userCache[targetUid].displayName;
+                                }
+                            }
+
+                            // 觸發 iOS 通知
+                            triggerIOSNotification(title, body, changeChatId);
+                            // 更新最後通知時間
+                            previousChatUpdates[changeChatId] = currentUpdateTime;
+                        }
+                    });
+
+                    isInitialLoad = false; // 標記初次載入完成
+                    // --- 智慧推播邏輯結束 ---
+
+                }, error => {
+                    console.error("監聽失敗:", error);
+                    db.collection("chats").where("members", "array-contains", user.uid).get().then(renderChatList);
+                });
+        } else {
+            window.location.href = "IOS-index.html";
+        }
+    });
+
+    // === 2. 渲染對話清單 (包含指定名稱置頂與智慧時間) ===
+    async function renderChatList(snapshot, needsManualSort = false) {
+        const listElement = document.getElementById('chatList');
+        const currentUser = auth.currentUser;
+        if (!currentUser) return;
+
+        if (snapshot.empty) {
+            listElement.innerHTML = '<p style="text-align:center; color:#999; margin-top:20px;">暫無對話</p>';
+            return;
+        }
+
+        // 取得文件陣列
+        let docs = snapshot.docs;
+        
+        // 如果是備用讀取法，在此手動根據時間排序
+        if (needsManualSort) {
+            docs = docs.sort((a, b) => {
+                const timeA = a.data().updatedAt ? a.data().updatedAt.toMillis() : 0;
+                const timeB = b.data().updatedAt ? b.data().updatedAt.toMillis() : 0;
+                return timeB - timeA;
+            });
+        }
+
+        // 【核心修改】：分離「立法院 Legislature」與「一般對話」
+        const pinnedChats = [];
+        const normalChats = [];
+
+        docs.forEach(doc => {
+            const chatData = doc.data();
+            // 判斷是否為群組，且名稱完全等於「立法院 Legislature」
+            if (chatData.isGroup && chatData.groupName === "立法院 Legislature") {
+                pinnedChats.push(doc);
+            } else {
+                normalChats.push(doc);
+            }
+        });
+
+        // 組合陣列：強制將立法院群組放在第 0 順位 (永遠置頂)
+        const sortedDocs = [...pinnedChats, ...normalChats];
+
+        const chatItemsPromises = sortedDocs.map(async (chatDoc) => {
+            const chat = chatDoc.data();
+            const chatId = chatDoc.id;
+            
+            let displayTitle = "";
+            let displayAvatar = "";
+            let avatarStyle = ""; // 用來控制特定頭像大小與間距的變數
+
+            if (chat.isGroup) {
+                displayTitle = chat.groupName || "未命名群組";
+                displayAvatar = chat.groupAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayTitle)}&background=003153&color=fff`; 
+                // 群組維持預設的樣式（55px大小，15px右間距）
+            } else {
+                const targetUid = chat.members.find(uid => uid !== currentUser.uid);
+                if (targetUid && !userCache[targetUid]) {
+                    const userDoc = await db.collection("act").doc(targetUid).get();
+                    if (userDoc.exists) userCache[targetUid] = userDoc.data();
+                }
+                const targetData = userCache[targetUid] || { displayName: "未知成員", photoURL: "https://ui-avatars.com/api/?name=User&background=ddd&color=fff" };
+                displayTitle = targetData.displayName;
+                displayAvatar = targetData.photoURL || "https://ui-avatars.com/api/?name=User&background=ddd&color=fff";
+                
+                // 【修改】：私訊的頭像除了放大為 60px，並將右側間距縮小為 10px
+                avatarStyle = "width: 60px; height: 60px; margin-right: 10px;"; 
+            }
+
+            const updatedAt = chat.updatedAt ? chat.updatedAt.toDate() : new Date();
+            const myLastRead = (chat.lastReadAt && chat.lastReadAt[currentUser.uid]) 
+                               ? chat.lastReadAt[currentUser.uid].toDate() 
+                               : new Date(0);
+
+            const isUnread = chat.lastSenderId !== currentUser.uid && updatedAt > myLastRead;
+            const unreadClass = isUnread ? "unread" : "";
+            
+            // 時間顯示邏輯
+            let timeStr = "";
+            if (chat.updatedAt) {
+                const now = new Date();
+                const isToday = updatedAt.toDateString() === now.toDateString();
+                if (isToday) {
+                    timeStr = updatedAt.toLocaleTimeString('zh-TW', {hour: '2-digit', minute:'2-digit', hour12: false});
+                } else {
+                    const y = updatedAt.getFullYear();
+                    const m = (updatedAt.getMonth() + 1).toString().padStart(2, '0');
+                    const d = updatedAt.getDate().toString().padStart(2, '0');
+                    timeStr = `${y}/${m}/${d}`;
+                }
+            }
+
+            // 立法院小圖釘
+            const isPinned = (chat.isGroup && chat.groupName === "立法院 Legislature");
+            const pinIcon = isPinned ? '<i class="fas fa-thumbtack" style="color: var(--ly-gold); margin-right: 6px; font-size: 13px; transform: rotate(-45deg);"></i>' : '';
+
+            // 組合 HTML，行內樣式套用 avatarStyle
+            return `
+                <div class="chat-item ${unreadClass}" onclick="window.location.href='chat.html?id=${chatId}'">
+                    <img class="user-avatar" src="${displayAvatar}" alt="Chat" style="${avatarStyle}">
+                    <div class="chat-info">
+                        <div style="display:flex; justify-content:space-between; align-items:baseline;">
+                            <h4>${pinIcon}${displayTitle}</h4>
+                            <span class="chat-time">${timeStr}</span>
+                        </div>
+                        <p>${chat.lastMessage || '尚無訊息'}</p>
+                    </div>
+                </div>`;
+        });
+
+        const chatItemsHtml = await Promise.all(chatItemsPromises);
+        listElement.innerHTML = chatItemsHtml.join(""); 
+    }
+
+    // --- Modal 控制邏輯 ---
+    function openModal(id) {
+        document.getElementById(id).style.display = 'flex';
+    }
+
+    function closeModal(id) {
+        document.getElementById(id).style.display = 'none';
+        if(id === 'newChatModal') document.getElementById('targetUserName').value = '';
+    }
+
+    // --- 打開發起新對話視窗並載入單選成員卡片 ---
+    async function startNewChat() {
+        openModal('newChatModal');
+        document.getElementById('targetUserName').value = ''; // 確保打開時清空輸入框
+
+        const listEl = document.getElementById('singleUserList');
+        listEl.innerHTML = '<div style="text-align:center; color:#999; padding: 20px;">載入成員中... <i class="fas fa-spinner fa-spin"></i></div>';
+
+        try {
+            const currentUser = auth.currentUser;
+            const usersSnapshot = await db.collection("act").get();
+            let html = '';
+            
+            usersSnapshot.forEach(doc => {
+                // 排除自己
+                if (doc.id !== currentUser.uid) {
+                    const data = doc.data();
+                    const name = data.displayName || '未命名成員';
+                    const photo = data.photoURL || 'https://via.placeholder.com/35';
+                    
+                    // 【關鍵邏輯】：改用 type="radio"，並且加入 onclick 連動下方的輸入框
+                    html += `
+                    <label class="user-select-item">
+                        <input type="radio" name="singleChatUser" value="${name}" onclick="document.getElementById('targetUserName').value = this.value">
+                        <div class="user-select-card">
+                            <img src="${photo}" alt="avatar">
+                            <span>${name}</span>
+                        </div>
+                    </label>`;
+                }
+            });
+            
+            if (!html) html = '<div style="text-align:center; color:#999; padding: 20px;">目前無其他成員</div>';
+            listEl.innerHTML = html;
+            
+        } catch(e) {
+            console.error("載入成員失敗:", e);
+            listEl.innerHTML = '<div style="text-align:center; color:red; padding: 20px;">載入失敗</div>';
+        }
+    }
+
+    // --- 核心修正：完整處理開啟對話邏輯 ---
+    async function handleStartChat() {
+        const targetName = document.getElementById('targetUserName').value.trim();
+        if (!targetName) return;
+
+        try {
+            const currentUser = auth.currentUser;
+            
+            // 1. 搜尋使用者
+            const userQuery = await db.collection("act")
+                .where("displayName", "==", targetName)
+                .limit(1)
+                .get();
+
+            if (userQuery.empty) {
+                alert("找不到該人員，請確認名稱是否正確。");
+                return;
+            }
+
+            const targetDoc = userQuery.docs[0];
+            const targetUid = targetDoc.id;
+            const targetData = targetDoc.data();
+
+            if (targetUid === currentUser.uid) {
+                alert("系統不支援與個人帳號發起對話。");
+                return;
+            }
+
+            // 2. 檢查現有對話
+            const chatQuery = await db.collection("chats")
+                .where("members", "array-contains", currentUser.uid)
+                .get();
+
+            let existingChatId = null;
+            chatQuery.forEach(doc => {
+                const data = doc.data();
+                if (data.members && data.members.length === 2 && data.members.includes(targetUid)) {
+                    existingChatId = doc.id;
+                }
+            });
+
+            if (existingChatId) {
+                // 已有對話，關閉視窗並跳轉
+                closeModal('newChatModal');
+                window.location.href = `chat.html?id=${existingChatId}`;
+            } else {
+                // 3. 建立新對話
+                const newChatRef = await db.collection("chats").add({
+                    members: [currentUser.uid, targetUid],
+                    lastMessage: "剛開啟了對話",
+                    lastSenderId: currentUser.uid,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                closeModal('newChatModal');
+                window.location.href = `chat.html?id=${newChatRef.id}`;
+            }
+            
+        } catch (error) {
+            console.error("開啟失敗:", error);
+            alert("開啟對話時發生錯誤。");
+        }
+    }
+
+    // 打開群組建立視窗並載入成員
+    // --- 圖片裁切功能邏輯 ---
+    let cropperInstance = null;
+    window.croppedAvatarBlob = null; 
+
+    function openCropper(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('cropperImage').src = e.target.result;
+                document.getElementById('cropperModal').style.display = 'flex';
+                
+                if (cropperInstance) cropperInstance.destroy();
+                const slider = document.getElementById('cropperZoomSlider');
+                
+                cropperInstance = new Cropper(document.getElementById('cropperImage'), {
+                    aspectRatio: 1, viewMode: 1, dragMode: 'move', autoCropArea: 1,
+                    cropBoxMovable: false, cropBoxResizable: false,
+                    ready: function () {
+                        const imageData = cropperInstance.getImageData();
+                        slider.min = imageData.width / imageData.naturalWidth;
+                        slider.max = slider.min * 5;
+                        slider.value = imageData.ratio;
+                    },
+                    zoom: function (e) { slider.value = e.detail.ratio; }
+                });
+            }
+            reader.readAsDataURL(file);
+        }
+        event.target.value = ''; 
+    }
+
+    function changeCropperZoom(value) { if (cropperInstance) cropperInstance.zoomTo(parseFloat(value)); }
+    function closeCropper() {
+        document.getElementById('cropperModal').style.display = 'none';
+        if (cropperInstance) { cropperInstance.destroy(); cropperInstance = null; }
+    }
+    function confirmCrop() {
+        if (!cropperInstance) return;
+        const canvas = cropperInstance.getCroppedCanvas({ width: 300, height: 300, fillColor: '#fff' });    
+        document.getElementById('groupAvatarPreview').src = canvas.toDataURL('image/jpeg');
+        canvas.toBlob(function(blob) {
+            window.croppedAvatarBlob = blob;
+            closeCropper();
+        }, 'image/jpeg', 0.85);
+    }
+
+    // --- 打開群組建立視窗 (重置圖片狀態) ---
+    async function createGroup() {
+        openModal('createGroupModal');
+        // 【新增】：重置圖片狀態
+        document.getElementById('groupAvatarPreview').src = 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true';
+        window.croppedAvatarBlob = null; 
+
+        const listEl = document.getElementById('groupUserList');
+        listEl.innerHTML = '<div style="text-align:center; color:#999; padding: 20px;">載入成員中... <i class="fas fa-spinner fa-spin"></i></div>';
+        
+        try {
+            const currentUser = auth.currentUser;
+            const usersSnapshot = await db.collection("act").get();
+            let html = '';
+            usersSnapshot.forEach(doc => {
+                if(doc.id !== currentUser.uid) {
+                    const data = doc.data();
+                    const name = data.displayName || '未命名成員';
+                    const photo = data.photoURL || 'https://via.placeholder.com/35';
+                    // 【修改】：套用全新的卡片 HTML 結構
+                    html += `
+                    <label class="user-select-item">
+                        <input type="checkbox" value="${doc.id}" class="group-member-checkbox">
+                        <div class="user-select-card">
+                            <img src="${photo}" alt="avatar">
+                            <span>${name}</span>
+                        </div>
+                    </label>`;
+                }
+            });
+            if(!html) html = '<div style="text-align:center; color:#999; padding: 20px;">目前無其他成員</div>';
+            listEl.innerHTML = html;
+        } catch(e) {
+            console.error("載入成員失敗:", e);
+        }
+    }
+
+    // --- 建立群組並檢查重複成員 ---
+    async function handleCreateGroup() {
+        const groupName = document.getElementById('groupNameInput').value.trim();
+        if (!groupName) return alert('請為群組取個名稱！');
+        
+        const checkboxes = document.querySelectorAll('.group-member-checkbox:checked');
+        if (checkboxes.length === 0) return alert('請至少選擇一位其他成員加入群組！');
+        
+        const currentUser = auth.currentUser;
+        const members = [currentUser.uid];
+        checkboxes.forEach(cb => members.push(cb.value));
+        
+        const btnConfirm = document.querySelector('#createGroupModal .btn-confirm');
+        btnConfirm.innerText = "驗證中...";
+        btnConfirm.disabled = true;
+
+        try {
+            // 【核心邏輯 1】：檢查是否已經有成員完全相同的群組
+            const sortedNewMembers = [...members].sort(); // 將新成員 UID 陣列排序
+            
+            // 抓取有我在內的所有群組
+            const chatsSnapshot = await db.collection("chats")
+                .where("isGroup", "==", true)
+                .where("members", "array-contains", currentUser.uid)
+                .get();
+            
+            let duplicateChatId = null;
+            
+            chatsSnapshot.forEach(doc => {
+                const existingMembers = doc.data().members || [];
+                // 如果人數一樣，且排序後每個 UID 都對應相等，就代表群組一模一樣
+                if (existingMembers.length === sortedNewMembers.length) {
+                    const sortedExisting = [...existingMembers].sort();
+                    const isExactMatch = sortedNewMembers.every((val, index) => val === sortedExisting[index]);
+                    if (isExactMatch) duplicateChatId = doc.id;
+                }
+            });
+
+            /** 若找到重複群組，攔截並直接跳轉**/
+            // 若找到重複群組，直接跳轉，不出現確認提示
+            if (duplicateChatId) {
+                closeModal('createGroupModal');
+                window.location.href = `chat.html?id=${duplicateChatId}`;
+                return; // 終止建立新群組
+            }
+            /**
+            if (duplicateChatId) {
+                alert("系統發現已經有成員完全相同的群組！將為您自動跳轉至該聊天室。");
+                closeModal('createGroupModal');
+                window.location.href = `chat.html?id=${duplicateChatId}`;
+                return; // 終止建立新群組
+            }**/
+
+            // 【核心邏輯 2】：若無重複，開始上傳裁切圖片與寫入資料庫
+            btnConfirm.innerText = "建立中...";
+            let groupAvatarUrl = "";
+            
+            if (window.croppedAvatarBlob) {
+                const tempId = db.collection("chats").doc().id; // 先隨機生一個 ID 當資料夾名稱
+                const fileRef = storage.ref(`groupAvatars/${tempId}/${Date.now()}_avatar.jpg`);
+                const snapshot = await fileRef.put(window.croppedAvatarBlob);
+                groupAvatarUrl = await snapshot.ref.getDownloadURL();
+            }
+
+            const newChatData = {
+                isGroup: true,
+                groupName: groupName,
+                members: members,
+                lastMessage: "群組已建立，開始聊天吧！",
+                lastSenderId: currentUser.uid,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                [`lastReadAt.${currentUser.uid}`]: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            if (groupAvatarUrl) {
+                newChatData.groupAvatar = groupAvatarUrl;
+            }
+
+            const newChatRef = await db.collection("chats").add(newChatData);
+            
+            closeModal('createGroupModal');
+            document.getElementById('groupNameInput').value = ''; 
+            window.location.href = `chat.html?id=${newChatRef.id}`;
+            
+        } catch(e) {
+            console.error("建立群組失敗:", e);
+            alert('建立群組失敗，請稍後重試。');
+        } finally {
+            btnConfirm.innerText = "建立群組";
+            btnConfirm.disabled = false;
+        }
+    }
+</script>
+
+    <div id="newChatModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><i class="fas fa-comment-medical"></i> 發起新對話</h3>
+                <span style="cursor:pointer;" onclick="closeModal('newChatModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="modal-input-group">
+                    <label>選擇對象 (從系統資料庫)</label>
+                    <div id="singleUserList" class="user-select-list">
+                        <div style="text-align:center; color:#999; padding: 20px;">載入成員中...</div>
+                    </div>
+                </div>
+                <div class="modal-input-group">
+                    <label>手動輸入或確認對象名稱</label>
+                    <input type="text" id="targetUserName" placeholder="請輸入對方的名稱...">
+                </div>
+                <p style="font-size: 12px; color: #888; margin-top: -10px;">* 點擊上方卡片會自動填入，或可直接手動輸入名稱</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-modal btn-cancel" onclick="closeModal('newChatModal')">取消</button>
+                <button class="btn-modal btn-confirm" onclick="handleStartChat()">確認開啟</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="createGroupModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><i class="fas fa-users"></i> 建立群組聊天</h3>
+                <span style="cursor:pointer;" onclick="closeModal('createGroupModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="modal-input-group" style="text-align: center;">
+                    <label>群組頭像</label>
+                    <input type="file" id="groupAvatarInput" accept="image/*" style="display: none;" onchange="openCropper(event)">
+                    <div class="avatar-edit-wrapper" onclick="document.getElementById('groupAvatarInput').click()">
+                        <img id="groupAvatarPreview" class="group-avatar-preview" src="https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true">
+                        <div class="avatar-edit-icon"><i class="fas fa-pencil-alt"></i></div>
+                    </div>
+                </div>
+
+                <div class="modal-input-group">
+                    <label>群組名稱</label>
+                    <input type="text" id="groupNameInput" placeholder="請輸入群組名稱...">
+                </div>
+                <div class="modal-input-group">
+                    <label>選擇成員 (從系統資料庫)</label>
+                    <div id="groupUserList" class="user-select-list">
+                        <div style="text-align:center; color:#999; padding: 20px;">載入成員中...</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-modal btn-cancel" onclick="closeModal('createGroupModal')">取消</button>
+                <button class="btn-modal btn-confirm" onclick="handleCreateGroup()">建立群組</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="cropperModal" class="modal-overlay" style="z-index: 4000;">
+        <div class="modal-card" style="max-width: 450px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-crop-alt"></i> 調整圖片位置與大小</h3>
+                <span style="cursor:pointer;" onclick="closeCropper()">&times;</span>
+            </div>
+            <div class="modal-body" style="padding: 15px; background: #111; display: flex; align-items: center; gap: 15px;">
+                <div style="height: 300px; flex: 1; overflow: hidden; background: #000; border-radius: 8px;">
+                    <img id="cropperImage" src="" style="max-width: 100%; display: block;">
+                </div>
+                <div class="zoom-slider-container">
+                    <i class="fas fa-search-plus zoom-icon"></i>
+                    <input type="range" id="cropperZoomSlider" min="0.1" max="3" step="0.01" value="1" orient="vertical" oninput="changeCropperZoom(this.value)">
+                    <i class="fas fa-search-minus zoom-icon"></i>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-modal btn-cancel" onclick="closeCropper()">取消</button>
+                <button class="btn-modal btn-confirm" onclick="confirmCrop()">確認裁切</button>
+            </div>
+        </div>
+    </div>
+    </body>
+</html>
