@@ -24,11 +24,11 @@
 
         html, body {
             margin: 0; padding: 0;
-            height: 100dvh !important;
             width: 100vw !important;
+            height: 100vh !important; /* 【新增這行】：給舊版 iOS 的保命符 */
+            height: 100dvh !important; /* 支援的新版 iOS 會自動覆蓋上一行 */
             overflow: hidden; 
-            background-color: var(--bg-gray);
-            font-family: "Noto Sans TC", sans-serif;
+            -webkit-text-size-adjust: 100%;
         }
 
         body { 

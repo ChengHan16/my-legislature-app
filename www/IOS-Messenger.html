@@ -21,13 +21,14 @@
         }
 
         /* --- 修正外層容器，確保絕對不產生外側捲軸 --- */
+        /* 請在所有的 HTML 檔案中尋找 html, body 的設定，修改成這樣： */
         html, body {
-            height: 100dvh !important;
+            margin: 0; padding: 0;
             width: 100vw !important;
-            overflow: hidden;
-            margin: 0;
-            padding: 0;
-            -webkit-text-size-adjust: 100%; /* 防止 iOS 旋轉時字體自動放大 */
+            height: 100vh !important; /* 【新增這行】：給舊版 iOS 的保命符 */
+            height: 100dvh !important; /* 支援的新版 iOS 會自動覆蓋上一行 */
+            overflow: hidden; 
+            -webkit-text-size-adjust: 100%;
         }
 
         body { 
@@ -682,7 +683,7 @@
                     db.collection("chats").where("members", "array-contains", user.uid).get().then(renderChatList);
                 });
         } else {
-            window.location.href = "IOS-index.html";
+            window.location.href = "index.html";
         }
     });
 
@@ -781,7 +782,7 @@
 
             // 組合 HTML，行內樣式套用 avatarStyle
             return `
-                <div class="chat-item ${unreadClass}" onclick="window.location.href='chat.html?id=${chatId}'">
+                <div class="chat-item ${unreadClass}" onclick="window.location.href='IOS-chat.html?id=${chatId}'">
                     <img class="user-avatar" src="${displayAvatar}" alt="Chat" style="${avatarStyle}">
                     <div class="chat-info">
                         <div style="display:flex; justify-content:space-between; align-items:baseline;">
@@ -892,7 +893,7 @@
             if (existingChatId) {
                 // 已有對話，關閉視窗並跳轉
                 closeModal('newChatModal');
-                window.location.href = `chat.html?id=${existingChatId}`;
+                window.location.href = `IOS-chat.html?id=${existingChatId}`;
             } else {
                 // 3. 建立新對話
                 const newChatRef = await db.collection("chats").add({
@@ -903,7 +904,7 @@
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 closeModal('newChatModal');
-                window.location.href = `chat.html?id=${newChatRef.id}`;
+                window.location.href = `IOS-chat.html?id=${newChatRef.id}`;
             }
             
         } catch (error) {
@@ -1039,14 +1040,14 @@
             // 若找到重複群組，直接跳轉，不出現確認提示
             if (duplicateChatId) {
                 closeModal('createGroupModal');
-                window.location.href = `chat.html?id=${duplicateChatId}`;
+                window.location.href = `IOS-chat.html?id=${duplicateChatId}`;
                 return; // 終止建立新群組
             }
             /**
             if (duplicateChatId) {
                 alert("系統發現已經有成員完全相同的群組！將為您自動跳轉至該聊天室。");
                 closeModal('createGroupModal');
-                window.location.href = `chat.html?id=${duplicateChatId}`;
+                window.location.href = `IOS-chat.html?id=${duplicateChatId}`;
                 return; // 終止建立新群組
             }**/
 
@@ -1080,7 +1081,7 @@
             
             closeModal('createGroupModal');
             document.getElementById('groupNameInput').value = ''; 
-            window.location.href = `chat.html?id=${newChatRef.id}`;
+            window.location.href = `IOS-chat.html?id=${newChatRef.id}`;
             
         } catch(e) {
             console.error("建立群組失敗:", e);
