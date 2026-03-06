@@ -582,6 +582,43 @@
     const db = firebase.firestore();
     const userCache = {};
     const storage = firebase.storage(); // 【新增這行】初始化 Storage
+    // === 1. 推播通知初始化與全域變數 ===
+    let isInitialLoad = true;
+    let previousChatUpdates = {};
+
+    // iOS 規定必須由「使用者手動點擊」才能請求推播權限，因此我們綁定在全域點擊上
+    document.addEventListener('click', function requestNotificationPermission() {
+        if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
+            Notification.requestPermission();
+        }
+        document.removeEventListener('click', requestNotificationPermission);
+    }, { once: true });
+
+    // === 2. 觸發 iOS 推播的核心函式 ===
+    function triggerIOSNotification(title, body, targetChatId) {
+        // 策略 A: 如果是用 Xcode (Swift) 包裝的 App，將訊號丟給原生處理
+        if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.notificationHandler) {
+            window.webkit.messageHandlers.notificationHandler.postMessage({
+                title: title,
+                body: body,
+                chatId: targetChatId
+            });
+        }
+
+        // 策略 B: 如果是 iOS 16.4+ (已加入主畫面) 或一般電腦瀏覽器，使用網頁原生推播
+        if ("Notification" in window && Notification.permission === "granted") {
+            const notification = new Notification(title, {
+                body: body,
+                icon: "https://via.placeholder.com/150" // 可替換為你們的 Logo 網址
+            });
+            notification.onclick = function() {
+                // 點擊通知後自動跳轉進該聊天室
+                window.location.href = `IOS-chat.html?id=${targetChatId}`;
+            };
+        }
+    }
+
+    // === 3. 登入狀態與資料庫監聽 ===
     auth.onAuthStateChanged(user => {
         if (user) {
             db.collection("act").doc(user.uid).get().then(doc => {
@@ -597,14 +634,55 @@
                 .orderBy("updatedAt", "desc")
                 .onSnapshot(snapshot => {
                     renderChatList(snapshot);
+
+                    // --- 智慧推播邏輯開始 ---
+                    snapshot.docChanges().forEach(change => {
+                        const chat = change.doc.data();
+                        const changeChatId = change.doc.id;
+
+                        // 1. 記錄初次載入的時間戳，避免一登入就狂跳歷史通知
+                        if (isInitialLoad) {
+                            previousChatUpdates[changeChatId] = chat.updatedAt ? chat.updatedAt.toMillis() : 0;
+                            return;
+                        }
+
+                        // 2. 絕對不通知「自己發送」的訊息
+                        if (chat.lastSenderId === user.uid) return;
+
+                        const currentUpdateTime = chat.updatedAt ? chat.updatedAt.toMillis() : 0;
+                        const prevUpdateTime = previousChatUpdates[changeChatId] || 0;
+
+                        // 3. 確認時間戳確實有更新（過濾掉純粹是別人「已讀」造成的資料庫靜默更新）
+                        if (currentUpdateTime > prevUpdateTime) {
+                            let title = "新訊息";
+                            let body = chat.lastMessage || "您有一則新訊息";
+
+                            // 判斷是新群組還是新私訊
+                            if (chat.isGroup) {
+                                title = change.type === 'added' ? `被加入新群組：${chat.groupName}` : chat.groupName;
+                            } else {
+                                const targetUid = chat.members.find(uid => uid !== user.uid);
+                                if (userCache[targetUid]) {
+                                    title = change.type === 'added' ? `新對話邀請：${userCache[targetUid].displayName}` : userCache[targetUid].displayName;
+                                }
+                            }
+
+                            // 觸發 iOS 通知
+                            triggerIOSNotification(title, body, changeChatId);
+                            // 更新最後通知時間
+                            previousChatUpdates[changeChatId] = currentUpdateTime;
+                        }
+                    });
+
+                    isInitialLoad = false; // 標記初次載入完成
+                    // --- 智慧推播邏輯結束 ---
+
                 }, error => {
                     console.error("監聽失敗:", error);
-                    db.collection("chats")
-                        .where("members", "array-contains", user.uid)
-                        .get().then(renderChatList);
+                    db.collection("chats").where("members", "array-contains", user.uid).get().then(renderChatList);
                 });
         } else {
-            window.location.href = "login.html";
+            window.location.href = "IOS-index.html";
         }
     });
 

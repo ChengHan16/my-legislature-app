@@ -1035,6 +1035,46 @@ const updateMyStatus = (isInChat) => {
     }
     
     chatRef.update(updateData);
+
+    // --- 新增：背景全域通知監聽 (讓你在A對話時，B對話來訊息也會通知) ---
+    let isGlobalInitialLoad = true;
+    let globalPreviousUpdates = {};
+
+    db.collection("chats")
+      .where("members", "array-contains", user.uid)
+      .onSnapshot(snapshot => {
+          snapshot.docChanges().forEach(change => {
+              const chat = change.doc.data();
+              const changeChatId = change.doc.id;
+
+              if (isGlobalInitialLoad) {
+                  globalPreviousUpdates[changeChatId] = chat.updatedAt ? chat.updatedAt.toMillis() : 0;
+                  return;
+              }
+
+              // 排除自己發送的訊息
+              if (chat.lastSenderId === user.uid) return;
+              
+              // 關鍵：排除「目前正在看」的對話室 (如果正在螢幕上就不必跳系統通知)
+              if (changeChatId === chatId && document.hasFocus()) return; 
+
+              const currentUpdateTime = chat.updatedAt ? chat.updatedAt.toMillis() : 0;
+              if (currentUpdateTime > (globalPreviousUpdates[changeChatId] || 0)) {
+                  let title = chat.isGroup ? chat.groupName : "新訊息";
+                  
+                  // 觸發通知
+                  if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.notificationHandler) {
+                      window.webkit.messageHandlers.notificationHandler.postMessage({ title: title, body: chat.lastMessage, chatId: changeChatId });
+                  } else if ("Notification" in window && Notification.permission === "granted") {
+                      const notification = new Notification(title, { body: chat.lastMessage });
+                      notification.onclick = function() { window.location.href = `IOS-chat.html?id=${changeChatId}`; };
+                  }
+                  
+                  globalPreviousUpdates[changeChatId] = currentUpdateTime;
+              }
+          });
+          isGlobalInitialLoad = false;
+      });
 };
 
 // 監聽視窗聚焦與模糊
