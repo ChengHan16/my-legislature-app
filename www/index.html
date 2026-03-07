@@ -184,7 +184,7 @@
     auth.onAuthStateChanged((user) => {
         if (user) {
             // 已登入：使用 replace 直接覆蓋歷史紀錄跳轉，使用者畫面會維持白底/灰底並直接跳過去
-            window.location.replace("Messenger.html");
+            window.location.replace("../Messenger.html");
         } else {
             // 未登入：將 body 加上 class，讓登入表單淡入顯示
             document.body.classList.add("auth-resolved");
