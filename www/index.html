@@ -223,11 +223,26 @@
         msgEl.style.color = "#003153";
 
         // 直接執行登入，看看是不是 setPersistence 在搞鬼
+        // 直接執行登入，看看是不是 setPersistence 在搞鬼
         auth.signInWithEmailAndPassword(email, password)
-            .then(() => {
+            .then(async (userCredential) => {
+                // 1. 從登入成功的憑證中取出 user 物件
+                const user = userCredential.user;
+                
+                // 2. 取得 Token (強烈建議使用 Firebase 官方標準的 getIdToken)
+                const token = await user.getIdToken(); 
+                
+                // 3. 寫入 localStorage
+                localStorage.setItem("token", token);
+                
+                // (選項) 如果你堅持使用你原本寫的 user.accessToken，可以改寫成這樣：
+                // localStorage.setItem("token", user.accessToken || user.stsTokenManager.accessToken);
+                
+                // 4. Token 存好之後，才執行跳轉
                 navigateToApp();
             })
             .catch((error) => {
+                // ... 下方的 catch 錯誤處理維持原樣 ...
                 msgEl.style.color = "#a94442";
                 msgEl.innerText = "失敗: " + error.code; 
                 btn.disabled = false;
