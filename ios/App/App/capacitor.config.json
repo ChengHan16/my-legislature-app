@@ -3,14 +3,9 @@
 	"appName": "Legislature",
 	"webDir": "www",
 	"server": {
-		"hostname": "localhost",
+		"hostname": "app.legislature.tw",
 		"iosScheme": "https",
 		"androidScheme": "https"
-	},
-	"plugins": {
-		"CapacitorHttp": {
-			"enabled": true
-		}
 	},
 	"packageClassList": []
 }
