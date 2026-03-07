@@ -242,6 +242,9 @@
     // ==========================================
     // 3. 登入按鈕邏輯 (加入強制 LOCAL 儲存設定)
     // ==========================================
+    // ==========================================
+    // 3. 登入按鈕邏輯 (終極繞過 iOS 死當版)
+    // ==========================================
     loginBtn.addEventListener('click', () => {
         const email = document.getElementById('email').value.trim();
         const password = document.getElementById('password').value;
@@ -252,23 +255,27 @@
             return;
         }
 
-        msgEl.innerText = "安全驗證中...";
+        // 修改這裡的文字，如果你在手機上按下按鈕看到這行字，代表你確實更新成功了！
+        msgEl.innerText = "繞過系統檢查中...";
         msgEl.style.color = "#003153";
         loginBtn.disabled = true;
         loginBtn.style.opacity = "0.7";
 
-        // 【關鍵修正】：強制設定 Persistence，避開 iOS IndexedDB 懸空 Bug
-        auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+        // 【終極猛藥】：將記憶層級設為 NONE，完全不使用 iOS 的本機資料庫
+        auth.setPersistence(firebase.auth.Auth.Persistence.NONE)
             .then(() => {
+                msgEl.innerText = "正在向伺服器驗證..."; 
                 return auth.signInWithEmailAndPassword(email, password);
             })
             .then(() => {
-                navigateToApp();
+                msgEl.innerText = "驗證成功！準備跳轉...";
+                setTimeout(() => {
+                    navigateToApp();
+                }, 500);
             })
             .catch((error) => {
                 msgEl.style.color = "#a94442";
-                // 顯示超詳細錯誤碼，方便我們抓蟲
-                msgEl.innerText = "失敗: " + error.code + " (" + error.message + ")"; 
+                msgEl.innerText = "失敗: " + error.code; 
                 loginBtn.disabled = false;
                 loginBtn.style.opacity = "1";
                 isNavigating = false; 
