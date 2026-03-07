@@ -1,10 +1,4 @@
 {
-  "plugins": {
-    "CapacitorHttp": {
-      "enabled": true
-    }
-  },
-
   "appId": "app.web.legislaturetw",
   "appName": "Legislature",
   "webDir": "www",
@@ -12,5 +6,10 @@
     "hostname": "localhost",
     "iosScheme": "https",
     "androidScheme": "https"
+  },
+  "plugins": {
+    "CapacitorHttp": {
+      "enabled": true
+    }
   }
 }
