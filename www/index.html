@@ -175,27 +175,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
 
 <script>
-    const msgEl = document.getElementById('msg');
-    const loginBtn = document.getElementById('loginBtn');
-    const loginWrapper = document.querySelector('.login-wrapper');
-
-    // ==========================================
-    // 1. 全局錯誤捕捉 (讓手機螢幕變成除錯控制台)
-    // ==========================================
-    window.onerror = function(msg, url, lineNo, columnNo, error) {
-        msgEl.innerHTML = "<span style='color:red; font-size:13px;'>系統錯誤: " + msg + "</span>";
-        loginBtn.disabled = false; loginBtn.style.opacity = "1";
-        return false;
-    };
-    window.addEventListener('unhandledrejection', function(event) {
-        let errText = event.reason ? (event.reason.message || event.reason) : '未知非同步錯誤';
-        msgEl.innerHTML = "<span style='color:red; font-size:13px;'>連線錯誤: " + errText + "</span>";
-        loginBtn.disabled = false; loginBtn.style.opacity = "1";
-    });
-
-    // ==========================================
-    // 2. Firebase 初始化
-    // ==========================================
+    // 1. 初始化 Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyACnoimIASfb1rb59SbgLDkUmyYR6ODbUU",
         authDomain: "llwb-ed686.firebaseapp.com",
@@ -207,79 +187,42 @@
 
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
-    
-    let isNavigating = false;
+    const msgEl = document.getElementById('msg');
+    const loginBtn = document.getElementById('loginBtn');
 
-    // 安全的跳轉函式
-    function navigateToApp() {
-        if (isNavigating) return;
-        isNavigating = true;
-        
-        msgEl.innerText = "驗證成功！正在載入系統...";
-        msgEl.style.color = "#003153";
-        
-        // 給畫面一點渲染時間後執行跳轉
-        setTimeout(() => {
-            window.location.replace("Messenger.html");
-        }, 500);
-    }
-
-    // 保險機制：3秒後強制顯示登入框
-    const fallbackTimer = setTimeout(() => {
-        loginWrapper.classList.add("auth-resolved");
-    }, 3000);
-
-    // 檢查登入狀態
-    auth.onAuthStateChanged((user) => {
-        clearTimeout(fallbackTimer);
-        if (user) {
-            navigateToApp();
-        } else {
-            loginWrapper.classList.add("auth-resolved");
-        }
-    });
-
-    // ==========================================
-    // 3. 登入按鈕邏輯 (加入強制 LOCAL 儲存設定)
-    // ==========================================
-    // ==========================================
-    // 3. 登入按鈕邏輯 (終極繞過 iOS 死當版)
-    // ==========================================
-    loginBtn.addEventListener('click', () => {
+    // 2. 登入邏輯 (強制版本)
+    loginBtn.onclick = function() {
         const email = document.getElementById('email').value.trim();
         const password = document.getElementById('password').value;
 
-        if (!email || !password) {
-            msgEl.innerText = "請完整填寫憑證資訊";
-            msgEl.style.color = "#a94442";
-            return;
-        }
-
-        // 修改這裡的文字，如果你在手機上按下按鈕看到這行字，代表你確實更新成功了！
-        msgEl.innerText = "繞過系統檢查中...";
+        // 如果你在手機按下去看到「版本 03.07-A」，代表你有成功跑在新程式上
+        msgEl.innerText = "連線嘗試中 (版本 03.07-A)...";
         msgEl.style.color = "#003153";
         loginBtn.disabled = true;
-        loginBtn.style.opacity = "0.7";
 
-        // 【終極猛藥】：將記憶層級設為 NONE，完全不使用 iOS 的本機資料庫
+        // 強制設定不記憶狀態，繞過 iOS 本機資料庫鎖死問題
         auth.setPersistence(firebase.auth.Auth.Persistence.NONE)
             .then(() => {
-                msgEl.innerText = "正在向伺服器驗證..."; 
                 return auth.signInWithEmailAndPassword(email, password);
             })
             .then(() => {
-                msgEl.innerText = "驗證成功！準備跳轉...";
-                setTimeout(() => {
-                    navigateToApp();
-                }, 500);
+                msgEl.innerText = "驗證成功，正在跳轉...";
+                window.location.href = "Messenger.html";
             })
             .catch((error) => {
-                msgEl.style.color = "#a94442";
-                msgEl.innerText = "失敗: " + error.code; 
+                msgEl.style.color = "red";
+                // 如果失敗，這裡會跳出錯誤碼，例如 auth/network-request-failed
+                msgEl.innerText = "錯誤: " + error.code;
                 loginBtn.disabled = false;
-                loginBtn.style.opacity = "1";
-                isNavigating = false; 
             });
+    };
+
+    // 3. 初始顯示處理
+    auth.onAuthStateChanged((user) => {
+        document.querySelector('.login-wrapper').classList.add("auth-resolved");
+        if (user) {
+            window.location.href = "Messenger.html";
+        }
     });
 </script>
 </body>

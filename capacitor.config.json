@@ -1,5 +1,10 @@
 {
   "appId": "app.web.legislaturetw",
   "appName": "Legislature",
-  "webDir": "www"
+  "webDir": "www",
+  "server": {
+    "hostname": "localhost",
+    "iosScheme": "https",
+    "androidScheme": "https"
+  }
 }
