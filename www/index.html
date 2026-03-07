@@ -17,11 +17,6 @@
             justify-content: center; 
             align-items: center; 
             min-height: 100vh; 
-            
-            /* --- 關鍵修改：預設隱藏整個 body --- */
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.4s ease;
         }
 
         /* 當 Firebase 確認未登入時，加上這個 class 來顯示畫面 */
@@ -31,6 +26,7 @@
         }
 
         /* --- 桌面版容器 --- */
+        /* --- 關鍵修改：將隱藏效果移到登入框上 --- */
         .login-wrapper { 
             max-width: 450px; 
             width: 100%; 
@@ -39,6 +35,17 @@
             border-radius: 2px; 
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
             text-align: center;
+            
+            /* 預設隱藏表單，等待 Firebase 驗證 */
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(15px); /* 加入微微上浮的動畫讓視覺更平滑 */
+            transition: all 0.4s ease;
+        }
+        .login-wrapper.auth-resolved {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
         }
 
         /* --- 標題設計 --- */
@@ -179,15 +186,23 @@
 
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
+    const loginWrapper = document.querySelector('.login-wrapper');
+
+    // 【新增】：保險機制。如果 Firebase 3 秒內沒反應（可能是無網路或被阻擋），強制顯示登入表單，避免永久白畫面
+    const fallbackTimer = setTimeout(() => {
+        loginWrapper.classList.add("auth-resolved");
+    }, 3000);
 
     // 檢查登入狀態
     auth.onAuthStateChanged((user) => {
+        clearTimeout(fallbackTimer); // 如果 Firebase 正常運作，取消保險機制
+
         if (user) {
-            // 已登入：使用 replace 直接覆蓋歷史紀錄跳轉，使用者畫面會維持白底/灰底並直接跳過去
-            window.location.replace("Dashboard.html");
+            // 已登入：注意這裡務必加上 ./ 以適應 iOS App 的本地路徑
+            window.location.replace("./Messenger.html");
         } else {
-            // 未登入：將 body 加上 class，讓登入表單淡入顯示
-            document.body.classList.add("auth-resolved");
+            // 未登入：顯示登入表單
+            loginWrapper.classList.add("auth-resolved");
         }
     });
 
@@ -212,12 +227,14 @@
 
         auth.signInWithEmailAndPassword(email, password)
             .then(() => {
-                // 登入成功後跳轉也使用 replace
-                window.location.replace("Dashboard.html");
+                // 【關鍵修正】：請勿在這裡寫 window.location.replace !!!
+                // 登入成功後，Firebase 會自動觸發上方的 onAuthStateChanged，由那邊統一負責跳轉。
+                // 如果在這裡寫跳轉，iOS 會因為「同時發生兩次跳轉請求」而強制中斷並卡死在這一頁。
             })
             .catch((error) => {
                 msg.style.color = "#a94442";
-                msg.innerText = "驗證失敗，請檢查輸入資訊";
+                // 顯示具體錯誤，方便在 iOS 上除錯
+                msg.innerText = "驗證失敗: " + error.code; 
                 btn.disabled = false;
                 btn.style.opacity = "1";
             });
