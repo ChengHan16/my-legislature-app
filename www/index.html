@@ -166,86 +166,122 @@
     </div>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-
-<script>
-    try {
-        // 逼迫 Firebase 放棄使用會導致 iOS 死當的 IndexedDB
-        Object.defineProperty(window, 'indexedDB', { get: () => null });
-    } catch (e) {
-        console.warn("IndexedDB 癱瘓設定失敗", e);
-    }
-</script>
+<!-- Firebase -->
 
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
 
 <script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyACnoimIASfb1rb59SbgLDkUmyYR6ODbUU",
-        authDomain: "llwb-ed686.firebaseapp.com",
-        projectId: "llwb-ed686",
-        storageBucket: "llwb-ed686.firebasestorage.app",
-        messagingSenderId: "940345852074",
-        appId: "1:940345852074:web:7a30cca5a6d997a92350d3"
-    };
 
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const loginWrapper = document.querySelector('.login-wrapper');
-    const msgEl = document.getElementById('msg');
-    let isNavigating = false;
+const firebaseConfig={
+apiKey:"AIzaSyACnoimIASfb1rb59SbgLDkUmyYR6ODbUU",
+authDomain:"llwb-ed686.firebaseapp.com",
+projectId:"llwb-ed686",
+storageBucket:"llwb-ed686.firebasestorage.app",
+messagingSenderId:"940345852074",
+appId:"1:940345852074:web:7a30cca5a6d997a92350d3"
+};
 
-    function navigateToApp() {
-        if (isNavigating) return;
-        isNavigating = true;
-        msgEl.innerText = "登入成功！正在進入系統...";
-        msgEl.style.color = "#003153";
-        setTimeout(() => { 
-            window.location.replace("./Messenger.html"); 
-        }, 300);
-    }
+firebase.initializeApp(firebaseConfig);
 
-    const fallbackTimer = setTimeout(() => { loginWrapper.classList.add("auth-resolved"); }, 3000);
+const auth=firebase.auth();
+const loginWrapper=document.querySelector(".login-wrapper");
+const msgEl=document.getElementById("msg");
 
-    auth.onAuthStateChanged((user) => {
-        clearTimeout(fallbackTimer); 
-        if (user) { navigateToApp(); } 
-        else { loginWrapper.classList.add("auth-resolved"); }
-    });
+let navigating=false;
 
-    document.getElementById('loginBtn').addEventListener('click', () => {
-        const email = document.getElementById('email').value.trim();
-        const password = document.getElementById('password').value;
+/* iOS WebView 穩定設定 */
 
-        if (!email || !password) {
-            msgEl.innerText = "請完整填寫憑證資訊";
-            msgEl.style.color = "#a94442";
-            return;
-        }
+auth.setPersistence(firebase.auth.Auth.Persistence.SESSION);
 
-        const btn = document.getElementById('loginBtn');
-        btn.disabled = true;
-        btn.style.opacity = "0.7";
+/* 自動登入偵測 */
 
-        // 版本 03.07-G：降級打擊版
-        msgEl.innerText = "驗證中 (降級模式 03.07-G)...";
-        msgEl.style.color = "#003153";
+auth.onAuthStateChanged((user)=>{
 
-        // 這次沒有 IndexedDB 扯後腿，一定能過！
-        auth.signInWithEmailAndPassword(email, password)
-            .then(() => {
-                navigateToApp();
-            })
-            .catch((error) => {
-                msgEl.style.color = "#a94442";
-                msgEl.innerText = "失敗: " + error.code; 
-                btn.disabled = false;
-                btn.style.opacity = "1";
-                isNavigating = false; 
-            });
-    });
+if(user){
+navigateToApp();
+}else{
+loginWrapper.classList.add("auth-resolved");
+}
+
+});
+
+/* 跳轉 */
+
+function navigateToApp(){
+
+if(navigating)return;
+
+navigating=true;
+
+msgEl.innerText="登入成功，進入系統中...";
+msgEl.style.color="#003153";
+
+setTimeout(()=>{
+
+window.location.href="Messenger.html";
+
+},400);
+
+}
+
+/* 登入 */
+
+document.getElementById("loginBtn").addEventListener("click",()=>{
+
+const email=document.getElementById("email").value.trim();
+const password=document.getElementById("password").value;
+
+if(!email||!password){
+
+msgEl.innerText="請完整填寫帳號密碼";
+msgEl.style.color="#a94442";
+return;
+
+}
+
+const btn=document.getElementById("loginBtn");
+
+btn.disabled=true;
+btn.style.opacity=".7";
+
+msgEl.innerText="系統驗證中...";
+msgEl.style.color="#003153";
+
+/* 超時保護 */
+
+const timeout=setTimeout(()=>{
+
+msgEl.innerText="連線較慢，請稍候...";
+btn.disabled=false;
+btn.style.opacity="1";
+
+},8000);
+
+auth.signInWithEmailAndPassword(email,password)
+
+.then(()=>{
+
+clearTimeout(timeout);
+
+navigateToApp();
+
+})
+
+.catch((error)=>{
+
+clearTimeout(timeout);
+
+msgEl.innerText="登入失敗："+error.code;
+msgEl.style.color="#a94442";
+
+btn.disabled=false;
+btn.style.opacity="1";
+
+});
+
+});
+
 </script>
 </body>
 </html>
