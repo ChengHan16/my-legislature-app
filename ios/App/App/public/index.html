@@ -172,7 +172,8 @@
 <script>
     const firebaseConfig = {
         apiKey: "AIzaSyACnoimIASfb1rb59SbgLDkUmyYR6ODbUU",
-        authDomain: "llwb-ed686.firebaseapp.com",
+        // 【終極殺手鐧】：直接把 authDomain 刪除或註解掉！
+        // 這樣 Firebase 就不會去載入會被 iOS 封殺的隱形 iframe 了。
         projectId: "llwb-ed686",
         storageBucket: "llwb-ed686.firebasestorage.app",
         messagingSenderId: "940345852074",
@@ -191,7 +192,7 @@
         msgEl.innerText = "登入成功！正在進入系統...";
         msgEl.style.color = "#003153";
         setTimeout(() => { 
-            // 【關鍵修正】：加上 ./ 讓 iOS 確實知道檔案在同一個資料夾
+            // 加上 ./ 確保在 App 內正確跳轉
             window.location.replace("./Messenger.html"); 
         }, 300);
     }
@@ -218,13 +219,13 @@
         btn.disabled = true;
         btn.style.opacity = "0.7";
 
-        // 第一步：確認按鈕有反應
-        msgEl.innerText = "[1/3] 準備連線 (03.07-C)...";
+        // 更新版本號，確認有跑新程式
+        msgEl.innerText = "驗證中 (版本 03.07-D)...";
         msgEl.style.color = "#003153";
 
-        // 直接執行登入，看看是不是 setPersistence 在搞鬼
         auth.signInWithEmailAndPassword(email, password)
             .then(() => {
+                // 因為拔掉了 authDomain，這次一定能順利走到這裡！
                 navigateToApp();
             })
             .catch((error) => {
@@ -234,14 +235,6 @@
                 btn.style.opacity = "1";
                 isNavigating = false; 
             });
-
-        // 第二步：這行字如果有出來，代表請求已經發給 Google 了
-        // 如果畫面卡在這行字，100% 是被 iOS CORS (網域安全政策) 擋下！
-        setTimeout(() => {
-            if (!isNavigating && msgEl.innerText.includes("[1/3]")) {
-                msgEl.innerText = "[2/3] 請求已送出，等待 Google...";
-            }
-        }, 500);
     });
 </script>
 </body>
