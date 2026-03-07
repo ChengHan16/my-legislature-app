@@ -170,9 +170,21 @@
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
 
 <script>
+    try {
+        // 逼迫 Firebase 放棄使用會導致 iOS 死當的 IndexedDB
+        Object.defineProperty(window, 'indexedDB', { get: () => null });
+    } catch (e) {
+        console.warn("IndexedDB 癱瘓設定失敗", e);
+    }
+</script>
+
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+
+<script>
     const firebaseConfig = {
         apiKey: "AIzaSyACnoimIASfb1rb59SbgLDkUmyYR6ODbUU",
-        authDomain: "llwb-ed686.firebaseapp.com", // 【重要】：請務必保留這行
+        authDomain: "llwb-ed686.firebaseapp.com",
         projectId: "llwb-ed686",
         storageBucket: "llwb-ed686.firebasestorage.app",
         messagingSenderId: "940345852074",
@@ -191,7 +203,6 @@
         msgEl.innerText = "登入成功！正在進入系統...";
         msgEl.style.color = "#003153";
         setTimeout(() => { 
-            // 確保跳轉路徑正確
             window.location.replace("./Messenger.html"); 
         }, 300);
     }
@@ -218,11 +229,11 @@
         btn.disabled = true;
         btn.style.opacity = "0.7";
 
-        // 版本 03.07-F：乾淨標準版
-        msgEl.innerText = "驗證中 (版本 03.07-F)...";
+        // 版本 03.07-G：降級打擊版
+        msgEl.innerText = "驗證中 (降級模式 03.07-G)...";
         msgEl.style.color = "#003153";
 
-        // 直接執行標準登入
+        // 這次沒有 IndexedDB 扯後腿，一定能過！
         auth.signInWithEmailAndPassword(email, password)
             .then(() => {
                 navigateToApp();
