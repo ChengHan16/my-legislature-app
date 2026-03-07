@@ -2,15 +2,14 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">    <title>法院通訊 - 訊息中心</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>法院通訊 - 訊息中心</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     
     <style>
-        /* 【新增】：全域防呆與點擊優化 */
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         :root { 
             --ly-blue: #003153; 
             --ly-blue-trans: rgba(0, 49, 83, 0.85); 
@@ -21,14 +20,12 @@
         }
 
         /* --- 修正外層容器，確保絕對不產生外側捲軸 --- */
-        /* 請在所有的 HTML 檔案中尋找 html, body 的設定，修改成這樣： */
         html, body {
-            margin: 0; padding: 0;
+            height: 100dvh !important;
             width: 100vw !important;
-            height: 100vh !important; /* 【新增這行】：給舊版 iOS 的保命符 */
-            height: 100dvh !important; /* 支援的新版 iOS 會自動覆蓋上一行 */
-            overflow: hidden; 
-            -webkit-text-size-adjust: 100%;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
         }
 
         body { 
@@ -54,42 +51,34 @@
             box-sizing: border-box;
         }
 
-        .messenger-header {
-            /* 強制橫幅不參與 flex 壓縮，確保高度與 Messenger.html 絕對一致 */
-            flex: 0 0 auto !important;
-            /* 確保寬度計算包含邊框，防止 1px 的解析度誤差 */
-            box-sizing: border-box !important;
-        }
+.messenger-header {
+    /* 強制橫幅不參與 flex 壓縮，確保高度與 Messenger.html 絕對一致 */
+    flex: 0 0 auto !important;
+    /* 確保寬度計算包含邊框，防止 1px 的解析度誤差 */
+    box-sizing: border-box !important;
+}
 
         
-        /* 【修改】：導覽列加入頂部安全距離 */
-.messenger-header {
-    background: var(--ly-blue-trans); 
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    position: sticky; 
-    top: 0; 
-    z-index: 100;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-    flex: 0 0 auto !important;
-    box-sizing: border-box !important;
+        /* 導覽列：內容置中並限制寬度 */
+        .messenger-header {
+            background: var(--ly-blue-trans); 
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            position: sticky; 
+            top: 0; 
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
 
-    /* 關鍵：為動態島保留空間 */
-    padding-top: env(safe-area-inset-top); 
-}
-
-.header-content {
-    max-width: var(--container-width);
-    margin: 0 auto;
-    /* 稍微調整內距，並加入 min-height 確保高度正常 */
-    padding: 10px 20px;
-    min-height: 60px;
-    height: auto;
-    display: flex; 
-    align-items: center;
-    justify-content: space-between;
-}
+        .header-content {
+            max-width: var(--container-width);
+            margin: 0 auto;
+            padding: 15px 20px;
+            display: flex; 
+            align-items: center;
+            justify-content: space-between;
+        }
 
         .user-profile { display: flex; align-items: center; }
 
@@ -149,8 +138,8 @@
             display: flex; 
             align-items: center; 
             padding: 18px 20px; /* 增加內距 */
-            margin-bottom: 0px; 
-            border-radius: 6px; 
+            margin-bottom: 15px; 
+            border-radius: 15px; 
             cursor: pointer;
             transition: all 0.3s ease;
             border: 1px solid var(--border-color);
@@ -248,7 +237,6 @@
     z-index: 3000;
 }
 
-/* 【修改】：Modal 卡片限制最大高度並讓內容可捲動 */
 .modal-card {
     background: white;
     width: 90%;
@@ -258,18 +246,6 @@
     box-shadow: 0 20px 40px rgba(0,0,0,0.3);
     border: 1px solid var(--border-color);
     animation: modalFadeIn 0.3s ease-out;
-
-    /* 關鍵：限制高度避開安全區域 */
-    max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 40px);
-    display: flex;
-    flex-direction: column;
-}
-
-.modal-body { 
-    padding: 25px 20px; 
-    /* 關鍵：讓內部可以獨立滑動 */
-    overflow-y: auto; 
-    -webkit-overflow-scrolling: touch;
 }
 
 @keyframes modalFadeIn {
@@ -505,40 +481,7 @@
             color: var(--ly-gold); 
         }
 
-        /* 【修改】：對話清單底部加上安全距離 */
-.chat-list { 
-    flex: 1;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch; 
-    width: 100%;
-    max-width: var(--container-width); 
-    margin: 0 auto; 
-    /* 關鍵：原本的 100px 加上底部安全距離 */
-    padding: 15px 15px calc(100px + env(safe-area-inset-bottom)) 15px; 
-    box-sizing: border-box;
-}
-
-/* 【修改】：浮動按鈕位置上抬 */
-.fab {
-    position: fixed; 
-    /* 關鍵：原本的 40px 加上底部安全距離 */
-    bottom: calc(40px + env(safe-area-inset-bottom)); 
-    right: 40px;
-    background: var(--ly-gold); color: white;
-    width: 65px; height: 65px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 28px; box-shadow: 0 6px 20px rgba(207, 169, 0, 0.4);
-    cursor: pointer; border: none;
-    z-index: 90; /* 確保不被其他元素蓋住 */
-}
-
-@media (max-width: 750px) {
-    .fab {
-        /* 手機版稍微靠邊一點 */
-        right: 20px;
-        bottom: calc(20px + env(safe-area-inset-bottom)); 
-    }
-}
+        
 </style>
 </head>
 <body>
@@ -583,43 +526,6 @@
     const db = firebase.firestore();
     const userCache = {};
     const storage = firebase.storage(); // 【新增這行】初始化 Storage
-    // === 1. 推播通知初始化與全域變數 ===
-    let isInitialLoad = true;
-    let previousChatUpdates = {};
-
-    // iOS 規定必須由「使用者手動點擊」才能請求推播權限，因此我們綁定在全域點擊上
-    document.addEventListener('click', function requestNotificationPermission() {
-        if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
-            Notification.requestPermission();
-        }
-        document.removeEventListener('click', requestNotificationPermission);
-    }, { once: true });
-
-    // === 2. 觸發 iOS 推播的核心函式 ===
-    function triggerIOSNotification(title, body, targetChatId) {
-        // 策略 A: 如果是用 Xcode (Swift) 包裝的 App，將訊號丟給原生處理
-        if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.notificationHandler) {
-            window.webkit.messageHandlers.notificationHandler.postMessage({
-                title: title,
-                body: body,
-                chatId: targetChatId
-            });
-        }
-
-        // 策略 B: 如果是 iOS 16.4+ (已加入主畫面) 或一般電腦瀏覽器，使用網頁原生推播
-        if ("Notification" in window && Notification.permission === "granted") {
-            const notification = new Notification(title, {
-                body: body,
-                icon: "https://via.placeholder.com/150" // 可替換為你們的 Logo 網址
-            });
-            notification.onclick = function() {
-                // 點擊通知後自動跳轉進該聊天室
-                window.location.href = `IOS-chat.html?id=${targetChatId}`;
-            };
-        }
-    }
-
-    // === 3. 登入狀態與資料庫監聽 ===
     auth.onAuthStateChanged(user => {
         if (user) {
             db.collection("act").doc(user.uid).get().then(doc => {
@@ -635,55 +541,14 @@
                 .orderBy("updatedAt", "desc")
                 .onSnapshot(snapshot => {
                     renderChatList(snapshot);
-
-                    // --- 智慧推播邏輯開始 ---
-                    snapshot.docChanges().forEach(change => {
-                        const chat = change.doc.data();
-                        const changeChatId = change.doc.id;
-
-                        // 1. 記錄初次載入的時間戳，避免一登入就狂跳歷史通知
-                        if (isInitialLoad) {
-                            previousChatUpdates[changeChatId] = chat.updatedAt ? chat.updatedAt.toMillis() : 0;
-                            return;
-                        }
-
-                        // 2. 絕對不通知「自己發送」的訊息
-                        if (chat.lastSenderId === user.uid) return;
-
-                        const currentUpdateTime = chat.updatedAt ? chat.updatedAt.toMillis() : 0;
-                        const prevUpdateTime = previousChatUpdates[changeChatId] || 0;
-
-                        // 3. 確認時間戳確實有更新（過濾掉純粹是別人「已讀」造成的資料庫靜默更新）
-                        if (currentUpdateTime > prevUpdateTime) {
-                            let title = "新訊息";
-                            let body = chat.lastMessage || "您有一則新訊息";
-
-                            // 判斷是新群組還是新私訊
-                            if (chat.isGroup) {
-                                title = change.type === 'added' ? `被加入新群組：${chat.groupName}` : chat.groupName;
-                            } else {
-                                const targetUid = chat.members.find(uid => uid !== user.uid);
-                                if (userCache[targetUid]) {
-                                    title = change.type === 'added' ? `新對話邀請：${userCache[targetUid].displayName}` : userCache[targetUid].displayName;
-                                }
-                            }
-
-                            // 觸發 iOS 通知
-                            triggerIOSNotification(title, body, changeChatId);
-                            // 更新最後通知時間
-                            previousChatUpdates[changeChatId] = currentUpdateTime;
-                        }
-                    });
-
-                    isInitialLoad = false; // 標記初次載入完成
-                    // --- 智慧推播邏輯結束 ---
-
                 }, error => {
                     console.error("監聽失敗:", error);
-                    db.collection("chats").where("members", "array-contains", user.uid).get().then(renderChatList);
+                    db.collection("chats")
+                        .where("members", "array-contains", user.uid)
+                        .get().then(renderChatList);
                 });
         } else {
-            window.location.href = "index.html";
+            window.location.href = "login.html";
         }
     });
 
@@ -782,7 +647,7 @@
 
             // 組合 HTML，行內樣式套用 avatarStyle
             return `
-                <div class="chat-item ${unreadClass}" onclick="window.location.href='IOS-chat.html?id=${chatId}'">
+                <div class="chat-item ${unreadClass}" onclick="window.location.href='chat.html?id=${chatId}'">
                     <img class="user-avatar" src="${displayAvatar}" alt="Chat" style="${avatarStyle}">
                     <div class="chat-info">
                         <div style="display:flex; justify-content:space-between; align-items:baseline;">
@@ -893,7 +758,7 @@
             if (existingChatId) {
                 // 已有對話，關閉視窗並跳轉
                 closeModal('newChatModal');
-                window.location.href = `IOS-chat.html?id=${existingChatId}`;
+                window.location.href = `chat.html?id=${existingChatId}`;
             } else {
                 // 3. 建立新對話
                 const newChatRef = await db.collection("chats").add({
@@ -904,7 +769,7 @@
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 closeModal('newChatModal');
-                window.location.href = `IOS-chat.html?id=${newChatRef.id}`;
+                window.location.href = `chat.html?id=${newChatRef.id}`;
             }
             
         } catch (error) {
@@ -1040,14 +905,14 @@
             // 若找到重複群組，直接跳轉，不出現確認提示
             if (duplicateChatId) {
                 closeModal('createGroupModal');
-                window.location.href = `IOS-chat.html?id=${duplicateChatId}`;
+                window.location.href = `chat.html?id=${duplicateChatId}`;
                 return; // 終止建立新群組
             }
             /**
             if (duplicateChatId) {
                 alert("系統發現已經有成員完全相同的群組！將為您自動跳轉至該聊天室。");
                 closeModal('createGroupModal');
-                window.location.href = `IOS-chat.html?id=${duplicateChatId}`;
+                window.location.href = `chat.html?id=${duplicateChatId}`;
                 return; // 終止建立新群組
             }**/
 
@@ -1081,7 +946,7 @@
             
             closeModal('createGroupModal');
             document.getElementById('groupNameInput').value = ''; 
-            window.location.href = `IOS-chat.html?id=${newChatRef.id}`;
+            window.location.href = `chat.html?id=${newChatRef.id}`;
             
         } catch(e) {
             console.error("建立群組失敗:", e);
