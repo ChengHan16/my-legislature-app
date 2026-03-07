@@ -172,8 +172,7 @@
 <script>
     const firebaseConfig = {
         apiKey: "AIzaSyACnoimIASfb1rb59SbgLDkUmyYR6ODbUU",
-        // 【終極殺手鐧】：直接把 authDomain 刪除或註解掉！
-        // 這樣 Firebase 就不會去載入會被 iOS 封殺的隱形 iframe 了。
+        // authDomain 保持註解狀態，這對 iOS 也是好的
         projectId: "llwb-ed686",
         storageBucket: "llwb-ed686.firebasestorage.app",
         messagingSenderId: "940345852074",
@@ -192,7 +191,6 @@
         msgEl.innerText = "登入成功！正在進入系統...";
         msgEl.style.color = "#003153";
         setTimeout(() => { 
-            // 加上 ./ 確保在 App 內正確跳轉
             window.location.replace("./Messenger.html"); 
         }, 300);
     }
@@ -219,13 +217,18 @@
         btn.disabled = true;
         btn.style.opacity = "0.7";
 
-        // 更新版本號，確認有跑新程式
-        msgEl.innerText = "驗證中 (版本 03.07-D)...";
+        // 版本 03.07-E：加入本地儲存繞過機制
+        msgEl.innerText = "寫入繞過中 (版本 03.07-E)...";
         msgEl.style.color = "#003153";
 
-        auth.signInWithEmailAndPassword(email, password)
+        // 【終極猛藥】：將記憶層級設為 NONE，完全不碰 iOS 的底層資料庫
+        auth.setPersistence(firebase.auth.Auth.Persistence.NONE)
             .then(() => {
-                // 因為拔掉了 authDomain，這次一定能順利走到這裡！
+                // 設定完成後，才向 Google 發送登入請求
+                return auth.signInWithEmailAndPassword(email, password);
+            })
+            .then(() => {
+                // 因為沒有寫入資料庫的動作，這裡絕對不會再卡住！
                 navigateToApp();
             })
             .catch((error) => {
