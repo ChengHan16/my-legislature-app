@@ -2,5 +2,10 @@
 	"appId": "app.web.legislaturetw",
 	"appName": "Legislature",
 	"webDir": "www",
+	"server": {
+		"hostname": "localhost",
+		"iosScheme": "https",
+		"androidScheme": "https"
+	},
 	"packageClassList": []
 }

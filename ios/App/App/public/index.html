@@ -17,20 +17,9 @@
             justify-content: center; 
             align-items: center; 
             min-height: 100vh; 
-            
-            /* --- 關鍵修改：預設隱藏整個 body --- */
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.4s ease;
         }
 
-        /* 當 Firebase 確認未登入時，加上這個 class 來顯示畫面 */
-        body.auth-resolved {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        /* --- 桌面版容器 --- */
+        /* --- 關鍵修改：將隱藏效果移到登入框上 --- */
         .login-wrapper { 
             max-width: 450px; 
             width: 100%; 
@@ -39,6 +28,19 @@
             border-radius: 2px; 
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
             text-align: center;
+            
+            /* 預設隱藏表單，等待 Firebase 驗證 */
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(15px); /* 加入微微上浮的動畫讓視覺更平滑 */
+            transition: all 0.4s ease;
+        }
+
+        /* 當 Firebase 確認未登入時顯示表單 */
+        .login-wrapper.auth-resolved {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
         }
 
         /* --- 標題設計 --- */
@@ -179,47 +181,58 @@
 
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
+    const loginWrapper = document.querySelector('.login-wrapper');
+    const msgEl = document.getElementById('msg');
+    let isNavigating = false;
 
-    // 檢查登入狀態
+    function navigateToApp() {
+        if (isNavigating) return;
+        isNavigating = true;
+        msgEl.innerText = "驗證成功！正在載入系統...";
+        msgEl.style.color = "#003153";
+        setTimeout(() => { window.location.href = "Messenger.html"; }, 300);
+    }
+
+    const fallbackTimer = setTimeout(() => { loginWrapper.classList.add("auth-resolved"); }, 3000);
+
     auth.onAuthStateChanged((user) => {
-        if (user) {
-            // 已登入：使用 replace 直接覆蓋歷史紀錄跳轉，使用者畫面會維持白底/灰底並直接跳過去
-            window.location.replace("IOS-Messenger.html");
-        } else {
-            // 未登入：將 body 加上 class，讓登入表單淡入顯示
-            document.body.classList.add("auth-resolved");
-        }
+        clearTimeout(fallbackTimer); 
+        if (user) { navigateToApp(); } 
+        else { loginWrapper.classList.add("auth-resolved"); }
     });
 
     document.getElementById('loginBtn').addEventListener('click', () => {
-        const email = document.getElementById('email').value;
+        const email = document.getElementById('email').value.trim();
         const password = document.getElementById('password').value;
-        const msg = document.getElementById('msg');
 
         if (!email || !password) {
-            msg.innerText = "請完整填寫憑證資訊";
-            msg.style.color = "#a94442";
+            msgEl.innerText = "請完整填寫憑證資訊";
+            msgEl.style.color = "#a94442";
             return;
         }
 
-        msg.innerText = "安全驗證中...";
-        msg.style.color = "#003153";
+        // 這是辨識是否更新成功的關鍵字！
+        msgEl.innerText = "連線嘗試中 (版本 03.07-B)...";
+        msgEl.style.color = "#003153";
 
-        // 鎖定按鈕避免重複點擊
         const btn = document.getElementById('loginBtn');
         btn.disabled = true;
         btn.style.opacity = "0.7";
 
-        auth.signInWithEmailAndPassword(email, password)
+        // 強制不使用 iOS 本機快取，繞過死當 Bug
+        auth.setPersistence(firebase.auth.Auth.Persistence.NONE)
             .then(() => {
-                // 登入成功後跳轉也使用 replace
-                window.location.replace("Dashboard.html");
+                return auth.signInWithEmailAndPassword(email, password);
+            })
+            .then(() => {
+                navigateToApp();
             })
             .catch((error) => {
-                msg.style.color = "#a94442";
-                msg.innerText = "驗證失敗，請檢查輸入資訊";
+                msgEl.style.color = "#a94442";
+                msgEl.innerText = "驗證失敗: " + error.code; 
                 btn.disabled = false;
                 btn.style.opacity = "1";
+                isNavigating = false; 
             });
     });
 </script>
