@@ -180,13 +180,13 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
 
-    // 檢查登入狀態
+    // 檢查登入狀態 (統一集中在這裡處理跳轉)
     auth.onAuthStateChanged((user) => {
         if (user) {
-            // 已登入：使用 replace 直接覆蓋歷史紀錄跳轉，使用者畫面會維持白底/灰底並直接跳過去
-            window.location.replace("../Messenger.html");
+            // 【關鍵修改】：加上 ./ 確保 iOS WebView 能正確找到本地檔案
+            // 請決定你要跳轉到 Messenger 還是 Dashboard，這裡以 Messenger 為例
+            window.location.replace("./Messenger.html"); 
         } else {
-            // 未登入：將 body 加上 class，讓登入表單淡入顯示
             document.body.classList.add("auth-resolved");
         }
     });
@@ -205,19 +205,19 @@
         msg.innerText = "安全驗證中...";
         msg.style.color = "#003153";
 
-        // 鎖定按鈕避免重複點擊
         const btn = document.getElementById('loginBtn');
         btn.disabled = true;
         btn.style.opacity = "0.7";
 
         auth.signInWithEmailAndPassword(email, password)
             .then(() => {
-                // 登入成功後跳轉也使用 replace
-                window.location.replace("Dashboard.html");
+                // 【關鍵修改】：這裡留空！不要在這裡執行跳轉。
+                // 登入成功後，Firebase 會自動觸發上方的 onAuthStateChanged，由那邊統一跳轉。
             })
             .catch((error) => {
                 msg.style.color = "#a94442";
-                msg.innerText = "驗證失敗，請檢查輸入資訊";
+                // 【關鍵修改】：將具體的錯誤代碼印在畫面上，方便你在手機上除錯
+                msg.innerText = "驗證失敗：" + error.code; 
                 btn.disabled = false;
                 btn.style.opacity = "1";
             });
