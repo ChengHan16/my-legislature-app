@@ -184,8 +184,7 @@
     auth.onAuthStateChanged((user) => {
         if (user) {
             // 【關鍵修改】：加上 ./ 確保 iOS WebView 能正確找到本地檔案
-            // 請決定你要跳轉到 Messenger 還是 Dashboard，這裡以 Messenger 為例
-            window.location.replace("./Messenger.html"); 
+            window.location.replace("Messenger.html"); 
         } else {
             document.body.classList.add("auth-resolved");
         }
