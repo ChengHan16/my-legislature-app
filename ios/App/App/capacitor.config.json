@@ -1,4 +1,9 @@
 {
+	"plugins": {
+		"CapacitorHttp": {
+			"enabled": true
+		}
+	},
 	"appId": "app.web.legislaturetw",
 	"appName": "Legislature",
 	"webDir": "www",
