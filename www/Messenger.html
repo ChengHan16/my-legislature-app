@@ -2,8 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>法院通訊 - 訊息中心</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">    <title>法院通訊 - 訊息中心</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
@@ -51,15 +50,6 @@
             box-sizing: border-box;
         }
 
-.messenger-header {
-    /* 強制橫幅不參與 flex 壓縮，確保高度與 Messenger.html 絕對一致 */
-    flex: 0 0 auto !important;
-    /* 確保寬度計算包含邊框，防止 1px 的解析度誤差 */
-    box-sizing: border-box !important;
-}
-
-        
-        /* 導覽列：內容置中並限制寬度 */
         .messenger-header {
             background: var(--ly-blue-trans); 
             backdrop-filter: blur(10px);
@@ -69,6 +59,9 @@
             z-index: 100;
             box-shadow: 0 2px 10px rgba(0,0,0,0.2);
             border-bottom: 1px solid rgba(255,255,255,0.1);
+            
+            /* 【關鍵新增】：自動閃避 iPhone 動態島與瀏海 */
+            padding-top: env(safe-area-inset-top);
         }
 
         .header-content {
@@ -488,7 +481,7 @@
     <header class="messenger-header">
         <div class="header-content">
             <div class="user-profile">
-                <button class="back-btn" onclick="window.location.href='Dashboard.html'">
+                <button class="back-btn" onclick="window.location.href='index.html'">
                     <i class="fas fa-chevron-left"></i>
                 </button>
                 <img id="myAvatar" class="user-avatar" src="https://via.placeholder.com/55" alt="Profile">
@@ -507,50 +500,62 @@
         <i class="fas fa-comment-dots"></i>
     </button>
 
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-storage-compat.js"></script>
 
     <script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyACnoimIASfb1rb59SbgLDkUmyYR6ODbUU",
-        authDomain: "llwb-ed686.firebaseapp.com",
-        projectId: "llwb-ed686",
-        storageBucket: "llwb-ed686.firebasestorage.app",
-        messagingSenderId: "940345852074",
-        appId: "1:940345852074:web:7a30cca5a6d997a92350d3"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-    const userCache = {};
-    const storage = firebase.storage(); // 【新增這行】初始化 Storage
-    auth.onAuthStateChanged(user => {
-        if (user) {
-            db.collection("act").doc(user.uid).get().then(doc => {
-                if (doc.exists) {
-                    const data = doc.data();
-                    document.getElementById('myName').innerText = data.displayName || "未設定名稱";
-                    document.getElementById('myAvatar').src = data.photoURL || 'https://via.placeholder.com/45';
-                }
-            });
+        const firebaseConfig = {
+            apiKey: "AIzaSyACnoimIASfb1rb59SbgLDkUmyYR6ODbUU",
+            authDomain: "llwb-ed686.firebaseapp.com",
+            projectId: "llwb-ed686",
+            storageBucket: "llwb-ed686.firebasestorage.app",
+            messagingSenderId: "940345852074",
+            appId: "1:940345852074:web:7a30cca5a6d997a92350d3"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+        const userCache = {};
 
-            db.collection("chats")
-                .where("members", "array-contains", user.uid)
-                .orderBy("updatedAt", "desc")
-                .onSnapshot(snapshot => {
-                    renderChatList(snapshot);
-                }, error => {
-                    console.error("監聽失敗:", error);
-                    db.collection("chats")
-                        .where("members", "array-contains", user.uid)
-                        .get().then(renderChatList);
-                });
-        } else {
-            window.location.href = "login.html";
-        }
-    });
+        // 【關鍵修復 1】：強制 Firestore 使用長輪詢 (Long Polling)
+        // 這能完美解決 Capacitor iOS 中資料庫連不上、永遠「載入中」的 Bug
+        db.settings({
+            experimentalForceLongPolling: true,
+            useFetchStreams: false
+        });
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                // 讀取使用者資料
+                db.collection("act").doc(user.uid).get().then(doc => {
+                    if (doc.exists) {
+                        const data = doc.data();
+                        document.getElementById('myName').innerText = data.displayName || "未設定名稱";
+                        document.getElementById('myAvatar').src = data.photoURL || 'https://via.placeholder.com/45';
+                    }
+                }).catch(err => console.error("讀取個資失敗:", err));
+
+                // 讀取對話清單
+                db.collection("chats")
+                    .where("members", "array-contains", user.uid)
+                    .orderBy("updatedAt", "desc")
+                    .onSnapshot(snapshot => {
+                        renderChatList(snapshot);
+                    }, error => {
+                        console.error("監聽失敗:", error);
+                        // 備用讀取方案
+                        db.collection("chats")
+                            .where("members", "array-contains", user.uid)
+                            .get().then(snap => renderChatList(snap, true));
+                    });
+            } else {
+                // 【關鍵修復 2】：你的專案沒有 login.html，必須改回 index.html
+                window.location.replace("index.html");
+            }
+        });
 
     // === 2. 渲染對話清單 (包含指定名稱置頂與智慧時間) ===
     async function renderChatList(snapshot, needsManualSort = false) {

@@ -49,8 +49,9 @@
             z-index: 100;
             box-shadow: 0 2px 10px rgba(0,0,0,0.2);
             border-bottom: 1px solid rgba(255,255,255,0.1);
-            flex: 0 0 auto !important; /* 強制橫幅不參與 flex 壓縮 */
-            box-sizing: border-box !important;
+            
+            /* 【關鍵新增】：自動閃避 iPhone 動態島與瀏海 */
+            padding-top: env(safe-area-inset-top);
         }
 
         .header-content {
@@ -938,10 +939,10 @@
     </div>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-storage-compat.js"></script>
 
 <script>
     function formatChatDate(timestamp) {
@@ -979,25 +980,31 @@
     let opponentReadTime = new Date(0);
     let hasRenderedChatInfo = false; // 【新增這行】：紀錄是否已經渲染過畫面
 
-auth.onAuthStateChanged(async (user) => {
-    if (!user) return window.location.href = "login.html";
+    // 【關鍵新增】：強制 Firestore 使用長輪詢，解決 iOS 永遠載入中的 Bug
+    db.settings({
+        experimentalForceLongPolling: true,
+        useFetchStreams: false
+    });
 
-    const chatRef = db.collection("chats").doc(chatId);
+    auth.onAuthStateChanged(async (user) => {
+        if (!user) return window.location.href = "login.html";
 
-    // --- 在線狀態監聽 (Focus/Blur) ---
-    // --- 修改後的在線與已讀狀態監聽 ---
-const updateMyStatus = (isInChat) => {
-    const updateData = {
-        [`presence.${user.uid}`]: isInChat
+        const chatRef = db.collection("chats").doc(chatId);
+
+        // --- 在線狀態監聽 (Focus/Blur) ---
+        // --- 修改後的在線與已讀狀態監聽 ---
+    const updateMyStatus = (isInChat) => {
+        const updateData = {
+            [`presence.${user.uid}`]: isInChat
+        };
+        
+        // 如果使用者在對話中 (Focus)，同時更新最後讀取時間
+        if (isInChat) {
+            updateData[`lastReadAt.${user.uid}`] = firebase.firestore.FieldValue.serverTimestamp();
+        }
+        
+        chatRef.update(updateData);
     };
-    
-    // 如果使用者在對話中 (Focus)，同時更新最後讀取時間
-    if (isInChat) {
-        updateData[`lastReadAt.${user.uid}`] = firebase.firestore.FieldValue.serverTimestamp();
-    }
-    
-    chatRef.update(updateData);
-};
 
 // 監聽視窗聚焦與模糊
 window.addEventListener('focus', () => updateMyStatus(true));
