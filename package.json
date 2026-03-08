@@ -11,12 +11,20 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "@capacitor/android": "^8.1.0",
-    "@capacitor/core": "^8.1.0",
+    "@capacitor/android": "^8.2.0",
+    "@capacitor/core": "^8.2.0",
     "@capacitor/ios": "^8.1.0",
     "@capacitor/push-notifications": "^8.0.2"
   },
   "devDependencies": {
-    "@capacitor/cli": "^8.1.0"
-  }
+    "@capacitor/cli": "^8.2.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ChengHan16/my-legislature-app.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ChengHan16/my-legislature-app/issues"
+  },
+  "homepage": "https://github.com/ChengHan16/my-legislature-app#readme"
 }
