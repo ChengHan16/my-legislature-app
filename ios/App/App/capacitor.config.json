@@ -7,5 +7,7 @@
 		"iosScheme": "https",
 		"androidScheme": "https"
 	},
-	"packageClassList": []
+	"packageClassList": [
+		"PushNotificationsPlugin"
+	]
 }
