@@ -2,7 +2,8 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">    <title>法院通訊 - 訊息中心</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>法院通訊 - 訊息中心</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
@@ -50,6 +51,15 @@
             box-sizing: border-box;
         }
 
+.messenger-header {
+    /* 強制橫幅不參與 flex 壓縮，確保高度與 Messenger.html 絕對一致 */
+    flex: 0 0 auto !important;
+    /* 確保寬度計算包含邊框，防止 1px 的解析度誤差 */
+    box-sizing: border-box !important;
+}
+
+        
+        /* 導覽列：內容置中並限制寬度 */
         .messenger-header {
             background: var(--ly-blue-trans); 
             backdrop-filter: blur(10px);
@@ -59,19 +69,17 @@
             z-index: 100;
             box-shadow: 0 2px 10px rgba(0,0,0,0.2);
             border-bottom: 1px solid rgba(255,255,255,0.1);
-            
-            /* 【關鍵新增】：自動閃避 iPhone 動態島與瀏海 */
-            padding-top: env(safe-area-inset-top);
         }
 
         .header-content {
             max-width: var(--container-width);
             margin: 0 auto;
-            padding: 15px 35px; /* 這裡原本是 15px 20px，請改為 35px */
+            padding: 15px 20px;
             display: flex; 
             align-items: center;
             justify-content: space-between;
         }
+
         .user-profile { display: flex; align-items: center; }
 
         .back-btn {
@@ -210,20 +218,10 @@
         }
 
         @media (max-width: 750px) {
-            /* 加入這行，讓手機版的左右邊距對齊下方卡片 */
-            .header-content { 
-                padding: 15px 30px; 
-            }
-            
             .user-name { font-size: 1.2rem; }
             .chat-info h4 { font-size: 1.15rem; }
             .chat-info p { font-size: 0.95rem; }
             .chat-item { padding: 15px; }
-        }
-
-        #myAvatar {
-            width: 60px !important;
-            height: 60px !important;
         }
 
         /* --- 彈出表單 (Modal) 基礎樣式 --- */
@@ -490,7 +488,10 @@
     <header class="messenger-header">
         <div class="header-content">
             <div class="user-profile">
-                <img id="myAvatar" class="user-avatar" src="https://via.placeholder.com/55" alt="Profile" onclick="openSettings()" style="cursor: pointer;">
+                <button class="back-btn" onclick="window.location.href='Dashboard.html'">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <img id="myAvatar" class="user-avatar" src="https://via.placeholder.com/55" alt="Profile">
                 <span id="myName" class="user-name">載入中...</span>
             </div>
             <div class="header-actions">
@@ -506,10 +507,10 @@
         <i class="fas fa-comment-dots"></i>
     </button>
 
-    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
 
     <script>
     const firebaseConfig = {
@@ -525,61 +526,7 @@
     const db = firebase.firestore();
     const userCache = {};
     const storage = firebase.storage(); // 【新增這行】初始化 Storage
-    
-    // --- 新增：初始化原生推播通知 (Capacitor 環境專用) ---
-async function initPushNotifications(userId) {
-    // 確保是在 Capacitor 原生 App 環境下執行，避免在普通網頁瀏覽器報錯
-    if (typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform()) {
-        try {
-            // 從 Capacitor 呼叫推播套件
-            const { PushNotifications } = Capacitor.Plugins;
-
-            // 1. 請求 iOS 推播權限
-            let permStatus = await PushNotifications.checkPermissions();
-            if (permStatus.receive === 'prompt') {
-                permStatus = await PushNotifications.requestPermissions();
-            }
-
-            if (permStatus.receive !== 'granted') {
-                console.log('使用者未授權推播通知');
-                return;
-            }
-
-            // 2. 向 Apple APNs 註冊設備
-            await PushNotifications.register();
-
-            // 3. 監聽註冊成功，取得專屬推播 Token 並存入資料庫
-            PushNotifications.addListener('registration', async (token) => {
-                console.log('成功取得原生 Push Token:', token.value);
-                // 將 Token 寫入使用者的 act (帳號) 資料表，讓後端知道要推播到哪裡
-                await db.collection("act").doc(userId).set({
-                    pushToken: token.value
-                }, { merge: true });
-            });
-
-            // 4. (選用) 監聽推播註冊失敗
-            PushNotifications.addListener('registrationError', (error) => {
-                console.error('推播註冊失敗:', error);
-            });
-
-            // 5. (選用) 當 App 在前景開著時收到推播的行為
-            PushNotifications.addListener('pushNotificationReceived', (notification) => {
-                console.log('收到前景推播:', notification);
-            });
-
-        } catch (error) {
-            console.error("推播初始化發生錯誤:", error);
-        }
-    }
-}
-
-    auth.onAuthStateChanged(async (user) => {
-        if (!user) return window.location.href = "login.html";
-
-        // 【新增】：使用者登入確認後，立刻初始化推播並更新 Token
-        initPushNotifications(user.uid);
-
-        const chatRef = db.collection("chats").doc(chatId);
+    auth.onAuthStateChanged(user => {
         if (user) {
             db.collection("act").doc(user.uid).get().then(doc => {
                 if (doc.exists) {
@@ -1009,36 +956,6 @@ async function initPushNotifications(userId) {
             btnConfirm.disabled = false;
         }
     }
-
-    // 開啟設定視窗
-    function openSettings() {
-        const currentName = document.getElementById('myName').innerText;
-        const currentAvatar = document.getElementById('myAvatar').src;
-        
-        document.getElementById('settingsName').innerText = currentName;
-        document.getElementById('settingsAvatar').src = currentAvatar;
-        document.getElementById('settingsModal').style.display = 'flex';
-    }
-
-    // 關閉設定視窗
-    function closeSettings() {
-        document.getElementById('settingsModal').style.display = 'none';
-    }
-
-    // 處理登出邏輯
-    function handleLogout() {
-        const currentName = document.getElementById('myName').innerText;
-        // 詢問是否登出
-        if (confirm(`確定要登出 ${currentName} 的帳號嗎？`)) {
-            firebase.auth().signOut().then(() => {
-                // 確認後回到 index.html
-                window.location.href = "index.html";
-            }).catch((error) => {
-                console.error("登出失敗:", error);
-                alert("登出失敗，請稍後再試");
-            });
-        }
-    }
 </script>
 
     <div id="newChatModal" class="modal-overlay">
@@ -1120,23 +1037,6 @@ async function initPushNotifications(userId) {
             <div class="modal-footer">
                 <button class="btn-modal btn-cancel" onclick="closeCropper()">取消</button>
                 <button class="btn-modal btn-confirm" onclick="confirmCrop()">確認裁切</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="settingsModal" class="modal-overlay" style="display: none; align-items: center; justify-content: center;">
-        <div class="modal-card" style="max-width: 100%; width: 100%; height: 100%; border-radius: 0; display: flex; flex-direction: column;">
-            <div class="modal-header">
-                <h3>設定</h3>
-                <span style="cursor:pointer; font-size: 1.5rem;" onclick="closeSettings()">&times;</span>
-            </div>
-            <div class="modal-body" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: white;">
-                <img id="settingsAvatar" src="https://via.placeholder.com/120" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid var(--ly-gold); margin-bottom: 20px;">
-                <h2 id="settingsName" style="color: var(--ly-blue); margin-bottom: 40px;">成員名稱</h2>
-                
-                <button class="btn-modal btn-confirm" style="width: 200px; background: #dc3545; font-size: 1.1rem;" onclick="handleLogout()">
-                    <i class="fas fa-sign-out-alt"></i> 登出
-                </button>
             </div>
         </div>
     </div>
