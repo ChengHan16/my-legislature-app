@@ -934,6 +934,17 @@
         .user-select-item input[type="checkbox"]:checked + .user-select-card { border-color: var(--ly-gold); background: #fffdf5; box-shadow: 0 4px 12px rgba(207, 169, 0, 0.15); }
         .user-select-item input[type="checkbox"]:checked + .user-select-card img { border-color: var(--ly-gold); }
         .user-select-item input[type="checkbox"]:checked + .user-select-card span { color: var(--ly-gold); }
+
+        /* --- 原生感：聊天室進場時由右向左滑入 --- */
+body {
+    animation: pageSlideIn 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+    background-color: var(--bg-gray); /* 確保拖曳時背景不穿幫 */
+}
+
+@keyframes pageSlideIn {
+    from { transform: translateX(100vw); }
+    to { transform: translateX(0); }
+}
     </style>
 </head>
 <body>
@@ -941,7 +952,7 @@
 <header class="messenger-header">
     <div class="header-content">
         <div class="user-profile">
-            <button class="back-btn" onclick="location.href='Messenger.html'">
+            <button class="back-btn" onclick="slideBackToMessenger()">
                 <i class="fas fa-chevron-left"></i>
             </button>
             <img id="targetAvatar" class="user-avatar" src="https://via.placeholder.com/55">
@@ -2840,6 +2851,60 @@ function checkMentionTrigger() {
 document.addEventListener('click', (e) => {
     if (!e.target.closest('.mention-list') && e.target.id !== 'msgInput') {
         hideMentionList();
+    }
+});
+
+// ==========================================
+// 完美原生感：邊緣滑動返回上一頁
+// ==========================================
+function slideBackToMessenger() {
+    // 按下返回鍵時的向右滑出動畫
+    document.body.style.transition = 'transform 0.25s cubic-bezier(0.25, 0.8, 0.25, 1)';
+    document.body.style.transform = 'translateX(100vw)';
+    setTimeout(() => {
+        window.location.href = 'Messenger.html';
+    }, 250);
+}
+
+let isPageSwiping = false;
+let pageStartX = 0;
+let pageCurrentX = 0;
+
+document.addEventListener('touchstart', (e) => {
+    // 只有從螢幕最左側邊緣 (45px以內) 往右滑，才觸發返回手勢
+    if (e.touches[0].clientX < 45) {
+        isPageSwiping = true;
+        pageStartX = e.touches[0].clientX;
+        
+        // 停止進場動畫，讓畫面準備跟隨手指
+        document.body.style.animation = 'none'; 
+        document.body.style.transition = 'none'; 
+    }
+});
+
+// 注意：這裡必須加上 { passive: false } 才能使用 preventDefault
+document.addEventListener('touchmove', (e) => {
+    if (!isPageSwiping) return;
+    
+    pageCurrentX = e.touches[0].clientX - pageStartX;
+    if (pageCurrentX > 0) {
+        e.preventDefault(); // 阻止瀏覽器預設的橡皮筋回彈
+        // 讓整個畫面跟隨手指往右平移
+        document.body.style.transform = `translateX(${pageCurrentX}px)`;
+    }
+}, { passive: false });
+
+document.addEventListener('touchend', (e) => {
+    if (!isPageSwiping) return;
+    isPageSwiping = false;
+    
+    // 如果往右滑動超過螢幕寬度的 25%，就視為「確認返回」
+    if (pageCurrentX > window.innerWidth * 0.25) {
+        slideBackToMessenger();
+    } else {
+        // 否則滑動距離不夠，畫面彈回原位 (取消返回)
+        document.body.style.transition = 'transform 0.2s ease-out';
+        document.body.style.transform = 'translateX(0px)';
     }
 });
 </script>

@@ -519,7 +519,25 @@
             color: var(--ly-gold); 
         }
 
-        
+        /* --- 頁面跳轉的偽原生過渡動畫 --- */
+body {
+    animation: pageFadeIn 0.25s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+}
+
+@keyframes pageFadeIn {
+    from { opacity: 0; transform: scale(0.98); } /* 微微放大淡入，很像 iOS 原生感 */
+    to { opacity: 1; transform: scale(1); }
+}
+
+/* 準備跳轉時觸發的類別 */
+.page-fade-out {
+    animation: pageFadeOut 0.15s ease-out forwards !important;
+}
+
+@keyframes pageFadeOut {
+    from { opacity: 1; transform: scale(1); }
+    to { opacity: 0; transform: scale(0.98); }
+}
 </style>
 </head>
 <body>
@@ -681,8 +699,8 @@ async function initPushNotifications(userId) {
             chatItem.className = 'chat-item';
             // 修正這裡：確保 onclick 傳入的是正確的字串變數
             chatItem.onclick = () => {
-                window.location.href = `chat.html?id=${chatId}`; 
-            };            // 判斷是否為群組，且名稱完全等於「立法院 Legislature」
+                nativeNavigateTo(`chat.html?id=${chatId}`); 
+            };           // 判斷是否為群組，且名稱完全等於「立法院 Legislature」
             if (chatData.isGroup && chatData.groupName === "立法院 Legislature") {
                 pinnedChats.push(doc);
             } else {
@@ -1087,6 +1105,17 @@ async function initPushNotifications(userId) {
             });
         }
     }
+
+    // 原生感平滑跳轉函式
+function nativeNavigateTo(url) {
+    // 1. 替 body 加上淡出動畫
+    document.body.classList.add('page-fade-out');
+    
+    // 2. 等待 0.15 秒（動畫播完）後，再執行真正的跳轉
+    setTimeout(() => {
+        window.location.href = url;
+    }, 150);
+}
 </script>
 
     <div id="newChatModal" class="modal-overlay">
