@@ -2,6 +2,7 @@
 	"appId": "app.web.legislaturetw",
 	"appName": "Legislature",
 	"webDir": "www",
+	"backgroundColor": "#f2f4f7",
 	"server": {
 		"hostname": "app.legislature.tw",
 		"iosScheme": "https",
