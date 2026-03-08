@@ -2,8 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>對話視窗 - 行政通訊系統</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">    <title>對話視窗 - 行政通訊系統</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
@@ -77,8 +76,8 @@
             width: 58.43px; height: 58.43px;
             border-radius: 50%; object-fit: cover; 
             margin-right: 15px; 
-            border: 2px solid var(--ly-gold);
-            background: #fff;
+            /*border: 2px solid var(--ly-gold);
+            background: #fff;*/
             flex-shrink: 0;
         }
 
@@ -87,6 +86,19 @@
             font-size: 1.35rem;
             color: white; 
             letter-spacing: 1px;
+        }
+
+        /* --- 群組已讀標籤樣式 --- */
+        .read-status.group-read {
+            cursor: pointer;
+            color: var(--ly-blue);
+            font-weight: 600;
+            transition: opacity 0.2s;
+            display: inline-block;
+        }
+        .read-status.group-read:hover {
+            opacity: 0.7;
+            text-decoration: underline;
         }
 
         /* 2. 訊息滾動區域 (置中優化) */
@@ -792,6 +804,54 @@
             align-items: center;
         }
 
+        /* --- @ 標記選單與醒目樣式 --- */
+        .mention-list {
+            display: none;
+            position: absolute;
+            bottom: 100%; /* 顯示在輸入框正上方 */
+            left: 0;
+            width: 100%;
+            max-height: 200px;
+            overflow-y: auto;
+            background: var(--white);
+            border-top: 1px solid var(--border-color);
+            box-shadow: 0 -10px 20px rgba(0,0,0,0.15);
+            z-index: 10000; /* 確保蓋過所有元素 */
+        }
+        .mention-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            cursor: pointer;
+            border-bottom: 1px solid #f2f4f7;
+            transition: background 0.2s;
+        }
+        .mention-item:hover, .mention-item:active { background: #f8f9fa; }
+        .mention-item img {
+            width: 30px; height: 30px; border-radius: 50%;
+            margin-right: 12px; object-fit: cover; border: 1px solid #ddd;
+        }
+        .mention-item span {
+            font-size: 14px; font-weight: 700; color: var(--ly-blue);
+        }
+        /* 對方的訊息：白底氣泡，配藍色醒目字 */
+        .msg.theirs .mention-highlight {
+            color: var(--ly-blue); 
+            font-weight: 800; 
+            background: rgba(0, 49, 83, 0.1); 
+            padding: 1px 6px; 
+            border-radius: 10px;
+        }
+
+        /* 自己的訊息：深藍底氣泡，配金色醒目字與微透白底 */
+        .msg.mine .mention-highlight {
+            color: var(--ly-gold); 
+            font-weight: 800; 
+            background: rgba(255, 255, 255, 0.2); 
+            padding: 1px 6px; 
+            border-radius: 10px;
+        }
+
         /* --- 聊天室內的活動分享卡片 --- */
         .msg-event-card {
             background: #fffdf5;
@@ -915,7 +975,9 @@
             <div class="icon-circle"><i class="fas fa-calendar-alt"></i></div>
             <span>活動行程</span>
         </div>
-        </div>
+    </div>
+    
+    <div id="mentionList" class="mention-list"></div>
 
     <div id="replyPreview" class="reply-preview-bar" style="max-width: var(--container-width); width: 100%; box-sizing: border-box;">
         <span>回覆：<span id="replyPreviewText" style="font-weight: bold;"></span></span>
@@ -939,10 +1001,10 @@
     </div>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-storage-compat.js"></script>
 
 <script>
     function formatChatDate(timestamp) {
@@ -956,6 +1018,93 @@
         } else {
             return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
         }
+    }
+    // --- 新增：將文字轉換為安全字串（防 XSS） ---
+    function escapeHtml(unsafe) {
+        if (!unsafe) return "";
+        return unsafe
+             .replace(/&/g, "&amp;")
+             .replace(/</g, "&lt;")
+             .replace(/>/g, "&gt;")
+             .replace(/"/g, "&quot;")
+             .replace(/'/g, "&#039;");
+    }
+
+    // --- 新增：將網址轉換為可點擊的超連結 ---
+    function linkify(text) {
+        if (!text) return "";
+        var urlPattern = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+        return text.replace(urlPattern, function(url) {
+            // 加入 word-break 確保長網址會自動換行，不會撐爆版面
+            return '<a href="' + url + '" target="_blank" style="color: inherit; text-decoration: underline; word-break: break-all;">' + url + '</a>';
+        });
+    }
+    // --- 新增：將對話中的 @名稱 變成醒目樣式 ---
+    function highlightMentions(text) {
+        if (!text) return "";
+        return text.replace(/@([^\s]+)/g, '<span class="mention-highlight">@$1</span>');
+    }
+
+    // --- 新增：前端圖片壓縮引擎 (Client-side Image Compression) ---
+    function compressImageClientSide(file, maxSizeMB) {
+        return new Promise((resolve, reject) => {
+            const maxSize = maxSizeMB * 1024 * 1024; // 轉換為 Byte
+            const reader = new FileReader();
+            
+            reader.readAsDataURL(file);
+            reader.onload = event => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+
+                    // 1. 初步縮放：如果解析度超級大 (例如超過 4000px)，先等比例縮小長寬
+                    const maxDim = 4000;
+                    if (width > maxDim || height > maxDim) {
+                        if (width > height) {
+                            height = Math.round(height * (maxDim / width));
+                            width = maxDim;
+                        } else {
+                            width = Math.round(width * (maxDim / height));
+                            height = maxDim;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // 2. 畫質壓縮：遞迴降低品質，直到檔案大小符合限制
+                    let quality = 0.9;
+                    const compress = () => {
+                        canvas.toBlob(blob => {
+                            if (!blob) return reject(new Error("圖片處理失敗"));
+                            
+                            // 如果大小已經低於限制，或是畫質已經降到極限 (0.1)，就回傳檔案
+                            if (blob.size <= maxSize || quality <= 0.1) {
+                                // 將壓縮後的 Blob 轉回 File 物件，並強制轉為 jpg 格式以節省空間
+                                const newFileName = file.name.replace(/\.[^/.]+$/, "") + "_compressed.jpg";
+                                const compressedFile = new File([blob], newFileName, {
+                                    type: 'image/jpeg',
+                                    lastModified: Date.now()
+                                });
+                                resolve(compressedFile);
+                            } else {
+                                // 如果還是太大，降低 10% 畫質再試一次
+                                quality -= 0.1; 
+                                compress();
+                            }
+                        }, 'image/jpeg', quality);
+                    };
+                    compress();
+                };
+                img.onerror = error => reject(error);
+            };
+            reader.onerror = error => reject(error);
+        });
     }
 
     const firebaseConfig = {
@@ -980,31 +1129,30 @@
     let opponentReadTime = new Date(0);
     let hasRenderedChatInfo = false; // 【新增這行】：紀錄是否已經渲染過畫面
 
-    // 【關鍵新增】：強制 Firestore 使用長輪詢，解決 iOS 永遠載入中的 Bug
     db.settings({
         experimentalForceLongPolling: true,
         useFetchStreams: false
     });
 
-    auth.onAuthStateChanged(async (user) => {
-        if (!user) return window.location.href = "login.html";
+auth.onAuthStateChanged(async (user) => {
+    if (!user) return window.location.href = "login.html";
 
-        const chatRef = db.collection("chats").doc(chatId);
+    const chatRef = db.collection("chats").doc(chatId);
 
-        // --- 在線狀態監聽 (Focus/Blur) ---
-        // --- 修改後的在線與已讀狀態監聽 ---
-    const updateMyStatus = (isInChat) => {
-        const updateData = {
-            [`presence.${user.uid}`]: isInChat
-        };
-        
-        // 如果使用者在對話中 (Focus)，同時更新最後讀取時間
-        if (isInChat) {
-            updateData[`lastReadAt.${user.uid}`] = firebase.firestore.FieldValue.serverTimestamp();
-        }
-        
-        chatRef.update(updateData);
+    // --- 在線狀態監聽 (Focus/Blur) ---
+    // --- 修改後的在線與已讀狀態監聽 ---
+const updateMyStatus = (isInChat) => {
+    const updateData = {
+        [`presence.${user.uid}`]: isInChat
     };
+    
+    // 如果使用者在對話中 (Focus)，同時更新最後讀取時間
+    if (isInChat) {
+        updateData[`lastReadAt.${user.uid}`] = firebase.firestore.FieldValue.serverTimestamp();
+    }
+    
+    chatRef.update(updateData);
+};
 
 // 監聽視窗聚焦與模糊
 window.addEventListener('focus', () => updateMyStatus(true));
@@ -1044,6 +1192,7 @@ if (document.hasFocus()) {
             // 【新增】：記錄是否為群組，並儲存成員名單
             window.isCurrentChatGroup = !!data.isGroup; 
             window.currentGroupMembers = data.members || []; 
+            window.groupReadTimes = data.lastReadAt || {}; // <--- 新增這行：儲存所有人的已讀時間
 
             // 【新增】：背景預先載入所有成員的個人資料到快取中
             // 【修改】：加入一個全域變數判斷是否為第一次載入，避免重複渲染
@@ -1120,38 +1269,7 @@ if (document.hasFocus()) {
     });
 
     // --- 單純更新畫面上的「已讀」標籤，不重新載入圖片 ---
-// --- 單純更新畫面上的「已讀」標籤，絕對不重新載入圖片 ---
-function updateReadStatusUI() {
-    if (!messagesSnapshot || !auth.currentUser) return;
-    
-    // 先把畫面上現有的已讀標籤全部隱藏/移除
-    document.querySelectorAll('.read-status').forEach(el => el.remove());
-    
-    const docs = messagesSnapshot.docs;
-    const currentUid = auth.currentUser.uid;
-    let lastReadMsgId = null;
 
-    // 反向尋找最後一則我發的、且對方已讀的訊息
-    for (let i = docs.length - 1; i >= 0; i--) {
-        const msg = docs[i].data();
-        const msgTime = msg.timestamp ? msg.timestamp.toDate() : new Date();
-        if (msg.senderId === currentUid && msgTime <= opponentReadTime) {
-            lastReadMsgId = docs[i].id;
-            break; 
-        }
-    }
-
-    // 如果有找到該訊息，就在那個訊息泡泡最外層插入已讀標籤
-    if (lastReadMsgId) {
-        const targetMsgEl = document.getElementById('msg-' + lastReadMsgId);
-        if (targetMsgEl) {
-            const wrapper = targetMsgEl.closest('.msg-wrapper');
-            if (wrapper) {
-                wrapper.insertAdjacentHTML('beforeend', `<div class="read-status">已讀</div>`);
-            }
-        }
-    }
-}
 
     // --- 監聽訊息內容 (修正後的版本) ---
     chatRef.collection("messages").orderBy("timestamp", "asc").onSnapshot(snapshot => {
@@ -1175,6 +1293,104 @@ function updateReadStatusUI() {
 
     });
     
+    // --- 單純更新畫面上的「已讀」標籤，絕對不重新載入圖片 ---
+// 輔助函數：取得某則訊息有哪些成員已經讀過了
+function getReaders(msgTime) {
+    if (!window.isCurrentChatGroup || !window.groupReadTimes || !msgTime) return [];
+    const readers = [];
+    window.currentGroupMembers.forEach(uid => {
+        // 排除自己，並確認對方有已讀紀錄且時間大於等於訊息發送時間
+        if (uid !== auth.currentUser.uid && window.groupReadTimes[uid]) {
+            const readTime = window.groupReadTimes[uid].toDate();
+            if (readTime >= msgTime) {
+                readers.push(uid);
+            }
+        }
+    });
+    return readers;
+}
+
+// 開啟已讀名單視窗
+function openReadModal(uidsStr) {
+    if (!uidsStr) return;
+    const uids = uidsStr.split(',');
+    const listEl = document.getElementById('readReceiptList');
+    listEl.innerHTML = '';
+
+    uids.forEach(uid => {
+        const member = window.chatMembersCache[uid] || {};
+        const name = member.displayName || "成員";
+        const photo = member.photoURL || 'https://via.placeholder.com/35';
+
+        listEl.innerHTML += `
+            <div class="member-item">
+                <img src="${photo}" alt="avatar">
+                <span>${name}</span>
+            </div>
+        `;
+    });
+
+    document.getElementById('readReceiptModal').style.display = 'flex';
+}
+
+function closeReadModal() {
+    document.getElementById('readReceiptModal').style.display = 'none';
+}
+
+// 升級版：動態更新畫面上的「已讀」標籤
+function updateReadStatusUI() {
+    if (!messagesSnapshot || !auth.currentUser) return;
+    
+    // 先清除畫面上所有的已讀標籤
+    document.querySelectorAll('.read-status').forEach(el => el.remove());
+    
+    const docs = messagesSnapshot.docs;
+    const currentUid = auth.currentUser.uid;
+
+    if (!window.isCurrentChatGroup) {
+        // --- 1對1 私訊模式：只在最後一則被已讀的訊息顯示「已讀」 ---
+        let lastReadMsgId = null;
+        for (let i = docs.length - 1; i >= 0; i--) {
+            const msg = docs[i].data();
+            const msgTime = msg.timestamp ? msg.timestamp.toDate() : new Date();
+            if (msg.senderId === currentUid && msgTime <= opponentReadTime) {
+                lastReadMsgId = docs[i].id;
+                break; 
+            }
+        }
+        if (lastReadMsgId) {
+            const targetMsgEl = document.getElementById('msg-' + lastReadMsgId);
+            if (targetMsgEl) {
+                const wrapper = targetMsgEl.closest('.msg-wrapper');
+                if (wrapper) wrapper.insertAdjacentHTML('beforeend', `<div class="read-status">已讀</div>`);
+            }
+        }
+    } else {
+        // --- 群組模式：針對每一則我發送的訊息，檢查有哪些人已讀 ---
+        docs.forEach(doc => {
+            const msg = doc.data();
+            const msgTime = msg.timestamp ? msg.timestamp.toDate() : new Date();
+            
+            if (msg.senderId === currentUid) {
+                const readers = getReaders(msgTime);
+                if (readers.length > 0) {
+                    // 取得已讀成員的名字
+                    let names = readers.map(uid => (window.chatMembersCache[uid]?.displayName || "成員"));
+                    // 如果大於2人，加上「...等 X 人」
+                    let displayText = names.length <= 2 ? names.join("、") : names.slice(0, 2).join("、") + `...等 ${names.length} 人`;
+                    
+                    const readHtml = `<div class="read-status group-read" onclick="openReadModal('${readers.join(',')}')">已讀: ${displayText}</div>`;
+                    
+                    const targetMsgEl = document.getElementById('msg-' + doc.id);
+                    if (targetMsgEl) {
+                        const wrapper = targetMsgEl.closest('.msg-wrapper');
+                        if (wrapper) wrapper.insertAdjacentHTML('beforeend', readHtml);
+                    }
+                }
+            }
+        });
+    }
+}
 
 function renderChatUI(currentUid) {
     if (!messagesSnapshot) return;
@@ -1184,62 +1400,53 @@ function renderChatUI(currentUid) {
     const docs = messagesSnapshot.docs;
 
     // --- 關鍵步驟：先找出對方讀過的「最後一則」屬於使用者的訊息索引 ---
-    let lastReadIndex = -1;
-    for (let i = docs.length - 1; i >= 0; i--) {
-        const msg = docs[i].data();
-        const msgTime = msg.timestamp ? msg.timestamp.toDate() : new Date();
-        // 如果是我發的，且發送時間早於對方最後讀取時間
-        if (msg.senderId === currentUid && msgTime <= opponentReadTime) {
-            lastReadIndex = i;
-            break; // 找到最新的一則就跳出
-        }
-    }
-
-docs.forEach((msgDoc, i) => {
-    const msg = msgDoc.data();
-    const msgId = msgDoc.id; // 取得這則訊息的唯一 ID
-    const isMine = msg.senderId === currentUid;
-    const msgTime = msg.timestamp ? msg.timestamp.toDate() : new Date();
-
-    // 智慧時間戳 (超過30分鐘才顯示)
-    if (!lastTime || (msgTime - lastTime > 30 * 60 * 1000)) {
-        const timeDiv = document.createElement('div');
-        timeDiv.className = 'time-divider';
-        timeDiv.innerText = formatChatDate(msg.timestamp);
-        list.appendChild(timeDiv);
-    }
-    lastTime = msgTime;
-
-    const nextMsg = docs[i + 1] ? docs[i + 1].data() : null;
-    const isLastInSequence = !nextMsg || nextMsg.senderId !== msg.senderId;
-
-    const wrapper = document.createElement('div');
-    wrapper.className = `msg-wrapper ${isMine ? 'mine' : 'theirs'} ${isLastInSequence ? 'last-in-group' : ''}`;
-
-    // 建立氣泡行
-    let html = `<div class="msg-row ${isMine ? 'mine' : 'theirs'}">`;
     
-    // 如果是對方，顯示頭像
-    // 如果是對方，顯示頭像
-    if (!isMine) {
-        const avatarVisibility = isLastInSequence ? 'visible' : 'hidden';
-        
-        // 【新增】：從快取中取得該發送者的個人資料
-        const senderCache = (window.chatMembersCache && window.chatMembersCache[msg.senderId]) || {};
-        const senderAvatar = senderCache.photoURL || "https://via.placeholder.com/35";
-        const senderName = senderCache.displayName || "成員";
 
-        if (window.isCurrentChatGroup) {
-            // 【群組模式】：顯示個人專屬頭像，並在下方置中顯示名稱
-            html += `<div class="msg-avatar-container" style="visibility: ${avatarVisibility}">
-                        <img src="${senderAvatar}" class="msg-avatar">
-                        <span class="msg-avatar-name">${senderName}</span>
-                     </div>`;
-        } else {
-            // 【一對一私訊】：維持只顯示對方的頭像
-            html += `<img src="${senderAvatar}" class="msg-avatar" style="visibility: ${avatarVisibility}">`;
+    docs.forEach((msgDoc, i) => {
+        const msg = msgDoc.data();
+        const msgId = msgDoc.id; // 取得這則訊息的唯一 ID
+        const isMine = msg.senderId === currentUid;
+        const msgTime = msg.timestamp ? msg.timestamp.toDate() : new Date();
+
+        // 智慧時間戳 (超過30分鐘才顯示)
+        if (!lastTime || (msgTime - lastTime > 30 * 60 * 1000)) {
+            const timeDiv = document.createElement('div');
+            timeDiv.className = 'time-divider';
+            timeDiv.innerText = formatChatDate(msg.timestamp);
+            list.appendChild(timeDiv);
         }
-    }
+        lastTime = msgTime;
+
+        const nextMsg = docs[i + 1] ? docs[i + 1].data() : null;
+        const isLastInSequence = !nextMsg || nextMsg.senderId !== msg.senderId;
+
+        const wrapper = document.createElement('div');
+        wrapper.className = `msg-wrapper ${isMine ? 'mine' : 'theirs'} ${isLastInSequence ? 'last-in-group' : ''}`;
+
+        // 建立氣泡行
+        let html = `<div class="msg-row ${isMine ? 'mine' : 'theirs'}">`;
+        
+        // 如果是對方，顯示頭像
+        // 如果是對方，顯示頭像
+        if (!isMine) {
+            const avatarVisibility = isLastInSequence ? 'visible' : 'hidden';
+            
+            // 【新增】：從快取中取得該發送者的個人資料
+            const senderCache = (window.chatMembersCache && window.chatMembersCache[msg.senderId]) || {};
+            const senderAvatar = senderCache.photoURL || "https://via.placeholder.com/35";
+            const senderName = senderCache.displayName || "成員";
+
+            if (window.isCurrentChatGroup) {
+                // 【群組模式】：顯示個人專屬頭像，並在下方置中顯示名稱
+                html += `<div class="msg-avatar-container" style="visibility: ${avatarVisibility}">
+                            <img src="${senderAvatar}" class="msg-avatar">
+                            <span class="msg-avatar-name">${senderName}</span>
+                        </div>`;
+            } else {
+                // 【一對一私訊】：維持只顯示對方的頭像
+                html += `<img src="${senderAvatar}" class="msg-avatar" style="visibility: ${avatarVisibility}">`;
+            }
+        }
 
     let contentHtml = "";
     let isMediaOnly = false;
@@ -1287,8 +1494,12 @@ docs.forEach((msgDoc, i) => {
     } 
     
     // 如果不是活動卡片，且有文字，才把普通文字印出來
+    // 如果不是活動卡片，且有文字，才把普通文字印出來
     if (msg.text && !isEventCard) {
-        contentHtml += (msg.fileUrl ? '<br>' : '') + msg.text;
+        const safeMsgText = escapeHtml(msg.text);
+        const linkedMsgText = linkify(safeMsgText);
+        const finalMsgText = highlightMentions(linkedMsgText); // 執行 @ 標記醒目處理
+        contentHtml += (msg.fileUrl ? '<br>' : '') + finalMsgText;
     } else if (msg.fileUrl && !msg.replyToId && !isEventCard) { 
         isMediaOnly = true;
     }
@@ -1323,35 +1534,56 @@ docs.forEach((msgDoc, i) => {
     // 【修改】：加入 id="msg-${msgId}" 以便跳轉時定位
     html += `<div id="msg-${msgId}" class="msg ${isMine ? 'mine' : 'theirs'} ${mediaClass}" ${interactEvents}>${contentHtml}</div></div>`;
 
-    if (i === lastReadIndex) {
-        html += `<div class="read-status">已讀</div>`;
-    }
+
 
     wrapper.innerHTML = html;
     list.appendChild(wrapper);
 }); // end of forEach
+
+// 執行一次全域已讀狀態更新
+    updateReadStatusUI();
 
 // 執行第一次置底 (針對純文字)
 scrollToBottom();
 }
 
     document.getElementById('fileInput').addEventListener('change', async (e) => {
-        const file = e.target.files[0];
+        let file = e.target.files[0]; // 改用 let，因為圖片可能會被替換成壓縮後的版本
         if (!file) return;
 
-        // 限制檔案大小
-        if (file.size > MAX_FILE_SIZE) {
-            alert("檔案過大！請上傳小於 10MB 的圖片或影片。");
-            e.target.value = ''; // 重置 input
-            return;
-        }
-
+        const fileType = file.type.startsWith('video/') ? 'video' : 'image';
         const user = auth.currentUser;
         if (!user || !chatId) return;
 
-        // UI 提示正在上傳
         const inputField = document.getElementById('msgInput');
         const originalPlaceholder = inputField.placeholder;
+
+        // --- 處理影片大小限制 ---
+        if (fileType === 'video' && file.size > MAX_FILE_SIZE) {
+            alert("影片檔案過大！前端瀏覽器無法直接壓縮影片，請上傳小於 10MB 的影片，或先在您的相簿中裁剪。");
+            e.target.value = '';
+            return;
+        }
+
+        // --- 處理大圖片壓縮 ---
+        if (fileType === 'image' && file.size > MAX_FILE_SIZE) {
+            inputField.placeholder = "圖片壓縮中，請稍候...";
+            inputField.disabled = true;
+            try {
+                // 呼叫我們剛剛寫的函數，目標大小為 9.5MB (留一點安全空間)
+                file = await compressImageClientSide(file, 9.5);
+                console.log("圖片已成功壓縮！新大小: " + (file.size / 1024 / 1024).toFixed(2) + " MB");
+            } catch (err) {
+                console.error("圖片壓縮失敗:", err);
+                alert("圖片格式不受支援或壓縮失敗，請換一張圖片。");
+                inputField.placeholder = originalPlaceholder;
+                inputField.disabled = false;
+                e.target.value = '';
+                return;
+            }
+        }
+
+        // UI 提示進入上傳階段
         inputField.placeholder = "檔案上傳中，請稍候...";
         inputField.disabled = true;
 
@@ -1361,8 +1593,6 @@ scrollToBottom();
             const snapshot = await fileRef.put(file);
             const downloadUrl = await snapshot.ref.getDownloadURL();
             
-            const fileType = file.type.startsWith('video/') ? 'video' : 'image';
-
             // 寫入 Firestore 訊息資料庫
             const batch = db.batch();
             const chatRef = db.collection("chats").doc(chatId);
@@ -1370,8 +1600,8 @@ scrollToBottom();
             
             batch.set(msgRef, {
                 text: "", 
-                fileUrl: downloadUrl, // 記錄檔案網址
-                fileType: fileType,   // 記錄是圖片還是影片
+                fileUrl: downloadUrl, 
+                fileType: fileType,   
                 senderId: user.uid,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             });
@@ -1483,17 +1713,121 @@ function renderMessages(currentUid) {
     });
 
     // 開啟圖片放大
-    function openModal(src) {
-        const modal = document.getElementById('imageModal');
-        const modalImg = document.getElementById('expandedImg');
-        modal.style.display = "flex";
-        modalImg.src = src;
-    }
+    // ==========================================
+// 圖片預覽縮放與拖曳邏輯
+// ==========================================
+let previewScale = 1;
+let previewPanning = false;
+let previewPointX = 0; 
+let previewPointY = 0;
+let previewStart = { x: 0, y: 0 };
+let previewStartDist = 0;
 
-    // 關閉圖片放大
-    function closeModal() {
-        document.getElementById('imageModal').style.display = "none";
+function openModal(src) {
+    const modal = document.getElementById('imageModal');
+    const modalImg = document.getElementById('expandedImg');
+    
+    // 每次打開時，重置縮放與位置
+    previewScale = 1;
+    previewPointX = 0;
+    previewPointY = 0;
+    modalImg.style.transform = `translate(0px, 0px) scale(1)`;
+    modalImg.style.transition = 'transform 0.2s ease'; // 恢復彈性動畫
+    
+    modal.style.display = "flex";
+    modalImg.src = src;
+}
+
+function closeModal() {
+    document.getElementById('imageModal').style.display = "none";
+}
+
+// --- 綁定圖片的縮放與拖曳事件 ---
+// --- 綁定圖片的縮放與拖曳事件 ---
+window.addEventListener('DOMContentLoaded', () => {
+    const zoomImg = document.getElementById('expandedImg');
+    if (zoomImg) {
+        zoomImg.style.transformOrigin = "center center";
+        zoomImg.style.cursor = "grab";
+
+        // 更新圖片變形狀態
+        function setPreviewTransform() {
+            zoomImg.style.transition = 'none'; // 拖曳時關閉預設動畫才不會有延遲感
+            zoomImg.style.transform = `translate(${previewPointX}px, ${previewPointY}px) scale(${previewScale})`;
+        }
+
+        // 1. 電腦版：滑鼠滾輪縮放
+        zoomImg.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            let delta = e.deltaY > 0 ? -0.15 : 0.15;
+            previewScale += delta;
+            previewScale = Math.max(1, Math.min(previewScale, 5)); // 限制縮放為 1~5 倍
+            // 如果縮回原本大小，位置自動歸零置中
+            if (previewScale === 1) { previewPointX = 0; previewPointY = 0; }
+            setPreviewTransform();
+        });
+
+        // 2. 電腦版：滑鼠拖曳
+        zoomImg.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            previewPanning = true;
+            zoomImg.style.cursor = "grabbing";
+            previewStart = { x: e.clientX - previewPointX, y: e.clientY - previewPointY };
+        });
+
+        zoomImg.addEventListener('mousemove', (e) => {
+            if (!previewPanning || previewScale === 1) return;
+            previewPointX = e.clientX - previewStart.x;
+            previewPointY = e.clientY - previewStart.y;
+            setPreviewTransform();
+        });
+
+        const endPan = () => { 
+            previewPanning = false; 
+            zoomImg.style.cursor = "grab";
+        };
+        zoomImg.addEventListener('mouseup', endPan);
+        zoomImg.addEventListener('mouseleave', endPan);
+
+        // 3. 手機版：雙指縮放與單指拖曳
+        zoomImg.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 2) {
+                // 雙指觸碰，計算兩指初始距離
+                previewStartDist = Math.hypot(
+                    e.touches[0].pageX - e.touches[1].pageX,
+                    e.touches[0].pageY - e.touches[1].pageY
+                );
+            } else if (e.touches.length === 1) {
+                // 單指觸碰，準備拖曳
+                previewPanning = true;
+                previewStart = { x: e.touches[0].pageX - previewPointX, y: e.touches[0].pageY - previewPointY };
+            }
+        });
+
+        zoomImg.addEventListener('touchmove', (e) => {
+            e.preventDefault(); // 阻擋畫面原生滾動
+            if (e.touches.length === 2) {
+                // 計算兩指移動後的距離差來決定縮放比例
+                let currentDist = Math.hypot(
+                    e.touches[0].pageX - e.touches[1].pageX,
+                    e.touches[0].pageY - e.touches[1].pageY
+                );
+                let diff = currentDist - previewStartDist;
+                previewScale += diff * 0.01; // 縮放靈敏度
+                previewScale = Math.max(1, Math.min(previewScale, 5));
+                previewStartDist = currentDist;
+                setPreviewTransform();
+            } else if (e.touches.length === 1 && previewPanning && previewScale > 1) {
+                // 只有在已經放大的情況下才允許單指拖曳
+                previewPointX = e.touches[0].pageX - previewStart.x;
+                previewPointY = e.touches[0].pageY - previewStart.y;
+                setPreviewTransform();
+            }
+        });
+
+        zoomImg.addEventListener('touchend', () => previewPanning = false);
     }
+});
 
     // --- 強制捲動到最底部的函式 ---
 function scrollToBottom() {
@@ -2366,13 +2700,155 @@ async function sendEventCard(eventId, title, timeStr) {
         alert("發送失敗，請稍後重試。");
     }
 }
+
+// ==========================================
+// 【新增】：@ 標記選單邏輯 (升級防呆版)
+// ==========================================
+let mentionStartIndex = -1;
+
+function showMentionList(searchString) {
+    const listEl = document.getElementById('mentionList');
+    if (!listEl) return;
+
+    // 如果不是群組，或是沒有成員名單，強制隱藏
+    if (!window.isCurrentChatGroup || !window.currentGroupMembers) {
+        listEl.style.display = 'none';
+        return;
+    }
+
+    listEl.innerHTML = '';
+    let hasMatches = false;
+    const currentUserUid = auth.currentUser ? auth.currentUser.uid : null;
+
+    // ==========================================
+    // 1. 新增：固定在最上方的 All (全員) 選項
+    // ==========================================
+    const allSearchTarget = "all (全員)";
+    // 只要輸入空白、"a"、"all" 或 "全"，都會配對到這個選項
+    if (allSearchTarget.includes(searchString.toLowerCase())) {
+        hasMatches = true;
+        const item = document.createElement('div');
+        item.className = 'mention-item';
+        
+        // 給 All 選項一個專屬的金色群組 Icon
+        item.innerHTML = `
+            <div style="width: 30px; height: 30px; border-radius: 50%; background: var(--ly-gold); color: white; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 14px; flex-shrink: 0;">
+                <i class="fas fa-users"></i>
+            </div>
+            <span>All (全員)</span>
+        `;
+        
+        // 點擊時，對話框會自動帶入 "All"，變成 @All
+        item.onmousedown = function(e) { e.preventDefault(); insertMention("All"); };
+        item.ontouchstart = function(e) { e.preventDefault(); insertMention("All"); };
+        
+        listEl.appendChild(item);
+    }
+
+    // ==========================================
+    // 2. 依序列出其他群組成員
+    // ==========================================
+    window.currentGroupMembers.forEach(uid => {
+        // 排除自己
+        if (currentUserUid && uid === currentUserUid) return;
+
+        // 從快取拿資料，若還沒載入給預設值
+        const member = (window.chatMembersCache && window.chatMembersCache[uid]) || {};
+        const name = member.displayName || "未知成員";
+        const photo = member.photoURL || 'https://via.placeholder.com/35';
+
+        // 比對輸入的字串
+        if (name.toLowerCase().includes(searchString.toLowerCase())) {
+            hasMatches = true;
+            const item = document.createElement('div');
+            item.className = 'mention-item';
+            item.innerHTML = `<img src="${photo}"><span>${name}</span>`;
+            
+            // 使用 mousedown 與 touchstart 防止輸入框失去焦點導致選單閃退
+            item.onmousedown = function(e) { e.preventDefault(); insertMention(name); };
+            item.ontouchstart = function(e) { e.preventDefault(); insertMention(name); };
+            
+            listEl.appendChild(item);
+        }
+    });
+
+    listEl.style.display = hasMatches ? 'block' : 'none';
+}
+
+function hideMentionList() {
+    const listEl = document.getElementById('mentionList');
+    if (listEl) listEl.style.display = 'none';
+}
+
+function insertMention(name) {
+    const input = document.getElementById('msgInput');
+    if (!input) return;
+
+    const val = input.value;
+    const cursorPos = input.selectionStart;
+
+    if (mentionStartIndex !== -1) {
+        const beforeMention = val.substring(0, mentionStartIndex);
+        const afterCursor = val.substring(cursorPos);
+
+        // 插入名稱並補上一個空白
+        input.value = beforeMention + '@' + name + ' ' + afterCursor;
+        
+        // 讓輸入框重新聚焦，並把游標推到名字後面
+        const newCursorPos = mentionStartIndex + name.length + 2; 
+        input.focus();
+        input.setSelectionRange(newCursorPos, newCursorPos);
+    }
+    
+    hideMentionList();
+    mentionStartIndex = -1;
+}
+
+// 綁定輸入框事件
+const msgInputEl = document.getElementById('msgInput');
+if (msgInputEl) {
+    msgInputEl.addEventListener('input', checkMentionTrigger);
+    msgInputEl.addEventListener('keyup', checkMentionTrigger);
+    msgInputEl.addEventListener('click', checkMentionTrigger);
+}
+
+function checkMentionTrigger() {
+    const input = document.getElementById('msgInput');
+    if (!input) return;
+
+    const val = input.value;
+    const cursorPos = input.selectionStart;
+    
+    if (cursorPos === null) return hideMentionList();
+    
+    const textBeforeCursor = val.substring(0, cursorPos);
+    
+    // 正則表達式：尋找游標前最後一個 @ (開頭或前方是空白才會觸發)
+    const match = textBeforeCursor.match(/(?:^|\s)@([^@\s]*)$/);
+    
+    if (match && window.isCurrentChatGroup) {
+        mentionStartIndex = textBeforeCursor.lastIndexOf('@');
+        const searchString = match[1]; 
+        showMentionList(searchString);
+    } else {
+        hideMentionList();
+        mentionStartIndex = -1;
+    }
+}
+
+// 點擊畫面空白處關閉選單
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.mention-list') && e.target.id !== 'msgInput') {
+        hideMentionList();
+    }
+});
 </script>
 
-    <div id="imageModal" class="image-modal" onclick="closeModal()">
-        <span class="image-modal-close">&times;</span>
+    <div id="imageModal" class="image-modal" onclick="if(event.target === this) closeModal()">
+        <span class="image-modal-close" onclick="closeModal()">&times;</span>
         <img class="image-modal-content" id="expandedImg">
     </div>
-
+    
     <div id="contextMenu" class="context-menu">
         <button id="pinMenuBtn" onclick="pinMessage()">
             <i class="fas fa-thumbtack"></i> 釘選訊息
@@ -2490,7 +2966,20 @@ async function sendEventCard(eventId, title, timeStr) {
     </div>
 </div>
 
-
-
+<div id="readReceiptModal" class="modal-overlay" style="z-index: 6000;">
+    <div class="modal-card" style="max-width: 350px;">
+        <div class="modal-header">
+            <h3><i class="fas fa-eye"></i> 已讀成員</h3>
+            <span style="cursor:pointer;" onclick="closeReadModal()">&times;</span>
+        </div>
+        <div class="modal-body" style="padding: 15px;">
+            <div id="readReceiptList" class="group-members-list" style="max-height: 300px;">
+                </div>
+        </div>
+        <div class="modal-footer" style="justify-content: center; background: white;">
+            <button class="btn-modal btn-cancel" style="width: 100%;" onclick="closeReadModal()">關閉</button>
+        </div>
+    </div>
+</div>
 </body>
 </html>
