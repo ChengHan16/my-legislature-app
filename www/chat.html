@@ -234,16 +234,14 @@
         .attach-btn:hover { color: var(--ly-blue); }
 
         /* 聊天室內的圖片與影片樣式 */
-        .msg-media {
-    max-width: 100%;
-    max-height: 250px;
-    /* 增加預設最小高度與背景色，產生骨架屏效果 */
-    min-height: 150px;
-    min-width: 150px;
-    background-color: #e9ecef; 
-    border-radius: 12px;
-    object-fit: cover;
-}
+        .msg-media { 
+            max-width: 100%; 
+            max-height: 250px;
+            border-radius: 12px; 
+            margin-top: 5px; 
+            display: block;
+            cursor: pointer;
+        }
 
         /* --- 圖片點擊放大模態框樣式 --- */
         /* 找到這一段並修改 z-index */
@@ -1047,6 +1045,86 @@ body {
 .voter-box { text-align: center; width: 60px; }
 .voter-box img { width: 50px; height: 50px; border-radius: 50%; border: 2px solid var(--ly-gold); object-fit: cover; }
 .voter-box span { display: block; font-size: 0.75rem; margin-top: 5px; font-weight: bold; color: #444; }
+
+/* --- 絲滑滑動瀏覽器 (Smooth Slider Modal) --- */
+.slider-container {
+    flex-grow: 1; width: 100%; overflow: hidden; display: flex;
+    align-items: center; position: relative; cursor: grab;
+}
+.slider-container:active { cursor: grabbing; }
+
+.slider-track {
+    display: flex; height: 80vh; transition: transform 0.3s ease-out; will-change: transform;
+}
+
+.slider-slide {
+    min-width: 100vw; height: 100%; display: flex; justify-content: center;
+    align-items: center; padding: 0 10px; box-sizing: border-box;
+}
+
+.slider-slide img {
+    max-width: 100%; max-height: 100%; object-fit: contain;
+    pointer-events: auto; user-select: none; -webkit-user-drag: none;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+}
+
+.viewer-header {
+    position: absolute; top: 0; left: 0; width: 100%; height: 80px;
+    display: flex; justify-content: space-between; align-items: flex-start;
+    padding: env(safe-area-inset-top, 20px) 20px 20px; z-index: 20010;
+    box-sizing: border-box; pointer-events: none;
+    transition: opacity 1.5s ease-in-out; opacity: 1;
+}
+
+.viewer-controls-group { display: flex; align-items: center; gap: 12px; pointer-events: auto; }
+
+.viewer-btn-text {
+    background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer;
+    font-size: 0.85rem; transition: all 0.2s; white-space: nowrap;
+}
+
+.viewer-counter {
+    color: rgba(255, 255, 255, 0.8); font-size: 1rem; font-family: sans-serif;
+    background: rgba(0,0,0,0.3); padding: 5px 12px; border-radius: 15px;
+    pointer-events: auto; margin-top: 5px;
+}
+
+.viewer-close {
+    background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2);
+    color: white; width: 44px; height: 44px; border-radius: 50%;
+    font-size: 1.8rem; cursor: pointer; display: flex; align-items: center; 
+    justify-content: center; pointer-events: auto;
+}
+
+.viewer-hint {
+    position: absolute; bottom: 30px; width: 100%; text-align: center;
+    color: rgba(255,255,255,0.5); font-size: 0.9rem; pointer-events: none;
+    transition: opacity 1.5s ease-in-out; opacity: 1; z-index: 20010;
+}
+
+.viewer-thumbnails {
+    position: absolute; bottom: 70px; left: 0; width: 100%; height: 60px;
+    display: flex; justify-content: center; align-items: center; gap: 12px;
+    padding: 0 20px; box-sizing: border-box; overflow-x: auto; overflow-y: hidden;
+    z-index: 20010; transition: opacity 1.5s ease-in-out; opacity: 1;
+    pointer-events: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+}
+.viewer-thumbnails::-webkit-scrollbar { display: none; }
+
+.thumbnail-item {
+    width: 40px; height: 40px; flex-shrink: 0; border-radius: 6px; overflow: hidden;
+    opacity: 0.4; border: 2px solid transparent; cursor: pointer; transition: all 0.2s ease;
+    transform: scale(0.9);
+}
+.thumbnail-item img { width: 100%; height: 100%; object-fit: cover; }
+.thumbnail-item.active {
+    opacity: 1; border-color: var(--ly-gold); transform: scale(1.15); box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+
+.user-idle .viewer-header, .user-idle .viewer-hint, .user-idle .viewer-thumbnails {
+    opacity: 0; pointer-events: none;
+}
     </style>
 </head>
 <body>
@@ -1077,11 +1155,6 @@ body {
 </div>
 
 <div class="messages" id="messageList"></div>
-
-<div id="historyLoader" style="display: none; text-align: center; padding: 15px 0; color: var(--ly-blue);">
-        <i class="fas fa-spinner fa-spin"></i> 載入歷史訊息中...
-    </div>
-    
 <button class="scroll-bottom-btn" id="scrollBottomBtn" onclick="scrollToBottom(true)">
     <i class="fas fa-arrow-down"></i> 最新訊息
 </button>
@@ -1242,17 +1315,6 @@ body {
     const urlParams = new URLSearchParams(window.location.search);
     const chatId = urlParams.get('id');
 
-    // ==========================================
-    // 分頁載入 (Infinite Scroll) 全域變數
-    // ==========================================
-    const MESSAGES_PER_PAGE = 20; // 每次載入幾則訊息
-    let oldestMessageDoc = null;  // 記錄目前最舊的訊息文件，用來往下抓
-    let isFetchingHistory = false;// 避免重複觸發載入
-    let hasMoreMessages = true;   // 標記是否還有更舊的歷史訊息
-    let isFirstLoad = true;       // 判斷是否為第一次進來 (要不要滾到底)
-    let messagesArray = [];       // 用陣列存放所有已載入的訊息 (越舊的在越前面)
-    let unsubscribeMessages = null; // 用來取消監聽最新訊息的變數
-
     let messagesSnapshot = null;
     let opponentInChat = false; 
     let opponentReadTime = new Date(0);
@@ -1401,60 +1463,24 @@ if (document.hasFocus()) {
 
 
     // --- 監聽訊息內容 (修正後的版本) ---
-    // ==========================================
-    // 全新：初始化聊天室訊息引擎 (只抓最新幾筆)
-    // ==========================================
-    async function initChatMessages(user) {
-    if (unsubscribeMessages) unsubscribeMessages();
-
-    const messagesRef = chatRef.collection("messages");
-    const list = document.getElementById('messageList');
-
-    // 1. 初次載入最新 20 筆
-    const firstQuery = await messagesRef.orderBy("timestamp", "desc").limit(MESSAGES_PER_PAGE).get();
-
-    if (!firstQuery.empty) {
-        oldestMessageDoc = firstQuery.docs[firstQuery.docs.length - 1];
-        const docs = firstQuery.docs.reverse(); // 轉回正序
+    chatRef.collection("messages").orderBy("timestamp", "asc").onSnapshot(snapshot => {
+        messagesSnapshot = snapshot;
         
-        // 初次渲染：依序加入節點
-        docs.forEach(doc => renderSingleMessage(doc, user.uid, false));
-        if (isFirstLoad) { scrollToBottom(); isFirstLoad = false; }
-    } else {
-        hasMoreMessages = false;
-    }
-
-    // 2. 建立即時監聽器 (只監聽未來的變化)
-    const now = new Date();
-    unsubscribeMessages = messagesRef
-        .where("timestamp", ">=", now)
-        .orderBy("timestamp", "asc")
-        .onSnapshot(snapshot => {
-            snapshot.docChanges().forEach(change => {
-                if (change.type === "added") {
-                    // 【關鍵】：只把新節點塞進去，完全不重繪舊畫面！
-                    renderSingleMessage(change.doc, user.uid, false);
-                    
-                    if (document.hasFocus()) {
-                        chatRef.update({ [`lastReadAt.${user.uid}`]: firebase.firestore.FieldValue.serverTimestamp() });
-                    }
-                    scrollToBottom();
-                }
-                if (change.type === "removed") {
-                    // 【關鍵】：有人收回訊息時，直接移除該 DOM 節點，不重繪！
-                    const targetWrapper = document.getElementById('wrapper-' + change.doc.id);
-                    if (targetWrapper) targetWrapper.remove();
-                    renderedMsgIds.delete(change.doc.id);
-                }
-            });
-            
-            // 獨立更新已讀狀態 (不影響 DOM 結構)
-            updateReadStatusUI();
-        });
-}
-
-    // 在 auth.onAuthStateChanged 裡面，當確保 isGroup 判斷完畢後，呼叫它：
-    initChatMessages(user);
+        // [核心邏輯]：如果新訊息進來時我正在對話中，立刻更新我的讀取時間
+        // 使用 user.uid 確保變數穩定，並檢查 document.hasFocus()
+        if (user && document.hasFocus()) {
+            chatRef.update({
+                [`lastReadAt.${user.uid}`]: firebase.firestore.FieldValue.serverTimestamp()
+            }).catch(err => console.error("自動更新已讀失敗:", err));
+        }
+        
+        // 渲染 UI
+        if (user) {
+            renderChatUI(user.uid);
+        }
+    }, error => {
+        console.error("監聽訊息失敗:", error);
+    });
 
     });
     
@@ -1557,125 +1583,159 @@ function updateReadStatusUI() {
     }
 }
 
-    // 新增全域變數：用來記錄目前畫面上最頂部與最底部的時間，用於判斷是否插入時間分隔線
-    let topMostTime = null;
-    let bottomMostTime = null;
-    const renderedMsgIds = new Set(); // 記錄已經渲染過的訊息 ID，防重複
+function renderChatUI(currentUid) {
+    if (!messagesSnapshot) return;
+    const list = document.getElementById('messageList');
+    list.innerHTML = "";
+    let lastTime = null;
+    const docs = messagesSnapshot.docs;
 
-    function renderSingleMessage(msgDoc, currentUid, prepend = false) {
+    // --- 關鍵步驟：先找出對方讀過的「最後一則」屬於使用者的訊息索引 ---
+    
+
+    docs.forEach((msgDoc, i) => {
         const msg = msgDoc.data();
-        const msgId = msgDoc.id;
-        const msgTime = msg.timestamp ? msg.timestamp.toDate() : new Date();
-        
-        // 防重複渲染
-        if (renderedMsgIds.has(msgId)) return;
-        renderedMsgIds.add(msgId);
-
+        const msgId = msgDoc.id; // 取得這則訊息的唯一 ID
         const isMine = msg.senderId === currentUid;
-        const list = document.getElementById('messageList');
+        const msgTime = msg.timestamp ? msg.timestamp.toDate() : new Date();
+
+        // 智慧時間戳 (超過30分鐘才顯示)
+        if (!lastTime || (msgTime - lastTime > 30 * 60 * 1000)) {
+            const timeDiv = document.createElement('div');
+            timeDiv.className = 'time-divider';
+            timeDiv.innerText = formatChatDate(msg.timestamp);
+            list.appendChild(timeDiv);
+        }
+        lastTime = msgTime;
+
+        const nextMsg = docs[i + 1] ? docs[i + 1].data() : null;
+        const isLastInSequence = !nextMsg || nextMsg.senderId !== msg.senderId;
+
+        const wrapper = document.createElement('div');
+        wrapper.className = `msg-wrapper ${isMine ? 'mine' : 'theirs'} ${isLastInSequence ? 'last-in-group' : ''}`;
+
+        // 建立氣泡行
+        let html = `<div class="msg-row ${isMine ? 'mine' : 'theirs'}">`;
         
-        // 1. 處理時間分隔線
-        let timeDividerHtml = '';
-        if (prepend) {
-            if (!topMostTime || (topMostTime - msgTime > 30 * 60 * 1000)) {
-                timeDividerHtml = `<div class="time-divider" id="time-${msgId}">${formatChatDate(msg.timestamp)}</div>`;
-                topMostTime = msgTime;
-            }
-        } else {
-            if (!bottomMostTime || (msgTime - bottomMostTime > 30 * 60 * 1000)) {
-                timeDividerHtml = `<div class="time-divider" id="time-${msgId}">${formatChatDate(msg.timestamp)}</div>`;
-            }
-            bottomMostTime = msgTime; // 更新底部時間
-        }
-
-        // 2. 組裝 HTML (沿用你原本精緻的判斷邏輯)
-        let safeText = msg.text ? escapeHtml(msg.text) : '[圖片/影片]';
-        let isEventCard = false;
-        let contentHtml = "";
-        let isMediaOnly = false;
-
-        // ... (這裡保留你原本解析 JSON、活動卡片、圖片影片、文字高亮的邏輯) ...
-        if (msg.text) {
-            try {
-                const parsed = JSON.parse(msg.text);
-                if (parsed.type === 'event_share') {
-                    isEventCard = true;
-                    safeText = `分享了活動：${parsed.title}`;
-                    contentHtml += `
-                        <div onclick="openDocPreview('${parsed.eventId}')" class="msg-event-card">
-                            <div class="msg-event-header"><i class="fas fa-bullhorn"></i> 活動分享</div>
-                            <div class="msg-event-title">${parsed.title}</div>
-                            <div class="msg-event-time"><i class="far fa-clock"></i> ${parsed.timeStr}</div>
-                        </div>`;
-                } else { safeText = msg.text.replace(/"/g, '&quot;').replace(/'/g, "\\'"); }
-            } catch (e) { safeText = msg.text.replace(/"/g, '&quot;').replace(/'/g, "\\'"); }
-        }
-
-        if (msg.replyToId) {
-            contentHtml += `<div class="reply-snippet" onclick="scrollToOriginalMsg('${msg.replyToId}')">
-                                <i class="fas fa-reply"></i> ${msg.replyToText}
-                            </div>`;
-        }
-
-        if (msg.fileUrl) {
-            if (msg.fileType === 'video') {
-                contentHtml += `<video src="${msg.fileUrl}" controls class="msg-media" onloadeddata="scrollToBottom()"></video>`;
-            } else {
-                contentHtml += `<img src="${msg.fileUrl}" class="msg-media" onclick="if(!skipNextClick) openModal(this.src)" onload="scrollToBottom()">`;
-            }
-        } 
-
-        if (msg.text && !isEventCard) {
-            const finalMsgText = highlightMentions(linkify(escapeHtml(msg.text)));
-            contentHtml += (msg.fileUrl ? '<br>' : '') + finalMsgText;
-        } else if (msg.fileUrl && !msg.replyToId && !isEventCard) { 
-            isMediaOnly = true;
-        }
-
-        // 處理頭像與互動事件
-        const mediaClass = isMediaOnly ? 'media-only' : '';
-        let interactEvents = isMine ? 
-            `ontouchstart="handleSwipeStart(event, '${msgId}', '${safeText}', 'true'); handlePressStart(event, '${msgId}', 'true', '${safeText}')" ... (略)` : 
-            `ontouchstart="handleSwipeStart(event, '${msgId}', '${safeText}', 'false'); handlePressStart(event, '${msgId}', 'false', '${safeText}')" ... (略)`;
-
-        // 取得對方頭像 (群組或單人)
-        let avatarHtml = '';
+        // 如果是對方，顯示頭像
+        // 如果是對方，顯示頭像
         if (!isMine) {
+            const avatarVisibility = isLastInSequence ? 'visible' : 'hidden';
+            
+            // 【新增】：從快取中取得該發送者的個人資料
             const senderCache = (window.chatMembersCache && window.chatMembersCache[msg.senderId]) || {};
             const senderAvatar = senderCache.photoURL || "https://via.placeholder.com/35";
             const senderName = senderCache.displayName || "成員";
+
             if (window.isCurrentChatGroup) {
-                avatarHtml = `<div class="msg-avatar-container"><img src="${senderAvatar}" class="msg-avatar"><span class="msg-avatar-name">${senderName}</span></div>`;
+                // 【群組模式】：顯示個人專屬頭像，並在下方置中顯示名稱
+                html += `<div class="msg-avatar-container" style="visibility: ${avatarVisibility}">
+                            <img src="${senderAvatar}" class="msg-avatar">
+                            <span class="msg-avatar-name">${senderName}</span>
+                        </div>`;
             } else {
-                avatarHtml = `<img src="${senderAvatar}" class="msg-avatar">`;
+                // 【一對一私訊】：維持只顯示對方的頭像
+                html += `<img src="${senderAvatar}" class="msg-avatar" style="visibility: ${avatarVisibility}">`;
             }
         }
 
-        // 3. 建立 DOM 元素
-        const wrapper = document.createElement('div');
-        wrapper.className = `msg-wrapper ${isMine ? 'mine' : 'theirs'} last-in-group`; // 預設新訊息都是該群組最後一則
-        wrapper.id = `wrapper-${msgId}`;
-        wrapper.innerHTML = `
-            ${prepend ? timeDividerHtml : ''}
-            <div class="msg-row ${isMine ? 'mine' : 'theirs'}">
-                ${avatarHtml}
-                <div id="msg-${msgId}" class="msg ${isMine ? 'mine' : 'theirs'} ${mediaClass}" ${interactEvents}>
-                    ${contentHtml}
-                </div>
-            </div>
-            ${!prepend ? timeDividerHtml : ''}
-        `;
+    let contentHtml = "";
+    let isMediaOnly = false;
+    let safeText = '[圖片/影片]';
+    let isEventCard = false;
 
-        // 4. 插入 DOM 樹
-        if (prepend) {
-            // 如果是載入歷史訊息，塞在最上面 (loader 下方)
-            const loader = document.getElementById('historyLoader');
-            list.insertBefore(wrapper, loader.nextSibling);
-        } else {
-            // 如果是新訊息，塞在最下面
-            list.appendChild(wrapper);
+    // 【核心邏輯】：嘗試解析 msg.text 是否為我們設計的「活動卡片 JSON」
+    if (msg.text) {
+        try {
+            const parsed = JSON.parse(msg.text);
+                if (parsed.type === 'event_share') {
+                isEventCard = true;
+                safeText = `分享了活動：${parsed.title}`;
+                contentHtml += `
+                    <div onclick="openDocPreview('${parsed.eventId}')" class="msg-event-card">
+                        <div class="msg-event-header"><i class="fas fa-bullhorn"></i> 活動分享</div>
+                        <div class="msg-event-title">${parsed.title}</div>
+                        <div class="msg-event-time"><i class="far fa-clock"></i> ${parsed.timeStr}</div>
+                    </div>
+                `;
+            } else {
+                // 如果是普通 JSON 但不是活動 (雖然機率很低)，就當成純文字印出
+                safeText = msg.text.replace(/"/g, '&quot;').replace(/'/g, "\\'");
+            }
+        } catch (e) {
+            // 解析失敗，代表它是一般的純文字訊息
+            safeText = msg.text.replace(/"/g, '&quot;').replace(/'/g, "\\'");
         }
     }
+
+    // 如果這則訊息有回覆某人，在內容最前方加上回覆片段
+    if (msg.replyToId) {
+        contentHtml += `<div class="reply-snippet" onclick="scrollToOriginalMsg('${msg.replyToId}')">
+                            <i class="fas fa-reply"></i> ${msg.replyToText}
+                        </div>`;
+    }
+
+    if (msg.fileUrl) {
+        if (msg.fileType === 'video') {
+            contentHtml += `<video src="${msg.fileUrl}" controls class="msg-media" onloadeddata="scrollToBottom()"></video>`;
+        } else {
+            // 【修改】：加入 if(!skipNextClick) 防呆判斷
+            contentHtml += `<img src="${msg.fileUrl}" class="msg-media" onclick="if(!skipNextClick) openModal(this.src)" onload="scrollToBottom()">`;        }
+    } 
+    
+    // 如果不是活動卡片，且有文字，才把普通文字印出來
+    // 如果不是活動卡片，且有文字，才把普通文字印出來
+    if (msg.text && !isEventCard) {
+        const safeMsgText = escapeHtml(msg.text);
+        const linkedMsgText = linkify(safeMsgText);
+        const finalMsgText = highlightMentions(linkedMsgText); // 執行 @ 標記醒目處理
+        contentHtml += (msg.fileUrl ? '<br>' : '') + finalMsgText;
+    } else if (msg.fileUrl && !msg.replyToId && !isEventCard) { 
+        isMediaOnly = true;
+    }
+
+    const mediaClass = isMediaOnly ? 'media-only' : '';
+    
+    let interactEvents = '';
+    if (isMine) {
+        // 自己的訊息：左滑回覆 + 0.3秒長按 (收回 + 回覆)
+        interactEvents = `
+            ontouchstart="handleSwipeStart(event, '${msgId}', '${safeText}', 'true'); handlePressStart(event, '${msgId}', 'true', '${safeText}')"
+            ontouchmove="handleSwipeMove(event, this); handlePressEnd(event)"
+            ontouchend="handleSwipeEnd(event, this); handlePressEnd(event)"
+            onmousedown="handlePressStart(event, '${msgId}', 'true', '${safeText}')" 
+            onmouseup="handlePressEnd(event)" 
+            onmouseleave="handlePressEnd(event)"
+            oncontextmenu="event.preventDefault(); activeMsgId='${msgId}'; activeMsgTextForMenu='${safeText}'; showContextMenu(event, true);"
+        `;
+    } else {
+        // 對方的訊息：右滑回覆 + 0.3秒長按 (僅回覆)
+        interactEvents = `
+            ontouchstart="handleSwipeStart(event, '${msgId}', '${safeText}', 'false'); handlePressStart(event, '${msgId}', 'false', '${safeText}')"
+            ontouchmove="handleSwipeMove(event, this); handlePressEnd(event)"
+            ontouchend="handleSwipeEnd(event, this); handlePressEnd(event)"
+            onmousedown="handlePressStart(event, '${msgId}', 'false', '${safeText}')" 
+            onmouseup="handlePressEnd(event)" 
+            onmouseleave="handlePressEnd(event)"
+            oncontextmenu="event.preventDefault(); activeMsgId='${msgId}'; activeMsgTextForMenu='${safeText}'; showContextMenu(event, false);"
+        `;
+    }
+
+    // 【修改】：加入 id="msg-${msgId}" 以便跳轉時定位
+    html += `<div id="msg-${msgId}" class="msg ${isMine ? 'mine' : 'theirs'} ${mediaClass}" ${interactEvents}>${contentHtml}</div></div>`;
+
+
+
+    wrapper.innerHTML = html;
+    list.appendChild(wrapper);
+}); // end of forEach
+
+// 執行一次全域已讀狀態更新
+    updateReadStatusUI();
+
+// 執行第一次置底 (針對純文字)
+scrollToBottom();
+}
 
     document.getElementById('fileInput').addEventListener('change', async (e) => {
         let file = e.target.files[0]; // 改用 let，因為圖片可能會被替換成壓縮後的版本
@@ -2977,19 +3037,17 @@ document.addEventListener('click', (e) => {
 // 完美原生感：邊緣滑動返回上一頁
 // ==========================================
 function slideBackToMessenger() {
-    // 1. 離開前，依然拍下當前聊天室的快照存起來，防止下次進來時轉圈圈
-    const msgList = document.getElementById('messageList');
-    if (msgList) {
-        sessionStorage.setItem('chatHTML_' + chatId, msgList.innerHTML);
-        sessionStorage.setItem('chatScroll_' + chatId, msgList.scrollTop);
-    }
-
-    // 2. 移除所有 CSS 動畫與 setTimeout 延遲，直接瞬間切換！
-    // 使用 replace 可以讓底層 WebView 更快切換，且不堆疊過多歷史紀錄造成卡頓
-    // (請確保檔名大小寫完全符合你的檔案名稱)
-    window.location.replace('IOS-Messenger.html'); 
+    // 按下返回鍵時的向右滑出動畫
+    document.body.style.transition = 'transform 0.25s cubic-bezier(0.25, 0.8, 0.25, 1)';
+    document.body.style.transform = 'translateX(100vw)';
+    setTimeout(() => {
+        window.location.href = 'Messenger.html';
+    }, 250);
 }
 
+// ==========================================
+// 超靈敏邊緣滑動：輕滑一點點即瞬間返回
+// ==========================================
 let isPageSwiping = false;
 let pageStartX = 0;
 let pageCurrentX = 0;
@@ -3013,8 +3071,15 @@ document.addEventListener('touchmove', (e) => {
     pageCurrentX = e.touches[0].clientX - pageStartX;
     if (pageCurrentX > 0) {
         e.preventDefault(); // 阻止瀏覽器預設的橡皮筋回彈
-        // 讓整個畫面跟隨手指往右平移
-        document.body.style.transform = `translateX(${pageCurrentX}px)`;
+        
+        // 【關鍵修改】：只要輕輕滑動超過 50px，不用等放開手指，立刻返回！
+        if (pageCurrentX > 50) {
+            isPageSwiping = false; // 停止偵測，避免重複觸發
+            slideBackToMessenger(); // 呼叫瞬間跳轉
+        } else {
+            // 50px 以內給予微微的跟隨效果，保持原生互動手感
+            document.body.style.transform = `translateX(${pageCurrentX}px)`;
+        }
     }
 }, { passive: false });
 
@@ -3022,14 +3087,9 @@ document.addEventListener('touchend', (e) => {
     if (!isPageSwiping) return;
     isPageSwiping = false;
     
-    // 如果往右滑動超過螢幕寬度的 25%，就視為「確認返回」
-    if (pageCurrentX > window.innerWidth * 0.25) {
-        slideBackToMessenger();
-    } else {
-        // 否則滑動距離不夠，畫面彈回原位 (取消返回)
-        document.body.style.transition = 'transform 0.2s ease-out';
-        document.body.style.transform = 'translateX(0px)';
-    }
+    // 如果手指放開時還沒滑到 50px，就彈回原位取消返回
+    document.body.style.transition = 'transform 0.2s ease-out';
+    document.body.style.transform = 'translateX(0px)';
 });
 </script>
 
@@ -3271,25 +3331,44 @@ function closeDocPreview() {
     document.getElementById('doc-preview-modal').style.display = 'none';
 }
 
+// ==========================================
+// 活動投票與成員名單讀取邏輯 (完全同步版)
+// ==========================================
 async function handleVote(choice) {
     const user = auth.currentUser;
     if (!user || !currentEventId) return;
     const eventRef = db.collection("events").doc(currentEventId);
 
     try {
-        const actDoc = await db.collection("act").doc(user.uid).get();
-        const currentUserName = actDoc.exists ? actDoc.data().displayName : user.displayName;
-        const photoUrl = actDoc.exists ? actDoc.data().photoURL : "";
+        // 1. 精準獲取當前登入者的名稱與大頭貼 (從 content 或 act)
+        let currentUserName = "";
+        let photoUrl = "";
+        
+        const contentDoc = await db.collection("content").doc(user.uid).get();
+        if (contentDoc.exists) {
+            currentUserName = contentDoc.data().text;
+            photoUrl = contentDoc.data().imageUrl || contentDoc.data().photoURL;
+        } else {
+            const actDoc = await db.collection("act").doc(user.uid).get();
+            if (actDoc.exists) {
+                currentUserName = actDoc.data().displayName;
+                photoUrl = actDoc.data().photoURL;
+            }
+        }
+        if (!currentUserName) currentUserName = user.displayName || user.email.split('@')[0];
 
+        // 2. 讀取並更新陣列
         const eventDoc = await eventRef.get();
+        if (!eventDoc.exists) return;
         const eventData = eventDoc.data();
+        
         let updatedParticipants = eventData.participants || [];
         let updatedParticipantNames = eventData.participantNames || [];
 
         if (choice === 'join') {
             if (!updatedParticipants.includes(user.uid)) updatedParticipants.push(user.uid);
             if (!updatedParticipantNames.includes(currentUserName)) updatedParticipantNames.push(currentUserName);
-        } else {
+        } else if (choice === 'next') {
             updatedParticipants = updatedParticipants.filter(item => item !== user.uid && item !== currentUserName);
             updatedParticipantNames = updatedParticipantNames.filter(name => name !== currentUserName);
         }
@@ -3299,17 +3378,38 @@ async function handleVote(choice) {
             participantNames: updatedParticipantNames
         });
 
-        alert(choice === 'join' ? "已記錄您的參與狀況" : "已從名單中移除");
+        // 紀錄詳細投票動作 (選用)
+        await eventRef.collection("votes").doc(user.uid).set({
+            name: currentUserName,
+            photo: photoUrl || "",
+            choice: choice,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        alert(choice === 'join' ? "已記錄您的參與狀況" : "已從參與名單中移除");
     } catch (error) {
-        console.error("投票失敗:", error);
+        console.error("投票同步失敗:", error);
     }
 }
 
 async function loadVotes(eventId) {
     const list = document.getElementById('voter-list');
+    const countTag = document.getElementById('participant-count-tag');
     const user = auth.currentUser;
-    
-    // 定義成員順序與對照表
+
+    let currentUserName = "";
+    if (user) {
+        try {
+            let uDoc = await db.collection("content").doc(user.uid).get();
+            if (uDoc.exists) currentUserName = uDoc.data().text;
+            else {
+                uDoc = await db.collection("act").doc(user.uid).get();
+                if (uDoc.exists) currentUserName = uDoc.data().displayName;
+            }
+        } catch (e) {}
+        if (!currentUserName) currentUserName = user.displayName || user.email.split('@')[0];
+    }
+
     const memberOrder = [
         { id: "001", name: "もも" }, { id: "002", name: "班長" }, { id: "003", name: "俊齊" },
         { id: "004", name: "博峻" }, { id: "005", name: "佳偉" }, { id: "006", name: "書銘" },
@@ -3330,124 +3430,306 @@ async function loadVotes(eventId) {
         const participants = data.participants || [];
         const participantNames = data.participantNames || [];
         
-        document.getElementById('participant-count-tag').innerText = `(${participants.length}人)`;
-        
-        // --- 1. 更新按鈕狀態 ---
-        if (user) {
-            const joinBtn = document.querySelector('.btn-join');
-            // 只要 UID 或 名字 其中一個有在名單裡就算參與
-            const isJoined = participants.includes(user.uid) || (user.displayName && participantNames.includes(user.displayName));
-            
-            if (joinBtn) {
-                if (isJoined) {
-                    joinBtn.className = 'btn-vote btn-join btn-joined-locked';
-                    joinBtn.innerHTML = '<i class="fas fa-check"></i> 您已參與';
-                    joinBtn.disabled = true;
-                } else {
-                    joinBtn.className = 'btn-vote btn-join';
-                    joinBtn.innerHTML = '參與';
-                    joinBtn.disabled = data.deadline && (new Date().getTime() > new Date(data.deadline).getTime());
-                }
+        const now = new Date().getTime();
+        const deadline = data.deadline ? new Date(data.deadline).getTime() : 0;
+        const isExpired = data.deadline && (now > deadline);
+
+        if (countTag) countTag.innerText = `(共 ${participants.length} 人)`;
+
+        const joinBtn = document.querySelector('.btn-join');
+        const nextBtn = document.querySelector('.btn-next'); 
+
+        if (joinBtn && user) {
+            const isJoined = participantNames.includes(currentUserName) || participants.includes(user.uid);
+            if (isExpired) {
+                joinBtn.disabled = true;
+                if (nextBtn) nextBtn.disabled = true;
+                joinBtn.classList.remove('btn-joined-locked'); 
+            } else if (isJoined) {
+                joinBtn.className = 'btn-vote btn-join btn-joined-locked';
+                joinBtn.innerHTML = '<i class="fas fa-check"></i> 您已參與';
+                joinBtn.disabled = true; 
+                if (nextBtn) nextBtn.disabled = false;
+            } else {
+                joinBtn.className = 'btn-vote btn-join';
+                joinBtn.innerHTML = '參與';
+                joinBtn.disabled = false; 
             }
         }
 
-        // --- 2. 渲染成員大頭貼 ---
         if (participants.length === 0) {
             list.innerHTML = "<p style='color:#ccc; font-size:0.8rem;'>尚無成員參與...</p>";
             return;
         }
 
-        let htmlContent = "";
-        
-        // 抓取所有參與者的詳細資料 (使用 Promise.all 加速)
+        // 依照 event-documentation.html 邏輯：從 content 抓頭像，再回退 act
         const memberPromises = participants.map(uid => 
-            db.collection("act").doc(uid).get().then(snap => snap.exists ? snap.data() : null)
+            db.collection("content").doc(uid).get().then(snap => snap.exists ? snap : db.collection("act").doc(uid).get())
         );
-        const memberDataArray = await Promise.all(memberPromises);
+        const memberSnaps = await Promise.all(memberPromises);
         
-        // 建立一個名字對應資料的 Map，方便快速尋找
         const memberMap = {};
-        memberDataArray.forEach(m => {
-            if (m && m.displayName) {
-                memberMap[m.displayName] = m;
-            }
+        memberSnaps.forEach(mSnap => {
+            if (mSnap.exists) memberMap[mSnap.id] = mSnap.data();
         });
 
-        // 依照 memberOrder 的順序印出頭像
+        let htmlContent = "";
         memberOrder.forEach(orderItem => {
-            // 如果這個人有在參與名單中 (用名稱或 UID 判斷)
-            if (participantNames.includes(orderItem.name)) {
-                // 如果在資料庫有找到他的大頭貼就用，沒有就給預設圖
-                const mData = memberMap[orderItem.name];
-                const photoUrl = mData && mData.photoURL ? mData.photoURL : `https://ui-avatars.com/api/?name=${encodeURIComponent(orderItem.name)}&background=ddd&color=fff`;
-                
-                htmlContent += `
-                    <div class="voter-box">
-                        <img src="${photoUrl}">
-                        <span>${orderItem.name}</span>
-                    </div>`;
+            for (const uid in memberMap) {
+                const m = memberMap[uid];
+                const mName = m.text || m.displayName || "";
+                if (mName === orderItem.name) {
+                    htmlContent += `
+                        <div class="voter-box">
+                            <img src="${m.imageUrl || m.photoURL || 'https://via.placeholder.com/50'}" onerror="this.src='https://via.placeholder.com/50'">
+                            <span>${mName}</span>
+                        </div>`;
+                    break; 
+                }
             }
         });
-
-        // 把組合好的 HTML 塞進畫面
         list.innerHTML = htmlContent;
     });
 }
 
 // ==========================================
-    // 監聽滾動：往上滑到頂部時載入舊對話
-    // ==========================================
-    const messageListEl = document.getElementById('messageList');
+// 幻燈片預覽器邏輯 (Slider Logic)
+// ==========================================
+let currentSlideIndex = 0;
+let isDragging = false;
+let startPos = 0;
+let currentTranslate = 0;
+let prevTranslate = 0;
+let animationID;
+let isAnimating = false;
+let idleTimer = null;
+
+function openImageViewer(startIndex) {
+    if (!currentGalleryImages || currentGalleryImages.length === 0) return;
+    currentSlideIndex = startIndex || 0;
     
-    messageListEl.addEventListener('scroll', async () => {
-        // 如果已經沒資料了，或是正在抓取中，就不要執行
-        if (!hasMoreMessages || isFetchingHistory || !oldestMessageDoc) return;
-
-        // 當捲動到距離頂部小於 50px 時觸發
-        if (messageListEl.scrollTop < 50) {
-            isFetchingHistory = true;
-            document.getElementById('historyLoader').style.display = 'block';
-
-            // 記下現在的捲動高度與內容總高度，等一下載入完才不會畫面亂跳
-            const previousScrollHeight = messageListEl.scrollHeight;
-
-            try {
-                const historyQuery = await db.collection("chats").doc(chatId)
-                    .collection("messages")
-                    .orderBy("timestamp", "desc")
-                    .startAfter(oldestMessageDoc)
-                    .limit(MESSAGES_PER_PAGE)
-                    .get();
-
-                if (historyQuery.empty) {
-                    hasMoreMessages = false;
-                    document.getElementById('historyLoader').innerHTML = '<span style="color:#aaa; font-size:12px;">已經沒有更早的訊息了</span>';
-                } else {
-                    oldestMessageDoc = historyQuery.docs[historyQuery.docs.length - 1];
-                    
-                    // 【關鍵】：不用 reverse()，直接從最新往最舊開始 insertBefore，
-                    // 這樣它們就會按照正確的順序被推到畫面上方
-                    historyQuery.docs.forEach(doc => {
-                        renderSingleMessage(doc, auth.currentUser.uid, true);
-                    });
-                    
-                    // 保持畫面停留在原本觀看的位置
-                    requestAnimationFrame(() => {
-                        const newScrollHeight = messageListEl.scrollHeight;
-                        messageListEl.scrollTop = newScrollHeight - previousScrollHeight;
-                    });
-                }
-            } catch (error) {
-                console.error("載入歷史訊息失敗:", error);
-            } finally {
-                isFetchingHistory = false;
-                if (hasMoreMessages) {
-                    document.getElementById('historyLoader').style.display = 'none';
-                }
-            }
-        }
+    const sliderTrack = document.getElementById('slider-track');
+    sliderTrack.innerHTML = "";
+    currentGalleryImages.forEach(imgUrl => {
+        const slide = document.createElement('div');
+        slide.classList.add('slider-slide');
+        slide.innerHTML = `<img src="${imgUrl}" draggable="false" onclick="event.stopPropagation()">`; 
+        sliderTrack.appendChild(slide);
     });
-</script>
 
+    const thumbsContainer = document.getElementById('viewer-thumbnails');
+    thumbsContainer.innerHTML = "";
+    if (currentGalleryImages.length > 1) {
+        thumbsContainer.style.display = 'flex';
+        currentGalleryImages.forEach((imgUrl, index) => {
+            const thumb = document.createElement('div');
+            thumb.className = 'thumbnail-item';
+            thumb.onclick = () => {
+                currentSlideIndex = index;
+                updateSliderPosition();
+                updateCounter();
+                resetIdleTimer();
+            };
+            thumb.innerHTML = `<img src="${imgUrl}" draggable="false">`;
+            thumbsContainer.appendChild(thumb);
+        });
+    } else {
+        thumbsContainer.style.display = 'none';
+    }
+
+    const viewerModal = document.getElementById('image-viewer-modal');
+    viewerModal.style.display = 'flex';
+    viewerModal.classList.remove('user-idle'); 
+    
+    updateSliderPosition(true); 
+    updateCounter();
+    attachSliderEvents();
+    resetIdleTimer();
+}
+
+function closeImageViewer() {
+    document.getElementById('image-viewer-modal').style.display = 'none';
+    cancelAnimationFrame(animationID);
+    detachSliderEvents();
+    if (idleTimer) clearTimeout(idleTimer);
+}
+
+function handleViewerClick(event) {
+    if (event.target.closest('#viewer-thumbnails')) return;
+    if (event.target.id === 'image-viewer-modal' || 
+        event.target.classList.contains('slider-container') ||
+        event.target.classList.contains('slider-track') ||
+        event.target.classList.contains('slider-slide')) {
+        closeImageViewer();
+    }
+}
+
+function updateSliderPosition(instant = false) {
+    const targetTranslate = -currentSlideIndex * window.innerWidth;
+    prevTranslate = targetTranslate; 
+    currentTranslate = targetTranslate;
+    
+    const sliderTrack = document.getElementById('slider-track');
+
+    if (instant) {
+        sliderTrack.style.transition = 'none';
+        sliderTrack.style.transform = `translateX(${targetTranslate}px)`;
+    } else {
+        isAnimating = true;
+        sliderTrack.style.transition = 'transform 0.3s ease-out';
+        sliderTrack.style.transform = `translateX(${targetTranslate}px)`;
+        setTimeout(() => { isAnimating = false; }, 300);
+    }
+
+    const allThumbs = document.querySelectorAll('.thumbnail-item');
+    if (allThumbs.length > 0) {
+        allThumbs.forEach((thumb, index) => {
+            if (index === currentSlideIndex) {
+                thumb.classList.add('active');
+                thumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            } else {
+                thumb.classList.remove('active');
+            }
+        });
+    }
+}
+
+function resetIdleTimer() {
+    const viewerModal = document.getElementById('image-viewer-modal');
+    viewerModal.classList.remove('user-idle');
+    if (idleTimer) clearTimeout(idleTimer);
+    idleTimer = setTimeout(() => { viewerModal.classList.add('user-idle'); }, 1500);
+}
+
+function updateCounter() {
+    document.getElementById('viewer-counter').innerText = `${currentSlideIndex + 1} / ${currentGalleryImages.length}`;
+}
+
+function attachSliderEvents() {
+    const viewerModal = document.getElementById('image-viewer-modal');
+    const sliderContainer = document.getElementById('slider-container');
+    ['touchstart', 'touchmove', 'touchend', 'mousedown', 'wheel', 'click'].forEach(evt => {
+        viewerModal.addEventListener(evt, resetIdleTimer);
+    });
+    sliderContainer.addEventListener('touchstart', touchStart);
+    sliderContainer.addEventListener('touchend', touchEnd);
+    sliderContainer.addEventListener('touchmove', touchMove, { passive: false });
+    sliderContainer.addEventListener('mousedown', touchStart);
+    sliderContainer.addEventListener('mouseup', touchEnd);
+    sliderContainer.addEventListener('mouseleave', () => { if(isDragging) touchEnd() });
+    sliderContainer.addEventListener('mousemove', touchMove);
+}
+
+function detachSliderEvents() {
+    const viewerModal = document.getElementById('image-viewer-modal');
+    const sliderContainer = document.getElementById('slider-container');
+    ['touchstart', 'touchmove', 'touchend', 'mousedown', 'wheel', 'click'].forEach(evt => {
+        viewerModal.removeEventListener(evt, resetIdleTimer);
+    });
+    sliderContainer.removeEventListener('touchstart', touchStart);
+    sliderContainer.removeEventListener('touchend', touchEnd);
+    sliderContainer.removeEventListener('touchmove', touchMove);
+    sliderContainer.removeEventListener('mousedown', touchStart);
+    sliderContainer.removeEventListener('mouseup', touchEnd);
+    sliderContainer.removeEventListener('mousemove', touchMove);
+}
+
+function getPositionX(event) {
+    return event.type.includes('mouse') ? event.pageX : event.touches[0].clientX;
+}
+
+function touchStart(e) {
+    isDragging = true;
+    startPos = getPositionX(e);
+    prevTranslate = -currentSlideIndex * window.innerWidth;
+    document.getElementById('slider-container').style.cursor = 'grabbing';
+    document.getElementById('slider-track').style.transition = 'none';
+    animationID = requestAnimationFrame(animation);
+}
+
+function touchMove(e) {
+    if (isDragging) {
+        if(e.type.includes('touch')) e.preventDefault(); 
+        const currentPosition = getPositionX(e);
+        currentTranslate = prevTranslate + (currentPosition - startPos);
+    }
+}
+
+function touchEnd() {
+    isDragging = false;
+    cancelAnimationFrame(animationID);
+    document.getElementById('slider-container').style.cursor = 'grab';
+    const movedBy = currentTranslate - prevTranslate;
+    const threshold = 100;
+    if (movedBy < -threshold && currentSlideIndex < currentGalleryImages.length - 1) currentSlideIndex += 1;
+    else if (movedBy > threshold && currentSlideIndex > 0) currentSlideIndex -= 1;
+    updateSliderPosition();
+    updateCounter();
+}
+
+function animation() {
+    document.getElementById('slider-track').style.transform = `translateX(${currentTranslate}px)`;
+    if (isDragging) requestAnimationFrame(animation);
+}
+
+async function forceDownload(url, filename) {
+    try {
+        const response = await fetch(url, { mode: 'cors' });
+        const blob = await response.blob();
+        const file = new File([blob], filename, { type: blob.type });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            try { await navigator.share({ files: [file], title: filename }); return; } 
+            catch (e) { if (e.name === 'AbortError') return; }
+        }
+        const blobUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement('a'); link.href = blobUrl; link.download = filename;
+        document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100);
+    } catch (err) {
+        if (confirm("無法直接下載，是否在新視窗開啟圖片？")) window.open(url, '_blank');
+    }
+}
+
+function downloadCurrentImage() {
+    const url = currentGalleryImages[currentSlideIndex];
+    forceDownload(url, `photo_${new Date().getTime()}_${currentSlideIndex + 1}.jpg`);
+}
+
+async function downloadAllImages() {
+    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        return alert("系統提示：\n手機限制無法一鍵儲存多張照片，請使用「下載此張」功能逐一儲存。");
+    }
+    if (!confirm(`即將下載共 ${currentGalleryImages.length} 張照片，確定嗎？`)) return;
+    for (let i = 0; i < currentGalleryImages.length; i++) {
+        await forceDownload(currentGalleryImages[i], `batch_photo_${i + 1}.jpg`);
+        await new Promise(resolve => setTimeout(resolve, 800));
+    }
+    alert("下載任務已送出！");
+}
+</script>
+<div id="image-viewer-modal" onclick="handleViewerClick(event)" style="display: none; position: fixed; z-index: 20000; left: 0; top: 0; width: 100vw; height: 100dvh; background-color: rgba(0, 0, 0, 0.95); flex-direction: column; overflow: hidden;">
+        <div class="viewer-header">
+            <div class="viewer-counter" id="viewer-counter">1 / 1</div>
+            <div class="viewer-controls-group">
+                <button class="viewer-btn-text" onclick="event.stopPropagation(); downloadCurrentImage()">
+                    <i class="fas fa-download"></i> 下載此張
+                </button>
+                <button class="viewer-btn-text" onclick="event.stopPropagation(); downloadAllImages()">
+                    <i class="fas fa-images"></i> 下載全部
+                </button>
+                <button class="viewer-close" onclick="event.stopPropagation(); closeImageViewer()">&times;</button>
+            </div>
+        </div>
+        
+        <div class="slider-container" id="slider-container">
+            <div class="slider-track" id="slider-track"></div>
+        </div>
+        
+        <div class="viewer-thumbnails" id="viewer-thumbnails" onclick="event.stopPropagation()"></div>
+
+        <div class="viewer-hint">
+            <i class="fas fa-hand-pointer"></i> 左右拖曳切換
+        </div>
+    </div>
 </body>
 </html>
