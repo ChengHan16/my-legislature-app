@@ -626,7 +626,10 @@
     // 2. SPA 切換與手勢控制
     // ==========================================
     const chatViewDOM = document.getElementById('chatView');
-    let isChatSwiping = false, chatPageStartX = 0, chatPageCurrentX = 0;
+    // ==========================================
+    // 2. SPA 切換與手勢控制 (包含速度判定)
+    // ==========================================
+    let isChatSwiping = false, chatPageStartX = 0, chatPageCurrentX = 0, chatPageStartTime = 0;
 
     function openChatRoom(chatId) {
         currentChatId = chatId;
@@ -643,19 +646,35 @@
     }
 
     chatViewDOM.addEventListener('touchstart', (e) => {
-        if (e.touches[0].clientX < 40) { isChatSwiping = true; chatPageStartX = e.touches[0].clientX; chatViewDOM.style.transition = 'none'; }
+        // 觸發區域限制在螢幕最左側 40px 內
+        if (e.touches[0].clientX < 40) { 
+            isChatSwiping = true; 
+            chatPageStartX = e.touches[0].clientX; 
+            chatPageStartTime = Date.now(); // 紀錄開始時間
+            chatViewDOM.style.transition = 'none'; 
+        }
     });
+    
     chatViewDOM.addEventListener('touchmove', (e) => {
         if (!isChatSwiping) return;
         chatPageCurrentX = e.touches[0].clientX - chatPageStartX;
         if (chatPageCurrentX > 0) { e.preventDefault(); chatViewDOM.style.transform = `translateX(${chatPageCurrentX}px)`; }
     }, { passive: false });
+    
     chatViewDOM.addEventListener('touchend', (e) => {
         if (!isChatSwiping) return;
         isChatSwiping = false;
         chatViewDOM.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
-        if (chatPageCurrentX > window.innerWidth / 3) closeChatRoom();
-        else chatViewDOM.style.transform = 'translateX(0%)';
+        
+        const swipeTime = Date.now() - chatPageStartTime;
+        const swipeSpeed = chatPageCurrentX / swipeTime; // 計算滑動速度 (px/ms)
+
+        // 【修改】：放寬滑動速度門檻至 0.3 (輕輕一撇即觸發)，並增加「至少滑動 30px」防呆以免誤觸
+        if (chatPageCurrentX > window.innerWidth / 3 || (swipeSpeed > 0.3 && chatPageCurrentX > 30)) {
+            closeChatRoom();
+        } else {
+            chatViewDOM.style.transform = 'translateX(0%)';
+        }
         chatPageCurrentX = 0;
     });
 
@@ -781,6 +800,8 @@
         const user = auth.currentUser;
         if (!user) return;
         
+        window.isFirstChatLoad = true; // 【新增這一行】標記這是第一次開啟這個對話
+        
         document.getElementById('messageList').innerHTML = "";
         document.getElementById('chatTitle').innerText = "載入中...";
         window.chatMembersCache = {};
@@ -847,8 +868,11 @@
         const currentUid = auth.currentUser.uid;
         const list = document.getElementById('messageList');
         
-        // 保留原捲動高度判斷
-        const isAtBottom = list.scrollHeight - list.scrollTop - list.clientHeight < 50;
+        // 【優化】放寬置底判斷區間，避免差一點點導致不滾動
+        const isAtBottom = list.scrollHeight - list.scrollTop - list.clientHeight < 150;
+        // 【優化】判斷這批訊息最後一則是不是「我剛剛發送的」
+        const isLastMessageMine = messagesDocsData.length > 0 && messagesDocsData[messagesDocsData.length - 1].data().senderId === currentUid;
+
         list.innerHTML = "";
         let lastTime = null;
 
@@ -909,9 +933,10 @@
 
             const mediaClass = isMediaOnly ? 'media-only' : '';
             
+            // 【移除左右滑動回覆，僅保留長按呼叫選單功能】
             let interactEvents = isMine ? 
-                `ontouchstart="handleSwipeStart(event, '${msgId}', '${safeText}', 'true'); handlePressStart(event, '${msgId}', 'true', '${safeText}')" ontouchmove="handleSwipeMove(event, this); handlePressEnd()" ontouchend="handleSwipeEnd(event, this); handlePressEnd()" onmousedown="handlePressStart(event, '${msgId}', 'true', '${safeText}')" onmouseup="handlePressEnd()" onmouseleave="handlePressEnd()" oncontextmenu="event.preventDefault(); activeMsgId='${msgId}'; activeMsgTextForMenu='${safeText}'; showContextMenu(event, true);"` : 
-                `ontouchstart="handleSwipeStart(event, '${msgId}', '${safeText}', 'false'); handlePressStart(event, '${msgId}', 'false', '${safeText}')" ontouchmove="handleSwipeMove(event, this); handlePressEnd()" ontouchend="handleSwipeEnd(event, this); handlePressEnd()" onmousedown="handlePressStart(event, '${msgId}', 'false', '${safeText}')" onmouseup="handlePressEnd()" onmouseleave="handlePressEnd()" oncontextmenu="event.preventDefault(); activeMsgId='${msgId}'; activeMsgTextForMenu='${safeText}'; showContextMenu(event, false);"`;
+                `ontouchstart="handlePressStart(event, '${msgId}', 'true', '${safeText}')" ontouchmove="handlePressEnd()" ontouchend="handlePressEnd()" onmousedown="handlePressStart(event, '${msgId}', 'true', '${safeText}')" onmouseup="handlePressEnd()" onmouseleave="handlePressEnd()" oncontextmenu="event.preventDefault(); activeMsgId='${msgId}'; activeMsgTextForMenu='${safeText}'; showContextMenu(event, true);"` : 
+                `ontouchstart="handlePressStart(event, '${msgId}', 'false', '${safeText}')" ontouchmove="handlePressEnd()" ontouchend="handlePressEnd()" onmousedown="handlePressStart(event, '${msgId}', 'false', '${safeText}')" onmouseup="handlePressEnd()" onmouseleave="handlePressEnd()" oncontextmenu="event.preventDefault(); activeMsgId='${msgId}'; activeMsgTextForMenu='${safeText}'; showContextMenu(event, false);"`;
 
             html += `<div id="msg-${msgId}" class="msg ${isMine ? 'mine' : 'theirs'} ${mediaClass}" ${interactEvents}>${contentHtml}</div></div>`;
             wrapper.innerHTML = html;
@@ -919,7 +944,13 @@
         });
 
         updateReadStatusUI();
-        if(isAtBottom) scrollToBottom();
+        
+        // 【優化】如果是初次載入、滑動在最底部、或是最新訊息是自己發的，就強制置底
+        if (window.isFirstChatLoad || isAtBottom || isLastMessageMine) {
+            // 如果是初次載入就不要動畫(直接跳到底)，若是發訊息則保留動畫效果
+            scrollToBottom(!window.isFirstChatLoad); 
+            window.isFirstChatLoad = false;
+        }
     }
 
     // 已讀邏輯
@@ -1108,7 +1139,7 @@
     async function unpinMessage() { if (confirm("移除釘選？")) await db.collection("chats").doc(currentChatId).update({ pinnedMessage: firebase.firestore.FieldValue.delete() }); }
 
     // 滑動與回覆
-    let touchStartX = 0, swipeMsgId = null, swipeMsgText = "", isSwipeMine = false;
+    /*let touchStartX = 0, swipeMsgId = null, swipeMsgText = "", isSwipeMine = false;
     function handleSwipeStart(e, id, text, isMineStr) { touchStartX = e.touches[0].clientX; swipeMsgId = id; swipeMsgText = text; isSwipeMine = isMineStr === 'true'; }
     function handleSwipeMove(e, el) {
         if (!touchStartX) return; let diffX = e.touches[0].clientX - touchStartX;
@@ -1120,7 +1151,7 @@
         el.style.transition = 'transform 0.3s ease'; el.style.transform = 'translateX(0px)'; setTimeout(() => { el.style.transition = ''; }, 300);
         if ((isSwipeMine && diffX < -45) || (!isSwipeMine && diffX > 45)) setReplyMode(swipeMsgId, swipeMsgText);
         touchStartX = 0;
-    }
+    }*/
 
     let activeReplyId = null, activeReplyText = null;
     function setReplyMode(id, text) { activeReplyId = id; activeReplyText = text; document.getElementById('replyPreview').style.display = 'flex'; document.getElementById('replyPreviewText').innerText = text.length > 15 ? text.substring(0, 15) + '...' : text; document.getElementById('msgInput').focus(); }
@@ -1138,7 +1169,11 @@
         if ("all (全員)".includes(searchStr.toLowerCase())) {
             hasMatches = true; const item = document.createElement('div'); item.className = 'mention-item';
             item.innerHTML = `<div style="width: 30px; height: 30px; border-radius: 50%; background: var(--ly-gold); color: white; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 14px; flex-shrink: 0;"><i class="fas fa-users"></i></div><span>All (全員)</span>`;
-            item.onmousedown = item.ontouchstart = (e) => { e.preventDefault(); insertMention("All"); }; listEl.appendChild(item);
+            
+            // 【修改】：移除 ontouchstart，改用 onclick 支援滑動，並保留 mousedown 防止輸入框失去焦點
+            item.onmousedown = (e) => { e.preventDefault(); }; 
+            item.onclick = (e) => { e.preventDefault(); insertMention("All"); }; 
+            listEl.appendChild(item);
         }
 
         window.currentGroupMembers.forEach(uid => {
@@ -1147,7 +1182,11 @@
             if (name.toLowerCase().includes(searchStr.toLowerCase())) {
                 hasMatches = true; const item = document.createElement('div'); item.className = 'mention-item';
                 item.innerHTML = `<img src="${member.photoURL || 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true'}"><span>${name}</span>`;
-                item.onmousedown = item.ontouchstart = (e) => { e.preventDefault(); insertMention(name); }; listEl.appendChild(item);
+                
+                // 【修改】：移除 ontouchstart，改用 onclick 支援滑動，並保留 mousedown 防止輸入框失去焦點
+                item.onmousedown = (e) => { e.preventDefault(); }; 
+                item.onclick = (e) => { e.preventDefault(); insertMention(name); }; 
+                listEl.appendChild(item);
             }
         });
         listEl.style.display = hasMatches ? 'block' : 'none';
@@ -1414,24 +1453,102 @@
     }
     
     async function loadVotes(eventId) {
+        const list = document.getElementById('voter-list');
+        const countTag = document.getElementById('participant-count-tag');
+        const user = auth.currentUser;
+
+        // 1. 先取得當前登入者的名稱 (用來比對 participantNames)
+        let currentUserName = "";
+        if (user) {
+            try {
+                let uDoc = await db.collection("content").doc(user.uid).get();
+                if (uDoc.exists) {
+                    currentUserName = uDoc.data().text;
+                } else {
+                    uDoc = await db.collection("act").doc(user.uid).get();
+                    if (uDoc.exists) currentUserName = uDoc.data().displayName;
+                }
+            } catch (e) { console.error("無法取得名稱:", e); }
+            if (!currentUserName) currentUserName = user.displayName || user.email.split('@')[0];
+        }
+
+        // 定義正確的排序名單
+        const memberOrder = [
+            { id: "001", name: "もも" }, { id: "002", name: "班長" }, { id: "003", name: "俊齊" },
+            { id: "004", name: "博峻" }, { id: "005", name: "佳偉" }, { id: "006", name: "書銘" },
+            { id: "007", name: "江旭" }, { id: "008", name: "尊玄" }, { id: "009", name: "俊諺" },
+            { id: "010", name: "成一" }, { id: "011", name: "宗航" }, { id: "012", name: "崇憲" },
+            { id: "013", name: "光庭" }, { id: "014", name: "威丞" }, { id: "015", name: "韋仁" },
+            { id: "016", name: "祐瑜" }, { id: "017", name: "至軒" }, { id: "018", name: "奕賢" },
+            { id: "019", name: "正德" }, { id: "020", name: "鈞儒" }, { id: "021", name: "凱瑞" },
+            { id: "022", name: "承遠" }, { id: "023", name: "皓鈞" }, { id: "024", name: "鎮遠" },
+            { id: "025", name: "智皓" }, { id: "026", name: "哲遠" }, { id: "027", name: "隆勳" },
+            { id: "028", name: "柏鑫" }, { id: "029", name: "承佑" }, { id: "030", name: "凱駿" },
+            { id: "031", name: "冠叡" }, { id: "032", name: "祐祥" }, { id: "033", name: "可愛柴" }
+        ];
+
         db.collection("events").doc(eventId).onSnapshot(async (doc) => {
-            if(!doc.exists) return; const data = doc.data();
-            document.getElementById('participant-count-tag').innerText = `(共 ${data.participants?.length||0} 人)`;
+            if(!doc.exists) return; 
+            const data = doc.data();
+            const participants = data.participants || [];
+            const participantNames = data.participantNames || [];
+
+            if (countTag) countTag.innerText = `(共 ${participants.length} 人)`;
+
             const jBtn = document.querySelector('.btn-join'), nBtn = document.querySelector('.btn-next');
             if(jBtn && auth.currentUser){
-                const isJ = (data.participants||[]).includes(auth.currentUser.uid);
-                if(data.deadline && new Date().getTime() > new Date(data.deadline).getTime()){ jBtn.disabled=nBtn.disabled=true; }
-                else if(isJ){ jBtn.className='btn-vote btn-join btn-joined-locked'; jBtn.innerHTML='<i class="fas fa-check"></i> 已參與'; jBtn.disabled=true; nBtn.disabled=false; }
-                else { jBtn.className='btn-vote btn-join'; jBtn.innerHTML='參與'; jBtn.disabled=false; nBtn.disabled=false; }
+                const isJ = participantNames.includes(currentUserName) || participants.includes(user.uid);
+                if(data.deadline && new Date().getTime() > new Date(data.deadline).getTime()){ 
+                    jBtn.disabled=nBtn.disabled=true; 
+                } else if(isJ){ 
+                    jBtn.className='btn-vote btn-join btn-joined-locked'; 
+                    jBtn.innerHTML='<i class="fas fa-check"></i> 已參與'; 
+                    jBtn.disabled=true; nBtn.disabled=false; 
+                } else { 
+                    jBtn.className='btn-vote btn-join'; 
+                    jBtn.innerHTML='參與'; 
+                    jBtn.disabled=false; nBtn.disabled=false; 
+                }
             }
+
             const list = document.getElementById('voter-list');
-            if(!data.participants?.length){ list.innerHTML="<p style='color:#ccc;'>尚無成員參與...</p>"; return; }
+            if(!participants.length){ 
+                list.innerHTML="<p style='color:#ccc; font-size:0.9rem;'>尚無成員參與...</p>"; 
+                return; 
+            }
             
-            let html = "";
-            for(let uid of data.participants) {
-                const uDoc = await db.collection("act").doc(uid).get();
-                if(uDoc.exists) html += `<div class="voter-box"><img src="${uDoc.data().photoURL}"><span>${uDoc.data().displayName}</span></div>`;
-            } list.innerHTML = html;
+            // 抓取所有參與者詳細資料 (優先從 content 抓取，若無則從 act 抓取)
+            const memberPromises = participants.map(uid => 
+                db.collection("content").doc(uid).get().then(snap => snap.exists ? snap : db.collection("act").doc(uid).get())
+            );
+            const memberSnaps = await Promise.all(memberPromises);
+            
+            const memberMap = {};
+            memberSnaps.forEach(mSnap => {
+                if (mSnap.exists) {
+                    memberMap[mSnap.id] = mSnap.data();
+                }
+            });
+
+            // 依照 memberOrder 進行配對與排序渲染
+            let htmlContent = "";
+            memberOrder.forEach(orderItem => {
+                for (const uid in memberMap) {
+                    const m = memberMap[uid];
+                    const mName = m.text || m.displayName || "";
+                    if (mName === orderItem.name) {
+                        const avatarUrl = m.imageUrl || m.photoURL || 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true';
+                        htmlContent += `
+                            <div class="voter-box">
+                                <img src="${avatarUrl}" onerror="this.src='https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true'">
+                                <span>${mName}</span>
+                            </div>`;
+                        break; 
+                    }
+                }
+            });
+
+            list.innerHTML = htmlContent;
         });
     }
 
