@@ -945,25 +945,6 @@ body {
     from { transform: translateX(100vw); }
     to { transform: translateX(0); }
 }
-
-/* --- 原生感：聊天室進場動畫與陰影 --- */
-#chatAppContainer {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100vw; height: 100dvh;
-    background: var(--bg-gray);
-    display: flex;
-    flex-direction: column;
-    z-index: 1;
-    /* 加入左側邊緣陰影，製造 iOS 原生的圖層立體感 */
-    box-shadow: -10px 0 30px rgba(0,0,0,0.15); 
-    animation: pageSlideIn 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
-}
-
-@keyframes pageSlideIn {
-    from { transform: translateX(100vw); }
-    to { transform: translateX(0); }
-}
     </style>
 </head>
 <body>
@@ -1774,85 +1755,88 @@ function closeModal() {
 
 // --- 綁定圖片的縮放與拖曳事件 ---
 // --- 綁定圖片的縮放與拖曳事件 ---
-// ==========================================
-// 1. 頁面載入時：還原底層偽裝畫面與聊天室舊資料
-// ==========================================
 window.addEventListener('DOMContentLoaded', () => {
-    // 貼上上一頁 (Messenger) 的快照作為背景
-    const fakeList = document.getElementById('fakeMessengerList');
-    const savedMessengerHtml = sessionStorage.getItem('messengerHTML');
-    const savedMessengerScroll = sessionStorage.getItem('messengerScroll');
-    if (savedMessengerHtml && fakeList) {
-        fakeList.innerHTML = savedMessengerHtml;
-        if (savedMessengerScroll) {
-            requestAnimationFrame(() => { fakeList.scrollTop = parseInt(savedMessengerScroll, 10); });
+    const zoomImg = document.getElementById('expandedImg');
+    if (zoomImg) {
+        zoomImg.style.transformOrigin = "center center";
+        zoomImg.style.cursor = "grab";
+
+        // 更新圖片變形狀態
+        function setPreviewTransform() {
+            zoomImg.style.transition = 'none'; // 拖曳時關閉預設動畫才不會有延遲感
+            zoomImg.style.transform = `translate(${previewPointX}px, ${previewPointY}px) scale(${previewScale})`;
         }
-    }
 
-    // 還原此聊天室的歷史訊息與捲動位置 (防止空白載入)
-    const cachedHtml = sessionStorage.getItem('chatHTML_' + chatId);
-    const cachedScroll = sessionStorage.getItem('chatScroll_' + chatId);
-    if (cachedHtml) {
-        const msgList = document.getElementById('messageList');
-        msgList.innerHTML = cachedHtml;
-        if (cachedScroll) {
-            requestAnimationFrame(() => { msgList.scrollTop = parseInt(cachedScroll, 10); });
-        }
-    }
-});
+        // 1. 電腦版：滑鼠滾輪縮放
+        zoomImg.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            let delta = e.deltaY > 0 ? -0.15 : 0.15;
+            previewScale += delta;
+            previewScale = Math.max(1, Math.min(previewScale, 5)); // 限制縮放為 1~5 倍
+            // 如果縮回原本大小，位置自動歸零置中
+            if (previewScale === 1) { previewPointX = 0; previewPointY = 0; }
+            setPreviewTransform();
+        });
 
-// ==========================================
-// 2. 完美原生感：邊緣滑動返回上一頁
-// ==========================================
-// ==========================================
-// 完美原生感：零延遲、無白屏瞬間返回
-// ==========================================
-function slideBackToMessenger() {
-    // 1. 離開前，依然拍下當前聊天室的快照存起來，防止下次進來時轉圈圈
-    const msgList = document.getElementById('messageList');
-    if (msgList) {
-        sessionStorage.setItem('chatHTML_' + chatId, msgList.innerHTML);
-        sessionStorage.setItem('chatScroll_' + chatId, msgList.scrollTop);
-    }
+        // 2. 電腦版：滑鼠拖曳
+        zoomImg.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            previewPanning = true;
+            zoomImg.style.cursor = "grabbing";
+            previewStart = { x: e.clientX - previewPointX, y: e.clientY - previewPointY };
+        });
 
-    // 2. 移除所有 CSS 動畫與 setTimeout 延遲，直接瞬間切換！
-    // 使用 replace 可以讓底層 WebView 更快切換，且不堆疊過多歷史紀錄造成卡頓
-    window.location.replace('Messenger.html'); 
-}
+        zoomImg.addEventListener('mousemove', (e) => {
+            if (!previewPanning || previewScale === 1) return;
+            previewPointX = e.clientX - previewStart.x;
+            previewPointY = e.clientY - previewStart.y;
+            setPreviewTransform();
+        });
 
-document.addEventListener('touchstart', (e) => {
-    if (e.touches[0].clientX < 45) {
-        isPageSwiping = true;
-        pageStartX = e.touches[0].clientX;
-        
-        // 停止容器動畫，讓畫面準備跟隨手指
-        const container = document.getElementById('chatAppContainer');
-        container.style.animation = 'none'; 
-        container.style.transition = 'none'; 
-    }
-});
+        const endPan = () => { 
+            previewPanning = false; 
+            zoomImg.style.cursor = "grab";
+        };
+        zoomImg.addEventListener('mouseup', endPan);
+        zoomImg.addEventListener('mouseleave', endPan);
 
-document.addEventListener('touchmove', (e) => {
-    if (!isPageSwiping) return;
-    
-    pageCurrentX = e.touches[0].clientX - pageStartX;
-    if (pageCurrentX > 0) {
-        e.preventDefault(); 
-        // 滑動的是容器，背後的 fakeMessengerBg 就會露出來！
-        document.getElementById('chatAppContainer').style.transform = `translateX(${pageCurrentX}px)`;
-    }
-}, { passive: false });
+        // 3. 手機版：雙指縮放與單指拖曳
+        zoomImg.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 2) {
+                // 雙指觸碰，計算兩指初始距離
+                previewStartDist = Math.hypot(
+                    e.touches[0].pageX - e.touches[1].pageX,
+                    e.touches[0].pageY - e.touches[1].pageY
+                );
+            } else if (e.touches.length === 1) {
+                // 單指觸碰，準備拖曳
+                previewPanning = true;
+                previewStart = { x: e.touches[0].pageX - previewPointX, y: e.touches[0].pageY - previewPointY };
+            }
+        });
 
-document.addEventListener('touchend', (e) => {
-    if (!isPageSwiping) return;
-    isPageSwiping = false;
-    
-    if (pageCurrentX > window.innerWidth * 0.25) {
-        slideBackToMessenger();
-    } else {
-        const container = document.getElementById('chatAppContainer');
-        container.style.transition = 'transform 0.2s ease-out';
-        container.style.transform = 'translateX(0px)';
+        zoomImg.addEventListener('touchmove', (e) => {
+            e.preventDefault(); // 阻擋畫面原生滾動
+            if (e.touches.length === 2) {
+                // 計算兩指移動後的距離差來決定縮放比例
+                let currentDist = Math.hypot(
+                    e.touches[0].pageX - e.touches[1].pageX,
+                    e.touches[0].pageY - e.touches[1].pageY
+                );
+                let diff = currentDist - previewStartDist;
+                previewScale += diff * 0.01; // 縮放靈敏度
+                previewScale = Math.max(1, Math.min(previewScale, 5));
+                previewStartDist = currentDist;
+                setPreviewTransform();
+            } else if (e.touches.length === 1 && previewPanning && previewScale > 1) {
+                // 只有在已經放大的情況下才允許單指拖曳
+                previewPointX = e.touches[0].pageX - previewStart.x;
+                previewPointY = e.touches[0].pageY - previewStart.y;
+                setPreviewTransform();
+            }
+        });
+
+        zoomImg.addEventListener('touchend', () => previewPanning = false);
     }
 });
 
@@ -3062,18 +3046,5 @@ document.addEventListener('touchend', (e) => {
         </div>
     </div>
 </div>
-
-    <div id="fakeMessengerBg" style="position: absolute; top: 0; left: 0; width: 100vw; height: 100dvh; z-index: 0; background: var(--bg-gray); display: flex; flex-direction: column; overflow: hidden;">
-            <header class="messenger-header" style="position: relative;">
-                <div class="header-content" style="justify-content: flex-start; opacity: 0.6;">
-                    <div style="width: 55px; height: 55px; border-radius: 50%; background: rgba(255,255,255,0.2); margin-right: 15px;"></div>
-                    <div style="height: 24px; width: 120px; background: rgba(255,255,255,0.2); border-radius: 4px;"></div>
-                </div>
-            </header>
-            <main class="chat-list" id="fakeMessengerList" style="pointer-events: none; opacity: 0.85;"></main>
-        </div>
-
-        <div id="chatAppContainer">
-    </div>
 </body>
 </html>
