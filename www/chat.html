@@ -3048,19 +3048,49 @@ function slideBackToMessenger() {
 // ==========================================
 // 超靈敏邊緣滑動：輕滑一點點即瞬間返回
 // ==========================================
+
+// ==========================================
+// 邊緣滑動：顯示返回指示器 (不拖動整個畫面)
+// ==========================================
 let isPageSwiping = false;
 let pageStartX = 0;
 let pageCurrentX = 0;
+let swipeIndicator = null;
+
+// 建立指示器的 DOM 元素
+function createSwipeIndicator() {
+    if (!swipeIndicator) {
+        swipeIndicator = document.createElement('div');
+        swipeIndicator.innerHTML = '<i class="fas fa-chevron-left"></i>';
+        swipeIndicator.style.cssText = `
+            position: fixed;
+            left: -50px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--ly-blue);
+            font-size: 1.2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            z-index: 99999;
+            transition: left 0.1s ease-out, opacity 0.2s;
+            opacity: 0;
+        `;
+        document.body.appendChild(swipeIndicator);
+    }
+}
 
 document.addEventListener('touchstart', (e) => {
-    // 只有從螢幕最左側邊緣 (45px以內) 往右滑，才觸發返回手勢
+    // 只有從螢幕最左側邊緣 (45px以內) 往右滑，才觸發
     if (e.touches[0].clientX < 45) {
         isPageSwiping = true;
         pageStartX = e.touches[0].clientX;
-        
-        // 停止進場動畫，讓畫面準備跟隨手指
-        document.body.style.animation = 'none'; 
-        document.body.style.transition = 'none'; 
+        createSwipeIndicator();
     }
 });
 
@@ -3072,13 +3102,19 @@ document.addEventListener('touchmove', (e) => {
     if (pageCurrentX > 0) {
         e.preventDefault(); // 阻止瀏覽器預設的橡皮筋回彈
         
-        // 【關鍵修改】：只要輕輕滑動超過 50px，不用等放開手指，立刻返回！
-        if (pageCurrentX > 50) {
-            isPageSwiping = false; // 停止偵測，避免重複觸發
-            slideBackToMessenger(); // 呼叫瞬間跳轉
-        } else {
-            // 50px 以內給予微微的跟隨效果，保持原生互動手感
-            document.body.style.transform = `translateX(${pageCurrentX}px)`;
+        // 顯示並移動指示器，但限制最大拉出距離為 15px (停留在螢幕左側)
+        if (swipeIndicator) {
+            swipeIndicator.style.opacity = '1';
+            let indicatorX = Math.min(pageCurrentX - 50, 15); 
+            swipeIndicator.style.left = `${indicatorX}px`;
+        }
+
+        // 如果滑動超過 60px，觸發震動反饋(如果裝置支援)並瞬間返回
+        if (pageCurrentX > 60) {
+            isPageSwiping = false; 
+            if (navigator.vibrate) navigator.vibrate(50); // 輕微震動反饋
+            if (swipeIndicator) swipeIndicator.style.display = 'none'; // 隱藏指示器
+            slideBackToMessenger(); // 呼叫瞬間跳轉函式
         }
     }
 }, { passive: false });
@@ -3087,9 +3123,11 @@ document.addEventListener('touchend', (e) => {
     if (!isPageSwiping) return;
     isPageSwiping = false;
     
-    // 如果手指放開時還沒滑到 50px，就彈回原位取消返回
-    document.body.style.transition = 'transform 0.2s ease-out';
-    document.body.style.transform = 'translateX(0px)';
+    // 如果手指放開時還沒滑到足夠距離，隱藏指示器
+    if (swipeIndicator) {
+        swipeIndicator.style.left = '-50px';
+        swipeIndicator.style.opacity = '0';
+    }
 });
 </script>
 
