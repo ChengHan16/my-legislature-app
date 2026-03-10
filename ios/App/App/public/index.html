@@ -132,6 +132,11 @@
     </style>
 </head>
 <body>
+<div id="loadingOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f0f2f5; z-index: 9999; flex-direction: column; justify-content: center; align-items: center;">
+    <i class="fas fa-spinner fa-spin" style="font-size: 3rem; color: #003153; margin-bottom: 20px;"></i>
+    <span style="color: #003153; font-size: 1.1rem; font-weight: bold; letter-spacing: 1px;">安全連線中，準備進入系統...</span>
+</div>
+    
 
 <div class="login-wrapper">
     <div class="brand-logo"><i class="fas fa-landmark"></i> 立法院</div>
@@ -190,6 +195,10 @@
         isNavigating = true;
         msgEl.innerText = "登入成功！正在進入系統...";
         msgEl.style.color = "#003153";
+
+        document.querySelector('.login-wrapper').style.display = 'none';
+        document.getElementById('loadingOverlay').style.display = 'flex';
+        
         setTimeout(() => { 
             // 【關鍵修正】：加上 ./ 讓 iOS 確實知道檔案在同一個資料夾
             window.location.replace("./Messenger.html"); 
