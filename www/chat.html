@@ -234,29 +234,42 @@
         .attach-btn:hover { color: var(--ly-blue); }
 
         /* 聊天室內的圖片與影片樣式 */
-        .msg-media { 
-            max-width: 100%; 
-            max-height: 250px;
-            border-radius: 12px; 
-            margin-top: 5px; 
-            display: block;
-            cursor: pointer;
-        }
+        .msg-media {
+    max-width: 100%;
+    max-height: 250px;
+    /* 增加預設最小高度與背景色，產生骨架屏效果 */
+    min-height: 150px;
+    min-width: 150px;
+    background-color: #e9ecef; 
+    border-radius: 12px;
+    object-fit: cover;
+}
 
         /* --- 圖片點擊放大模態框樣式 --- */
-        .image-modal {
-            display: none; 
-            position: fixed; 
-            z-index: 9999; 
-            left: 0; top: 0; 
-            width: 100vw; height: 100dvh; 
-            background-color: rgba(0, 0, 0, 0.85); 
-            backdrop-filter: blur(5px);
-            -webkit-backdrop-filter: blur(5px);
-            justify-content: center; 
-            align-items: center;
-            flex-direction: column;
-        }
+        /* 找到這一段並修改 z-index */
+.image-modal {
+    display: none; 
+    position: fixed; 
+    z-index: 100000; /* 【關鍵修改】：確保比 doc-modal (9999) 還高 */
+    left: 0; top: 0; 
+    width: 100vw; height: 100dvh; 
+    background-color: rgba(0, 0, 0, 0.85); 
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    justify-content: center; 
+    align-items: center;
+    flex-direction: column;
+}
+
+.image-modal-close {
+    position: absolute; 
+    top: 20px; right: 30px; 
+    color: #f1f1f1; 
+    font-size: 40px; 
+    font-weight: bold; 
+    cursor: pointer;
+    z-index: 100001; /* 【關鍵修改】：比遮罩更高 */
+}
 
         .image-modal-content {
             max-width: 95%; 
@@ -264,16 +277,6 @@
             object-fit: contain;
             border-radius: 8px;
             animation: zoomIn 0.3s ease-out;
-        }
-
-        .image-modal-close {
-            position: absolute; 
-            top: 20px; right: 30px; 
-            color: #f1f1f1; 
-            font-size: 40px; 
-            font-weight: bold; 
-            cursor: pointer;
-            z-index: 10000;
         }
 
         @keyframes zoomIn {
@@ -1074,6 +1077,11 @@ body {
 </div>
 
 <div class="messages" id="messageList"></div>
+
+<div id="historyLoader" style="display: none; text-align: center; padding: 15px 0; color: var(--ly-blue);">
+        <i class="fas fa-spinner fa-spin"></i> 載入歷史訊息中...
+    </div>
+    
 <button class="scroll-bottom-btn" id="scrollBottomBtn" onclick="scrollToBottom(true)">
     <i class="fas fa-arrow-down"></i> 最新訊息
 </button>
@@ -1234,6 +1242,17 @@ body {
     const urlParams = new URLSearchParams(window.location.search);
     const chatId = urlParams.get('id');
 
+    // ==========================================
+    // 分頁載入 (Infinite Scroll) 全域變數
+    // ==========================================
+    const MESSAGES_PER_PAGE = 20; // 每次載入幾則訊息
+    let oldestMessageDoc = null;  // 記錄目前最舊的訊息文件，用來往下抓
+    let isFetchingHistory = false;// 避免重複觸發載入
+    let hasMoreMessages = true;   // 標記是否還有更舊的歷史訊息
+    let isFirstLoad = true;       // 判斷是否為第一次進來 (要不要滾到底)
+    let messagesArray = [];       // 用陣列存放所有已載入的訊息 (越舊的在越前面)
+    let unsubscribeMessages = null; // 用來取消監聽最新訊息的變數
+
     let messagesSnapshot = null;
     let opponentInChat = false; 
     let opponentReadTime = new Date(0);
@@ -1382,24 +1401,60 @@ if (document.hasFocus()) {
 
 
     // --- 監聽訊息內容 (修正後的版本) ---
-    chatRef.collection("messages").orderBy("timestamp", "asc").onSnapshot(snapshot => {
-        messagesSnapshot = snapshot;
+    // ==========================================
+    // 全新：初始化聊天室訊息引擎 (只抓最新幾筆)
+    // ==========================================
+    async function initChatMessages(user) {
+    if (unsubscribeMessages) unsubscribeMessages();
+
+    const messagesRef = chatRef.collection("messages");
+    const list = document.getElementById('messageList');
+
+    // 1. 初次載入最新 20 筆
+    const firstQuery = await messagesRef.orderBy("timestamp", "desc").limit(MESSAGES_PER_PAGE).get();
+
+    if (!firstQuery.empty) {
+        oldestMessageDoc = firstQuery.docs[firstQuery.docs.length - 1];
+        const docs = firstQuery.docs.reverse(); // 轉回正序
         
-        // [核心邏輯]：如果新訊息進來時我正在對話中，立刻更新我的讀取時間
-        // 使用 user.uid 確保變數穩定，並檢查 document.hasFocus()
-        if (user && document.hasFocus()) {
-            chatRef.update({
-                [`lastReadAt.${user.uid}`]: firebase.firestore.FieldValue.serverTimestamp()
-            }).catch(err => console.error("自動更新已讀失敗:", err));
-        }
-        
-        // 渲染 UI
-        if (user) {
-            renderChatUI(user.uid);
-        }
-    }, error => {
-        console.error("監聽訊息失敗:", error);
-    });
+        // 初次渲染：依序加入節點
+        docs.forEach(doc => renderSingleMessage(doc, user.uid, false));
+        if (isFirstLoad) { scrollToBottom(); isFirstLoad = false; }
+    } else {
+        hasMoreMessages = false;
+    }
+
+    // 2. 建立即時監聽器 (只監聽未來的變化)
+    const now = new Date();
+    unsubscribeMessages = messagesRef
+        .where("timestamp", ">=", now)
+        .orderBy("timestamp", "asc")
+        .onSnapshot(snapshot => {
+            snapshot.docChanges().forEach(change => {
+                if (change.type === "added") {
+                    // 【關鍵】：只把新節點塞進去，完全不重繪舊畫面！
+                    renderSingleMessage(change.doc, user.uid, false);
+                    
+                    if (document.hasFocus()) {
+                        chatRef.update({ [`lastReadAt.${user.uid}`]: firebase.firestore.FieldValue.serverTimestamp() });
+                    }
+                    scrollToBottom();
+                }
+                if (change.type === "removed") {
+                    // 【關鍵】：有人收回訊息時，直接移除該 DOM 節點，不重繪！
+                    const targetWrapper = document.getElementById('wrapper-' + change.doc.id);
+                    if (targetWrapper) targetWrapper.remove();
+                    renderedMsgIds.delete(change.doc.id);
+                }
+            });
+            
+            // 獨立更新已讀狀態 (不影響 DOM 結構)
+            updateReadStatusUI();
+        });
+}
+
+    // 在 auth.onAuthStateChanged 裡面，當確保 isGroup 判斷完畢後，呼叫它：
+    initChatMessages(user);
 
     });
     
@@ -1502,159 +1557,125 @@ function updateReadStatusUI() {
     }
 }
 
-function renderChatUI(currentUid) {
-    if (!messagesSnapshot) return;
-    const list = document.getElementById('messageList');
-    list.innerHTML = "";
-    let lastTime = null;
-    const docs = messagesSnapshot.docs;
+    // 新增全域變數：用來記錄目前畫面上最頂部與最底部的時間，用於判斷是否插入時間分隔線
+    let topMostTime = null;
+    let bottomMostTime = null;
+    const renderedMsgIds = new Set(); // 記錄已經渲染過的訊息 ID，防重複
 
-    // --- 關鍵步驟：先找出對方讀過的「最後一則」屬於使用者的訊息索引 ---
-    
-
-    docs.forEach((msgDoc, i) => {
+    function renderSingleMessage(msgDoc, currentUid, prepend = false) {
         const msg = msgDoc.data();
-        const msgId = msgDoc.id; // 取得這則訊息的唯一 ID
-        const isMine = msg.senderId === currentUid;
+        const msgId = msgDoc.id;
         const msgTime = msg.timestamp ? msg.timestamp.toDate() : new Date();
-
-        // 智慧時間戳 (超過30分鐘才顯示)
-        if (!lastTime || (msgTime - lastTime > 30 * 60 * 1000)) {
-            const timeDiv = document.createElement('div');
-            timeDiv.className = 'time-divider';
-            timeDiv.innerText = formatChatDate(msg.timestamp);
-            list.appendChild(timeDiv);
-        }
-        lastTime = msgTime;
-
-        const nextMsg = docs[i + 1] ? docs[i + 1].data() : null;
-        const isLastInSequence = !nextMsg || nextMsg.senderId !== msg.senderId;
-
-        const wrapper = document.createElement('div');
-        wrapper.className = `msg-wrapper ${isMine ? 'mine' : 'theirs'} ${isLastInSequence ? 'last-in-group' : ''}`;
-
-        // 建立氣泡行
-        let html = `<div class="msg-row ${isMine ? 'mine' : 'theirs'}">`;
         
-        // 如果是對方，顯示頭像
-        // 如果是對方，顯示頭像
+        // 防重複渲染
+        if (renderedMsgIds.has(msgId)) return;
+        renderedMsgIds.add(msgId);
+
+        const isMine = msg.senderId === currentUid;
+        const list = document.getElementById('messageList');
+        
+        // 1. 處理時間分隔線
+        let timeDividerHtml = '';
+        if (prepend) {
+            if (!topMostTime || (topMostTime - msgTime > 30 * 60 * 1000)) {
+                timeDividerHtml = `<div class="time-divider" id="time-${msgId}">${formatChatDate(msg.timestamp)}</div>`;
+                topMostTime = msgTime;
+            }
+        } else {
+            if (!bottomMostTime || (msgTime - bottomMostTime > 30 * 60 * 1000)) {
+                timeDividerHtml = `<div class="time-divider" id="time-${msgId}">${formatChatDate(msg.timestamp)}</div>`;
+            }
+            bottomMostTime = msgTime; // 更新底部時間
+        }
+
+        // 2. 組裝 HTML (沿用你原本精緻的判斷邏輯)
+        let safeText = msg.text ? escapeHtml(msg.text) : '[圖片/影片]';
+        let isEventCard = false;
+        let contentHtml = "";
+        let isMediaOnly = false;
+
+        // ... (這裡保留你原本解析 JSON、活動卡片、圖片影片、文字高亮的邏輯) ...
+        if (msg.text) {
+            try {
+                const parsed = JSON.parse(msg.text);
+                if (parsed.type === 'event_share') {
+                    isEventCard = true;
+                    safeText = `分享了活動：${parsed.title}`;
+                    contentHtml += `
+                        <div onclick="openDocPreview('${parsed.eventId}')" class="msg-event-card">
+                            <div class="msg-event-header"><i class="fas fa-bullhorn"></i> 活動分享</div>
+                            <div class="msg-event-title">${parsed.title}</div>
+                            <div class="msg-event-time"><i class="far fa-clock"></i> ${parsed.timeStr}</div>
+                        </div>`;
+                } else { safeText = msg.text.replace(/"/g, '&quot;').replace(/'/g, "\\'"); }
+            } catch (e) { safeText = msg.text.replace(/"/g, '&quot;').replace(/'/g, "\\'"); }
+        }
+
+        if (msg.replyToId) {
+            contentHtml += `<div class="reply-snippet" onclick="scrollToOriginalMsg('${msg.replyToId}')">
+                                <i class="fas fa-reply"></i> ${msg.replyToText}
+                            </div>`;
+        }
+
+        if (msg.fileUrl) {
+            if (msg.fileType === 'video') {
+                contentHtml += `<video src="${msg.fileUrl}" controls class="msg-media" onloadeddata="scrollToBottom()"></video>`;
+            } else {
+                contentHtml += `<img src="${msg.fileUrl}" class="msg-media" onclick="if(!skipNextClick) openModal(this.src)" onload="scrollToBottom()">`;
+            }
+        } 
+
+        if (msg.text && !isEventCard) {
+            const finalMsgText = highlightMentions(linkify(escapeHtml(msg.text)));
+            contentHtml += (msg.fileUrl ? '<br>' : '') + finalMsgText;
+        } else if (msg.fileUrl && !msg.replyToId && !isEventCard) { 
+            isMediaOnly = true;
+        }
+
+        // 處理頭像與互動事件
+        const mediaClass = isMediaOnly ? 'media-only' : '';
+        let interactEvents = isMine ? 
+            `ontouchstart="handleSwipeStart(event, '${msgId}', '${safeText}', 'true'); handlePressStart(event, '${msgId}', 'true', '${safeText}')" ... (略)` : 
+            `ontouchstart="handleSwipeStart(event, '${msgId}', '${safeText}', 'false'); handlePressStart(event, '${msgId}', 'false', '${safeText}')" ... (略)`;
+
+        // 取得對方頭像 (群組或單人)
+        let avatarHtml = '';
         if (!isMine) {
-            const avatarVisibility = isLastInSequence ? 'visible' : 'hidden';
-            
-            // 【新增】：從快取中取得該發送者的個人資料
             const senderCache = (window.chatMembersCache && window.chatMembersCache[msg.senderId]) || {};
             const senderAvatar = senderCache.photoURL || "https://via.placeholder.com/35";
             const senderName = senderCache.displayName || "成員";
-
             if (window.isCurrentChatGroup) {
-                // 【群組模式】：顯示個人專屬頭像，並在下方置中顯示名稱
-                html += `<div class="msg-avatar-container" style="visibility: ${avatarVisibility}">
-                            <img src="${senderAvatar}" class="msg-avatar">
-                            <span class="msg-avatar-name">${senderName}</span>
-                        </div>`;
+                avatarHtml = `<div class="msg-avatar-container"><img src="${senderAvatar}" class="msg-avatar"><span class="msg-avatar-name">${senderName}</span></div>`;
             } else {
-                // 【一對一私訊】：維持只顯示對方的頭像
-                html += `<img src="${senderAvatar}" class="msg-avatar" style="visibility: ${avatarVisibility}">`;
+                avatarHtml = `<img src="${senderAvatar}" class="msg-avatar">`;
             }
         }
 
-    let contentHtml = "";
-    let isMediaOnly = false;
-    let safeText = '[圖片/影片]';
-    let isEventCard = false;
+        // 3. 建立 DOM 元素
+        const wrapper = document.createElement('div');
+        wrapper.className = `msg-wrapper ${isMine ? 'mine' : 'theirs'} last-in-group`; // 預設新訊息都是該群組最後一則
+        wrapper.id = `wrapper-${msgId}`;
+        wrapper.innerHTML = `
+            ${prepend ? timeDividerHtml : ''}
+            <div class="msg-row ${isMine ? 'mine' : 'theirs'}">
+                ${avatarHtml}
+                <div id="msg-${msgId}" class="msg ${isMine ? 'mine' : 'theirs'} ${mediaClass}" ${interactEvents}>
+                    ${contentHtml}
+                </div>
+            </div>
+            ${!prepend ? timeDividerHtml : ''}
+        `;
 
-    // 【核心邏輯】：嘗試解析 msg.text 是否為我們設計的「活動卡片 JSON」
-    if (msg.text) {
-        try {
-            const parsed = JSON.parse(msg.text);
-                if (parsed.type === 'event_share') {
-                isEventCard = true;
-                safeText = `分享了活動：${parsed.title}`;
-                contentHtml += `
-                    <div onclick="openDocPreview('${parsed.eventId}')" class="msg-event-card">
-                        <div class="msg-event-header"><i class="fas fa-bullhorn"></i> 活動分享</div>
-                        <div class="msg-event-title">${parsed.title}</div>
-                        <div class="msg-event-time"><i class="far fa-clock"></i> ${parsed.timeStr}</div>
-                    </div>
-                `;
-            } else {
-                // 如果是普通 JSON 但不是活動 (雖然機率很低)，就當成純文字印出
-                safeText = msg.text.replace(/"/g, '&quot;').replace(/'/g, "\\'");
-            }
-        } catch (e) {
-            // 解析失敗，代表它是一般的純文字訊息
-            safeText = msg.text.replace(/"/g, '&quot;').replace(/'/g, "\\'");
-        }
-    }
-
-    // 如果這則訊息有回覆某人，在內容最前方加上回覆片段
-    if (msg.replyToId) {
-        contentHtml += `<div class="reply-snippet" onclick="scrollToOriginalMsg('${msg.replyToId}')">
-                            <i class="fas fa-reply"></i> ${msg.replyToText}
-                        </div>`;
-    }
-
-    if (msg.fileUrl) {
-        if (msg.fileType === 'video') {
-            contentHtml += `<video src="${msg.fileUrl}" controls class="msg-media" onloadeddata="scrollToBottom()"></video>`;
+        // 4. 插入 DOM 樹
+        if (prepend) {
+            // 如果是載入歷史訊息，塞在最上面 (loader 下方)
+            const loader = document.getElementById('historyLoader');
+            list.insertBefore(wrapper, loader.nextSibling);
         } else {
-            // 【修改】：加入 if(!skipNextClick) 防呆判斷
-            contentHtml += `<img src="${msg.fileUrl}" class="msg-media" onclick="if(!skipNextClick) openModal(this.src)" onload="scrollToBottom()">`;        }
-    } 
-    
-    // 如果不是活動卡片，且有文字，才把普通文字印出來
-    // 如果不是活動卡片，且有文字，才把普通文字印出來
-    if (msg.text && !isEventCard) {
-        const safeMsgText = escapeHtml(msg.text);
-        const linkedMsgText = linkify(safeMsgText);
-        const finalMsgText = highlightMentions(linkedMsgText); // 執行 @ 標記醒目處理
-        contentHtml += (msg.fileUrl ? '<br>' : '') + finalMsgText;
-    } else if (msg.fileUrl && !msg.replyToId && !isEventCard) { 
-        isMediaOnly = true;
+            // 如果是新訊息，塞在最下面
+            list.appendChild(wrapper);
+        }
     }
-
-    const mediaClass = isMediaOnly ? 'media-only' : '';
-    
-    let interactEvents = '';
-    if (isMine) {
-        // 自己的訊息：左滑回覆 + 0.3秒長按 (收回 + 回覆)
-        interactEvents = `
-            ontouchstart="handleSwipeStart(event, '${msgId}', '${safeText}', 'true'); handlePressStart(event, '${msgId}', 'true', '${safeText}')"
-            ontouchmove="handleSwipeMove(event, this); handlePressEnd(event)"
-            ontouchend="handleSwipeEnd(event, this); handlePressEnd(event)"
-            onmousedown="handlePressStart(event, '${msgId}', 'true', '${safeText}')" 
-            onmouseup="handlePressEnd(event)" 
-            onmouseleave="handlePressEnd(event)"
-            oncontextmenu="event.preventDefault(); activeMsgId='${msgId}'; activeMsgTextForMenu='${safeText}'; showContextMenu(event, true);"
-        `;
-    } else {
-        // 對方的訊息：右滑回覆 + 0.3秒長按 (僅回覆)
-        interactEvents = `
-            ontouchstart="handleSwipeStart(event, '${msgId}', '${safeText}', 'false'); handlePressStart(event, '${msgId}', 'false', '${safeText}')"
-            ontouchmove="handleSwipeMove(event, this); handlePressEnd(event)"
-            ontouchend="handleSwipeEnd(event, this); handlePressEnd(event)"
-            onmousedown="handlePressStart(event, '${msgId}', 'false', '${safeText}')" 
-            onmouseup="handlePressEnd(event)" 
-            onmouseleave="handlePressEnd(event)"
-            oncontextmenu="event.preventDefault(); activeMsgId='${msgId}'; activeMsgTextForMenu='${safeText}'; showContextMenu(event, false);"
-        `;
-    }
-
-    // 【修改】：加入 id="msg-${msgId}" 以便跳轉時定位
-    html += `<div id="msg-${msgId}" class="msg ${isMine ? 'mine' : 'theirs'} ${mediaClass}" ${interactEvents}>${contentHtml}</div></div>`;
-
-
-
-    wrapper.innerHTML = html;
-    list.appendChild(wrapper);
-}); // end of forEach
-
-// 執行一次全域已讀狀態更新
-    updateReadStatusUI();
-
-// 執行第一次置底 (針對純文字)
-scrollToBottom();
-}
 
     document.getElementById('fileInput').addEventListener('change', async (e) => {
         let file = e.target.files[0]; // 改用 let，因為圖片可能會被替換成壓縮後的版本
@@ -2955,13 +2976,36 @@ document.addEventListener('click', (e) => {
 // ==========================================
 // 完美原生感：邊緣滑動返回上一頁
 // ==========================================
-function slideBackToMessenger() {
-    // 按下返回鍵時的向右滑出動畫
+async function slideBackToMessenger() {
+    // 1. 執行退場動畫
     document.body.style.transition = 'transform 0.25s cubic-bezier(0.25, 0.8, 0.25, 1)';
     document.body.style.transform = 'translateX(100vw)';
-    setTimeout(() => {
-        window.location.href = 'Messenger.html';
-    }, 250);
+    
+    try {
+        // 2. 背景默默抓取 Messenger.html 的內容 (不會閃爍)
+        const response = await fetch('Messenger.html');
+        const htmlText = await response.text();
+        
+        // 3. 擷取 body 內的內容
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(htmlText, 'text/html');
+        const newBodyContent = doc.body.innerHTML;
+        
+        setTimeout(() => {
+            // 4. 直接替換 DOM 內容，而不是重載網頁
+            document.body.innerHTML = newBodyContent;
+            
+            // 5. 瞬間把畫面位置歸零，並解除 transform
+            document.body.style.transition = 'none';
+            document.body.style.transform = 'translateX(0)';
+            
+            // 重新綁定 Messenger.html 需要的腳本 (視情況需要手動觸發初始化函數)
+            // initMessenger(); 
+        }, 250); // 等待動畫播完
+    } catch (e) {
+        // 如果 fetch 失敗，再退回傳統跳轉
+        setTimeout(() => { window.location.href = 'Messenger.html'; }, 250);
+    }
 }
 
 let isPageSwiping = false;
@@ -3283,6 +3327,21 @@ async function loadVotes(eventId) {
     const list = document.getElementById('voter-list');
     const user = auth.currentUser;
     
+    // 定義成員順序與對照表
+    const memberOrder = [
+        { id: "001", name: "もも" }, { id: "002", name: "班長" }, { id: "003", name: "俊齊" },
+        { id: "004", name: "博峻" }, { id: "005", name: "佳偉" }, { id: "006", name: "書銘" },
+        { id: "007", name: "江旭" }, { id: "008", name: "尊玄" }, { id: "009", name: "俊諺" },
+        { id: "010", name: "成一" }, { id: "011", name: "宗航" }, { id: "012", name: "崇憲" },
+        { id: "013", name: "光庭" }, { id: "014", name: "威丞" }, { id: "015", name: "韋仁" },
+        { id: "016", name: "祐瑜" }, { id: "017", name: "至軒" }, { id: "018", name: "奕賢" },
+        { id: "019", name: "正德" }, { id: "020", name: "鈞儒" }, { id: "021", name: "凱瑞" },
+        { id: "022", name: "承遠" }, { id: "023", name: "皓鈞" }, { id: "024", name: "鎮遠" },
+        { id: "025", name: "智皓" }, { id: "026", name: "哲遠" }, { id: "027", name: "隆勳" },
+        { id: "028", name: "柏鑫" }, { id: "029", name: "承佑" }, { id: "030", name: "凱駿" },
+        { id: "031", name: "冠叡" }, { id: "032", name: "祐祥" }, { id: "033", name: "可愛柴" }
+    ];
+
     db.collection("events").doc(eventId).onSnapshot(async (doc) => {
         if (!doc.exists) return;
         const data = doc.data();
@@ -3291,10 +3350,12 @@ async function loadVotes(eventId) {
         
         document.getElementById('participant-count-tag').innerText = `(${participants.length}人)`;
         
-        // 更新按鈕狀態
+        // --- 1. 更新按鈕狀態 ---
         if (user) {
             const joinBtn = document.querySelector('.btn-join');
-            const isJoined = participants.includes(user.uid);
+            // 只要 UID 或 名字 其中一個有在名單裡就算參與
+            const isJoined = participants.includes(user.uid) || (user.displayName && participantNames.includes(user.displayName));
+            
             if (joinBtn) {
                 if (isJoined) {
                     joinBtn.className = 'btn-vote btn-join btn-joined-locked';
@@ -3308,26 +3369,102 @@ async function loadVotes(eventId) {
             }
         }
 
+        // --- 2. 渲染成員大頭貼 ---
         if (participants.length === 0) {
             list.innerHTML = "<p style='color:#ccc; font-size:0.8rem;'>尚無成員參與...</p>";
             return;
         }
 
         let htmlContent = "";
-        for (const uid of participants) {
-            const actSnap = await db.collection("act").doc(uid).get();
-            if (actSnap.exists) {
-                const m = actSnap.data();
+        
+        // 抓取所有參與者的詳細資料 (使用 Promise.all 加速)
+        const memberPromises = participants.map(uid => 
+            db.collection("act").doc(uid).get().then(snap => snap.exists ? snap.data() : null)
+        );
+        const memberDataArray = await Promise.all(memberPromises);
+        
+        // 建立一個名字對應資料的 Map，方便快速尋找
+        const memberMap = {};
+        memberDataArray.forEach(m => {
+            if (m && m.displayName) {
+                memberMap[m.displayName] = m;
+            }
+        });
+
+        // 依照 memberOrder 的順序印出頭像
+        memberOrder.forEach(orderItem => {
+            // 如果這個人有在參與名單中 (用名稱或 UID 判斷)
+            if (participantNames.includes(orderItem.name)) {
+                // 如果在資料庫有找到他的大頭貼就用，沒有就給預設圖
+                const mData = memberMap[orderItem.name];
+                const photoUrl = mData && mData.photoURL ? mData.photoURL : `https://ui-avatars.com/api/?name=${encodeURIComponent(orderItem.name)}&background=ddd&color=fff`;
+                
                 htmlContent += `
                     <div class="voter-box">
-                        <img src="${m.photoURL || 'https://via.placeholder.com/50'}">
-                        <span>${m.displayName}</span>
+                        <img src="${photoUrl}">
+                        <span>${orderItem.name}</span>
                     </div>`;
             }
-        }
+        });
+
+        // 把組合好的 HTML 塞進畫面
         list.innerHTML = htmlContent;
     });
 }
+
+// ==========================================
+    // 監聽滾動：往上滑到頂部時載入舊對話
+    // ==========================================
+    const messageListEl = document.getElementById('messageList');
+    
+    messageListEl.addEventListener('scroll', async () => {
+        // 如果已經沒資料了，或是正在抓取中，就不要執行
+        if (!hasMoreMessages || isFetchingHistory || !oldestMessageDoc) return;
+
+        // 當捲動到距離頂部小於 50px 時觸發
+        if (messageListEl.scrollTop < 50) {
+            isFetchingHistory = true;
+            document.getElementById('historyLoader').style.display = 'block';
+
+            // 記下現在的捲動高度與內容總高度，等一下載入完才不會畫面亂跳
+            const previousScrollHeight = messageListEl.scrollHeight;
+
+            try {
+                const historyQuery = await db.collection("chats").doc(chatId)
+                    .collection("messages")
+                    .orderBy("timestamp", "desc")
+                    .startAfter(oldestMessageDoc)
+                    .limit(MESSAGES_PER_PAGE)
+                    .get();
+
+                if (historyQuery.empty) {
+                    hasMoreMessages = false;
+                    document.getElementById('historyLoader').innerHTML = '<span style="color:#aaa; font-size:12px;">已經沒有更早的訊息了</span>';
+                } else {
+                    oldestMessageDoc = historyQuery.docs[historyQuery.docs.length - 1];
+                    
+                    // 【關鍵】：不用 reverse()，直接從最新往最舊開始 insertBefore，
+                    // 這樣它們就會按照正確的順序被推到畫面上方
+                    historyQuery.docs.forEach(doc => {
+                        renderSingleMessage(doc, auth.currentUser.uid, true);
+                    });
+                    
+                    // 保持畫面停留在原本觀看的位置
+                    requestAnimationFrame(() => {
+                        const newScrollHeight = messageListEl.scrollHeight;
+                        messageListEl.scrollTop = newScrollHeight - previousScrollHeight;
+                    });
+                }
+            } catch (error) {
+                console.error("載入歷史訊息失敗:", error);
+            } finally {
+                isFetchingHistory = false;
+                if (hasMoreMessages) {
+                    document.getElementById('historyLoader').style.display = 'none';
+                }
+            }
+        }
+    });
 </script>
 
 </body>
