@@ -2,1181 +2,363 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">    <title>法院通訊 - 訊息中心</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">    
+    <title>法院通訊 - 訊息中心</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     
     <style>
-        /* --- 阻擋 iOS 原生長按與選取行為 --- */
-        * {
-            /* 阻擋長按圖片時跳出「儲存/拷貝」的系統選單 */
-            -webkit-touch-callout: none !important;
-            
-            /* 阻擋全域文字選取 */
-            -webkit-user-select: none !important;
-            user-select: none !important;
-        }
-
-        /* 確保輸入框依然可以正常打字與選取文字 */
-        input, textarea {
-            -webkit-user-select: auto !important;
-            user-select: auto !important;
-        }
+        /* --- 全域基礎與阻擋選取 --- */
+        * { -webkit-touch-callout: none !important; -webkit-user-select: none !important; user-select: none !important; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        input, textarea { -webkit-user-select: auto !important; user-select: auto !important; }
 
         :root { 
-            --ly-blue: #003153; 
-            --ly-blue-trans: rgba(0, 49, 83, 0.85); 
-            --ly-gold: #cfa900; 
-            --bg-gray: #f2f4f7; 
-            --border-color: #dee2e6; 
-            --container-width: 750px; /* 縮小網頁版框度至 750px */
+            --ly-blue: #003153; --ly-blue-trans: rgba(0, 49, 83, 0.85); 
+            --ly-gold: #cfa900; --bg-gray: #f2f4f7; --white: #ffffff; 
+            --border-color: #dee2e6; --container-width: 790px; 
         }
 
-        /* --- 修正外層容器，確保絕對不產生外側捲軸 --- */
         html, body {
-            height: 100dvh !important;
-            width: 100vw !important;
-            overflow: hidden;
-            margin: 0;
-            padding: 0;
+            height: 100dvh !important; width: 100vw !important; overflow: hidden;
+            margin: 0; padding: 0; font-family: "Noto Sans TC", sans-serif;
+            background: var(--bg-gray); color: #333;
         }
 
-        body { 
-            font-family: "Noto Sans TC", sans-serif; 
-            background: var(--bg-gray); 
-            color: #333;
-            /* 讓整個網頁變成垂直的彈性盒子 */
-            display: flex;
-            flex-direction: column;
+        /* --- 雙視圖切換架構 (SPA 核心) --- */
+        .app-view {
+            position: fixed; top: 0; left: 0;
+            width: 100vw; height: 100dvh;
+            display: flex; flex-direction: column;
+            background: var(--bg-gray);
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            will-change: transform;
         }
 
-        /* --- 修復對話清單的手機滑動問題 --- */
-        .chat-list { 
-            flex: 1;
-            min-height: 0; /* 【關鍵修復】：告訴瀏覽器它可以比內容小，強迫內部產生捲軸！ */
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch; /* 讓 iOS 手機滑動有慣性且順暢 */
-            
-            width: 100%;
-            max-width: var(--container-width); 
-            margin: 0 auto; /* 【關鍵修復】：移除原本的 margin-top，避免撐破 100dvh 的高度計算 */
-            padding: 15px 15px 100px 15px; /* 把間距改用 padding 留出來 */
-            box-sizing: border-box;
+        #messengerView { z-index: 10; transform: translateX(0%); }
+        #chatView { 
+            z-index: 20; 
+            transform: translateX(100%); 
+            box-shadow: -5px 0 25px rgba(0,0,0,0.15);
         }
 
+        /* --- 頂部導覽列 --- */
         .messenger-header {
-            background: var(--ly-blue-trans); 
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            position: sticky; 
-            top: 0; 
-            z-index: 100;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            
-            /* 【關鍵新增】：自動閃避 iPhone 動態島與瀏海 */
-            padding-top: env(safe-area-inset-top);
+            background: var(--ly-blue-trans); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            border-bottom: 1px solid rgba(255,255,255,0.1); padding-top: env(safe-area-inset-top);
         }
-
         .header-content {
-            max-width: var(--container-width);
-            margin: 0 auto;
-            padding: 15px 35px; /* 這裡原本是 15px 20px，請改為 35px */
-            display: flex; 
-            align-items: center;
-            justify-content: space-between;
+            max-width: var(--container-width); margin: 0 auto; padding: 15px 20px; height: 89px;
+            display: flex; align-items: center; justify-content: space-between; box-sizing: border-box;
         }
+        @media (max-width: 750px) { .header-content { padding: 15px 25px; } }
+        /* 確保左側個人資料區塊具有彈性，不會硬擠右邊的按鈕 */
+        .user-profile { display: flex; align-items: center; flex: 1; min-width: 0; }
+        .user-avatar { width: 55px; height: 55px; border-radius: 50%; object-fit: cover; margin-right: 15px; flex-shrink: 0; }
 
-        /* 針對設定頁面的全螢幕容器 */
-#settingsModal .modal-card {
-    max-width: 100% !important;
-    width: 100% !important;
-    height: 100% !important;
-    margin: 0 !important;
-    border-radius: 0 !important;
-    display: flex;
-    flex-direction: column;
-}
+        /* 加入防長檔名換行設計，太長會自動變 ... */
+        .user-name { font-weight: 800; font-size: 1.35rem; color: white; letter-spacing: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* 關鍵修正：讓設定頁面的 Header 避開動態島 */
-#settingsModal .modal-header {
-    /* 增加上方內距，自動偵測動態島高度 */
-    padding-top: env(safe-area-inset-top, 20px); 
-    
-    /* 讓內容向下對齊或置中，確保標題字不被遮住 */
-    height: calc(60px + env(safe-area-inset-top, 20px));
-    display: flex;
-    align-items: center; 
-    justify-content: space-between;
-    
-    background: var(--ly-blue); /* 保持主色調 */
-    color: white;
-}
-#settingsModal .modal-header h3 {
-    margin: 0;
-    line-height: 1;
-}
+        /* 【關鍵修復】：強制右側容器水平並排，且絕對不壓縮變形 */
+        .header-actions { display: flex; flex-direction: row; align-items: center; gap: 12px; flex-shrink: 0; }
 
-#settingsModal .modal-header span {
-    /* 關閉按鈕 (&times;) 的位置調整 */
-    padding: 10px;
-    margin-right: -10px;
-}
-        .user-profile { display: flex; align-items: center; }
-
-        .back-btn {
-            background: none; border: none; margin-right: 15px; 
-            cursor: pointer; color: var(--ly-gold); font-size: 1.4rem; /* 加大返回圖示 */
-            transition: 0.3s;
-        }
-
-        /* 加大後的頭像 */
-        .user-avatar { 
-            width: 55px; height: 55px; 
-            border-radius: 50%; 
-            object-fit: cover; 
-            margin-right: 15px; 
-            background: transparent;
-            border: none; /* 移除金色外框 */
-            flex-shrink: 0; /* 【關鍵】：確保圖片絕對不會被文字擠壓縮小 */
-        }
-
-        /* 加大後的姓名 */
-        .user-name { 
-            font-weight: 800; 
-            font-size: 1.35rem; /* 從 1.1rem 放大 */
-            color: white; 
-            letter-spacing: 1px;
-        }
-
+        /* 移除原有的 margin-left 改用 flex gap，並加上 flex-shrink: 0 防止按鈕變形 */
         .header-actions button {
-            background: rgba(255, 255, 255, 0.15); 
-            border: 1px solid rgba(255, 255, 255, 0.2); 
-            color: white;
-            width: 42px; height: 42px; /* 按鈕同步放大 */
-            border-radius: 50%; cursor: pointer; margin-left: 12px;
-            font-size: 1.1rem;
-            transition: 0.3s;
+            background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.2); 
+            color: white; width: 42px; height: 42px; border-radius: 50%; cursor: pointer; margin-left: 0;
+            font-size: 1.1rem; transition: 0.3s; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
         }
-
-        /* 對話清單：限制寬度並置中 */
-        /* 對話清單：限制寬度並置中，加入獨立滾動 */
+        
+        /* --- Messenger 列表樣式 --- */
         .chat-list { 
-            /* 【新增】：讓清單自動填滿剩餘高度，並開啟獨立垂直滾動 */
-            flex: 1;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch; /* 讓手機滑動更順暢 */
-            
-            width: 100%;
-            max-width: var(--container-width); 
-            margin: 15px auto 0 auto; 
-            /* 底部多加一點 padding，避免最後一個對話被新增對話按鈕(fab)擋住 */
-            padding: 10px 15px 100px 15px; 
-            box-sizing: border-box;
+            flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; width: 100%;
+            max-width: var(--container-width); margin: 0 auto; padding: 15px 15px 100px 15px; box-sizing: border-box;
         }
-
         .chat-item {
-            background: white; 
-            display: flex; 
-            align-items: center; 
-            padding: 18px 20px; /* 增加內距 */
-            margin-bottom: 0px; 
-            border-radius: 8px; 
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 1px solid var(--border-color);
+            background: white; display: flex; align-items: center; padding: 18px 20px; 
+            margin-bottom: 0px; border-radius: 8px; cursor: pointer; transition: all 0.3s ease;
+            border: 1px solid var(--border-color); border-left: 6px solid transparent;
         }
-        
-        .chat-item:hover { 
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-            /*border-color: var(--ly-gold);*/
-            border-color: #ffffff;
-        }
-
+        .chat-item:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.08); border-color: #ffffff; }
         .chat-info { flex-grow: 1; padding-left: 5px; }
-
-        /* 加大清單中的名稱與訊息文字 */
-        .chat-info h4 { 
-            margin: 0 0 6px 0; 
-            font-size: 1.25rem; /* 從 1.05rem 放大 */
-            color: var(--ly-blue); 
-        }
-        .chat-info p { 
-            margin: 0; 
-            color: #666; 
-            font-size: 1.05rem; /* 從 0.9rem 放大 */
-            display: -webkit-box;
-            line-clamp: 1;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            word-break: break-all;
-        }
-        
-        .chat-time {
-            font-size: 0.85rem;
-            color: #999;
-            font-weight: 500;
-        }
-
-        /* 未讀標記強化 */
-        .chat-item.unread { border-left: 6px solid var(--ly-gold); background: #fdfcf5; }
-        .chat-item.unread h4 { font-weight: 900; }
-        .chat-item.unread p { color: #111 !important; font-weight: 700; }
-
-        /* 未讀/新訊息文字高亮顯示 */
-/* --- 專業版未讀/新訊息樣式 --- */
-
-/* --- 專業版即時更新樣式 --- */
-.chat-item {
-    border-left: 6px solid transparent; /* 預設透明，防止位置跳動 */
-    transition: all 0.3s ease, border-left 0.2s ease;
-}
-
-/* 當有新訊息（未讀）時的樣式 */
-.chat-item.unread {
-    background-color: #fdfcf5; /* 極淡米黃色背景 */
-    border-left: 6px solid var(--ly-gold) !important; /* 亮金標示條 */
-}
-
-/* 未讀訊息文字：深黑粗體 */
-.chat-item.unread h4 { font-weight: 900 !important; color: var(--ly-blue); }
-.chat-item.unread p { 
-    color: #000 !important; 
-    font-weight: 800 !important; 
-    background: transparent !important; /* 移除任何底色 */
-}
-
-/* 已讀訊息：恢復專業灰色 */
-.chat-item p { color: #666; font-weight: 500; }
-
-        /* 浮動按鈕同步亮化 */
+        .chat-info h4 { margin: 0 0 6px 0; font-size: 1.25rem; color: var(--ly-blue); }
+        .chat-info p { margin: 0; color: #666; font-size: 1.05rem; display: -webkit-box; line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; word-break: break-all; }
+        .chat-time { font-size: 0.85rem; color: #999; font-weight: 500; }
+        .chat-item.unread { background-color: #fdfcf5; border-left: 6px solid var(--ly-gold) !important; }
+        .chat-item.unread h4 { font-weight: 900 !important; color: var(--ly-blue); }
+        .chat-item.unread p { color: #000 !important; font-weight: 800 !important; background: transparent !important; }
         .fab {
-            position: fixed; bottom: 40px; right: 40px;
-            background: var(--ly-gold); color: white;
-            width: 65px; height: 65px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 28px; box-shadow: 0 6px 20px rgba(207, 169, 0, 0.4);
-            cursor: pointer; border: none;
+            position: fixed; bottom: 40px; right: 40px; background: var(--ly-gold); color: white;
+            width: 65px; height: 65px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 28px; box-shadow: 0 6px 20px rgba(207, 169, 0, 0.4); cursor: pointer; border: none; z-index: 15;
         }
 
-        @media (max-width: 750px) {
-            /* 加入這行，讓手機版的左右邊距對齊下方卡片 */
-            .header-content { 
-                padding: 15px 30px; 
-            }
-            
-            .user-name { font-size: 1.2rem; }
-            .chat-info h4 { font-size: 1.15rem; }
-            .chat-info p { font-size: 0.95rem; }
-            .chat-item { padding: 15px; }
+        /* --- Chat 內部樣式 --- */
+        .back-btn { background: none; border: none; margin-right: 15px; cursor: pointer; color: var(--ly-gold); font-size: 1.4rem; transition: 0.3s; display: flex; align-items: center; }
+        .messages {
+            flex: 1; overflow-y: auto; padding: 20px 15px; display: flex; flex-direction: column; gap: 4px;
+            background: var(--bg-gray); -webkit-overflow-scrolling: touch; max-width: var(--container-width); margin: 0 auto; width: 100%;
         }
-
-        #myAvatar {
-            width: 60px !important;
-            height: 60px !important;
-        }
-
-        /* --- 彈出表單 (Modal) 基礎樣式 --- */
-.modal-overlay {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px);
-    display: none; /* 預設隱藏 */
-    justify-content: center;
-    align-items: center;
-    z-index: 3000;
-}
-
-.modal-card {
-    background: white;
-    width: 90%;
-    max-width: 450px;
-    border-radius: 15px;
-    overflow: hidden;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-    border: 1px solid var(--border-color);
-    animation: modalFadeIn 0.3s ease-out;
-}
-
-@keyframes modalFadeIn {
-    from { opacity: 0; transform: translateY(-20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.modal-header {
-    background: var(--ly-blue-trans);
-    backdrop-filter: blur(10px);
-    padding: 15px 20px;
-    color: white;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 3px solid var(--ly-gold); /* 亮金強調線 */
-}
-
-.modal-header h3 { margin: 0; font-size: 1.1rem; letter-spacing: 1px; }
-
-.modal-body { padding: 25px 20px; }
-
-.modal-input-group { margin-bottom: 20px; }
-
-.modal-input-group label {
-    display: block;
-    font-size: 13px;
-    color: var(--ly-blue);
-    font-weight: 700;
-    margin-bottom: 8px;
-}
-
-.modal-input-group input {
-    width: 100%;
-    padding: 12px 15px;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    font-size: 1rem;
-    outline: none;
-    transition: border-color 0.3s;
-}
-
-.modal-input-group input:focus {
-    border-color: var(--ly-gold);
-}
-
-.modal-footer {
-    padding: 15px 20px;
-    background: #f8f9fa;
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-}
-
-/* 按鈕樣式 */
-.btn-modal {
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: 0.3s;
-}
-
-.btn-confirm {
-    background: var(--ly-blue);
-    color: white;
-    border: none;
-}
-
-.btn-confirm:hover { background: #004675; }
-
-.btn-cancel {
-    background: white;
-    color: #666;
-    border: 1px solid #ddd;
-}
-
-.btn-cancel:hover { background: #eee; }
-
-/* --- 群組成員選擇列表樣式 --- */
-.user-select-list {
-    max-height: 220px;
-    overflow-y: auto;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 5px;
-    background: #fafafa;
-}
-
-.user-select-item {
-    display: flex;
-    align-items: center;
-    padding: 10px;
-    border-bottom: 1px solid #eee;
-    cursor: pointer;
-    transition: background 0.2s;
-    border-radius: 6px;
-}
-
-.user-select-item:hover {
-    background: #eef2f5;
-}
-
-.user-select-item:last-child {
-    border-bottom: none;
-}
-
-.user-select-item img {
-    width: 35px; height: 35px; 
-    border-radius: 50%; 
-    margin: 0 12px; 
-    object-fit: cover;
-    border: 1px solid #ccc;
-}
-
-.user-select-item input[type="checkbox"] {
-    width: 18px; height: 18px; 
-    cursor: pointer;
-    accent-color: var(--ly-blue);
-}
-
-.user-select-item span {
-    font-weight: 600;
-    color: #444;
-}
-
-
-        /* --- 圖片裁切與編輯樣式 (與 chat.html 相同) --- */
-        .group-avatar-preview { 
-            width: 90px; height: 90px; border-radius: 50%; object-fit: cover; 
-            margin-bottom: 5px; border: 3px solid var(--ly-gold); cursor: pointer;
-        }
-        .avatar-edit-wrapper { position: relative; display: inline-block; cursor: pointer; }
-        .avatar-edit-icon {
-            position: absolute; bottom: 5px; right: 0; background: var(--ly-blue); color: white;
-            border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center;
-            justify-content: center; border: 2px solid white; font-size: 12px;
-        }
-        .cropper-view-box, .cropper-face { border-radius: 50%; }
+        .msg-wrapper { display: flex; flex-direction: column; width: 100%; margin-bottom: 4px; }
+        .msg-wrapper.mine { align-items: flex-end; }
+        .msg-wrapper.theirs { align-items: flex-start; }
+        .msg-row { display: flex; align-items: flex-end; gap: 10px; width: 100%; }
+        .msg-row.mine { justify-content: flex-end; }
+        .msg-row.theirs { justify-content: flex-start; }
+        .msg-avatar { width: 35px; height: 35px; border-radius: 50%; flex-shrink: 0; border: 1px solid #ddd; object-fit: cover; background: #fff; margin:0;}
+        .msg-avatar-container { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; width: 42px; flex-shrink: 0; gap: 4px; }
+        .msg-avatar-name { font-size: 10px; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 45px; text-align: center; line-height: 1; }
+        .msg { max-width: 75%; padding: 12px 16px; font-size: 15px; line-height: 1.5; word-wrap: break-word; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-radius: 18px; -webkit-user-select: auto !important; user-select: auto !important; }
+        .msg.media-only { background: transparent !important; border: none !important; box-shadow: none !important; padding: 0 !important; -webkit-user-select: none !important; user-select: none !important; }
+        .msg.media-only .msg-media { border: 1px solid rgba(0,0,0,0.05); }
+        .msg.mine { background: var(--ly-blue); color: var(--white); border-radius: 18px 18px 4px 18px; border-right: 3px solid var(--ly-gold); }
+        .msg.theirs { background: var(--white); color: #333; border-radius: 18px 18px 18px 4px; border: 1px solid #dee2e6; }
+        .time-divider { align-self: center; font-size: 0.75rem; color: #888; margin: 20px 0 10px 0; background: rgba(0,0,0,0.05); padding: 4px 14px; border-radius: 20px; font-weight: 500; }
+        .read-status { font-size: 0.7rem; color: #999; margin-top: 3px; padding-right: 5px; height: 14px; }
+        .read-status.group-read { cursor: pointer; color: var(--ly-blue); font-weight: 600; transition: opacity 0.2s; display: inline-block; }
+        .read-status.group-read:hover { opacity: 0.7; text-decoration: underline; }
         
-        /* 垂直拉霸樣式 */
+        .input-area { flex-shrink: 0; background: var(--white); padding: 0; display: flex; flex-direction: column; align-items: center; border-top: 1px solid #e9ecef; box-shadow: 0 -2px 10px rgba(0,0,0,0.03); width: 100%; position: relative;}
+        .input-container { max-width: var(--container-width); width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px 15px; padding-bottom: calc(12px + env(safe-area-inset-bottom)); box-sizing: border-box; }
+        #msgInput { flex: 1; height: 44px; padding: 0 18px; border: 1.5px solid #eee; border-radius: 25px; outline: none; font-size: 16px; background: #f8f9fa; transition: border-color 0.3s; }
+        #msgInput:focus { border-color: var(--ly-gold); background: #fff; }
+        .send-btn { background: var(--ly-blue); color: var(--white); border: none; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 10px rgba(0, 49, 83, 0.2); flex-shrink: 0; }
+        .attach-btn, .expand-menu-btn { background: none; border: none; color: #888; font-size: 1.4rem; cursor: pointer; padding: 0 5px; display: flex; align-items: center; justify-content: center; transition: 0.3s;}
+        .attach-btn:hover, .expand-menu-btn:hover { color: var(--ly-blue); }
+        .msg-media { max-width: 100%; max-height: 250px; border-radius: 12px; margin-top: 5px; display: block; cursor: pointer; }
+        
+        .msg.mine .mention-highlight { color: var(--ly-gold); font-weight: 800; background: rgba(255, 255, 255, 0.2); padding: 1px 6px; border-radius: 10px; }
+        .msg.theirs .mention-highlight { color: var(--ly-blue); font-weight: 800; background: rgba(0, 49, 83, 0.1); padding: 1px 6px; border-radius: 10px; }
+        
+        .pinned-bar { display: none; align-items: center; background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 10px 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.04); border-bottom: 1px solid rgba(0,0,0,0.05); position: relative; z-index: 90; max-width: var(--container-width); margin: 0 auto; width: 100%; flex-shrink: 0; }
+        .pinned-icon { color: var(--ly-gold); font-size: 1.1rem; margin-right: 12px; transform: rotate(-45deg); }
+        .pinned-content { flex: 1; font-size: 0.95rem; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; cursor: pointer; }
+        .unpin-btn { background: none; border: none; color: #999; cursor: pointer; font-size: 1rem; padding: 5px; transition: 0.3s; }
+        .unpin-btn:hover:not(:disabled) { color: #ff4d4d; }
+
+        .reply-preview-bar { display: none; background: #f2f4f7; padding: 8px 15px; font-size: 0.85rem; color: #555; border-left: 4px solid var(--ly-blue); align-items: center; justify-content: space-between; width: 100%; border-top: 1px solid #e9ecef; }
+        .reply-preview-bar .close-reply { cursor: pointer; color: #999; font-size: 1.1rem; padding: 5px; }
+        .reply-snippet { font-size: 0.75rem; color: #666; background: rgba(0, 0, 0, 0.05); padding: 4px 8px; border-radius: 4px; border-left: 3px solid var(--ly-blue); margin-bottom: 5px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; display: block; }
+        .msg.mine .reply-snippet { background: rgba(255, 255, 255, 0.2); color: #f1f1f1; border-left: 3px solid var(--ly-gold); }
+
+        .expand-menu-panel { display: none; position: absolute; bottom: 100%; left: 0; width: 100%; background: var(--bg-gray); border-top: 1px solid #dee2e6; box-shadow: 0 -4px 15px rgba(0,0,0,0.05); padding: 20px; z-index: 10; gap: 25px; flex-direction: row; justify-content: flex-start; animation: slideUp 0.3s ease-out; box-sizing: border-box; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .expand-menu-item { display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; }
+        .expand-menu-item .icon-circle { width: 55px; height: 55px; background: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.4rem; color: var(--ly-blue); box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: 0.2s; }
+        .expand-menu-item:hover .icon-circle { background: var(--ly-gold); color: white; transform: scale(1.05); }
+        .expand-menu-item span { font-size: 0.85rem; color: #555; font-weight: 700; }
+
+        .mention-list { display: none; position: absolute; bottom: 100%; left: 0; width: 100%; max-height: 200px; overflow-y: auto; background: var(--white); border-top: 1px solid var(--border-color); box-shadow: 0 -10px 20px rgba(0,0,0,0.15); z-index: 10000; }
+        .mention-item { display: flex; align-items: center; padding: 12px 20px; cursor: pointer; border-bottom: 1px solid #f2f4f7; transition: background 0.2s; }
+        .mention-item:hover { background: #f8f9fa; }
+        .mention-item img { width: 30px; height: 30px; border-radius: 50%; margin-right: 12px; object-fit: cover; border: 1px solid #ddd; }
+        .mention-item span { font-size: 14px; font-weight: 700; color: var(--ly-blue); }
+
+        .msg-event-card { background: #fffdf5; border: 1px solid var(--ly-gold); border-radius: 8px; padding: 12px 15px; margin-top: 5px; box-shadow: 0 2px 8px rgba(207, 169, 0, 0.15); display: flex; flex-direction: column; gap: 6px; cursor: pointer; text-decoration: none; color: inherit; width: 250px; }
+        .msg-event-header { font-size: 0.85rem; color: #888; border-bottom: 1px solid #eee; padding-bottom: 4px; }
+        .msg-event-title { font-size: 1.05rem; font-weight: 800; color: var(--ly-blue); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .msg-event-time { font-size: 0.85rem; color: #555; display: flex; align-items: center; gap: 5px; }
+
+        /* --- 其他 Modal 與組件 --- */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; z-index: 3000; overflow-y:auto; padding:env(safe-area-inset-top, 20px) 0;}
+        .modal-card { background: white; width: 90%; max-width: 450px; border-radius: 15px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.3); border: 1px solid var(--border-color); animation: modalFadeIn 0.3s ease-out; margin:auto;}
+        @keyframes modalFadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        .modal-header { background: var(--ly-blue-trans); padding: 15px 20px; color: white; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--ly-gold); }
+        .modal-header h3 { margin: 0; font-size: 1.1rem; }
+        .modal-body { padding: 25px 20px; max-height: 60vh; overflow-y:auto;}
+        .modal-input-group { margin-bottom: 20px; }
+        .modal-input-group label { display: block; font-size: 13px; color: var(--ly-blue); font-weight: 700; margin-bottom: 8px; text-align: left;}
+        .modal-input-group input { width: 100%; padding: 12px 15px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1rem; outline: none; box-sizing: border-box;}
+        .modal-input-group input:focus { border-color: var(--ly-gold); }
+        .modal-footer { padding: 15px 20px; background: #f8f9fa; display: flex; justify-content: flex-end; gap: 12px; }
+        .btn-modal { padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; border: none; transition: 0.3s;}
+        .btn-confirm { background: var(--ly-blue); color: white; }
+        .btn-cancel { background: white; color: #666; border: 1px solid #ddd; }
+        .btn-danger { background: #ff4d4d; color: white; }
+
+        /* 卡片式選擇 */
+        .user-select-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(85px, 1fr)); gap: 15px; padding: 10px; background: transparent; border: none; }
+        .user-select-item { display: block; margin: 0; padding: 0; cursor: pointer; }
+        .user-select-item input { display: none; }
+        .user-select-card { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 5px; background: white; border: 1.5px solid #eee; border-radius: 12px; transition: all 0.2s ease; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
+        .user-select-card:hover { border-color: #ddd; box-shadow: 0 4px 10px rgba(0,0,0,0.08); transform: translateY(-2px); }
+        .user-select-card img { width: 55px; height: 55px; border-radius: 50%; object-fit: cover; margin-bottom: 8px; border:none; flex-shrink:0;}
+        .user-select-card span { font-size: 13px; font-weight: 600; color: #333; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; padding: 0 4px; }
+        .user-select-item input:checked + .user-select-card { border-color: var(--ly-gold); background: #fffdf5; box-shadow: 0 4px 12px rgba(207, 169, 0, 0.15); }
+        .user-select-item input:checked + .user-select-card img { border: 2px solid var(--ly-gold); }
+        .user-select-item input:checked + .user-select-card span { color: var(--ly-gold); }
+
+        /* 群組設定/裁切/成員 */
+        .group-avatar-preview { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; margin-bottom: 5px; border: 3px solid var(--ly-gold); cursor: pointer; transition:0.2s;}
+        .group-avatar-preview:hover { opacity:0.8;}
+        .avatar-edit-wrapper { position: relative; display: inline-block; cursor: pointer; }
+        .avatar-edit-icon { position: absolute; bottom: 5px; right: 0; background: var(--ly-blue); color: white; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border: 2px solid white; font-size: 12px; transition:0.2s;}
+        .avatar-edit-wrapper:hover .avatar-edit-icon{ background: var(--ly-gold); transform: scale(1.1);}
+        
         .zoom-slider-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 250px; width: 40px; background: rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 15px 0; }
         #cropperZoomSlider { -webkit-appearance: slider-vertical; writing-mode: bt-lr; height: 100%; width: 6px; cursor: pointer; accent-color: var(--ly-gold); outline: none; }
-        .zoom-icon { color: white; font-size: 14px; margin: 8px 0; }
+        .cropper-view-box, .cropper-face { border-radius: 50%; }
 
-        /* --- 網格狀群組成員選擇列表 (新版卡片設計) --- */
-        /* --- 網格狀群組成員選擇列表 (修復重疊與優化比例) --- */
-        .user-select-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(85px, 1fr)); /* 稍微縮小最小寬度，讓排版更彈性 */
-            gap: 15px; /* 【關鍵修改】：加大上下左右的間距，徹底解決卡片重疊 */
-            max-height: 350px;
-            overflow-y: auto;
-            padding: 10px; /* 增加一點外圍內距，避免卡片陰影被切掉 */
-            background: transparent;
-            border: none;
-        }
+        .group-members-list { display: flex; flex-direction: column; gap: 10px; margin-top: 5px; background: #f8f9fa; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); max-height: 200px; overflow-y: auto; }
+        .member-item { display: flex; align-items: center; gap: 12px; }
+        .member-item img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1px solid #ddd; }
+        .member-item span { font-size: 14px; color: #333; font-weight: 600; }
+        .more-members-btn { background: none; border: none; color: var(--ly-blue); font-size: 13px; font-weight: bold; cursor: pointer; padding: 8px 0 4px 0; text-align: center; width: 100%; transition: color 0.2s; }
 
-        /* 隱藏原生 checkbox */
-        .user-select-item {
-            display: block;
-            margin: 0;
-            padding: 0;
-            cursor: pointer;
-        }
-        .user-select-item input[type="checkbox"] {
-            display: none;
-        }
+        @keyframes pulse-save { 0% { box-shadow: 0 0 0 0 rgba(207, 169, 0, 0.7); background-color: var(--ly-gold); color: #fff; } 70% { box-shadow: 0 0 0 10px rgba(207, 169, 0, 0); background-color: #e6bc00; color: #fff; } 100% { box-shadow: 0 0 0 0 rgba(207, 169, 0, 0); background-color: var(--ly-gold); color: #fff; } }
+        .btn-highlight { animation: pulse-save 1.5s infinite !important; border: none !important; }
 
-        /* 卡片設計 */
-        .user-select-card {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 10px 5px; /* 【關鍵修改】：大幅縮小上下內距，讓卡片變矮 */
-            background: white;
-            border: 1.5px solid #eee; /* 邊框稍微改細一點，提升精緻感 */
-            border-radius: 12px;
-            transition: all 0.2s ease;
-            /* 【關鍵修改】：已經移除 height: 100%，讓卡片高度自然由內容撐開，絕對不會重疊！ */
-            box-shadow: 0 2px 6px rgba(0,0,0,0.03); 
-        }
+        /* UI 元件: Scroll/Menu/Preview */
+        .scroll-bottom-btn { display: none; position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: var(--white); color: var(--ly-blue); border: 1px solid #ddd; border-radius: 20px; padding: 8px 15px; font-size: 0.9rem; box-shadow: 0 4px 10px rgba(0,0,0,0.15); cursor: pointer; z-index: 99; align-items: center; gap: 8px; font-weight: bold; }
+        @keyframes highlightMsg { 0% { box-shadow: 0 0 0 3px var(--ly-gold); background-color: #fff8dc; } 100% { box-shadow: 0 0 0 0 transparent; background-color: inherit; } }
+        .highlight-animation { animation: highlightMsg 2s ease-out; }
 
-        .user-select-card:hover {
-            border-color: #ddd;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-            transform: translateY(-2px); /* 加入滑鼠移過時微微上浮的動畫 */
-        }
+        .context-menu { display: none; position: fixed; background: var(--white); border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); padding: 6px; z-index: 10000; border: 1px solid rgba(0,0,0,0.05); }
+        .context-menu button { background: none; border: none; color: #444; font-size: 14px; padding: 10px 16px; cursor: pointer; display: flex; align-items: center; gap: 8px; border-radius: 8px; font-weight: bold; white-space: nowrap; }
+        .context-menu button:hover { background: #f2f4f7; }
+        #revokeMenuBtn { color: #ff4d4d; }
 
-        /* 大頭貼 */
-        /* 大頭貼 */
-        .user-select-card img {
-            width: 55px; /* 稍微調大一點填滿空間 */
-            height: 55px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin-bottom: 8px; 
-            border: none; /* 移除原本的透明外框 */
-            flex-shrink: 0; /* 確保不被擠壓 */
-            transition: 0.2s;
-        }
+        /* 圖片/文件預覽 */
+        .image-modal { display: none; position: fixed; z-index: 100000; left: 0; top: 0; width: 100vw; height: 100dvh; background-color: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px); justify-content: center; align-items: center; flex-direction: column; }
+        .image-modal-close { position: absolute; top: 20px; right: 30px; color: #f1f1f1; font-size: 40px; font-weight: bold; cursor: pointer; z-index: 100001; }
+        .image-modal-content { max-width: 95%; max-height: 90%; object-fit: contain; border-radius: 8px; animation: zoomIn 0.3s ease-out; }
+        @keyframes zoomIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-        /* 姓名 */
-        .user-select-card span {
-            font-size: 13px; /* 【修改】：字體微調，比例更好看 */
-            font-weight: 600;
-            color: #333;
-            text-align: center;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            width: 100%;
-            padding: 0 4px;
-        }
+        /* 活動行程總覽 */
+        .event-mini-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; padding-right:5px;}
+        .event-mini-item { background: white; border-left: 5px solid var(--ly-blue); border-radius: 8px; padding: 15px 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: all 0.2s ease; cursor: pointer; display: block; color: inherit; }
+        .event-mini-item:hover { transform: translateX(4px); border-color: var(--ly-gold); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .event-mini-title { font-size: 1.1rem; color: var(--ly-blue); font-weight: 800; margin: 0 0 8px 0; line-height: 1.4; }
+        .event-mini-meta { font-size: 0.85rem; color: #666; display: flex; align-items: center; gap: 8px; }
+        .event-mini-meta i { color: var(--ly-gold); }
+        .event-empty-state { text-align: center; color: #999; padding: 40px 20px; font-size: 0.95rem; }
+        .event-year-title { font-size: 1.1rem; color: var(--ly-blue); font-weight: 800; margin: 20px 0 5px 0; padding-left: 10px; border-left: 4px solid var(--ly-gold); background: linear-gradient(90deg, rgba(0,49,83,0.05) 0%, transparent 100%); height: 30px; display: flex; align-items: center; }
 
-        /* --- 被選取時的狀態 --- */
-        /* --- 被選取時的狀態 (同時支援群組的多選 checkbox 與私訊的單選 radio) --- */
-        .user-select-item input[type="checkbox"]:checked + .user-select-card,
-        .user-select-item input[type="radio"]:checked + .user-select-card {
-            border-color: var(--ly-gold); 
-            background: #fffdf5; 
-            box-shadow: 0 4px 12px rgba(207, 169, 0, 0.15);
-        }
+        /* Doc Preview & Slider (精簡版) */
+        .doc-modal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100vw; height: 100dvh; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px); justify-content: center; align-items: flex-start; padding: env(safe-area-inset-top, 20px) 0 20px 0; overflow-y: auto; overflow-x: hidden; }
+        .doc-paper { background: #ffffff; width: 92%; max-width: 600px; margin: 20px auto 50px; padding: 40px 20px; position: relative; border: 1px solid #dcdcdc; box-shadow: 0 0 40px rgba(0,0,0,0.15); border-radius: 8px; background-image: linear-gradient(90deg, var(--ly-blue) 0px, var(--ly-blue) 4px, transparent 4px, transparent 7px, var(--ly-gold) 7px, var(--ly-gold) 9px, transparent 9px), linear-gradient(#fdfdfd 1px, transparent 1px); background-size: 100% 100%, 100% 2.5rem; }
+        .doc-close-btn { position: absolute; right: 15px; top: 15px; font-size: 2rem; cursor: pointer; color: #999; background: none; border: none; z-index: 10; }
+        .doc-sub-title { color: var(--ly-blue); border-left: 5px solid var(--ly-gold); padding-left: 15px; margin: 30px 0 20px; font-size: 1.2rem; font-weight: bold; }
+        .vote-panel { background: #ffffff; padding: 0; border-radius: 8px; border: 1px solid #e0e0e0; border-top: 5px solid var(--ly-blue); text-align: center; margin-top: 40px; overflow: hidden; box-shadow: 0 10px 30px rgba(0, 49, 83, 0.08); }
+        .countdown-header { background: linear-gradient(135deg, #003153 0%, #004c82 100%); color: #ffcc00; padding: 12px; font-weight: 800; font-size: 1.05rem; }
+        .btn-vote { padding: 12px 25px; margin: 10px; border-radius: 50px; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 1rem; color: white; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-join { background: var(--ly-blue); } .btn-next { background: #777; }
+        .btn-vote:disabled { background-color: #e0e0e0 !important; color: #a0a0a0 !important; }
+        .btn-joined-locked { background: linear-gradient(135deg, #d4af37, #f9e27d, #b8860b); color: #003153 !important; }
+        .photo-stack-container { position: relative; width: 220px; height: 220px; margin: 20px auto; cursor: pointer; }
+        .photo-stack-item { position: absolute; top: 0; left: 0; width: 100%; height: 100%; box-shadow: 0 8px 20px rgba(0,0,0,0.35); border-radius: 8px; overflow: hidden; }
+        .photo-stack-item img { width: 100%; height: 100%; object-fit: cover; }
+        .photo-stack-item:nth-child(1) { z-index: 5; transform: rotate(-3deg); } .photo-stack-item:nth-child(2) { z-index: 4; transform: rotate(4deg) translate(4px, 4px); } .photo-stack-item:nth-child(3) { z-index: 3; transform: rotate(-5deg) translate(-4px, 6px); }
+        .voter-grid { display: flex; flex-wrap: wrap; gap: 15px; margin-top: 15px; justify-content: center; }
+        .voter-box { text-align: center; width: 60px; }
+        .voter-box img { width: 50px; height: 50px; border-radius: 50%; border: 2px solid var(--ly-gold); object-fit: cover; }
+        .voter-box span { display: block; font-size: 0.75rem; margin-top: 5px; font-weight: bold; color: #444; }
+
+        .slider-container { flex-grow: 1; width: 100%; overflow: hidden; display: flex; align-items: center; position: relative; cursor: grab; }
+        .slider-container:active { cursor: grabbing; }
+        .slider-track { display: flex; height: 80vh; transition: transform 0.3s ease-out; will-change: transform; }
+        .slider-slide { min-width: 100vw; height: 100%; display: flex; justify-content: center; align-items: center; padding: 0 10px; box-sizing: border-box; }
+        .slider-slide img { max-width: 100%; max-height: 100%; object-fit: contain; pointer-events: auto; user-select: none; -webkit-user-drag: none; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        .viewer-header { position: absolute; top: 0; left: 0; width: 100%; height: 80px; display: flex; justify-content: space-between; align-items: flex-start; padding: env(safe-area-inset-top, 20px) 20px 20px; z-index: 20010; box-sizing: border-box; pointer-events: none; transition: opacity 1.5s ease-in-out; opacity: 1; }
+        .viewer-controls-group { display: flex; align-items: center; gap: 12px; pointer-events: auto; }
+        .viewer-btn-text { background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.3); color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; white-space: nowrap; }
+        .viewer-counter { color: rgba(255, 255, 255, 0.8); font-size: 1rem; font-family: sans-serif; background: rgba(0,0,0,0.3); padding: 5px 12px; border-radius: 15px; pointer-events: auto; margin-top: 5px; }
+        .viewer-close { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); color: white; width: 44px; height: 44px; border-radius: 50%; font-size: 1.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; pointer-events: auto; }
+        .viewer-hint { position: absolute; bottom: 30px; width: 100%; text-align: center; color: rgba(255,255,255,0.5); font-size: 0.9rem; pointer-events: none; transition: opacity 1.5s ease-in-out; opacity: 1; z-index: 20010; }
+        .viewer-thumbnails { position: absolute; bottom: 70px; left: 0; width: 100%; height: 60px; display: flex; justify-content: center; align-items: center; gap: 12px; padding: 0 20px; box-sizing: border-box; overflow-x: auto; overflow-y: hidden; z-index: 20010; transition: opacity 1.5s ease-in-out; opacity: 1; pointer-events: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+        .viewer-thumbnails::-webkit-scrollbar { display: none; }
+        .thumbnail-item { width: 40px; height: 40px; flex-shrink: 0; border-radius: 6px; overflow: hidden; opacity: 0.4; border: 2px solid transparent; cursor: pointer; transition: all 0.2s ease; transform: scale(0.9); }
+        .thumbnail-item img { width: 100%; height: 100%; object-fit: cover; }
+        .thumbnail-item.active { opacity: 1; border-color: var(--ly-gold); transform: scale(1.15); box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        .user-idle .viewer-header, .user-idle .viewer-hint, .user-idle .viewer-thumbnails { opacity: 0; pointer-events: none; }
         
-        .user-select-item input[type="checkbox"]:checked + .user-select-card img,
-        .user-select-item input[type="radio"]:checked + .user-select-card img {
-            border-color: var(--ly-gold); 
-        }
-        .user-select-item input[type="checkbox"]:checked + .user-select-card span,
-        .user-select-item input[type="radio"]:checked + .user-select-card span {
-            color: var(--ly-gold); 
-        }
-
-        /* --- 頁面跳轉的偽原生過渡動畫 --- */
-body {
-    animation: pageFadeIn 0.25s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
-}
-
-@keyframes pageFadeIn {
-    from { opacity: 0; transform: scale(0.98); } /* 微微放大淡入，很像 iOS 原生感 */
-    to { opacity: 1; transform: scale(1); }
-}
-
-/* 準備跳轉時觸發的類別 */
-.page-fade-out {
-    animation: pageFadeOut 0.15s ease-out forwards !important;
-}
-
-@keyframes pageFadeOut {
-    from { opacity: 1; transform: scale(1); }
-    to { opacity: 0; transform: scale(0.98); }
-}
-</style>
+        #settingsModal .modal-card { max-width: 100% !important; width: 100% !important; height: 100% !important; margin: 0 !important; border-radius: 0 !important; display: flex; flex-direction: column; }
+        #settingsModal .modal-header { padding-top: env(safe-area-inset-top, 20px); height: calc(60px + env(safe-area-inset-top, 20px)); display: flex; align-items: center; justify-content: space-between; background: var(--ly-blue); color: white; }
+    </style>
 </head>
 <body>
+
     <div id="appInitLoader" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; background: var(--bg-gray); z-index: 99999; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.3s ease;">
         <i class="fas fa-circle-notch fa-spin" style="font-size: 40px; color: var(--ly-blue); margin-bottom: 20px;"></i>
         <div style="color: var(--ly-blue); font-weight: 800; font-size: 1.1rem; letter-spacing: 1px;">資料同步中...</div>
     </div>
 
-    <header class="messenger-header">
-        <div class="header-content">
-            <div class="user-profile">
-                <img id="myAvatar" class="user-avatar" src="https://via.placeholder.com/55" alt="Profile" onclick="openSettings()" style="cursor: pointer;">
-                <span id="myName" class="user-name">載入中...</span>
+    <div id="messengerView" class="app-view">
+        <header class="messenger-header">
+            <div class="header-content">
+                <div class="user-profile">
+                    <img id="myAvatar" class="user-avatar" src="https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true" alt="Profile" onclick="openSettings()" style="cursor: pointer;">
+                    <span id="myName" class="user-name">載入中...</span>
+                </div>
+                <div class="header-actions">
+                    <button title="新增對話" onclick="startNewChat()"><i class="fas fa-plus"></i></button>
+                    <button title="建立群組" onclick="createGroup()"><i class="fas fa-users"></i></button>
+                </div>
             </div>
-            <div class="header-actions">
-                <button title="新增對話" onclick="startNewChat()"><i class="fas fa-plus"></i></button>
-                <button title="建立群組" onclick="createGroup()"><i class="fas fa-users"></i></button>
+        </header>
+
+        <main class="chat-list" id="chatList"></main>
+
+        <button class="fab" onclick="startNewChat()" title="快速發起聊天">
+            <i class="fas fa-comment-dots"></i>
+        </button>
+    </div>
+
+    <div id="chatView" class="app-view">
+        <header class="messenger-header">
+            <div class="header-content" style="padding: 15px 20px;">
+                <div class="user-profile">
+                    <button class="back-btn" onclick="closeChatRoom()">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <img id="targetAvatar" class="user-avatar" src="https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true">
+                    <span id="chatTitle" class="user-name">載入中...</span>
+                </div>
+                <div class="header-actions" id="groupSettingsContainer" style="display: none;">
+                    <button onclick="openGroupSettings()" title="群組設定">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div id="pinnedMessageBar" class="pinned-bar" style="display: none;">
+            <i class="fas fa-thumbtack pinned-icon"></i>
+            <div id="pinnedText" class="pinned-content"></div>
+            <button id="unpinBtn" class="unpin-btn" onclick="unpinMessage()" title="移除釘選"><i class="fas fa-times"></i></button>
+        </div>
+
+        <div class="messages" id="messageList"></div>
+        
+        <button class="scroll-bottom-btn" id="scrollBottomBtn" onclick="scrollToBottom(true)">
+            <i class="fas fa-arrow-down"></i> 最新訊息
+        </button>
+
+        <div class="input-area">
+            <div id="expandMenuPanel" class="expand-menu-panel">
+                <div class="expand-menu-item" onclick="handleActivitySchedule()">
+                    <div class="icon-circle"><i class="fas fa-calendar-alt"></i></div>
+                    <span>活動行程</span>
+                </div>
+            </div>
+            
+            <div id="mentionList" class="mention-list"></div>
+
+            <div id="replyPreview" class="reply-preview-bar" style="max-width: var(--container-width); width: 100%; box-sizing: border-box;">
+                <span>回覆：<span id="replyPreviewText" style="font-weight: bold;"></span></span>
+                <i class="fas fa-times close-reply" onclick="cancelReply()"></i>
+            </div>
+            
+            <div class="input-container">
+                <button class="expand-menu-btn" onclick="toggleExpandMenu(event)"><i class="fas fa-plus"></i></button>
+                <input type="file" id="fileInput" accept="image/*,video/*" style="display: none;">
+                <button class="attach-btn" onclick="document.getElementById('fileInput').click()"><i class="fas fa-paperclip"></i></button>
+                <input type="text" id="msgInput" placeholder="請輸入訊息..." autocomplete="off">
+                <button class="send-btn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
             </div>
         </div>
-    </header>
-
-    <main class="chat-list" id="chatList"></main>
-
-    <button class="fab" onclick="startNewChat()" title="快速發起聊天">
-        <i class="fas fa-comment-dots"></i>
-    </button>
-
-    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-storage-compat.js"></script>
-
-    <script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyACnoimIASfb1rb59SbgLDkUmyYR6ODbUU",
-        authDomain: "llwb-ed686.firebaseapp.com",
-        projectId: "llwb-ed686",
-        storageBucket: "llwb-ed686.firebasestorage.app",
-        messagingSenderId: "940345852074",
-        appId: "1:940345852074:web:7a30cca5a6d997a92350d3"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-    const userCache = {};
-    const storage = firebase.storage(); // 【新增這行】初始化 Storage
-    
-    // --- 新增：初始化原生推播通知 (Capacitor 環境專用) ---
-async function initPushNotifications(userId) {
-    // 確保是在 Capacitor 原生 App 環境下執行，避免在普通網頁瀏覽器報錯
-    if (typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform()) {
-        try {
-            // 從 Capacitor 呼叫推播套件
-            const { PushNotifications } = Capacitor.Plugins;
-
-            // 1. 請求 iOS 推播權限
-            let permStatus = await PushNotifications.checkPermissions();
-            if (permStatus.receive === 'prompt') {
-                permStatus = await PushNotifications.requestPermissions();
-            }
-
-            if (permStatus.receive !== 'granted') {
-                console.log('使用者未授權推播通知');
-                return;
-            }
-
-            // 2. 向 Apple APNs 註冊設備
-            await PushNotifications.register();
-
-            // 3. 監聽註冊成功，取得專屬推播 Token 並存入資料庫
-            PushNotifications.addListener('registration', async (token) => {
-                console.log('成功取得原生 Push Token:', token.value);
-                // 將 Token 寫入使用者的 act (帳號) 資料表，讓後端知道要推播到哪裡
-                await db.collection("act").doc(userId).set({
-                    pushToken: token.value
-                }, { merge: true });
-            });
-
-            // 4. (選用) 監聽推播註冊失敗
-            PushNotifications.addListener('registrationError', (error) => {
-                console.error('推播註冊失敗:', error);
-            });
-
-            // 5. (選用) 當 App 在前景開著時收到推播的行為
-            PushNotifications.addListener('pushNotificationReceived', (notification) => {
-                console.log('收到前景推播:', notification);
-            });
-
-        } catch (error) {
-            console.error("推播初始化發生錯誤:", error);
-        }
-    }
-}
-
-    auth.onAuthStateChanged(user => {
-    if (user) {
-        // 1. 讀取個人資料
-        db.collection("act").doc(user.uid).get().then(doc => {
-            if (doc.exists) {
-                const data = doc.data();
-                document.getElementById('myName').innerText = data.displayName || "未設定名稱";
-                document.getElementById('myAvatar').src = data.photoURL || 'https://via.placeholder.com/45';
-            }
-        }).catch(err => console.error("讀取資料失敗:", err));
-
-        // 2. 監聽對話列表
-        db.collection("chats")
-            .where("members", "array-contains", user.uid)
-            .orderBy("updatedAt", "desc")
-            .onSnapshot(snapshot => {
-                renderChatList(snapshot);
-            }, error => {
-                console.error("監聽失敗:", error);
-                db.collection("chats")
-                    .where("members", "array-contains", user.uid)
-                    .get().then(renderChatList);
-            });
-
-        // 3. 初始化推播
-        initPushNotifications(user.uid);
-
-        // --- 關鍵修改：刪除原本在這裡的 const chatRef = db.collection("chats").doc(chatId); ---
-        // 因為在列表頁中，我們不需要、也沒有特定的 chatId。
-
-    } else {
-        // 如果沒登入，跳回登入頁 (確保檔名是 index.html 而不是 login.html)
-        window.location.replace("index.html");
-    }
-});
-
-    // === 2. 渲染對話清單 (包含指定名稱置頂與智慧時間) ===
-    async function renderChatList(snapshot, needsManualSort = false) {
-        const listElement = document.getElementById('chatList');
-        const currentUser = auth.currentUser;
-        if (!currentUser) return;
-
-        if (snapshot.empty) {
-            listElement.innerHTML = '<p style="text-align:center; color:#999; margin-top:20px;">暫無對話</p>';
-            return;
-        }
-
-        // 取得文件陣列
-        let docs = snapshot.docs;
-        
-        // 如果是備用讀取法，在此手動根據時間排序
-        if (needsManualSort) {
-            docs = docs.sort((a, b) => {
-                const timeA = a.data().updatedAt ? a.data().updatedAt.toMillis() : 0;
-                const timeB = b.data().updatedAt ? b.data().updatedAt.toMillis() : 0;
-                return timeB - timeA;
-            });
-        }
-
-        // 【核心修改】：分離「立法院 Legislature」與「一般對話」
-        const pinnedChats = [];
-        const normalChats = [];
-
-        docs.forEach(doc => {
-            // 找到 renderChatList 函數內部的循環部分
-            const chatData = doc.data();
-            const chatId = doc.id; // 確保這裡有定義 chatId
-
-            const chatItem = document.createElement('div');
-            chatItem.className = 'chat-item';
-            // 修正這裡：確保 onclick 傳入的是正確的字串變數
-            chatItem.onclick = () => {
-                nativeNavigateTo(`chat.html?id=${chatId}`); 
-            };           // 判斷是否為群組，且名稱完全等於「立法院 Legislature」
-            if (chatData.isGroup && chatData.groupName === "立法院 Legislature") {
-                pinnedChats.push(doc);
-            } else {
-                normalChats.push(doc);
-            }
-        });
-
-        // 組合陣列：強制將立法院群組放在第 0 順位 (永遠置頂)
-        const sortedDocs = [...pinnedChats, ...normalChats];
-
-        const chatItemsPromises = sortedDocs.map(async (chatDoc) => {
-            const chat = chatDoc.data();
-            const chatId = chatDoc.id;
-            
-            let displayTitle = "";
-            let displayAvatar = "";
-            let avatarStyle = ""; // 用來控制特定頭像大小與間距的變數
-
-            if (chat.isGroup) {
-                displayTitle = chat.groupName || "未命名群組";
-                displayAvatar = chat.groupAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayTitle)}&background=003153&color=fff`; 
-                // 群組維持預設的樣式（55px大小，15px右間距）
-            } else {
-                const targetUid = chat.members.find(uid => uid !== currentUser.uid);
-                if (targetUid && !userCache[targetUid]) {
-                    const userDoc = await db.collection("act").doc(targetUid).get();
-                    if (userDoc.exists) userCache[targetUid] = userDoc.data();
-                }
-                const targetData = userCache[targetUid] || { displayName: "未知成員", photoURL: "https://ui-avatars.com/api/?name=User&background=ddd&color=fff" };
-                displayTitle = targetData.displayName;
-                displayAvatar = targetData.photoURL || "https://ui-avatars.com/api/?name=User&background=ddd&color=fff";
-                
-                // 【修改】：私訊的頭像除了放大為 60px，並將右側間距縮小為 10px
-                avatarStyle = "width: 60px; height: 60px; margin-right: 10px;"; 
-            }
-
-            const updatedAt = chat.updatedAt ? chat.updatedAt.toDate() : new Date();
-            const myLastRead = (chat.lastReadAt && chat.lastReadAt[currentUser.uid]) 
-                               ? chat.lastReadAt[currentUser.uid].toDate() 
-                               : new Date(0);
-
-            const isUnread = chat.lastSenderId !== currentUser.uid && updatedAt > myLastRead;
-            const unreadClass = isUnread ? "unread" : "";
-            
-            // 時間顯示邏輯
-            let timeStr = "";
-            if (chat.updatedAt) {
-                const now = new Date();
-                const isToday = updatedAt.toDateString() === now.toDateString();
-                if (isToday) {
-                    timeStr = updatedAt.toLocaleTimeString('zh-TW', {hour: '2-digit', minute:'2-digit', hour12: false});
-                } else {
-                    const y = updatedAt.getFullYear();
-                    const m = (updatedAt.getMonth() + 1).toString().padStart(2, '0');
-                    const d = updatedAt.getDate().toString().padStart(2, '0');
-                    timeStr = `${y}/${m}/${d}`;
-                }
-            }
-
-            // 立法院小圖釘
-            const isPinned = (chat.isGroup && chat.groupName === "立法院 Legislature");
-            const pinIcon = isPinned ? '<i class="fas fa-thumbtack" style="color: var(--ly-gold); margin-right: 6px; font-size: 13px; transform: rotate(-45deg);"></i>' : '';
-
-            // 組合 HTML，行內樣式套用 avatarStyle
-            return `
-                <div class="chat-item ${unreadClass}" onclick="window.location.href='chat.html?id=${chatId}'">
-                    <img class="user-avatar" src="${displayAvatar}" alt="Chat" style="${avatarStyle}">
-                    <div class="chat-info">
-                        <div style="display:flex; justify-content:space-between; align-items:baseline;">
-                            <h4>${pinIcon}${displayTitle}</h4>
-                            <span class="chat-time">${timeStr}</span>
-                        </div>
-                        <p>${chat.lastMessage || '尚無訊息'}</p>
-                    </div>
-                </div>`;
-        });
-
-        const chatItemsHtml = await Promise.all(chatItemsPromises);
-        listElement.innerHTML = chatItemsHtml.join(""); 
-
-        removeInitLoader();
-    }
-
-    // --- Modal 控制邏輯 ---
-    function openModal(id) {
-        document.getElementById(id).style.display = 'flex';
-    }
-
-    function closeModal(id) {
-        document.getElementById(id).style.display = 'none';
-        if(id === 'newChatModal') document.getElementById('targetUserName').value = '';
-    }
-
-    // --- 打開發起新對話視窗並載入單選成員卡片 ---
-    async function startNewChat() {
-        openModal('newChatModal');
-        document.getElementById('targetUserName').value = ''; // 確保打開時清空輸入框
-
-        const listEl = document.getElementById('singleUserList');
-        listEl.innerHTML = '<div style="text-align:center; color:#999; padding: 20px;">載入成員中... <i class="fas fa-spinner fa-spin"></i></div>';
-
-        try {
-            const currentUser = auth.currentUser;
-            const usersSnapshot = await db.collection("act").get();
-            let html = '';
-            
-            usersSnapshot.forEach(doc => {
-                // 排除自己
-                if (doc.id !== currentUser.uid) {
-                    const data = doc.data();
-                    const name = data.displayName || '未命名成員';
-                    const photo = data.photoURL || 'https://via.placeholder.com/35';
-                    
-                    // 【關鍵邏輯】：改用 type="radio"，並且加入 onclick 連動下方的輸入框
-                    html += `
-                    <label class="user-select-item">
-                        <input type="radio" name="singleChatUser" value="${name}" onclick="document.getElementById('targetUserName').value = this.value">
-                        <div class="user-select-card">
-                            <img src="${photo}" alt="avatar">
-                            <span>${name}</span>
-                        </div>
-                    </label>`;
-                }
-            });
-            
-            if (!html) html = '<div style="text-align:center; color:#999; padding: 20px;">目前無其他成員</div>';
-            listEl.innerHTML = html;
-            
-        } catch(e) {
-            console.error("載入成員失敗:", e);
-            listEl.innerHTML = '<div style="text-align:center; color:red; padding: 20px;">載入失敗</div>';
-        }
-    }
-
-    // --- 核心修正：完整處理開啟對話邏輯 ---
-    async function handleStartChat() {
-        const targetName = document.getElementById('targetUserName').value.trim();
-        if (!targetName) return;
-
-        try {
-            const currentUser = auth.currentUser;
-            
-            // 1. 搜尋使用者
-            const userQuery = await db.collection("act")
-                .where("displayName", "==", targetName)
-                .limit(1)
-                .get();
-
-            if (userQuery.empty) {
-                alert("找不到該人員，請確認名稱是否正確。");
-                return;
-            }
-
-            const targetDoc = userQuery.docs[0];
-            const targetUid = targetDoc.id;
-            const targetData = targetDoc.data();
-
-            if (targetUid === currentUser.uid) {
-                alert("系統不支援與個人帳號發起對話。");
-                return;
-            }
-
-            // 2. 檢查現有對話
-            const chatQuery = await db.collection("chats")
-                .where("members", "array-contains", currentUser.uid)
-                .get();
-
-            let existingChatId = null;
-            chatQuery.forEach(doc => {
-                const data = doc.data();
-                if (data.members && data.members.length === 2 && data.members.includes(targetUid)) {
-                    existingChatId = doc.id;
-                }
-            });
-
-            if (existingChatId) {
-                // 已有對話，關閉視窗並跳轉
-                closeModal('newChatModal');
-                window.location.href = `chat.html?id=${existingChatId}`;
-            } else {
-                // 3. 建立新對話
-                const newChatRef = await db.collection("chats").add({
-                    members: [currentUser.uid, targetUid],
-                    lastMessage: "剛開啟了對話",
-                    lastSenderId: currentUser.uid,
-                    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                closeModal('newChatModal');
-                window.location.href = `chat.html?id=${newChatRef.id}`;
-            }
-            
-        } catch (error) {
-            console.error("開啟失敗:", error);
-            alert("開啟對話時發生錯誤。");
-        }
-    }
-
-    // 打開群組建立視窗並載入成員
-    // --- 圖片裁切功能邏輯 ---
-    let cropperInstance = null;
-    window.croppedAvatarBlob = null; 
-
-    function openCropper(event) {
-        const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById('cropperImage').src = e.target.result;
-                document.getElementById('cropperModal').style.display = 'flex';
-                
-                if (cropperInstance) cropperInstance.destroy();
-                const slider = document.getElementById('cropperZoomSlider');
-                
-                cropperInstance = new Cropper(document.getElementById('cropperImage'), {
-                    aspectRatio: 1, viewMode: 1, dragMode: 'move', autoCropArea: 1,
-                    cropBoxMovable: false, cropBoxResizable: false,
-                    ready: function () {
-                        const imageData = cropperInstance.getImageData();
-                        slider.min = imageData.width / imageData.naturalWidth;
-                        slider.max = slider.min * 5;
-                        slider.value = imageData.ratio;
-                    },
-                    zoom: function (e) { slider.value = e.detail.ratio; }
-                });
-            }
-            reader.readAsDataURL(file);
-        }
-        event.target.value = ''; 
-    }
-
-    function changeCropperZoom(value) { if (cropperInstance) cropperInstance.zoomTo(parseFloat(value)); }
-    function closeCropper() {
-        document.getElementById('cropperModal').style.display = 'none';
-        if (cropperInstance) { cropperInstance.destroy(); cropperInstance = null; }
-    }
-    function confirmCrop() {
-        if (!cropperInstance) return;
-        const canvas = cropperInstance.getCroppedCanvas({ width: 300, height: 300, fillColor: '#fff' });    
-        document.getElementById('groupAvatarPreview').src = canvas.toDataURL('image/jpeg');
-        canvas.toBlob(function(blob) {
-            window.croppedAvatarBlob = blob;
-            closeCropper();
-        }, 'image/jpeg', 0.85);
-    }
-
-    // --- 打開群組建立視窗 (重置圖片狀態) ---
-    async function createGroup() {
-        openModal('createGroupModal');
-        // 【新增】：重置圖片狀態
-        document.getElementById('groupAvatarPreview').src = 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true';
-        window.croppedAvatarBlob = null; 
-
-        const listEl = document.getElementById('groupUserList');
-        listEl.innerHTML = '<div style="text-align:center; color:#999; padding: 20px;">載入成員中... <i class="fas fa-spinner fa-spin"></i></div>';
-        
-        try {
-            const currentUser = auth.currentUser;
-            const usersSnapshot = await db.collection("act").get();
-            let html = '';
-            usersSnapshot.forEach(doc => {
-                if(doc.id !== currentUser.uid) {
-                    const data = doc.data();
-                    const name = data.displayName || '未命名成員';
-                    const photo = data.photoURL || 'https://via.placeholder.com/35';
-                    // 【修改】：套用全新的卡片 HTML 結構
-                    html += `
-                    <label class="user-select-item">
-                        <input type="checkbox" value="${doc.id}" class="group-member-checkbox">
-                        <div class="user-select-card">
-                            <img src="${photo}" alt="avatar">
-                            <span>${name}</span>
-                        </div>
-                    </label>`;
-                }
-            });
-            if(!html) html = '<div style="text-align:center; color:#999; padding: 20px;">目前無其他成員</div>';
-            listEl.innerHTML = html;
-        } catch(e) {
-            console.error("載入成員失敗:", e);
-        }
-    }
-
-    // --- 建立群組並檢查重複成員 ---
-    async function handleCreateGroup() {
-        const groupName = document.getElementById('groupNameInput').value.trim();
-        if (!groupName) return alert('請為群組取個名稱！');
-        
-        const checkboxes = document.querySelectorAll('.group-member-checkbox:checked');
-        if (checkboxes.length === 0) return alert('請至少選擇一位其他成員加入群組！');
-        
-        const currentUser = auth.currentUser;
-        const members = [currentUser.uid];
-        checkboxes.forEach(cb => members.push(cb.value));
-        
-        const btnConfirm = document.querySelector('#createGroupModal .btn-confirm');
-        btnConfirm.innerText = "驗證中...";
-        btnConfirm.disabled = true;
-
-        try {
-            // 【核心邏輯 1】：檢查是否已經有成員完全相同的群組
-            const sortedNewMembers = [...members].sort(); // 將新成員 UID 陣列排序
-            
-            // 抓取有我在內的所有群組
-            const chatsSnapshot = await db.collection("chats")
-                .where("isGroup", "==", true)
-                .where("members", "array-contains", currentUser.uid)
-                .get();
-            
-            let duplicateChatId = null;
-            
-            chatsSnapshot.forEach(doc => {
-                const existingMembers = doc.data().members || [];
-                // 如果人數一樣，且排序後每個 UID 都對應相等，就代表群組一模一樣
-                if (existingMembers.length === sortedNewMembers.length) {
-                    const sortedExisting = [...existingMembers].sort();
-                    const isExactMatch = sortedNewMembers.every((val, index) => val === sortedExisting[index]);
-                    if (isExactMatch) duplicateChatId = doc.id;
-                }
-            });
-
-            /** 若找到重複群組，攔截並直接跳轉**/
-            // 若找到重複群組，直接跳轉，不出現確認提示
-            if (duplicateChatId) {
-                closeModal('createGroupModal');
-                window.location.href = `chat.html?id=${duplicateChatId}`;
-                return; // 終止建立新群組
-            }
-            /**
-            if (duplicateChatId) {
-                alert("系統發現已經有成員完全相同的群組！將為您自動跳轉至該聊天室。");
-                closeModal('createGroupModal');
-                window.location.href = `chat.html?id=${duplicateChatId}`;
-                return; // 終止建立新群組
-            }**/
-
-            // 【核心邏輯 2】：若無重複，開始上傳裁切圖片與寫入資料庫
-            btnConfirm.innerText = "建立中...";
-            let groupAvatarUrl = "";
-            
-            if (window.croppedAvatarBlob) {
-                const tempId = db.collection("chats").doc().id; // 先隨機生一個 ID 當資料夾名稱
-                const fileRef = storage.ref(`groupAvatars/${tempId}/${Date.now()}_avatar.jpg`);
-                const snapshot = await fileRef.put(window.croppedAvatarBlob);
-                groupAvatarUrl = await snapshot.ref.getDownloadURL();
-            }
-
-            const newChatData = {
-                isGroup: true,
-                groupName: groupName,
-                members: members,
-                lastMessage: "群組已建立，開始聊天吧！",
-                lastSenderId: currentUser.uid,
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                [`lastReadAt.${currentUser.uid}`]: firebase.firestore.FieldValue.serverTimestamp()
-            };
-
-            if (groupAvatarUrl) {
-                newChatData.groupAvatar = groupAvatarUrl;
-            }
-
-            const newChatRef = await db.collection("chats").add(newChatData);
-            
-            closeModal('createGroupModal');
-            document.getElementById('groupNameInput').value = ''; 
-            window.location.href = `chat.html?id=${newChatRef.id}`;
-            
-        } catch(e) {
-            console.error("建立群組失敗:", e);
-            alert('建立群組失敗，請稍後重試。');
-        } finally {
-            btnConfirm.innerText = "建立群組";
-            btnConfirm.disabled = false;
-        }
-    }
-
-    // 開啟設定視窗
-    function openSettings() {
-        const currentName = document.getElementById('myName').innerText;
-        const currentAvatar = document.getElementById('myAvatar').src;
-        
-        document.getElementById('settingsName').innerText = currentName;
-        document.getElementById('settingsAvatar').src = currentAvatar;
-        document.getElementById('settingsModal').style.display = 'flex';
-    }
-
-    // 關閉設定視窗
-    function closeSettings() {
-        document.getElementById('settingsModal').style.display = 'none';
-    }
-
-    // 處理登出邏輯
-    function handleLogout() {
-        const currentName = document.getElementById('myName').innerText;
-        // 詢問是否登出
-        if (confirm(`確定要登出 ${currentName} 的帳號嗎？`)) {
-            firebase.auth().signOut().then(() => {
-                // 確認後回到 index.html
-                window.location.href = "index.html";
-            }).catch((error) => {
-                console.error("登出失敗:", error);
-                alert("登出失敗，請稍後再試");
-            });
-        }
-    }
-
-    // 原生感平滑跳轉函式
-// ==========================================
-    // 1. 進入頁面時，瞬間還原快取的畫面與捲動位置
-    // ==========================================
-    window.addEventListener('DOMContentLoaded', () => {
-        const cachedHtml = sessionStorage.getItem('messengerHTML');
-        const cachedScroll = sessionStorage.getItem('messengerScroll');
-        
-        if (cachedHtml) {
-            const listEl = document.getElementById('chatList');
-            listEl.innerHTML = cachedHtml; 
-            if (cachedScroll) {
-                requestAnimationFrame(() => {
-                    listEl.scrollTop = parseInt(cachedScroll, 10);
-                });
-            }
-            // 【新增】：如果有快取，瞬間貼上畫面後就隱藏載入遮罩
-            removeInitLoader();
-        }
-    });
-
-    // ==========================================
-    // 2. 原生感平滑跳轉函式 (跳轉前拍照存檔)
-    // ==========================================
-    function nativeNavigateTo(url) {
-        const listEl = document.getElementById('chatList');
-        if (listEl) {
-            // 離開前，把當前的 HTML 與捲動進度存起來
-            sessionStorage.setItem('messengerHTML', listEl.innerHTML);
-            sessionStorage.setItem('messengerScroll', listEl.scrollTop);
-        }
-
-        document.body.classList.add('page-fade-out');
-        
-        setTimeout(() => {
-            window.location.href = url;
-        }, 150);
-    }
-
-    function removeInitLoader() {
-        const loader = document.getElementById('appInitLoader');
-        if (loader && loader.style.display !== 'none') {
-            loader.style.opacity = '0'; // 先觸發 CSS 透明度漸變
-            setTimeout(() => { loader.style.display = 'none'; }, 300); // 動畫結束後徹底隱藏
-        }
-    }
-</script>
+    </div>
 
     <div id="newChatModal" class="modal-overlay">
         <div class="modal-card">
@@ -1186,16 +368,12 @@ async function initPushNotifications(userId) {
             </div>
             <div class="modal-body">
                 <div class="modal-input-group">
-                    <label>選擇對象 (從系統資料庫)</label>
-                    <div id="singleUserList" class="user-select-list">
-                        <div style="text-align:center; color:#999; padding: 20px;">載入成員中...</div>
-                    </div>
+                    <label>選擇對象</label>
+                    <div id="singleUserList" class="user-select-list"></div>
                 </div>
                 <div class="modal-input-group">
-                    <label>手動輸入或確認對象名稱</label>
-                    <input type="text" id="targetUserName" placeholder="請輸入對方的名稱...">
+                    <input type="text" id="targetUserName" placeholder="手動輸入或點擊上方選擇...">
                 </div>
-                <p style="font-size: 12px; color: #888; margin-top: -10px;">* 點擊上方卡片會自動填入，或可直接手動輸入名稱</p>
             </div>
             <div class="modal-footer">
                 <button class="btn-modal btn-cancel" onclick="closeModal('newChatModal')">取消</button>
@@ -1212,23 +390,17 @@ async function initPushNotifications(userId) {
             </div>
             <div class="modal-body">
                 <div class="modal-input-group" style="text-align: center;">
-                    <label>群組頭像</label>
-                    <input type="file" id="groupAvatarInput" accept="image/*" style="display: none;" onchange="openCropper(event)">
-                    <div class="avatar-edit-wrapper" onclick="document.getElementById('groupAvatarInput').click()">
-                        <img id="groupAvatarPreview" class="group-avatar-preview" src="https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true">
+                    <input type="file" id="createGroupAvatarInput" accept="image/*" style="display: none;" onchange="openCropper(event, 'createGroupAvatarPreview')">
+                    <div class="avatar-edit-wrapper" onclick="document.getElementById('createGroupAvatarInput').click()">
+                        <img id="createGroupAvatarPreview" class="group-avatar-preview" src="https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true">
                         <div class="avatar-edit-icon"><i class="fas fa-pencil-alt"></i></div>
                     </div>
                 </div>
-
                 <div class="modal-input-group">
-                    <label>群組名稱</label>
                     <input type="text" id="groupNameInput" placeholder="請輸入群組名稱...">
                 </div>
                 <div class="modal-input-group">
-                    <label>選擇成員 (從系統資料庫)</label>
-                    <div id="groupUserList" class="user-select-list">
-                        <div style="text-align:center; color:#999; padding: 20px;">載入成員中...</div>
-                    </div>
+                    <div id="groupUserList" class="user-select-list"></div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -1238,10 +410,65 @@ async function initPushNotifications(userId) {
         </div>
     </div>
 
-    <div id="cropperModal" class="modal-overlay" style="z-index: 4000;">
+    <div id="groupSettingsModal" class="modal-overlay" onclick="if(event.target === this && window.innerWidth <= 750) closeModal('groupSettingsModal')">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><i class="fas fa-cog"></i> 群組設定</h3>
+                <span style="cursor:pointer;" onclick="closeModal('groupSettingsModal')">&times;</span>
+            </div>
+            <div class="modal-body" style="text-align: center;">
+                <div class="modal-input-group" style="text-align: center;">
+                    <input type="file" id="editGroupAvatarInput" accept="image/*" style="display: none;" onchange="openCropper(event, 'editGroupAvatarPreview')">
+                    <div class="avatar-edit-wrapper" onclick="document.getElementById('editGroupAvatarInput').click()">
+                        <img id="editGroupAvatarPreview" class="group-avatar-preview" src="https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true">
+                        <div class="avatar-edit-icon"><i class="fas fa-pencil-alt"></i></div>
+                    </div>
+                </div>
+                <div class="modal-input-group" style="text-align: left;">
+                    <label>群組名稱</label>
+                    <input type="text" id="groupNameEdit" oninput="markAsUnsaved()">
+                </div>
+                <div class="modal-input-group" style="text-align: left; margin-bottom: 0;">
+                    <label>群組成員</label>
+                    <div id="groupMembersList" class="group-members-list"></div>
+                    <button id="editMembersBtn" class="btn-modal btn-cancel" style="width: 100%; margin-top: 10px; display: none;" onclick="openEditMembersModal()">
+                        <i class="fas fa-user-edit"></i> 編輯群組成員
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer" style="flex-direction: column; align-items: center; gap: 15px; padding-top: 20px;">
+                <button id="saveGroupBtn" class="btn-modal btn-confirm" style="display: none; width: 100%;" onclick="saveGroupSettings()">儲存</button>
+                <div id="moreOptionsToggle" style="color: #999; font-size: 12px; cursor: pointer; padding: 5px;" onclick="toggleGroupOptions()">
+                    <i class="fas fa-chevron-down"></i> 更多選項
+                </div>
+                <div id="moreOptionsContainer" style="display: none; width: 100%; flex-direction: column; gap: 10px;">
+                    <button class="btn-modal btn-cancel" style="width: 100%;" onclick="closeModal('groupSettingsModal')">取消</button>
+                    <button id="deleteGroupBtn" class="btn-modal btn-danger" style="width: 100%;" onclick="deleteGroup()">刪除群組</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="editMembersModal" class="modal-overlay" style="z-index: 4000;">
         <div class="modal-card" style="max-width: 450px;">
             <div class="modal-header">
-                <h3><i class="fas fa-crop-alt"></i> 調整圖片位置與大小</h3>
+                <h3><i class="fas fa-users-cog"></i> 編輯群組成員</h3>
+                <span style="cursor:pointer;" onclick="closeModal('editMembersModal')">&times;</span>
+            </div>
+            <div class="modal-body" style="padding: 15px;">
+                <div id="editMembersList" class="user-select-list"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-modal btn-cancel" onclick="closeModal('editMembersModal')">取消</button>
+                <button class="btn-modal btn-confirm" onclick="saveGroupMembers()">儲存成員</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="cropperModal" class="modal-overlay" style="z-index: 5000;">
+        <div class="modal-card" style="max-width: 450px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-crop-alt"></i> 調整圖片</h3>
                 <span style="cursor:pointer;" onclick="closeCropper()">&times;</span>
             </div>
             <div class="modal-body" style="padding: 15px; background: #111; display: flex; align-items: center; gap: 15px;">
@@ -1249,33 +476,1008 @@ async function initPushNotifications(userId) {
                     <img id="cropperImage" src="" style="max-width: 100%; display: block;">
                 </div>
                 <div class="zoom-slider-container">
-                    <i class="fas fa-search-plus zoom-icon"></i>
+                    <i class="fas fa-search-plus" style="color:white; margin-bottom:5px;"></i>
                     <input type="range" id="cropperZoomSlider" min="0.1" max="3" step="0.01" value="1" orient="vertical" oninput="changeCropperZoom(this.value)">
-                    <i class="fas fa-search-minus zoom-icon"></i>
+                    <i class="fas fa-search-minus" style="color:white; margin-top:5px;"></i>
                 </div>
             </div>
             <div class="modal-footer">
                 <button class="btn-modal btn-cancel" onclick="closeCropper()">取消</button>
-                <button class="btn-modal btn-confirm" onclick="confirmCrop()">確認裁切</button>
+                <button class="btn-modal btn-confirm" onclick="confirmCrop()">確認</button>
             </div>
         </div>
     </div>
 
-    <div id="settingsModal" class="modal-overlay" style="display: none; align-items: center; justify-content: center;">
-        <div class="modal-card" style="max-width: 100%; width: 100%; height: 100%; border-radius: 0; display: flex; flex-direction: column;">
+    <div id="activityScheduleModal" class="modal-overlay" style="z-index: 4000;">
+        <div class="modal-card" style="max-width: 450px !important; height: 80vh; max-height: 600px; display: flex; flex-direction: column; background: #f8f9fa;">
+            <div class="modal-header">
+                <h3><i class="fas fa-calendar-check"></i> 活動行程總覽</h3>
+                <span style="cursor:pointer;" onclick="closeModal('activityScheduleModal')">&times;</span>
+            </div>
+            <div id="activityScheduleList" class="event-mini-list" style="padding: 15px;"></div>
+            <div class="modal-footer" style="justify-content: center; background: white;">
+                <button class="btn-modal btn-cancel" style="width: 100%;" onclick="closeModal('activityScheduleModal')">關閉視窗</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="readReceiptModal" class="modal-overlay" style="z-index: 6000;">
+        <div class="modal-card" style="max-width: 350px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-eye"></i> 已讀成員</h3>
+                <span style="cursor:pointer;" onclick="closeModal('readReceiptModal')">&times;</span>
+            </div>
+            <div class="modal-body" style="padding: 15px;">
+                <div id="readReceiptList" class="group-members-list" style="max-height: 300px;"></div>
+            </div>
+            <div class="modal-footer" style="justify-content: center; background: white;">
+                <button class="btn-modal btn-cancel" style="width: 100%;" onclick="closeModal('readReceiptModal')">關閉</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="contextMenu" class="context-menu">
+        <button id="pinMenuBtn" onclick="pinMessage()"><i class="fas fa-thumbtack"></i> 釘選</button>
+        <button id="replyMenuBtn" onclick="triggerMenuReply()"><i class="fas fa-reply"></i> 回覆</button>
+        <button id="revokeMenuBtn" onclick="confirmRevoke()"><i class="fas fa-trash-alt"></i> 收回</button>
+    </div>
+
+    <div id="settingsModal" class="modal-overlay" style="display: none; align-items: center; justify-content: center; z-index: 5000;">
+        <div class="modal-card">
             <div class="modal-header">
                 <h3>設定</h3>
                 <span style="cursor:pointer; font-size: 1.5rem;" onclick="closeSettings()">&times;</span>
             </div>
             <div class="modal-body" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: white;">
-                <img id="settingsAvatar" src="https://via.placeholder.com/120" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid var(--ly-gold); margin-bottom: 20px;">
+                <img id="settingsAvatar" src="https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid var(--ly-gold); margin-bottom: 20px;">
                 <h2 id="settingsName" style="color: var(--ly-blue); margin-bottom: 40px;">成員名稱</h2>
-                
                 <button class="btn-modal btn-confirm" style="width: 200px; background: #dc3545; font-size: 1.1rem;" onclick="handleLogout()">
                     <i class="fas fa-sign-out-alt"></i> 登出
                 </button>
             </div>
         </div>
     </div>
-    </body>
+
+    <div id="doc-preview-modal" class="doc-modal" onclick="if(event.target === this) closeModal('doc-preview-modal')">
+        <article class="doc-paper">
+            <button class="doc-close-btn" onclick="closeModal('doc-preview-modal')">&times;</button>
+            <header class="doc-header"></header>
+            <section id="doc-content" style="line-height: 1.8; color: #333;"></section>
+            <section id="vote-area" class="vote-panel" style="display: none;"></section>
+            <h3 class="doc-sub-title" style="font-size: 1rem; margin-top: 30px;">參與成員 <span id="participant-count-tag" style="font-size: 0.85rem; color: #666; font-weight: normal;"></span></h3>
+            <div id="voter-list" class="voter-grid"></div>
+            <div id="doc-creation-info" style="color: #aaa; text-align: center; font-size: 0.8rem; margin-top: 30px;"></div>
+        </article>
+    </div>
+
+    <div id="imageModal" class="image-modal" onclick="if(event.target === this) closeModal('imageModal')">
+        <span class="image-modal-close" onclick="closeModal('imageModal')">&times;</span>
+        <img class="image-modal-content" id="expandedImg">
+    </div>
+
+    <div id="image-viewer-modal" onclick="handleViewerClick(event)" style="display: none; position: fixed; z-index: 20000; left: 0; top: 0; width: 100vw; height: 100dvh; background-color: rgba(0, 0, 0, 0.95); flex-direction: column; overflow: hidden;">
+        <div class="viewer-header">
+            <div class="viewer-counter" id="viewer-counter">1 / 1</div>
+            <div class="viewer-controls-group">
+                <button class="viewer-btn-text" onclick="event.stopPropagation(); downloadCurrentImage()"><i class="fas fa-download"></i> 下載此張</button>
+                <button class="viewer-btn-text" onclick="event.stopPropagation(); downloadAllImages()"><i class="fas fa-images"></i> 下載全部</button>
+                <button class="viewer-close" onclick="event.stopPropagation(); closeModal('image-viewer-modal'); detachSliderEvents();">&times;</button>
+            </div>
+        </div>
+        <div class="slider-container" id="slider-container"><div class="slider-track" id="slider-track"></div></div>
+        <div class="viewer-thumbnails" id="viewer-thumbnails" onclick="event.stopPropagation()"></div>
+        <div class="viewer-hint"><i class="fas fa-hand-pointer"></i> 左右拖曳切換</div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-storage-compat.js"></script>
+
+    <script>
+    // ==========================================
+    // 1. Firebase 與全域變數初始化
+    // ==========================================
+    const firebaseConfig = {
+        apiKey: "AIzaSyACnoimIASfb1rb59SbgLDkUmyYR6ODbUU",
+        authDomain: "llwb-ed686.firebaseapp.com",
+        projectId: "llwb-ed686",
+        storageBucket: "llwb-ed686.firebasestorage.app",
+        messagingSenderId: "940345852074",
+        appId: "1:940345852074:web:7a30cca5a6d997a92350d3"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    const storage = firebase.storage();
+    const MAX_FILE_SIZE = 10 * 1024 * 1024;
+
+    db.settings({ experimentalForceLongPolling: true, useFetchStreams: false });
+
+    // 全域快取與狀態
+    const userCache = {};
+    let currentChatId = null;
+    let chatSnapshotUnsubscribe = null;
+    let messagesSnapshotUnsubscribe = null;
+    let opponentInChat = false;
+    let opponentReadTime = new Date(0);
+    window.isCurrentChatGroup = false;
+    window.currentGroupMembers = [];
+    window.groupReadTimes = {};
+    window.chatMembersCache = {};
+    let messagesDocsData = []; // 存儲當前聊天訊息
+
+    // 工具函式
+    function escapeHtml(str) { return str ? str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;") : ""; }
+    function linkify(text) { return text ? text.replace(/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig, '<a href="$1" target="_blank" style="color: inherit; text-decoration: underline; word-break: break-all;">$1</a>') : ""; }
+    function highlightMentions(text) { return text ? text.replace(/@([^\s]+)/g, '<span class="mention-highlight">@$1</span>') : ""; }
+    function formatChatDate(timestamp) {
+        if (!timestamp) return "";
+        const date = timestamp.toDate(), now = new Date();
+        return date.toDateString() === now.toDateString() ? date.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: true }) : `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+    }
+
+    // Modal 控制
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+    function removeInitLoader() { const loader = document.getElementById('appInitLoader'); if(loader) { loader.style.opacity='0'; setTimeout(()=>loader.style.display='none', 300); } }
+
+    // ==========================================
+    // 2. SPA 切換與手勢控制
+    // ==========================================
+    const chatViewDOM = document.getElementById('chatView');
+    let isChatSwiping = false, chatPageStartX = 0, chatPageCurrentX = 0;
+
+    function openChatRoom(chatId) {
+        currentChatId = chatId;
+        chatViewDOM.style.transform = 'translateX(0%)';
+        initChatData(chatId);
+    }
+
+    function closeChatRoom() {
+        chatViewDOM.style.transform = 'translateX(100%)';
+        if (chatSnapshotUnsubscribe) { chatSnapshotUnsubscribe(); chatSnapshotUnsubscribe = null; }
+        if (messagesSnapshotUnsubscribe) { messagesSnapshotUnsubscribe(); messagesSnapshotUnsubscribe = null; }
+        currentChatId = null;
+        updateMyStatus(false);
+    }
+
+    chatViewDOM.addEventListener('touchstart', (e) => {
+        if (e.touches[0].clientX < 40) { isChatSwiping = true; chatPageStartX = e.touches[0].clientX; chatViewDOM.style.transition = 'none'; }
+    });
+    chatViewDOM.addEventListener('touchmove', (e) => {
+        if (!isChatSwiping) return;
+        chatPageCurrentX = e.touches[0].clientX - chatPageStartX;
+        if (chatPageCurrentX > 0) { e.preventDefault(); chatViewDOM.style.transform = `translateX(${chatPageCurrentX}px)`; }
+    }, { passive: false });
+    chatViewDOM.addEventListener('touchend', (e) => {
+        if (!isChatSwiping) return;
+        isChatSwiping = false;
+        chatViewDOM.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
+        if (chatPageCurrentX > window.innerWidth / 3) closeChatRoom();
+        else chatViewDOM.style.transform = 'translateX(0%)';
+        chatPageCurrentX = 0;
+    });
+
+    // ==========================================
+    // 3. Auth, 推播與 Messenger 列表載入
+    // ==========================================
+    async function initPushNotifications(userId) {
+        if (typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform()) {
+            try {
+                const { PushNotifications } = Capacitor.Plugins;
+                let permStatus = await PushNotifications.checkPermissions();
+                if (permStatus.receive === 'prompt') permStatus = await PushNotifications.requestPermissions();
+                if (permStatus.receive !== 'granted') return;
+                await PushNotifications.register();
+                PushNotifications.addListener('registration', async (token) => {
+                    await db.collection("act").doc(userId).set({ pushToken: token.value }, { merge: true });
+                });
+            } catch(e) { console.error("推播錯誤:", e); }
+        }
+    }
+
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            db.collection("act").doc(user.uid).get().then(doc => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    document.getElementById('myName').innerText = data.displayName || "未設定名稱";
+                    document.getElementById('myAvatar').src = data.photoURL || 'https://via.placeholder.com/45';
+                }
+            });
+
+            db.collection("chats")
+              .where("members", "array-contains", user.uid)
+              .orderBy("updatedAt", "desc")
+              .onSnapshot(renderChatList);
+              
+            initPushNotifications(user.uid);
+            
+            // 監聽上下線
+            window.addEventListener('focus', () => updateMyStatus(true));
+            window.addEventListener('blur', () => updateMyStatus(false));
+            
+        } else {
+            window.location.replace("index.html");
+        }
+    });
+
+    async function renderChatList(snapshot) {
+        const listElement = document.getElementById('chatList');
+        if (snapshot.empty) { listElement.innerHTML = '<p style="text-align:center; color:#999; margin-top:20px;">暫無對話</p>'; removeInitLoader(); return; }
+
+        const currentUser = auth.currentUser;
+        let docs = snapshot.docs;
+        
+        const pinnedChats = [], normalChats = [];
+        docs.forEach(doc => {
+            const data = doc.data();
+            if (data.isGroup && data.groupName === "立法院 Legislature") pinnedChats.push(doc);
+            else normalChats.push(doc);
+        });
+        const sortedDocs = [...pinnedChats, ...normalChats];
+
+        const htmlPromises = sortedDocs.map(async (doc) => {
+            const chat = doc.data(), chatId = doc.id;
+            let title = "", avatar = "", avatarStyle = "";
+
+            if (chat.isGroup) {
+                title = chat.groupName || "未命名群組";
+                avatar = chat.groupAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(title)}&background=003153&color=fff`;
+            } else {
+                const targetUid = chat.members.find(uid => uid !== currentUser.uid);
+                if (targetUid && !userCache[targetUid]) {
+                    const userDoc = await db.collection("act").doc(targetUid).get();
+                    if (userDoc.exists) userCache[targetUid] = userDoc.data();
+                }
+                const targetData = userCache[targetUid] || { displayName: "未知成員", photoURL: "https://via.placeholder.com/45" };
+                title = targetData.displayName; avatar = targetData.photoURL;
+                avatarStyle = "width: 60px; height: 60px; margin-right: 10px;"; 
+            }
+
+            const updatedAt = chat.updatedAt ? chat.updatedAt.toDate() : new Date();
+            const myLastRead = chat.lastReadAt?.[currentUser.uid] ? chat.lastReadAt[currentUser.uid].toDate() : new Date(0);
+            const isUnread = chat.lastSenderId !== currentUser.uid && updatedAt > myLastRead;
+            const unreadClass = isUnread ? "unread" : "";
+            const pinIcon = (chat.isGroup && chat.groupName === "立法院 Legislature") ? '<i class="fas fa-thumbtack" style="color:var(--ly-gold); margin-right:6px; transform:rotate(-45deg);"></i>' : '';
+
+            let timeStr = "";
+            if (chat.updatedAt) {
+                const now = new Date();
+                if (updatedAt.toDateString() === now.toDateString()) timeStr = updatedAt.toLocaleTimeString('zh-TW', {hour: '2-digit', minute:'2-digit', hour12: false});
+                else timeStr = `${updatedAt.getFullYear()}/${(updatedAt.getMonth() + 1).toString().padStart(2,'0')}/${updatedAt.getDate().toString().padStart(2,'0')}`;
+            }
+
+            return `
+                <div class="chat-item ${unreadClass}" onclick="openChatRoom('${chatId}')">
+                    <img class="user-avatar" src="${avatar}" style="${avatarStyle}">
+                    <div class="chat-info">
+                        <div style="display:flex; justify-content:space-between; align-items:baseline;">
+                            <h4>${pinIcon}${title}</h4>
+                            <span class="chat-time">${timeStr}</span>
+                        </div>
+                        <p>${chat.lastMessage || '尚無訊息'}</p>
+                    </div>
+                </div>`;
+        });
+
+        const html = await Promise.all(htmlPromises);
+        listElement.innerHTML = html.join("");
+        removeInitLoader();
+    }
+
+    // ==========================================
+    // 4. Chat 視窗資料載入與 UI 渲染
+    // ==========================================
+    function updateMyStatus(isInChat) {
+        if (!currentChatId || !auth.currentUser) return;
+        const updateData = { [`presence.${auth.currentUser.uid}`]: isInChat };
+        if (isInChat) updateData[`lastReadAt.${auth.currentUser.uid}`] = firebase.firestore.FieldValue.serverTimestamp();
+        db.collection("chats").doc(currentChatId).update(updateData).catch(()=>{});
+    }
+
+    function initChatData(chatId) {
+        const user = auth.currentUser;
+        if (!user) return;
+        
+        document.getElementById('messageList').innerHTML = "";
+        document.getElementById('chatTitle').innerText = "載入中...";
+        window.chatMembersCache = {};
+        
+        const chatRef = db.collection("chats").doc(chatId);
+        updateMyStatus(true);
+
+        chatSnapshotUnsubscribe = chatRef.onSnapshot(doc => {
+            if (!doc.exists) return closeChatRoom();
+            const data = doc.data();
+            
+            // 釘選列處理
+            const pinnedBar = document.getElementById('pinnedMessageBar'), pinnedText = document.getElementById('pinnedText'), unpinBtn = document.getElementById('unpinBtn');
+            if (data.pinnedMessage?.text) {
+                pinnedBar.style.display = 'flex'; pinnedText.innerText = data.pinnedMessage.text;
+                pinnedText.onclick = () => scrollToOriginalMsg(data.pinnedMessage.id); unpinBtn.disabled = false;
+            } else { pinnedBar.style.display = 'none'; }
+            
+            window.isCurrentChatGroup = !!data.isGroup;
+            window.currentGroupMembers = data.members || [];
+            window.groupReadTimes = data.lastReadAt || {};
+
+            // 快取成員資料
+            window.currentGroupMembers.forEach(uid => {
+                if (!window.chatMembersCache[uid]) {
+                    window.chatMembersCache[uid] = { displayName: "載入中", photoURL: "https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true" };
+                    db.collection("act").doc(uid).get().then(uDoc => {
+                        if (uDoc.exists) { window.chatMembersCache[uid] = uDoc.data(); renderChatUI(); }
+                    });
+                }
+            });
+
+            if (data.isGroup) {
+                document.getElementById('chatTitle').innerText = data.groupName || "未命名群組";
+                document.getElementById('targetAvatar').src = data.groupAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.groupName)}&background=003153&color=fff`;
+                document.getElementById('groupSettingsContainer').style.display = 'block';
+                updateReadStatusUI();
+            } else {
+                document.getElementById('groupSettingsContainer').style.display = 'none';
+                const targetUid = data.members.find(uid => uid !== user.uid);
+                opponentInChat = data.presence ? data.presence[targetUid] : false;
+                if (data.lastReadAt && data.lastReadAt[targetUid]) opponentReadTime = data.lastReadAt[targetUid].toDate();
+                db.collection("act").doc(targetUid).get().then(uDoc => {
+                    if (uDoc.exists) {
+                        document.getElementById('chatTitle').innerText = uDoc.data().displayName;
+                        document.getElementById('targetAvatar').src = uDoc.data().photoURL || 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true';
+                    }
+                    updateReadStatusUI();
+                });
+            }
+        });
+
+        messagesSnapshotUnsubscribe = chatRef.collection("messages").orderBy("timestamp", "asc").onSnapshot(snapshot => {
+            if (user && document.hasFocus() && currentChatId === chatId) {
+                chatRef.update({ [`lastReadAt.${user.uid}`]: firebase.firestore.FieldValue.serverTimestamp() }).catch(()=>{});
+            }
+            messagesDocsData = snapshot.docs;
+            renderChatUI();
+        });
+    }
+
+    function renderChatUI() {
+        if (!messagesDocsData || !auth.currentUser) return;
+        const currentUid = auth.currentUser.uid;
+        const list = document.getElementById('messageList');
+        
+        // 保留原捲動高度判斷
+        const isAtBottom = list.scrollHeight - list.scrollTop - list.clientHeight < 50;
+        list.innerHTML = "";
+        let lastTime = null;
+
+        messagesDocsData.forEach((msgDoc, i) => {
+            const msg = msgDoc.data(), msgId = msgDoc.id;
+            const isMine = msg.senderId === currentUid;
+            const msgTime = msg.timestamp ? msg.timestamp.toDate() : new Date();
+
+            if (!lastTime || (msgTime - lastTime > 30 * 60 * 1000)) {
+                const timeDiv = document.createElement('div');
+                timeDiv.className = 'time-divider'; timeDiv.innerText = formatChatDate(msg.timestamp);
+                list.appendChild(timeDiv);
+            }
+            lastTime = msgTime;
+
+            const nextMsg = messagesDocsData[i + 1] ? messagesDocsData[i + 1].data() : null;
+            const isLastInSequence = !nextMsg || nextMsg.senderId !== msg.senderId;
+
+            const wrapper = document.createElement('div');
+            wrapper.className = `msg-wrapper ${isMine ? 'mine' : 'theirs'} ${isLastInSequence ? 'last-in-group' : ''}`;
+
+            let html = `<div class="msg-row ${isMine ? 'mine' : 'theirs'}">`;
+            
+            if (!isMine) {
+                const avatarVisibility = isLastInSequence ? 'visible' : 'hidden';
+                const senderCache = window.chatMembersCache[msg.senderId] || {};
+                const senderAvatar = senderCache.photoURL || "https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true";
+                const senderName = senderCache.displayName || "成員";
+
+                if (window.isCurrentChatGroup) {
+                    html += `<div class="msg-avatar-container" style="visibility: ${avatarVisibility}"><img src="${senderAvatar}" class="msg-avatar"><span class="msg-avatar-name">${senderName}</span></div>`;
+                } else {
+                    html += `<img src="${senderAvatar}" class="msg-avatar" style="visibility: ${avatarVisibility}">`;
+                }
+            }
+
+            let contentHtml = "", isMediaOnly = false, safeText = '[圖片/影片]', isEventCard = false;
+
+            if (msg.text) {
+                try {
+                    const parsed = JSON.parse(msg.text);
+                    if (parsed.type === 'event_share') {
+                        isEventCard = true; safeText = `分享了活動：${parsed.title}`;
+                        contentHtml += `<div onclick="openDocPreview('${parsed.eventId}')" class="msg-event-card"><div class="msg-event-header"><i class="fas fa-bullhorn"></i> 活動分享</div><div class="msg-event-title">${parsed.title}</div><div class="msg-event-time"><i class="far fa-clock"></i> ${parsed.timeStr}</div></div>`;
+                    } else safeText = msg.text.replace(/"/g, '&quot;').replace(/'/g, "\\'");
+                } catch (e) { safeText = msg.text.replace(/"/g, '&quot;').replace(/'/g, "\\'"); }
+            }
+
+            if (msg.replyToId) contentHtml += `<div class="reply-snippet" onclick="scrollToOriginalMsg('${msg.replyToId}')"><i class="fas fa-reply"></i> ${msg.replyToText}</div>`;
+
+            if (msg.fileUrl) {
+                if (msg.fileType === 'video') contentHtml += `<video src="${msg.fileUrl}" controls class="msg-media"></video>`;
+                else contentHtml += `<img src="${msg.fileUrl}" class="msg-media" onclick="if(!skipNextClick) openImageModal(this.src)">`;
+            } 
+            
+            if (msg.text && !isEventCard) contentHtml += (msg.fileUrl ? '<br>' : '') + highlightMentions(linkify(escapeHtml(msg.text)));
+            else if (msg.fileUrl && !msg.replyToId && !isEventCard) isMediaOnly = true;
+
+            const mediaClass = isMediaOnly ? 'media-only' : '';
+            
+            let interactEvents = isMine ? 
+                `ontouchstart="handleSwipeStart(event, '${msgId}', '${safeText}', 'true'); handlePressStart(event, '${msgId}', 'true', '${safeText}')" ontouchmove="handleSwipeMove(event, this); handlePressEnd()" ontouchend="handleSwipeEnd(event, this); handlePressEnd()" onmousedown="handlePressStart(event, '${msgId}', 'true', '${safeText}')" onmouseup="handlePressEnd()" onmouseleave="handlePressEnd()" oncontextmenu="event.preventDefault(); activeMsgId='${msgId}'; activeMsgTextForMenu='${safeText}'; showContextMenu(event, true);"` : 
+                `ontouchstart="handleSwipeStart(event, '${msgId}', '${safeText}', 'false'); handlePressStart(event, '${msgId}', 'false', '${safeText}')" ontouchmove="handleSwipeMove(event, this); handlePressEnd()" ontouchend="handleSwipeEnd(event, this); handlePressEnd()" onmousedown="handlePressStart(event, '${msgId}', 'false', '${safeText}')" onmouseup="handlePressEnd()" onmouseleave="handlePressEnd()" oncontextmenu="event.preventDefault(); activeMsgId='${msgId}'; activeMsgTextForMenu='${safeText}'; showContextMenu(event, false);"`;
+
+            html += `<div id="msg-${msgId}" class="msg ${isMine ? 'mine' : 'theirs'} ${mediaClass}" ${interactEvents}>${contentHtml}</div></div>`;
+            wrapper.innerHTML = html;
+            list.appendChild(wrapper);
+        });
+
+        updateReadStatusUI();
+        if(isAtBottom) scrollToBottom();
+    }
+
+    // 已讀邏輯
+    function getReaders(msgTime) {
+        if (!window.isCurrentChatGroup || !window.groupReadTimes || !msgTime) return [];
+        const readers = [];
+        window.currentGroupMembers.forEach(uid => {
+            if (uid !== auth.currentUser.uid && window.groupReadTimes[uid] && window.groupReadTimes[uid].toDate() >= msgTime) readers.push(uid);
+        });
+        return readers;
+    }
+
+    function openReadModal(uidsStr) {
+        if (!uidsStr) return;
+        const uids = uidsStr.split(','), listEl = document.getElementById('readReceiptList');
+        listEl.innerHTML = '';
+        uids.forEach(uid => {
+            const member = window.chatMembersCache[uid] || {}, name = member.displayName || "成員", photo = member.photoURL || 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true';
+            listEl.innerHTML += `<div class="member-item"><img src="${photo}" alt="avatar"><span>${name}</span></div>`;
+        });
+        openModal('readReceiptModal');
+    }
+
+    function updateReadStatusUI() {
+        if (!messagesDocsData || !auth.currentUser) return;
+        document.querySelectorAll('.read-status').forEach(el => el.remove());
+        const currentUid = auth.currentUser.uid;
+
+        if (!window.isCurrentChatGroup) {
+            let lastReadMsgId = null;
+            for (let i = messagesDocsData.length - 1; i >= 0; i--) {
+                const msg = messagesDocsData[i].data(), msgTime = msg.timestamp ? msg.timestamp.toDate() : new Date();
+                if (msg.senderId === currentUid && msgTime <= opponentReadTime) { lastReadMsgId = messagesDocsData[i].id; break; }
+            }
+            if (lastReadMsgId) {
+                const wrapper = document.getElementById('msg-' + lastReadMsgId)?.closest('.msg-wrapper');
+                if (wrapper) wrapper.insertAdjacentHTML('beforeend', `<div class="read-status">已讀</div>`);
+            }
+        } else {
+            messagesDocsData.forEach(doc => {
+                const msg = doc.data(), msgTime = msg.timestamp ? msg.timestamp.toDate() : new Date();
+                if (msg.senderId === currentUid) {
+                    const readers = getReaders(msgTime);
+                    if (readers.length > 0) {
+                        let names = readers.map(uid => (window.chatMembersCache[uid]?.displayName || "成員"));
+                        let displayText = names.length <= 2 ? names.join("、") : names.slice(0, 2).join("、") + `...等 ${names.length} 人`;
+                        const readHtml = `<div class="read-status group-read" onclick="openReadModal('${readers.join(',')}')">已讀: ${displayText}</div>`;
+                        const wrapper = document.getElementById('msg-' + doc.id)?.closest('.msg-wrapper');
+                        if (wrapper) wrapper.insertAdjacentHTML('beforeend', readHtml);
+                    }
+                }
+            });
+        }
+    }
+
+    // ==========================================
+    // 5. Chat 互動功能 (發送、傳檔、選單、收回)
+    // ==========================================
+    function scrollToBottom(smooth = false) {
+        const list = document.getElementById('messageList');
+        if (list) list.scrollTo({ top: list.scrollHeight, behavior: smooth ? 'smooth' : 'auto' });
+    }
+    document.getElementById('messageList').addEventListener('scroll', function() {
+        document.getElementById('scrollBottomBtn').style.display = (this.scrollHeight - this.scrollTop - this.clientHeight > 150) ? 'flex' : 'none';
+    });
+
+    async function sendMessage() {
+        const input = document.getElementById('msgInput'), text = input.value.trim();
+        if (!text || !currentChatId) return;
+        const user = auth.currentUser;
+        input.value = ""; scrollToBottom(true); 
+
+        try {
+            const batch = db.batch(), chatRef = db.collection("chats").doc(currentChatId), msgRef = chatRef.collection("messages").doc();
+            batch.set(msgRef, { text: text, senderId: user.uid, timestamp: firebase.firestore.FieldValue.serverTimestamp(), replyToId: activeReplyId || null, replyToText: activeReplyText || null });
+            batch.update(chatRef, { lastMessage: text, lastSenderId: user.uid, updatedAt: firebase.firestore.FieldValue.serverTimestamp(), [`lastReadAt.${user.uid}`]: firebase.firestore.FieldValue.serverTimestamp() });
+            await batch.commit();
+            cancelReply();
+        } catch (error) { console.error("發送失敗:", error); }
+    }
+    document.getElementById('msgInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+    document.getElementById('messageList').addEventListener('click', () => { document.getElementById('msgInput').blur(); });
+
+    // 檔案上傳與壓縮
+    function compressImageClientSide(file, maxSizeMB) {
+        return new Promise((resolve, reject) => {
+            const maxSize = maxSizeMB * 1024 * 1024, reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = event => {
+                const img = new Image(); img.src = event.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width, height = img.height, maxDim = 4000;
+                    if (width > maxDim || height > maxDim) {
+                        if (width > height) { height = Math.round(height * (maxDim / width)); width = maxDim; } 
+                        else { width = Math.round(width * (maxDim / height)); height = maxDim; }
+                    }
+                    canvas.width = width; canvas.height = height;
+                    const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
+                    let quality = 0.9;
+                    const compress = () => {
+                        canvas.toBlob(blob => {
+                            if (!blob) return reject(new Error("處理失敗"));
+                            if (blob.size <= maxSize || quality <= 0.1) resolve(new File([blob], file.name.replace(/\.[^/.]+$/, "") + "_compressed.jpg", { type: 'image/jpeg' }));
+                            else { quality -= 0.1; compress(); }
+                        }, 'image/jpeg', quality);
+                    };
+                    compress();
+                };
+            };
+        });
+    }
+
+    document.getElementById('fileInput').addEventListener('change', async (e) => {
+        let file = e.target.files[0]; if (!file || !currentChatId) return;
+        const fileType = file.type.startsWith('video/') ? 'video' : 'image', user = auth.currentUser, inputField = document.getElementById('msgInput'), originalPlaceholder = inputField.placeholder;
+        
+        if (fileType === 'video' && file.size > MAX_FILE_SIZE) { alert("影片請小於 10MB！"); e.target.value = ''; return; }
+        if (fileType === 'image' && file.size > MAX_FILE_SIZE) {
+            inputField.placeholder = "圖片壓縮中..."; inputField.disabled = true;
+            try { file = await compressImageClientSide(file, 9.5); } catch (err) { alert("壓縮失敗"); e.target.value=''; inputField.placeholder = originalPlaceholder; inputField.disabled = false; return; }
+        }
+
+        inputField.placeholder = "上傳中..."; inputField.disabled = true;
+        try {
+            const snapshot = await storage.ref(`chat/${currentChatId}/${Date.now()}_${file.name}`).put(file);
+            const downloadUrl = await snapshot.ref.getDownloadURL();
+            const batch = db.batch(), chatRef = db.collection("chats").doc(currentChatId), msgRef = chatRef.collection("messages").doc();
+            
+            batch.set(msgRef, { text: "", fileUrl: downloadUrl, fileType: fileType, senderId: user.uid, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+            batch.update(chatRef, { lastMessage: fileType === 'image' ? '[圖片]' : '[影片]', lastSenderId: user.uid, updatedAt: firebase.firestore.FieldValue.serverTimestamp(), [`lastReadAt.${user.uid}`]: firebase.firestore.FieldValue.serverTimestamp() });
+            await batch.commit();
+        } catch (error) { alert("上傳失敗。"); } 
+        finally { inputField.placeholder = originalPlaceholder; inputField.disabled = false; e.target.value = ''; }
+    });
+
+    // 長按選單邏輯
+    let pressTimer, activeMsgId = null, activeMsgTextForMenu = "", longPressActive = false, skipNextClick = false;
+    function handlePressStart(e, msgId, isMineStr, text) {
+        if (e.button === 2) return;
+        activeMsgId = msgId; activeMsgTextForMenu = text; longPressActive = false;
+        pressTimer = setTimeout(() => { longPressActive = true; showContextMenu(e, isMineStr === 'true'); }, 300);
+    }
+    function handlePressEnd() {
+        clearTimeout(pressTimer);
+        if (longPressActive) { skipNextClick = true; longPressActive = false; setTimeout(() => skipNextClick = false, 100); }
+    }
+    function showContextMenu(e, isMine) {
+        if(e && e.cancelable) e.preventDefault(); 
+        const menu = document.getElementById('contextMenu');
+        document.getElementById('revokeMenuBtn').style.display = isMine ? 'flex' : 'none';
+        menu.style.display = 'flex'; menu.style.flexDirection = 'row'; menu.style.gap = '2px';
+        
+        const msgEl = document.getElementById('msg-' + activeMsgId); if (!msgEl) return;
+        const rect = msgEl.getBoundingClientRect();
+        let topPos = rect.top - menu.offsetHeight - 8; if (topPos < 90) topPos = rect.bottom + 8;
+        let leftPos = rect.left + (rect.width / 2) - (menu.offsetWidth / 2);
+        if (leftPos < 10) leftPos = 10; if (leftPos + menu.offsetWidth > window.innerWidth - 10) leftPos = window.innerWidth - menu.offsetWidth - 10;
+        menu.style.left = `${leftPos}px`; menu.style.top = `${topPos}px`;
+    }
+    function closeContextMenu() { document.getElementById('contextMenu').style.display = 'none'; activeMsgId = null; }
+    document.addEventListener('click', (e) => { if (skipNextClick) { e.preventDefault(); e.stopPropagation(); return; } if (!e.target.closest('.context-menu')) closeContextMenu(); }, true); 
+    document.addEventListener('scroll', closeContextMenu, true);
+
+    async function confirmRevoke() {
+        if (!activeMsgId || !confirm("確定收回？")) return;
+        try {
+            const chatRef = db.collection("chats").doc(currentChatId), msgRef = chatRef.collection("messages").doc(activeMsgId), msgDoc = await msgRef.get();
+            if (msgDoc.exists) {
+                if (msgDoc.data().fileUrl) await storage.refFromURL(msgDoc.data().fileUrl).delete().catch(()=>{});
+                await msgRef.delete();
+                const lastMsgSnap = await chatRef.collection("messages").orderBy("timestamp", "desc").limit(1).get();
+                if (!lastMsgSnap.empty) {
+                    const lastData = lastMsgSnap.docs[0].data();
+                    await chatRef.update({ lastMessage: lastData.text || (lastData.fileType === 'video' ? '[影片]' : '[圖片]'), lastSenderId: lastData.senderId, updatedAt: lastData.timestamp });
+                } else await chatRef.update({ lastMessage: "尚無訊息", lastSenderId: "" });
+            }
+        } catch (e) { alert("收回失敗"); } finally { closeContextMenu(); }
+    }
+
+    async function pinMessage() {
+        if (!activeMsgId) return;
+        await db.collection("chats").doc(currentChatId).update({ pinnedMessage: { id: activeMsgId, text: activeMsgTextForMenu } });
+        closeContextMenu();
+    }
+    async function unpinMessage() { if (confirm("移除釘選？")) await db.collection("chats").doc(currentChatId).update({ pinnedMessage: firebase.firestore.FieldValue.delete() }); }
+
+    // 滑動與回覆
+    let touchStartX = 0, swipeMsgId = null, swipeMsgText = "", isSwipeMine = false;
+    function handleSwipeStart(e, id, text, isMineStr) { touchStartX = e.touches[0].clientX; swipeMsgId = id; swipeMsgText = text; isSwipeMine = isMineStr === 'true'; }
+    function handleSwipeMove(e, el) {
+        if (!touchStartX) return; let diffX = e.touches[0].clientX - touchStartX;
+        if (isSwipeMine && diffX < 0 && diffX > -80) el.style.transform = `translateX(${diffX}px)`;
+        else if (!isSwipeMine && diffX > 0 && diffX < 80) el.style.transform = `translateX(${diffX}px)`;
+    }
+    function handleSwipeEnd(e, el) {
+        if (!touchStartX) return; let diffX = e.changedTouches[0].clientX - touchStartX;
+        el.style.transition = 'transform 0.3s ease'; el.style.transform = 'translateX(0px)'; setTimeout(() => { el.style.transition = ''; }, 300);
+        if ((isSwipeMine && diffX < -45) || (!isSwipeMine && diffX > 45)) setReplyMode(swipeMsgId, swipeMsgText);
+        touchStartX = 0;
+    }
+
+    let activeReplyId = null, activeReplyText = null;
+    function setReplyMode(id, text) { activeReplyId = id; activeReplyText = text; document.getElementById('replyPreview').style.display = 'flex'; document.getElementById('replyPreviewText').innerText = text.length > 15 ? text.substring(0, 15) + '...' : text; document.getElementById('msgInput').focus(); }
+    function cancelReply() { activeReplyId = null; activeReplyText = null; document.getElementById('replyPreview').style.display = 'none'; }
+    function triggerMenuReply() { if (activeMsgId) { setReplyMode(activeMsgId, activeMsgTextForMenu); closeContextMenu(); } }
+    function scrollToOriginalMsg(id) { const el = document.getElementById('msg-' + id); if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.classList.remove('highlight-animation'); void el.offsetWidth; el.classList.add('highlight-animation'); } }
+
+    // @標記功能
+    let mentionStartIndex = -1;
+    function showMentionList(searchStr) {
+        const listEl = document.getElementById('mentionList');
+        if (!window.isCurrentChatGroup) { listEl.style.display = 'none'; return; }
+        listEl.innerHTML = ''; let hasMatches = false;
+        
+        if ("all (全員)".includes(searchStr.toLowerCase())) {
+            hasMatches = true; const item = document.createElement('div'); item.className = 'mention-item';
+            item.innerHTML = `<div style="width: 30px; height: 30px; border-radius: 50%; background: var(--ly-gold); color: white; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 14px; flex-shrink: 0;"><i class="fas fa-users"></i></div><span>All (全員)</span>`;
+            item.onmousedown = item.ontouchstart = (e) => { e.preventDefault(); insertMention("All"); }; listEl.appendChild(item);
+        }
+
+        window.currentGroupMembers.forEach(uid => {
+            if (uid === auth.currentUser?.uid) return;
+            const member = window.chatMembersCache[uid] || {}, name = member.displayName || "未知";
+            if (name.toLowerCase().includes(searchStr.toLowerCase())) {
+                hasMatches = true; const item = document.createElement('div'); item.className = 'mention-item';
+                item.innerHTML = `<img src="${member.photoURL || 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true'}"><span>${name}</span>`;
+                item.onmousedown = item.ontouchstart = (e) => { e.preventDefault(); insertMention(name); }; listEl.appendChild(item);
+            }
+        });
+        listEl.style.display = hasMatches ? 'block' : 'none';
+    }
+    function insertMention(name) {
+        const input = document.getElementById('msgInput'), val = input.value, pos = input.selectionStart;
+        if (mentionStartIndex !== -1) {
+            input.value = val.substring(0, mentionStartIndex) + '@' + name + ' ' + val.substring(pos);
+            const newPos = mentionStartIndex + name.length + 2; input.focus(); input.setSelectionRange(newPos, newPos);
+        }
+        document.getElementById('mentionList').style.display = 'none'; mentionStartIndex = -1;
+    }
+    const msgInputEl = document.getElementById('msgInput');
+    if(msgInputEl){
+        const checkMention = () => {
+            const val = msgInputEl.value, pos = msgInputEl.selectionStart; if (pos === null) return document.getElementById('mentionList').style.display = 'none';
+            const match = val.substring(0, pos).match(/(?:^|\s)@([^@\s]*)$/);
+            if (match && window.isCurrentChatGroup) { mentionStartIndex = val.substring(0, pos).lastIndexOf('@'); showMentionList(match[1]); }
+            else { document.getElementById('mentionList').style.display = 'none'; mentionStartIndex = -1; }
+        };
+        msgInputEl.addEventListener('input', checkMention); msgInputEl.addEventListener('keyup', checkMention); msgInputEl.addEventListener('click', checkMention);
+    }
+    document.addEventListener('click', (e) => { if (!e.target.closest('.mention-list') && e.target.id !== 'msgInput') document.getElementById('mentionList').style.display = 'none'; });
+
+    // ==========================================
+    // 6. 對話建立與群組管理
+    // ==========================================
+    async function startNewChat() {
+        openModal('newChatModal'); document.getElementById('targetUserName').value = '';
+        const listEl = document.getElementById('singleUserList'); listEl.innerHTML = '<div style="text-align:center;">載入中...</div>';
+        try {
+            const snap = await db.collection("act").get(); let html = '';
+            snap.forEach(doc => {
+                if (doc.id !== auth.currentUser.uid) {
+                    const data = doc.data();
+                    html += `<label class="user-select-item"><input type="radio" name="singleChatUser" value="${data.displayName}" onclick="document.getElementById('targetUserName').value = this.value"><div class="user-select-card"><img src="${data.photoURL||'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true'}"><span>${data.displayName}</span></div></label>`;
+                }
+            });
+            listEl.innerHTML = html || '<div style="text-align:center;">無資料</div>';
+        } catch(e){ listEl.innerHTML="載入失敗"; }
+    }
+
+    async function handleStartChat() {
+        const targetName = document.getElementById('targetUserName').value.trim(); if (!targetName) return;
+        try {
+            const userQuery = await db.collection("act").where("displayName", "==", targetName).limit(1).get();
+            if (userQuery.empty) return alert("找不到該人員");
+            const targetUid = userQuery.docs[0].id; if (targetUid === auth.currentUser.uid) return alert("不支援與自己對話");
+
+            const chatQuery = await db.collection("chats").where("members", "array-contains", auth.currentUser.uid).get();
+            let existId = null; chatQuery.forEach(doc => { if (doc.data().members?.length === 2 && doc.data().members.includes(targetUid)) existId = doc.id; });
+
+            closeModal('newChatModal');
+            if (existId) openChatRoom(existId);
+            else {
+                const newRef = await db.collection("chats").add({ members: [auth.currentUser.uid, targetUid], lastMessage: "剛開啟了對話", lastSenderId: auth.currentUser.uid, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+                openChatRoom(newRef.id);
+            }
+        } catch(e) { alert("開啟錯誤"); }
+    }
+
+    // 裁切器共用邏輯
+    let cropperInstance = null, targetPreviewId = null; window.croppedAvatarBlob = null;
+    function openCropper(event, previewId) {
+        const file = event.target.files[0]; targetPreviewId = previewId;
+        if (file) {
+            const reader = new FileReader(); reader.onload = e => {
+                document.getElementById('cropperImage').src = e.target.result; openModal('cropperModal');
+                if (cropperInstance) cropperInstance.destroy();
+                cropperInstance = new Cropper(document.getElementById('cropperImage'), { aspectRatio: 1, viewMode: 1, dragMode: 'move', autoCropArea: 1, cropBoxMovable: false, cropBoxResizable: false, ready: () => { document.getElementById('cropperZoomSlider').value = cropperInstance.getImageData().ratio; }, zoom: e => document.getElementById('cropperZoomSlider').value = e.detail.ratio });
+            }; reader.readAsDataURL(file);
+        } event.target.value = '';
+    }
+    function changeCropperZoom(val) { if(cropperInstance) cropperInstance.zoomTo(parseFloat(val)); }
+    function closeCropper() { closeModal('cropperModal'); if(cropperInstance) cropperInstance.destroy(); cropperInstance=null; }
+    function confirmCrop() {
+        if(!cropperInstance || !targetPreviewId) return;
+        const cvs = cropperInstance.getCroppedCanvas({ width:300, height:300, fillColor:'#fff' });
+        document.getElementById(targetPreviewId).src = cvs.toDataURL('image/jpeg');
+        cvs.toBlob(b => { window.croppedAvatarBlob = b; if(targetPreviewId==='editGroupAvatarPreview') markAsUnsaved(); closeCropper(); }, 'image/jpeg', 0.85);
+    }
+
+    async function createGroup() {
+        openModal('createGroupModal'); document.getElementById('createGroupAvatarPreview').src='https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true'; window.croppedAvatarBlob = null;
+        const listEl = document.getElementById('groupUserList'); listEl.innerHTML = '<div style="text-align:center;">載入中...</div>';
+        try {
+            const snap = await db.collection("act").get(); let html = '';
+            snap.forEach(doc => {
+                if (doc.id !== auth.currentUser.uid) html += `<label class="user-select-item"><input type="checkbox" value="${doc.id}" class="group-member-checkbox"><div class="user-select-card"><img src="${doc.data().photoURL||'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true'}"><span>${doc.data().displayName}</span></div></label>`;
+            }); listEl.innerHTML = html || '無成員';
+        } catch(e){ listEl.innerHTML="載入失敗"; }
+    }
+
+    async function handleCreateGroup() {
+        const groupName = document.getElementById('groupNameInput').value.trim(), checkboxes = document.querySelectorAll('.group-member-checkbox:checked');
+        if (!groupName) return alert('請輸入名稱！'); if (checkboxes.length === 0) return alert('請選成員！');
+        
+        const members = [auth.currentUser.uid]; checkboxes.forEach(cb => members.push(cb.value));
+        document.querySelector('#createGroupModal .btn-confirm').disabled = true;
+
+        try {
+            let groupAvatarUrl = "";
+            if (window.croppedAvatarBlob) {
+                const snap = await storage.ref(`groupAvatars/${db.collection("chats").doc().id}/${Date.now()}_avatar.jpg`).put(window.croppedAvatarBlob);
+                groupAvatarUrl = await snap.ref.getDownloadURL();
+            }
+            const newRef = await db.collection("chats").add({ isGroup: true, groupName: groupName, members: members, groupAvatar: groupAvatarUrl || null, lastMessage: "群組已建立", lastSenderId: auth.currentUser.uid, updatedAt: firebase.firestore.FieldValue.serverTimestamp(), [`lastReadAt.${auth.currentUser.uid}`]: firebase.firestore.FieldValue.serverTimestamp() });
+            closeModal('createGroupModal'); document.getElementById('groupNameInput').value = ''; openChatRoom(newRef.id);
+        } catch(e) { alert('失敗'); } finally { document.querySelector('#createGroupModal .btn-confirm').disabled = false; }
+    }
+
+    // 群組設定 (Edit)
+    function markAsUnsaved() { const b = document.getElementById('saveGroupBtn'); if(b) { b.style.display='block'; b.classList.add('btn-highlight'); b.innerText="記得儲存！"; } }
+    function resetSaveButtonState() { const b = document.getElementById('saveGroupBtn'); if(b) { b.style.display='none'; b.classList.remove('btn-highlight'); b.innerText="儲存"; } }
+    function toggleGroupOptions() {
+        const c = document.getElementById('moreOptionsContainer'), t = document.getElementById('moreOptionsToggle');
+        if(c.style.display==='none'){ c.style.display='flex'; t.innerHTML='<i class="fas fa-chevron-up"></i> 收起'; }
+        else { c.style.display='none'; t.innerHTML='<i class="fas fa-chevron-down"></i> 更多選項'; }
+    }
+
+    async function openGroupSettings() {
+        openModal('groupSettingsModal'); document.getElementById('moreOptionsContainer').style.display='none'; document.getElementById('moreOptionsToggle').innerHTML='<i class="fas fa-chevron-down"></i> 更多選項';
+        const nameInput = document.getElementById('groupNameEdit'), editMembersBtn = document.getElementById('editMembersBtn');
+        nameInput.value = document.getElementById('chatTitle').innerText;
+        document.getElementById('editGroupAvatarPreview').src = document.getElementById('targetAvatar').src;
+        window.croppedAvatarBlob = null; resetSaveButtonState();
+
+        if (nameInput.value === "立法院 Legislature" && document.getElementById('myName').innerText !== "班長") {
+            nameInput.disabled = true; document.querySelector('.avatar-edit-wrapper').style.pointerEvents='none';
+            document.querySelector('.avatar-edit-icon').style.display='none'; document.getElementById('deleteGroupBtn').style.display='none'; editMembersBtn.style.display='none';
+        } else {
+            nameInput.disabled = false; document.querySelector('.avatar-edit-wrapper').style.pointerEvents='auto';
+            document.querySelector('.avatar-edit-icon').style.display='flex'; document.getElementById('deleteGroupBtn').style.display='block'; editMembersBtn.style.display='block';
+        }
+
+        const listEl = document.getElementById('groupMembersList'); listEl.innerHTML = '載入中...';
+        try {
+            let html = '';
+            for(let uid of window.currentGroupMembers) {
+                const doc = await db.collection("act").doc(uid).get();
+                if(doc.exists) html += `<div class="member-item"><img src="${doc.data().photoURL}"><span>${doc.data().displayName}</span></div>`;
+            } listEl.innerHTML = html;
+        } catch(e){ listEl.innerHTML="失敗"; }
+    }
+
+    async function saveGroupSettings() {
+        const newName = document.getElementById('groupNameEdit').value.trim(); if (!newName) return alert('不能為空');
+        if (window.croppedAvatarBlob && !confirm("確認更改圖片？")) { window.croppedAvatarBlob=null; document.getElementById('editGroupAvatarPreview').src = document.getElementById('targetAvatar').src; return; }
+        
+        const b = document.getElementById('saveGroupBtn'); b.innerText="儲存中..."; b.disabled=true;
+        try {
+            const updateData = { groupName: newName };
+            if (window.croppedAvatarBlob) {
+                const snap = await storage.ref(`groupAvatars/${currentChatId}/${Date.now()}_avatar.jpg`).put(window.croppedAvatarBlob);
+                updateData.groupAvatar = await snap.ref.getDownloadURL();
+            }
+            await db.collection("chats").doc(currentChatId).update(updateData); closeModal('groupSettingsModal'); window.croppedAvatarBlob=null;
+        } catch(e){ alert("失敗"); } finally { b.innerText="儲存"; b.disabled=false; }
+    }
+    
+    async function deleteGroup() {
+        if (!confirm("確定刪除此群組？無法還原！")) return;
+        try { await db.collection("chats").doc(currentChatId).delete(); closeModal('groupSettingsModal'); closeChatRoom(); } catch(e){ alert("失敗"); }
+    }
+
+    async function openEditMembersModal() {
+        openModal('editMembersModal'); const listEl = document.getElementById('editMembersList'); listEl.innerHTML='載入中...';
+        try {
+            const snap = await db.collection("act").get(); let html = '';
+            snap.forEach(doc => {
+                const isChecked = window.currentGroupMembers.includes(doc.id) ? 'checked' : '';
+                html += `<label class="user-select-item"><input type="checkbox" value="${doc.id}" class="edit-group-member-checkbox" ${isChecked}><div class="user-select-card"><img src="${doc.data().photoURL}"><span>${doc.data().displayName}</span></div></label>`;
+            }); listEl.innerHTML = html;
+        } catch(e){ listEl.innerHTML="失敗"; }
+    }
+    
+    async function saveGroupMembers() {
+        const checkboxes = document.querySelectorAll('.edit-group-member-checkbox:checked'); if(checkboxes.length===0) return alert('需保留一人');
+        const newMembers = []; checkboxes.forEach(cb => newMembers.push(cb.value));
+        if(!newMembers.includes(auth.currentUser.uid)) newMembers.push(auth.currentUser.uid);
+        try { await db.collection("chats").doc(currentChatId).update({ members: newMembers }); window.currentGroupMembers = newMembers; closeModal('editMembersModal'); openGroupSettings(); } catch(e){ alert("失敗"); }
+    }
+
+    // ==========================================
+    // 7. 活動與圖片預覽系統
+    // ==========================================
+    function toggleExpandMenu(e) {
+        const panel = document.getElementById('expandMenuPanel'), btn = e.currentTarget;
+        if(panel.style.display==='flex') { panel.style.display='none'; btn.style.transform='rotate(0deg)'; }
+        else { panel.style.display='flex'; btn.style.transform='rotate(45deg)'; }
+    }
+    document.addEventListener('click', (e) => {
+        const p = document.getElementById('expandMenuPanel'), b = document.querySelector('.expand-menu-btn');
+        if(p && p.style.display==='flex' && !p.contains(e.target) && !b.contains(e.target)) { p.style.display='none'; b.style.transform='rotate(0deg)'; }
+    }, true);
+
+    async function handleActivitySchedule() {
+        document.getElementById('expandMenuPanel').style.display='none'; document.querySelector('.expand-menu-btn').style.transform='rotate(0deg)';
+        openModal('activityScheduleModal'); const listEl = document.getElementById('activityScheduleList'); listEl.innerHTML = '載入中...';
+        try {
+            const snap = await db.collection("events").get(); let events = [];
+            snap.forEach(doc => {
+                const ev = doc.data(); if(ev.isPrivate) return;
+                const timeField = ev.fields?.find(f => f.type === 'time'), sortDate = timeField?.content ? new Date(timeField.content) : (ev.createdAt?.toDate() || new Date());
+                events.push({ id: doc.id, ...ev, sortDate });
+            });
+            events.sort((a,b)=>b.sortDate - a.sortDate); if(events.length===0){ listEl.innerHTML="無行程"; return; }
+            
+            let html = '', currentYear = null;
+            events.forEach(ev => {
+                const year = ev.sortDate.getFullYear(); if(year!==currentYear){ currentYear=year; html+=`<div class="event-year-title">${year} 年度</div>`; }
+                const timeStr = ev.sortDate.toLocaleString('zh-TW', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).replace(/\//g,'-'), safeTitle = (ev.title||'').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                html += `<div class="event-mini-item" onclick="sendEventCard('${ev.id}', '${safeTitle}', '${timeStr}')"><h4 class="event-mini-title">${ev.title}</h4><div class="event-mini-meta"><i class="far fa-clock"></i> ${timeStr}</div></div>`;
+            }); listEl.innerHTML = html;
+        } catch(e){ listEl.innerHTML="失敗"; }
+    }
+
+    async function sendEventCard(eventId, title, timeStr) {
+        if(!confirm(`發布「${title}」？`)) return; closeModal('activityScheduleModal');
+        try {
+            const batch = db.batch(), chatRef = db.collection("chats").doc(currentChatId), msgRef = chatRef.collection("messages").doc();
+            batch.set(msgRef, { text: JSON.stringify({ type:'event_share', eventId:eventId, title:title, timeStr:timeStr }), senderId: auth.currentUser.uid, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+            batch.update(chatRef, { lastMessage: `分享活動：${title}`, lastSenderId: auth.currentUser.uid, updatedAt: firebase.firestore.FieldValue.serverTimestamp(), [`lastReadAt.${auth.currentUser.uid}`]: firebase.firestore.FieldValue.serverTimestamp() });
+            await batch.commit(); scrollToBottom(true);
+        } catch(e){ alert("失敗"); }
+    }
+
+    // 投票系統
+    let currentEventId = null, currentGalleryImages = [];
+    async function openDocPreview(id) {
+        currentEventId = id; currentGalleryImages = [];
+        try {
+            const docSnap = await db.collection("events").doc(id).get(); if (!docSnap.exists) return alert("找不到");
+            const ev = docSnap.data(), contentArea = document.getElementById('doc-content');
+            document.querySelector('.doc-header').innerHTML = `<h2 style="color:var(--ly-blue); text-align:center;">${ev.title}</h2><div style="text-align:center; font-size:0.85rem; color:#666;">存檔：${ev.formattedDate||'--'}</div>`;
+            contentArea.innerHTML = "";
+            ev.fields?.forEach(f => {
+                if(f.content===ev.title) return;
+                if(f.type==='image_upload' && f.content) currentGalleryImages.push(f.content);
+                else contentArea.innerHTML += `<div style="margin-bottom:20px;"><strong style="display:block; color:var(--ly-blue);">[ ${f.label} ]</strong><div>${f.content.replace('T', ' ')}</div></div>`;
+            });
+            if (currentGalleryImages.length > 0) {
+                let stack = `<div style="margin-bottom:20px;"><strong style="color:var(--ly-blue);">[ 活動剪影 ]</strong></div><div class="photo-stack-container" onclick="openImageViewer(0)">`;
+                for(let i=0; i<Math.min(currentGalleryImages.length,3); i++) stack += `<div class="photo-stack-item"><img src="${currentGalleryImages[i]}"></div>`;
+                contentArea.innerHTML += stack + `</div>`;
+            }
+            const voteArea = document.getElementById('vote-area'), isExp = ev.deadline && (new Date(ev.deadline).getTime() - new Date().getTime() <= 0);
+            voteArea.style.display = 'block'; voteArea.innerHTML = `<div class="countdown-header">${isExp?'截止':'請確認行程'}</div><div style="padding:20px 10px;"><button class="btn-vote btn-join" onclick="handleVote('join')" ${isExp?'disabled':''}>參與</button><button class="btn-vote btn-next" onclick="handleVote('next')" ${isExp?'disabled':''}>下次</button></div>`;
+            loadVotes(id); openModal('doc-preview-modal');
+        } catch(err){ alert("失敗"); }
+    }
+
+    async function handleVote(choice) {
+        if(!auth.currentUser || !currentEventId) return;
+        const eventRef = db.collection("events").doc(currentEventId);
+        try {
+            let uName = document.getElementById('myName').innerText;
+            const eDoc = await eventRef.get(); if(!eDoc.exists) return;
+            let parts = eDoc.data().participants||[], names = eDoc.data().participantNames||[];
+            if(choice==='join'){ if(!parts.includes(auth.currentUser.uid)) parts.push(auth.currentUser.uid); if(!names.includes(uName)) names.push(uName); }
+            else { parts = parts.filter(i=>i!==auth.currentUser.uid); names = names.filter(n=>n!==uName); }
+            await eventRef.update({ participants: parts, participantNames: names }); alert(choice==='join'?"已紀錄":"已移除");
+        } catch(e){}
+    }
+    
+    async function loadVotes(eventId) {
+        db.collection("events").doc(eventId).onSnapshot(async (doc) => {
+            if(!doc.exists) return; const data = doc.data();
+            document.getElementById('participant-count-tag').innerText = `(共 ${data.participants?.length||0} 人)`;
+            const jBtn = document.querySelector('.btn-join'), nBtn = document.querySelector('.btn-next');
+            if(jBtn && auth.currentUser){
+                const isJ = (data.participants||[]).includes(auth.currentUser.uid);
+                if(data.deadline && new Date().getTime() > new Date(data.deadline).getTime()){ jBtn.disabled=nBtn.disabled=true; }
+                else if(isJ){ jBtn.className='btn-vote btn-join btn-joined-locked'; jBtn.innerHTML='<i class="fas fa-check"></i> 已參與'; jBtn.disabled=true; nBtn.disabled=false; }
+                else { jBtn.className='btn-vote btn-join'; jBtn.innerHTML='參與'; jBtn.disabled=false; nBtn.disabled=false; }
+            }
+            const list = document.getElementById('voter-list');
+            if(!data.participants?.length){ list.innerHTML="<p style='color:#ccc;'>尚無成員參與...</p>"; return; }
+            
+            let html = "";
+            for(let uid of data.participants) {
+                const uDoc = await db.collection("act").doc(uid).get();
+                if(uDoc.exists) html += `<div class="voter-box"><img src="${uDoc.data().photoURL}"><span>${uDoc.data().displayName}</span></div>`;
+            } list.innerHTML = html;
+        });
+    }
+
+    // 單圖與幻燈片預覽
+    function openImageModal(src) { document.getElementById('expandedImg').src = src; openModal('imageModal'); }
+    
+    let currentSlideIndex=0, isSliderDragging=false, sliderStartPos=0, currentTranslate=0, prevTranslate=0, animationID;
+    function openImageViewer(startIndex) {
+        if(!currentGalleryImages.length) return; currentSlideIndex = startIndex||0;
+        const track = document.getElementById('slider-track'), thumbs = document.getElementById('viewer-thumbnails');
+        track.innerHTML = ""; thumbs.innerHTML = "";
+        currentGalleryImages.forEach((url, i) => {
+            track.innerHTML += `<div class="slider-slide"><img src="${url}" draggable="false"></div>`;
+            if(currentGalleryImages.length>1) {
+                const thumb = document.createElement('div'); thumb.className = 'thumbnail-item'; thumb.innerHTML = `<img src="${url}">`;
+                thumb.onclick = () => { currentSlideIndex = i; updateSliderPos(); }; thumbs.appendChild(thumb);
+            }
+        });
+        document.getElementById('image-viewer-modal').style.display='flex'; updateSliderPos(true);
+        attachSliderEvents();
+    }
+    
+    function updateSliderPos(instant=false) {
+        const target = -currentSlideIndex * window.innerWidth; prevTranslate = target; currentTranslate = target;
+        const track = document.getElementById('slider-track');
+        track.style.transition = instant ? 'none' : 'transform 0.3s ease-out'; track.style.transform = `translateX(${target}px)`;
+        document.getElementById('viewer-counter').innerText = `${currentSlideIndex + 1} / ${currentGalleryImages.length}`;
+        document.querySelectorAll('.thumbnail-item').forEach((t, i) => i===currentSlideIndex ? t.classList.add('active') : t.classList.remove('active'));
+    }
+    
+    function touchSliderStart(e) { isSliderDragging=true; sliderStartPos = e.type.includes('mouse')?e.pageX:e.touches[0].clientX; prevTranslate = -currentSlideIndex*window.innerWidth; document.getElementById('slider-track').style.transition='none'; animationID=requestAnimationFrame(sliderAnim); }
+    function touchSliderMove(e) { if(isSliderDragging){ const pos = e.type.includes('mouse')?e.pageX:e.touches[0].clientX; currentTranslate = prevTranslate + (pos - sliderStartPos); } }
+    function touchSliderEnd() { isSliderDragging=false; cancelAnimationFrame(animationID); const moved = currentTranslate - prevTranslate; if(moved < -100 && currentSlideIndex < currentGalleryImages.length-1) currentSlideIndex++; else if(moved > 100 && currentSlideIndex > 0) currentSlideIndex--; updateSliderPos(); }
+    function sliderAnim() { document.getElementById('slider-track').style.transform = `translateX(${currentTranslate}px)`; if(isSliderDragging) requestAnimationFrame(sliderAnim); }
+    function attachSliderEvents() { const c = document.getElementById('slider-container'); c.addEventListener('touchstart', touchSliderStart); c.addEventListener('touchmove', touchSliderMove, {passive:false}); c.addEventListener('touchend', touchSliderEnd); c.addEventListener('mousedown', touchSliderStart); c.addEventListener('mousemove', touchSliderMove); c.addEventListener('mouseup', touchSliderEnd); c.addEventListener('mouseleave', touchSliderEnd); }
+    function detachSliderEvents() { const c = document.getElementById('slider-container'); c.removeEventListener('touchstart', touchSliderStart); c.removeEventListener('touchmove', touchSliderMove); c.removeEventListener('touchend', touchSliderEnd); c.removeEventListener('mousedown', touchSliderStart); c.removeEventListener('mousemove', touchSliderMove); c.removeEventListener('mouseup', touchSliderEnd); }
+
+    async function downloadCurrentImage() { forceDownload(currentGalleryImages[currentSlideIndex], `photo_${Date.now()}.jpg`); }
+    async function downloadAllImages() { if(!confirm("確定下載全部？")) return; for(let i=0; i<currentGalleryImages.length; i++){ await forceDownload(currentGalleryImages[i], `batch_${i}.jpg`); await new Promise(r=>setTimeout(r,800)); } alert("已送出"); }
+    async function forceDownload(url, filename) { try { const r = await fetch(url, {mode:'cors'}); const b = await r.blob(); const l = document.createElement('a'); l.href = URL.createObjectURL(b); l.download = filename; l.click(); URL.revokeObjectURL(l.href); } catch(e){ window.open(url, '_blank'); } }
+
+    // 設定與登出
+    function openSettings() { document.getElementById('settingsName').innerText=document.getElementById('myName').innerText; document.getElementById('settingsAvatar').src=document.getElementById('myAvatar').src; openModal('settingsModal'); }
+    function closeSettings() { closeModal('settingsModal'); }
+    function handleLogout() { if(confirm("確定登出？")) auth.signOut().then(()=>window.location.href="index.html"); }
+
+    </script>
+</body>
 </html>
