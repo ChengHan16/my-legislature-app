@@ -9,6 +9,22 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     
     <style>
+        /* --- 阻擋 iOS 原生長按與選取行為 --- */
+        * {
+            /* 阻擋長按圖片時跳出「儲存/拷貝」的系統選單 */
+            -webkit-touch-callout: none !important;
+            
+            /* 阻擋全域文字選取 */
+            -webkit-user-select: none !important;
+            user-select: none !important;
+        }
+
+        /* 確保輸入框依然可以正常打字與選取文字 */
+        input, textarea {
+            -webkit-user-select: auto !important;
+            user-select: auto !important;
+        }
+
         :root { 
             --ly-blue: #003153; 
             --ly-blue-trans: rgba(0, 49, 83, 0.85); 
@@ -176,7 +192,8 @@
         .chat-item:hover { 
             transform: translateY(-3px);
             box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-            border-color: var(--ly-gold);
+            /*border-color: var(--ly-gold);*/
+            border-color: #ffffff;
         }
 
         .chat-info { flex-grow: 1; padding-left: 5px; }

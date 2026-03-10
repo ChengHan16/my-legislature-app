@@ -9,6 +9,22 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     
     <style>
+        /* --- 阻擋 iOS 原生長按與選取行為 --- */
+        * {
+            /* 阻擋長按圖片時跳出「儲存/拷貝」的系統選單 */
+            -webkit-touch-callout: none !important;
+            
+            /* 阻擋全域文字選取 */
+            -webkit-user-select: none !important;
+            user-select: none !important;
+        }
+
+        /* 確保輸入框依然可以正常打字與選取文字 */
+        input, textarea {
+            -webkit-user-select: auto !important;
+            user-select: auto !important;
+        }
+
         :root {
             --ly-blue: #003153; 
             --ly-blue-trans: rgba(0, 49, 83, 0.85); /* 半透明主藍 */
@@ -135,6 +151,16 @@
             max-width: 75%; padding: 12px 16px; font-size: 15px;
             line-height: 1.5; word-wrap: break-word;
             box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-radius: 18px;
+            
+            /* 【關鍵解鎖】：允許長按選取這裡面的文字 */
+            -webkit-user-select: auto !important;
+            user-select: auto !important;
+        }
+
+        /* 但是，如果是只有圖片的訊息，依然要封鎖選取 (避免選到圖片旁邊的空白) */
+        .msg.media-only {
+            -webkit-user-select: none !important;
+            user-select: none !important;
         }
 
         .msg.mine {
@@ -945,6 +971,79 @@ body {
     from { transform: translateX(100vw); }
     to { transform: translateX(0); }
 }
+
+/* --- 活動詳情與投票 Modal 樣式 --- */
+.doc-modal {
+    display: none; position: fixed; z-index: 9999;
+    left: 0; top: 0; width: 100vw; height: 100dvh;
+    background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    justify-content: center; align-items: flex-start;
+    padding: env(safe-area-inset-top, 20px) 0 20px 0;
+    overflow-y: auto; overflow-x: hidden;
+}
+
+.doc-paper {
+    background: #ffffff; width: 92%; max-width: 600px;
+    margin: 20px auto 50px; padding: 40px 20px; 
+    position: relative; border: 1px solid #dcdcdc;
+    box-shadow: 0 0 40px rgba(0,0,0,0.15); border-radius: 8px;
+    background-image: 
+        linear-gradient(90deg, var(--ly-blue) 0px, var(--ly-blue) 4px, transparent 4px, transparent 7px, var(--ly-gold) 7px, var(--ly-gold) 9px, transparent 9px),
+        linear-gradient(#fdfdfd 1px, transparent 1px);
+    background-size: 100% 100%, 100% 2.5rem;
+}
+
+.doc-close-btn {
+    position: absolute; right: 15px; top: 15px;
+    font-size: 2rem; cursor: pointer; color: #999;
+    background: none; border: none; z-index: 10;
+}
+
+.doc-sub-title {
+    color: var(--ly-blue); border-left: 5px solid var(--ly-gold);
+    padding-left: 15px; margin: 30px 0 20px; font-size: 1.2rem; font-weight: bold;
+}
+
+/* 投票面板 */
+.vote-panel {
+    background: #ffffff; padding: 0; border-radius: 8px;
+    border: 1px solid #e0e0e0; border-top: 5px solid var(--ly-blue);
+    text-align: center; margin-top: 40px; overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 49, 83, 0.08);
+}
+.countdown-header {
+    background: linear-gradient(135deg, #003153 0%, #004c82 100%);
+    color: #ffcc00; padding: 12px; font-weight: 800; font-size: 1.05rem;
+}
+.btn-vote {
+    padding: 12px 25px; margin: 10px; border-radius: 50px; border: none;
+    font-weight: bold; cursor: pointer; transition: 0.3s;
+    font-size: 1rem; color: white; display: inline-flex; align-items: center; gap: 8px;
+}
+.btn-join { background: var(--ly-blue); }
+.btn-next { background: #777; }
+.btn-vote:disabled { background-color: #e0e0e0 !important; color: #a0a0a0 !important; }
+.btn-joined-locked { background: linear-gradient(135deg, #d4af37, #f9e27d, #b8860b); color: #003153 !important; }
+
+/* 照片堆疊 */
+.photo-stack-container {
+    position: relative; width: 220px; height: 220px; margin: 20px auto; cursor: pointer;
+}
+.photo-stack-item {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.35); border-radius: 8px; overflow: hidden;
+}
+.photo-stack-item img { width: 100%; height: 100%; object-fit: cover; }
+.photo-stack-item:nth-child(1) { z-index: 5; transform: rotate(-3deg); }
+.photo-stack-item:nth-child(2) { z-index: 4; transform: rotate(4deg) translate(4px, 4px); }
+.photo-stack-item:nth-child(3) { z-index: 3; transform: rotate(-5deg) translate(-4px, 6px); }
+
+/* 投票頭像 */
+.voter-grid { display: flex; flex-wrap: wrap; gap: 15px; margin-top: 15px; justify-content: center; }
+.voter-box { text-align: center; width: 60px; }
+.voter-box img { width: 50px; height: 50px; border-radius: 50%; border: 2px solid var(--ly-gold); object-fit: cover; }
+.voter-box span { display: block; font-size: 0.75rem; margin-top: 5px; font-weight: bold; color: #444; }
     </style>
 </head>
 <body>
@@ -1468,16 +1567,15 @@ function renderChatUI(currentUid) {
     if (msg.text) {
         try {
             const parsed = JSON.parse(msg.text);
-            if (parsed.type === 'event_share') {
+                if (parsed.type === 'event_share') {
                 isEventCard = true;
                 safeText = `分享了活動：${parsed.title}`;
-                // 畫出活動卡片，點擊後會新開分頁跳轉到活動紀實
                 contentHtml += `
-                    <a href="event-documentation.html#${parsed.eventId}" target="_blank" class="msg-event-card">
+                    <div onclick="openDocPreview('${parsed.eventId}')" class="msg-event-card">
                         <div class="msg-event-header"><i class="fas fa-bullhorn"></i> 活動分享</div>
                         <div class="msg-event-title">${parsed.title}</div>
                         <div class="msg-event-time"><i class="far fa-clock"></i> ${parsed.timeStr}</div>
-                    </a>
+                    </div>
                 `;
             } else {
                 // 如果是普通 JSON 但不是活動 (雖然機率很低)，就當成純文字印出
@@ -3046,5 +3144,191 @@ document.addEventListener('touchend', (e) => {
         </div>
     </div>
 </div>
+
+<div id="doc-preview-modal" class="doc-modal" onclick="if(event.target === this) closeDocPreview()">
+    <article class="doc-paper">
+        <button class="doc-close-btn" onclick="closeDocPreview()">&times;</button>
+        <header class="doc-header"></header>
+        <section id="doc-content" style="line-height: 1.8; color: #333;"></section>
+        <section id="vote-area" class="vote-panel" style="display: none;"></section>
+        <h3 class="doc-sub-title" style="font-size: 1rem; margin-top: 30px;">
+            參與成員 <span id="participant-count-tag" style="font-size: 0.85rem; color: #666; font-weight: normal;"></span>
+        </h3>
+        <div id="voter-list" class="voter-grid"></div>
+        <div id="doc-creation-info" style="color: #aaa; text-align: center; font-size: 0.8rem; margin-top: 30px;"></div>
+    </article>
+</div>
+
+<script>
+let currentEventId = null;
+let currentGalleryImages = [];
+
+async function openDocPreview(id) {
+    currentEventId = id;
+    currentGalleryImages = []; 
+
+    try {
+        const docSnap = await db.collection("events").doc(id).get();
+        if (!docSnap.exists) {
+            alert("找不到該活動紀錄！");
+            return;
+        }
+        const ev = docSnap.data();
+        
+        document.querySelector('.doc-header').innerHTML = `
+            <h2 style="color: var(--ly-blue); margin: 0 0 10px 0; text-align:center;">${ev.title || "未命名活動"}</h2>
+            <div style="text-align:center; font-size:0.85rem; color:#666;">存檔日期：${ev.formattedDate || '--'}</div>
+        `;
+
+        const contentArea = document.getElementById('doc-content');
+        contentArea.innerHTML = "";
+
+        if (ev.fields) {
+            ev.fields.forEach(f => {
+                if (f.content === ev.title) return; 
+                if (f.type === 'image_upload' && f.content) {
+                    currentGalleryImages.push(f.content);
+                } else {
+                    contentArea.innerHTML += `
+                        <div style="margin-bottom: 20px;">
+                            <strong style="display:block; color:var(--ly-blue); margin-bottom:8px;">[ ${f.label} ]</strong>
+                            <div style="padding-left:10px; white-space:pre-wrap;">${f.content.replace('T', ' ')}</div>
+                        </div>`;
+                }
+            });
+        }
+
+        // 渲染照片堆疊
+        if (currentGalleryImages.length > 0) {
+            let stackHtml = `
+                <div style="margin-bottom: 20px;">
+                    <strong style="display:block; color:var(--ly-blue); margin-bottom:8px;">[ 活動剪影 ]</strong>
+                </div>
+                <div class="photo-stack-container" onclick="if(!skipNextClick) openModal('${currentGalleryImages[0]}')">
+            `;
+            for (let i = 0; i < Math.min(currentGalleryImages.length, 3); i++) {
+                stackHtml += `<div class="photo-stack-item"><img src="${currentGalleryImages[i]}"></div>`;
+            }
+            if (currentGalleryImages.length > 1) {
+                stackHtml += `<div class="photo-count-badge">+${currentGalleryImages.length - 1}</div>`;
+            }
+            contentArea.innerHTML += stackHtml + `</div>`;
+        }
+        
+        // 渲染投票與成員
+        const voteArea = document.getElementById('vote-area');
+        const user = auth.currentUser;
+        if (user) {
+            voteArea.style.display = 'block';
+            const now = new Date().getTime();
+            const isExpired = ev.deadline && (new Date(ev.deadline).getTime() - now <= 0);
+            
+            voteArea.innerHTML = `
+                <div class="countdown-header">${isExpired ? '活動調查已截止' : '請確認您的行程'}</div>
+                <div style="padding: 20px 10px;">
+                    <h3 style="margin-top:0; color:var(--ly-blue);">出席狀況調查</h3>
+                    <button class="btn-vote btn-join" onclick="handleVote('join')" ${isExpired ? 'disabled' : ''}>參與</button>
+                    <button class="btn-vote btn-next" onclick="handleVote('next')" ${isExpired ? 'disabled' : ''}>下次再聚</button>
+                </div>
+            `;
+        }
+        
+        loadVotes(id);
+        document.getElementById('doc-preview-modal').style.display = 'flex';
+        
+    } catch(err) {
+        console.error("載入活動詳情失敗", err);
+    }
+}
+
+function closeDocPreview() {
+    document.getElementById('doc-preview-modal').style.display = 'none';
+}
+
+async function handleVote(choice) {
+    const user = auth.currentUser;
+    if (!user || !currentEventId) return;
+    const eventRef = db.collection("events").doc(currentEventId);
+
+    try {
+        const actDoc = await db.collection("act").doc(user.uid).get();
+        const currentUserName = actDoc.exists ? actDoc.data().displayName : user.displayName;
+        const photoUrl = actDoc.exists ? actDoc.data().photoURL : "";
+
+        const eventDoc = await eventRef.get();
+        const eventData = eventDoc.data();
+        let updatedParticipants = eventData.participants || [];
+        let updatedParticipantNames = eventData.participantNames || [];
+
+        if (choice === 'join') {
+            if (!updatedParticipants.includes(user.uid)) updatedParticipants.push(user.uid);
+            if (!updatedParticipantNames.includes(currentUserName)) updatedParticipantNames.push(currentUserName);
+        } else {
+            updatedParticipants = updatedParticipants.filter(item => item !== user.uid && item !== currentUserName);
+            updatedParticipantNames = updatedParticipantNames.filter(name => name !== currentUserName);
+        }
+
+        await eventRef.update({
+            participants: updatedParticipants,
+            participantNames: updatedParticipantNames
+        });
+
+        alert(choice === 'join' ? "已記錄您的參與狀況" : "已從名單中移除");
+    } catch (error) {
+        console.error("投票失敗:", error);
+    }
+}
+
+async function loadVotes(eventId) {
+    const list = document.getElementById('voter-list');
+    const user = auth.currentUser;
+    
+    db.collection("events").doc(eventId).onSnapshot(async (doc) => {
+        if (!doc.exists) return;
+        const data = doc.data();
+        const participants = data.participants || [];
+        const participantNames = data.participantNames || [];
+        
+        document.getElementById('participant-count-tag').innerText = `(${participants.length}人)`;
+        
+        // 更新按鈕狀態
+        if (user) {
+            const joinBtn = document.querySelector('.btn-join');
+            const isJoined = participants.includes(user.uid);
+            if (joinBtn) {
+                if (isJoined) {
+                    joinBtn.className = 'btn-vote btn-join btn-joined-locked';
+                    joinBtn.innerHTML = '<i class="fas fa-check"></i> 您已參與';
+                    joinBtn.disabled = true;
+                } else {
+                    joinBtn.className = 'btn-vote btn-join';
+                    joinBtn.innerHTML = '參與';
+                    joinBtn.disabled = data.deadline && (new Date().getTime() > new Date(data.deadline).getTime());
+                }
+            }
+        }
+
+        if (participants.length === 0) {
+            list.innerHTML = "<p style='color:#ccc; font-size:0.8rem;'>尚無成員參與...</p>";
+            return;
+        }
+
+        let htmlContent = "";
+        for (const uid of participants) {
+            const actSnap = await db.collection("act").doc(uid).get();
+            if (actSnap.exists) {
+                const m = actSnap.data();
+                htmlContent += `
+                    <div class="voter-box">
+                        <img src="${m.photoURL || 'https://via.placeholder.com/50'}">
+                        <span>${m.displayName}</span>
+                    </div>`;
+            }
+        }
+        list.innerHTML = htmlContent;
+    });
+}
+</script>
+
 </body>
 </html>
