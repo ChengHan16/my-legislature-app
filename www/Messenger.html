@@ -155,7 +155,23 @@
         .mention-item img { width: 30px; height: 30px; border-radius: 50%; margin-right: 12px; object-fit: cover; border: 1px solid #ddd; }
         .mention-item span { font-size: 14px; font-weight: 700; color: var(--ly-blue); }
 
-        .msg-event-card { background: #fffdf5; border: 1px solid var(--ly-gold); border-radius: 8px; padding: 12px 15px; margin-top: 5px; box-shadow: 0 2px 8px rgba(207, 169, 0, 0.15); display: flex; flex-direction: column; gap: 6px; cursor: pointer; text-decoration: none; color: inherit; width: 250px; }
+        /* 【修改】：將 width 改為 min-width，讓它能自然貼齊對話氣泡 */
+        .msg-event-card { 
+            background: #fffdf5; 
+            border: 1px solid var(--ly-gold); 
+            border-radius: 8px; 
+            padding: 12px 15px; 
+            margin-top: 5px; 
+            box-shadow: 0 2px 8px rgba(207, 169, 0, 0.15); 
+            display: flex; 
+            flex-direction: column; 
+            gap: 6px; 
+            cursor: pointer; 
+            text-decoration: none; 
+            color: inherit; 
+            min-width: 230px; /* 保留最小寬度，避免文字太短時卡片變形 */
+            max-width: 100%; /* 避免超出手機螢幕 */
+        }
         .msg-event-header { font-size: 0.85rem; color: #888; border-bottom: 1px solid #eee; padding-bottom: 4px; }
         .msg-event-title { font-size: 1.05rem; font-weight: 800; color: var(--ly-blue); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .msg-event-time { font-size: 0.85rem; color: #555; display: flex; align-items: center; gap: 5px; }
@@ -210,7 +226,25 @@
         .btn-highlight { animation: pulse-save 1.5s infinite !important; border: none !important; }
 
         /* UI 元件: Scroll/Menu/Preview */
-        .scroll-bottom-btn { display: none; position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: var(--white); color: var(--ly-blue); border: 1px solid #ddd; border-radius: 20px; padding: 8px 15px; font-size: 0.9rem; box-shadow: 0 4px 10px rgba(0,0,0,0.15); cursor: pointer; z-index: 99; align-items: center; gap: 8px; font-weight: bold; }
+        .scroll-bottom-btn { 
+            display: none; 
+            position: fixed; 
+            bottom: 80px; /* 【修改】：從 90px 提高到 110px，避開輸入框 */
+            left: 50%; 
+            transform: translateX(-50%); 
+            background: var(--white); 
+            color: var(--ly-blue); 
+            border: 1px solid #ddd; 
+            border-radius: 20px; 
+            padding: 8px 15px; 
+            font-size: 0.9rem; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15); 
+            cursor: pointer; 
+            z-index: 100; /* 【修改】：提高層級確保在訊息上方 */
+            align-items: center; 
+            gap: 8px; 
+            font-weight: bold; 
+        }        
         @keyframes highlightMsg { 0% { box-shadow: 0 0 0 3px var(--ly-gold); background-color: #fff8dc; } 100% { box-shadow: 0 0 0 0 transparent; background-color: inherit; } }
         .highlight-animation { animation: highlightMsg 2s ease-out; }
 
@@ -924,9 +958,14 @@
             if (msg.replyToId) contentHtml += `<div class="reply-snippet" onclick="scrollToOriginalMsg('${msg.replyToId}')"><i class="fas fa-reply"></i> ${msg.replyToText}</div>`;
 
             if (msg.fileUrl) {
-                if (msg.fileType === 'video') contentHtml += `<video src="${msg.fileUrl}" controls class="msg-media"></video>`;
-                else contentHtml += `<img src="${msg.fileUrl}" class="msg-media" onclick="if(!skipNextClick) openImageModal(this.src)">`;
-            } 
+                if (msg.fileType === 'video') {
+                    // 【修改】：加上 onloadeddata="scrollToBottom()"
+                    contentHtml += `<video src="${msg.fileUrl}" controls class="msg-media" onloadeddata="scrollToBottom()"></video>`;
+                } else {
+                    // 【修改】：加上 onload="scrollToBottom()"
+                    contentHtml += `<img src="${msg.fileUrl}" class="msg-media" onload="scrollToBottom()" onclick="if(!skipNextClick) openImageModal(this.src)">`;
+                }
+            }
             
             if (msg.text && !isEventCard) contentHtml += (msg.fileUrl ? '<br>' : '') + highlightMentions(linkify(escapeHtml(msg.text)));
             else if (msg.fileUrl && !msg.replyToId && !isEventCard) isMediaOnly = true;
@@ -946,10 +985,15 @@
         updateReadStatusUI();
         
         // 【優化】如果是初次載入、滑動在最底部、或是最新訊息是自己發的，就強制置底
+        // 【優化】如果是初次載入、滑動在最底部、或是最新訊息是自己發的，就強制置底
         if (window.isFirstChatLoad || isAtBottom || isLastMessageMine) {
-            // 如果是初次載入就不要動畫(直接跳到底)，若是發訊息則保留動畫效果
-            scrollToBottom(!window.isFirstChatLoad); 
-            window.isFirstChatLoad = false;
+            const shouldSmooth = !window.isFirstChatLoad; // 紀錄是否需要平滑捲動
+            window.isFirstChatLoad = false; // 立即重置初次載入狀態
+            
+            // 【修改】：加入 150 毫秒的延遲，確保瀏覽器已經把 HTML 渲染到畫面上並算出正確的實際高度
+            setTimeout(() => {
+                scrollToBottom(shouldSmooth); 
+            }, 150);
         }
     }
 
