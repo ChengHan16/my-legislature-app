@@ -2976,36 +2976,18 @@ document.addEventListener('click', (e) => {
 // ==========================================
 // 完美原生感：邊緣滑動返回上一頁
 // ==========================================
-async function slideBackToMessenger() {
-    // 1. 執行退場動畫
-    document.body.style.transition = 'transform 0.25s cubic-bezier(0.25, 0.8, 0.25, 1)';
-    document.body.style.transform = 'translateX(100vw)';
-    
-    try {
-        // 2. 背景默默抓取 Messenger.html 的內容 (不會閃爍)
-        const response = await fetch('Messenger.html');
-        const htmlText = await response.text();
-        
-        // 3. 擷取 body 內的內容
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(htmlText, 'text/html');
-        const newBodyContent = doc.body.innerHTML;
-        
-        setTimeout(() => {
-            // 4. 直接替換 DOM 內容，而不是重載網頁
-            document.body.innerHTML = newBodyContent;
-            
-            // 5. 瞬間把畫面位置歸零，並解除 transform
-            document.body.style.transition = 'none';
-            document.body.style.transform = 'translateX(0)';
-            
-            // 重新綁定 Messenger.html 需要的腳本 (視情況需要手動觸發初始化函數)
-            // initMessenger(); 
-        }, 250); // 等待動畫播完
-    } catch (e) {
-        // 如果 fetch 失敗，再退回傳統跳轉
-        setTimeout(() => { window.location.href = 'Messenger.html'; }, 250);
+function slideBackToMessenger() {
+    // 1. 離開前，依然拍下當前聊天室的快照存起來，防止下次進來時轉圈圈
+    const msgList = document.getElementById('messageList');
+    if (msgList) {
+        sessionStorage.setItem('chatHTML_' + chatId, msgList.innerHTML);
+        sessionStorage.setItem('chatScroll_' + chatId, msgList.scrollTop);
     }
+
+    // 2. 移除所有 CSS 動畫與 setTimeout 延遲，直接瞬間切換！
+    // 使用 replace 可以讓底層 WebView 更快切換，且不堆疊過多歷史紀錄造成卡頓
+    // (請確保檔名大小寫完全符合你的檔案名稱)
+    window.location.replace('IOS-Messenger.html'); 
 }
 
 let isPageSwiping = false;
