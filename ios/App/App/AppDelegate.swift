@@ -1,6 +1,7 @@
 import UIKit
 import Capacitor
-import FirebaseCore // <-- 確保這行有保留
+import FirebaseCore
+import FirebaseMessaging // <-- 1. 新增這行：引入推播模組
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -9,19 +10,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         
-        // --- 終極解法：手動注入 Firebase 設定，不依賴 plist 檔案 ---
-        // 這些金鑰已對應你最新的 GoogleService-Info.plist
         let options = FirebaseOptions(googleAppID: "1:940345852074:ios:c27448e4537164c42350d3", gcmSenderID: "940345852074")
         options.apiKey = "AIzaSyBiH2WNmreh-uOoOeBmrEO482ltXRsmlww"
         options.projectID = "llwb-ed686"
         options.bundleID = "tw.legislature.app"
         
         FirebaseApp.configure(options: options)
-        // -------------------------------------------------------
         
         return true
     }
-
     // ... 下方的程式碼完全維持原樣不要動 ...
 
     func applicationWillResignActive(_ application: UIApplication) {
@@ -61,12 +58,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     // --- 貼上這段 Capacitor 推播必須的原生代碼 ---
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
-      NotificationCenter.default.post(name: .capacitorDidRegisterForRemoteNotifications, object: deviceToken)
+        
+        // <-- 新增這行：將 Apple 授權的 Token 正式移交給 Firebase
+        Messaging.messaging().apnsToken = deviceToken 
+        
+        NotificationCenter.default.post(name: .capacitorDidRegisterForRemoteNotifications, object: deviceToken)
     }
 
     func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
-      NotificationCenter.default.post(name: .capacitorDidFailToRegisterForRemoteNotifications, object: error)
+        NotificationCenter.default.post(name: .capacitorDidFailToRegisterForRemoteNotifications, object: error)
     }
     // ------------------------------------------
-
 }
