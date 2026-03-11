@@ -1,6 +1,6 @@
 import UIKit
 import Capacitor
-import FirebaseCore // <-- 1. 新增這行
+import FirebaseCore // <-- 確保這行有保留
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -9,10 +9,20 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         
-        FirebaseApp.configure() // <-- 2. 新增這行：啟動 Firebase 引擎
+        // --- 終極解法：手動注入 Firebase 設定，不依賴 plist 檔案 ---
+        // 這些金鑰已對應你最新的 GoogleService-Info.plist
+        let options = FirebaseOptions(googleAppID: "1:940345852074:ios:c27448e4537164c42350d3", gcmSenderID: "940345852074")
+        options.apiKey = "AIzaSyBiH2WNmreh-uOoOeBmrEO482ltXRsmlww"
+        options.projectID = "llwb-ed686"
+        options.bundleID = "tw.legislature.app"
+        
+        FirebaseApp.configure(options: options)
+        // -------------------------------------------------------
         
         return true
     }
+
+    // ... 下方的程式碼完全維持原樣不要動 ...
 
     func applicationWillResignActive(_ application: UIApplication) {
         // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
