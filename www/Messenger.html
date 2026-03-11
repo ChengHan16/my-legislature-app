@@ -49,10 +49,12 @@
             border-bottom: 1px solid rgba(255,255,255,0.1); padding-top: env(safe-area-inset-top);
         }
         .header-content {
-            max-width: var(--container-width); margin: 0 auto; padding: 15px 20px; height: 89px;
+            max-width: var(--container-width); margin: 0 auto; 
+            padding: 0 41px; /* 【關鍵對齊】：精準對應下方列表的偏移量 41px */
+            height: 80px;
             display: flex; align-items: center; justify-content: space-between; box-sizing: border-box;
         }
-        @media (max-width: 750px) { .header-content { padding: 15px 25px; } }
+        @media (max-width: 750px) { .header-content { padding: 0 41px; } }
         /* 確保左側個人資料區塊具有彈性，不會硬擠右邊的按鈕 */
         .user-profile { display: flex; align-items: center; flex: 1; min-width: 0; }
         .user-avatar { width: 55px; height: 55px; border-radius: 50%; object-fit: cover; margin-right: 15px; flex-shrink: 0; }
