@@ -1011,12 +1011,20 @@
 
             // 註冊成功後存 Token
             PushNotifications.addListener('registration', async (token) => {
-                console.log("拿到 Token:", token.value);
-                // 注意：這裡存入資料庫的路徑要跟後端推播腳本讀取的一致
-                await db.collection("users").doc(userId).set({ 
+                console.log("原始 Token:", token.value);
+                
+                // 檢查 Token 長度：FCM Token 通常長達 100 字元以上且包含冒號或底線
+                // 如果 token.value 很短（例如 64 位元），那是 APNs Token，Firebase Console 可能無法直接使用。
+                
+                await db.collection("act").doc(userId).set({ 
                     pushToken: token.value,
+                    platform: 'ios',
+                    env: 'production',
                     lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
                 }, { merge: true });
+                
+                // 提示使用者（測試用）
+                // alert("Token 已更新，請至後台檢查。"); 
             });
 
             // 監聽前台收到通知 (App 開啟中)
@@ -1039,26 +1047,45 @@
 
     auth.onAuthStateChanged(user => {
         if (user) {
+            // --- 1. 抓取身分資料 (加上防呆檢查) ---
             db.collection("act").doc(user.uid).get().then(doc => {
+                const nameEl = document.getElementById('myName');
+                const avatarEl = document.getElementById('myAvatar');
+
                 if (doc.exists) {
                     const data = doc.data();
-                    document.getElementById('myName').innerText = data.displayName || "未設定名稱";
-                    document.getElementById('myAvatar').src = data.photoURL || 'https://via.placeholder.com/45';
+                    // 只有真的有名字時才更新，否則顯示提示
+                    if (nameEl) nameEl.innerText = data.displayName || "身分未設定";
+                    if (avatarEl) avatarEl.src = data.photoURL || 'https://via.placeholder.com/45';
+                    
+                    // --- 2. 確定有身分資料後，才啟動推播註冊 ---
+                    if (data.displayName) {
+                        initPushNotifications(user.uid);
+                    } else {
+                        console.warn("偵測到帳號無姓名資料，推播註冊暫緩");
+                    }
+                } else {
+                    if (nameEl) nameEl.innerText = "找不到資料";
+                    // 如果連文件都不存在，建議引導去補填資料
+                    console.error("Firestore 'act' 集合中找不到此 UID 的文件");
                 }
+            }).catch(err => {
+                console.error("讀取身分失敗 (權限錯誤):", err);
+                // 如果報 Permission Error，請檢查 Firebase Rules
             });
 
+            // --- 3. 聊天室列表監聽 ---
             db.collection("chats")
-              .where("members", "array-contains", user.uid)
-              .orderBy("updatedAt", "desc")
-              .onSnapshot(renderChatList);
-              
-            initPushNotifications(user.uid);
+            .where("members", "array-contains", user.uid)
+            .orderBy("updatedAt", "desc")
+            .onSnapshot(renderChatList);
             
-            // 監聽上下線
+            // --- 4. 監聽上下線 ---
             window.addEventListener('focus', () => updateMyStatus(true));
             window.addEventListener('blur', () => updateMyStatus(false));
             
         } else {
+            // 使用 replace 避免按返回鍵又回到這一頁
             window.location.replace("index.html");
         }
     });
