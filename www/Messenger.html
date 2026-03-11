@@ -58,8 +58,17 @@
         .user-avatar { width: 55px; height: 55px; border-radius: 50%; object-fit: cover; margin-right: 15px; flex-shrink: 0; }
 
         /* 加入防長檔名換行設計，太長會自動變 ... */
-        .user-name { font-weight: 800; font-size: 1.35rem; color: white; letter-spacing: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
+/* 加入防長檔名換行設計，稍微縮小字體並強制加上右側安全間距 */
+        .user-name { 
+            font-weight: 800; 
+            font-size: 1.2rem; /* 【修改】：從 1.35rem 縮小到 1.2rem，看起來更精緻 */
+            color: white; 
+            letter-spacing: 1px; 
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+            margin-right: 15px; /* 【關鍵修改】：強制文字右邊一定要留 15px 的空白，絕對不會撞到按鈕 */
+        }
         /* 【關鍵修復】：強制右側容器水平並排，且絕對不壓縮變形 */
         .header-actions { display: flex; flex-direction: row; align-items: center; gap: 12px; flex-shrink: 0; }
 
@@ -172,7 +181,30 @@
             min-width: 230px; /* 保留最小寬度，避免文字太短時卡片變形 */
             max-width: 100%; /* 避免超出手機螢幕 */
         }
-        .msg-event-header { font-size: 0.85rem; color: #888; border-bottom: 1px solid #eee; padding-bottom: 4px; }
+        /* 活動卡片頂部標題列：改為左右並排 */
+        .msg-event-header { 
+            font-size: 0.85rem; 
+            color: #888; 
+            border-bottom: 1px solid #eee; 
+            padding-bottom: 4px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+        }
+        /* 倒數時間的警告樣式 */
+        .msg-event-countdown {
+            color: #d93025; /* 紅色警示 */
+            font-weight: 900;
+            font-size: 0.8rem;
+            background: #fff5f5;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        /* 已截止的灰色樣式 */
+        .msg-event-countdown.expired {
+            color: #999;
+            background: #f5f5f5;
+        }
         .msg-event-title { font-size: 1.05rem; font-weight: 800; color: var(--ly-blue); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .msg-event-time { font-size: 0.85rem; color: #555; display: flex; align-items: center; gap: 5px; }
 
@@ -229,7 +261,7 @@
         .scroll-bottom-btn { 
             display: none; 
             position: fixed; 
-            bottom: 80px; /* 【修改】：從 90px 提高到 110px，避開輸入框 */
+            bottom: 110px; /* 【修改】：從 90px 提高到 110px，避開輸入框 */
             left: 50%; 
             transform: translateX(-50%); 
             background: var(--white); 
@@ -309,12 +341,25 @@
         
         #settingsModal .modal-card { max-width: 100% !important; width: 100% !important; height: 100% !important; margin: 0 !important; border-radius: 0 !important; display: flex; flex-direction: column; }
         #settingsModal .modal-header { padding-top: env(safe-area-inset-top, 20px); height: calc(60px + env(safe-area-inset-top, 20px)); display: flex; align-items: center; justify-content: space-between; background: var(--ly-blue); color: white; }
+    
+        /* --- 載入中「立」字旋轉動畫 --- */
+        @keyframes spin-char {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .spin-logo-char {
+            font-size: 45px;
+            color: var(--ly-blue);
+            font-weight: 900;
+            margin-bottom: 20px;
+            animation: spin-char 1.5s linear infinite;
+            display: inline-block; /* 必須加上這個，transform 旋轉才會生效 */
+        }
     </style>
 </head>
 <body>
-
     <div id="appInitLoader" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; background: var(--bg-gray); z-index: 99999; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.3s ease;">
-        <i class="fas fa-circle-notch fa-spin" style="font-size: 40px; color: var(--ly-blue); margin-bottom: 20px;"></i>
+        <div class="spin-logo-char">立</div>
         <div style="color: var(--ly-blue); font-weight: 800; font-size: 1.1rem; letter-spacing: 1px;">資料同步中...</div>
     </div>
 
@@ -607,6 +652,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-storage-compat.js"></script>
+    <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
 
     <script>
     // ==========================================
@@ -640,6 +686,19 @@
     window.groupReadTimes = {};
     window.chatMembersCache = {};
     let messagesDocsData = []; // 存儲當前聊天訊息
+    let currentMessageLimit = 5; // 【新增】：初始只載入最新 5 則訊息
+    let isFetchingOlder = false; // 【新增】：標記是否正在向上載入舊訊息
+    let currentSubscribeMessages = null; // 【新增】：儲存重新監聽的函式
+
+    // 工具函式：字串中段省略 (Middle Ellipsis)
+    function formatMiddleEllipsis(str, maxLength = 14) {
+        if (!str || str.length <= maxLength) return str;
+        // 以 "立法院 Legislature" (15字) 為例：
+        // 前面取 8 個字 ("立法院 Legi")，後面取 4 個字 ("ture")，中間加上 "…"
+        const front = str.substring(0, 8);
+        const back = str.substring(str.length - 4);
+        return front + '…' + back;
+    }
 
     // 工具函式
     function escapeHtml(str) { return str ? str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;") : ""; }
@@ -649,6 +708,98 @@
         if (!timestamp) return "";
         const date = timestamp.toDate(), now = new Date();
         return date.toDateString() === now.toDateString() ? date.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: true }) : `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+    }
+
+    // 計算卡片上的精簡版倒數時間
+    function getCardCountdownText(deadlineStr) {
+        if (!deadlineStr) return "";
+        const now = new Date().getTime();
+        const deadline = new Date(deadlineStr).getTime();
+        const diff = deadline - now;
+        if (diff <= 0) return "已截止";
+        
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        
+        if (days >= 1) return `倒數 ${days} 天`;
+        if (hours >= 1) return `倒數 ${hours} 小時`;
+        return `倒數 ${minutes} 分鐘`;
+    }
+
+    // ==========================================
+    // 活動卡片即時倒數系統
+    // ==========================================
+    // ==========================================
+    // 活動卡片即時倒數系統 (修復初次載入延遲)
+    // ==========================================
+    // ==========================================
+    // 活動卡片即時倒數系統 (終極修復：解決 Firebase 雙次渲染覆蓋問題)
+    // ==========================================
+    window.eventDeadlineCache = window.eventDeadlineCache || {}; 
+
+    function updateDynamicCountdowns() {
+        const countdownEls = document.querySelectorAll('.dynamic-countdown');
+        if (countdownEls.length === 0) return;
+
+        countdownEls.forEach((el) => {
+            const eventId = el.getAttribute('data-event-id');
+            if (!eventId) return;
+
+            // 更新畫面的專用函式
+            const applyCountdownUI = (deadlineStr) => {
+                if (deadlineStr) {
+                    const cdText = getCardCountdownText(deadlineStr);
+                    el.innerText = cdText;
+                    el.style.display = 'inline-block'; 
+                    if (cdText === "已截止") el.classList.add('expired');
+                    else el.classList.remove('expired');
+                } else {
+                    el.style.display = 'none';
+                }
+            };
+
+            // 狀態 1：資料已經抓完並轉成字串了，直接秒速顯示
+            if (typeof window.eventDeadlineCache[eventId] === 'string') {
+                applyCountdownUI(window.eventDeadlineCache[eventId]);
+                return;
+            }
+
+            // 狀態 2：資料「正在」跟伺服器索取中（是一個 Promise）。
+            // 讓這個新生成的 HTML 標籤也加入等待行列，等抓完一起更新
+            if (window.eventDeadlineCache[eventId] instanceof Promise) {
+                window.eventDeadlineCache[eventId].then(deadlineStr => {
+                    applyCountdownUI(deadlineStr);
+                });
+                return;
+            }
+
+            // 狀態 3：完全沒抓過，發起第一次資料庫請求，並存入 Promise
+            window.eventDeadlineCache[eventId] = db.collection("events").doc(eventId).get().then(evDoc => {
+                let deadlineStr = "";
+                if (evDoc.exists && evDoc.data().deadline) {
+                    deadlineStr = evDoc.data().deadline;
+                }
+                // 抓完之後，把 Promise 替換成真正的字串，以後就不用再等了
+                window.eventDeadlineCache[eventId] = deadlineStr;
+                return deadlineStr;
+            }).catch(e => {
+                console.error("抓取活動期限失敗", e);
+                window.eventDeadlineCache[eventId] = "";
+                return "";
+            });
+
+            // 讓目前的標籤等待這個剛發起的請求
+            window.eventDeadlineCache[eventId].then(deadlineStr => {
+                applyCountdownUI(deadlineStr);
+            });
+        });
+    }
+
+    // 設定每 60 秒自動刷新一次畫面上的倒數時間
+    if (!window.countdownTimerStarted) {
+        window.countdownTimerStarted = true;
+        setInterval(updateDynamicCountdowns, 60000); 
     }
 
     // Modal 控制
@@ -802,6 +953,15 @@
                 else timeStr = `${updatedAt.getFullYear()}/${(updatedAt.getMonth() + 1).toString().padStart(2,'0')}/${updatedAt.getDate().toString().padStart(2,'0')}`;
             }
 
+            // 【新增】：防呆處理，如果 lastMessage 變成 JSON 程式碼，將它轉換回正常的預覽文字
+            let displayLastMsg = chat.lastMessage || '尚無訊息';
+            if (displayLastMsg.includes('"type":"event_share"')) {
+                try {
+                    const parsedMsg = JSON.parse(displayLastMsg);
+                    displayLastMsg = `分享了活動：${parsedMsg.title}`;
+                } catch(e) {}
+            }
+
             return `
                 <div class="chat-item ${unreadClass}" onclick="openChatRoom('${chatId}')">
                     <img class="user-avatar" src="${avatar}" style="${avatarStyle}">
@@ -810,7 +970,7 @@
                             <h4>${pinIcon}${title}</h4>
                             <span class="chat-time">${timeStr}</span>
                         </div>
-                        <p>${chat.lastMessage || '尚無訊息'}</p>
+                        <p>${displayLastMsg}</p>
                     </div>
                 </div>`;
         });
@@ -869,7 +1029,9 @@
             });
 
             if (data.isGroup) {
-                document.getElementById('chatTitle').innerText = data.groupName || "未命名群組";
+                const rawGroupName = data.groupName || "未命名群組";
+                // 【修改】：套用中段省略函式
+                document.getElementById('chatTitle').innerText = formatMiddleEllipsis(rawGroupName);
                 document.getElementById('targetAvatar').src = data.groupAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.groupName)}&background=003153&color=fff`;
                 document.getElementById('groupSettingsContainer').style.display = 'block';
                 updateReadStatusUI();
@@ -880,7 +1042,9 @@
                 if (data.lastReadAt && data.lastReadAt[targetUid]) opponentReadTime = data.lastReadAt[targetUid].toDate();
                 db.collection("act").doc(targetUid).get().then(uDoc => {
                     if (uDoc.exists) {
-                        document.getElementById('chatTitle').innerText = uDoc.data().displayName;
+                        const rawUserName = uDoc.data().displayName || "未知成員";
+                        // 【修改】：套用中段省略函式
+                        document.getElementById('chatTitle').innerText = formatMiddleEllipsis(rawUserName);
                         document.getElementById('targetAvatar').src = uDoc.data().photoURL || 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true';
                     }
                     updateReadStatusUI();
@@ -888,23 +1052,42 @@
             }
         });
 
-        messagesSnapshotUnsubscribe = chatRef.collection("messages").orderBy("timestamp", "asc").onSnapshot(snapshot => {
-            if (user && document.hasFocus() && currentChatId === chatId) {
-                chatRef.update({ [`lastReadAt.${user.uid}`]: firebase.firestore.FieldValue.serverTimestamp() }).catch(()=>{});
-            }
-            messagesDocsData = snapshot.docs;
-            renderChatUI();
-        });
-    }
+        // 【新增】：每次進入新對話時，重置為 5 則
+        currentMessageLimit = 5;
+        isFetchingOlder = false;
+
+        // 將監聽器包裝成函式，以便往上滑時可以更新 Limit 數量
+        currentSubscribeMessages = () => {
+            if (messagesSnapshotUnsubscribe) messagesSnapshotUnsubscribe();
+            
+            // 改用降序(desc)並加上 limit 來只抓取最新 N 筆
+            messagesSnapshotUnsubscribe = chatRef.collection("messages")
+                .orderBy("timestamp", "desc")
+                .limit(currentMessageLimit)
+                .onSnapshot(snapshot => {
+                    if (user && document.hasFocus() && currentChatId === chatId) {
+                        chatRef.update({ [`lastReadAt.${user.uid}`]: firebase.firestore.FieldValue.serverTimestamp() }).catch(()=>{});
+                    }
+                    
+                    // 因為降序抓下來最新訊息在最上面，我們需要將陣列反轉，讓舊的在上、新的在下
+                    messagesDocsData = snapshot.docs.slice().reverse();
+                    renderChatUI();
+                });
+        };
+        
+        currentSubscribeMessages(); // 初次觸發監聽
+    } // <-- 這是 initChatData 函式的結尾右括號
 
     function renderChatUI() {
         if (!messagesDocsData || !auth.currentUser) return;
         const currentUid = auth.currentUser.uid;
         const list = document.getElementById('messageList');
         
-        // 【優化】放寬置底判斷區間，避免差一點點導致不滾動
+        // 【新增這行】：記錄渲染前的高度，用來把畫面推回原本的相對位置
+        const oldScrollHeight = list.scrollHeight;
+        
+        // 放寬置底判斷區間
         const isAtBottom = list.scrollHeight - list.scrollTop - list.clientHeight < 150;
-        // 【優化】判斷這批訊息最後一則是不是「我剛剛發送的」
         const isLastMessageMine = messagesDocsData.length > 0 && messagesDocsData[messagesDocsData.length - 1].data().senderId === currentUid;
 
         list.innerHTML = "";
@@ -950,7 +1133,19 @@
                     const parsed = JSON.parse(msg.text);
                     if (parsed.type === 'event_share') {
                         isEventCard = true; safeText = `分享了活動：${parsed.title}`;
-                        contentHtml += `<div onclick="openDocPreview('${parsed.eventId}')" class="msg-event-card"><div class="msg-event-header"><i class="fas fa-bullhorn"></i> 活動分享</div><div class="msg-event-title">${parsed.title}</div><div class="msg-event-time"><i class="far fa-clock"></i> ${parsed.timeStr}</div></div>`;
+                        
+                        // 【修改】：完全捨棄舊的寫死方式。改用帶有 data-event-id 的動態標籤，交由計時器自動接管處理
+                        let countdownHtml = `<span class="msg-event-countdown dynamic-countdown" data-event-id="${parsed.eventId}" style="display:none;"></span>`;
+
+                        contentHtml += `
+                            <div onclick="openDocPreview('${parsed.eventId}')" class="msg-event-card">
+                                <div class="msg-event-header">
+                                    <span><i class="fas fa-bullhorn"></i> 活動分享</span>
+                                    ${countdownHtml}
+                                </div>
+                                <div class="msg-event-title">${parsed.title}</div>
+                                <div class="msg-event-time"><i class="far fa-clock"></i> ${parsed.timeStr}</div>
+                            </div>`;
                     } else safeText = msg.text.replace(/"/g, '&quot;').replace(/'/g, "\\'");
                 } catch (e) { safeText = msg.text.replace(/"/g, '&quot;').replace(/'/g, "\\'"); }
             }
@@ -982,15 +1177,21 @@
             list.appendChild(wrapper);
         });
 
+        // 在最底下的這邊加入這行
+        updateDynamicCountdowns(); // 觸發即時倒數更新
         updateReadStatusUI();
         
-        // 【優化】如果是初次載入、滑動在最底部、或是最新訊息是自己發的，就強制置底
-        // 【優化】如果是初次載入、滑動在最底部、或是最新訊息是自己發的，就強制置底
-        if (window.isFirstChatLoad || isAtBottom || isLastMessageMine) {
-            const shouldSmooth = !window.isFirstChatLoad; // 紀錄是否需要平滑捲動
-            window.isFirstChatLoad = false; // 立即重置初次載入狀態
-            
-            // 【修改】：加入 150 毫秒的延遲，確保瀏覽器已經把 HTML 渲染到畫面上並算出正確的實際高度
+        // 【新增】：如果是往上拉載入舊訊息，把卷軸推回原本的相對位置，不要置底
+        if (isFetchingOlder) {
+            setTimeout(() => {
+                list.scrollTop = list.scrollHeight - oldScrollHeight;
+                isFetchingOlder = false; // 恢復狀態
+            }, 0);
+        } 
+        // 否則如果是初次載入、滑動在最底部、或是最新訊息是自己發的，就強制置底
+        else if (window.isFirstChatLoad || isAtBottom || isLastMessageMine) {
+            const shouldSmooth = !window.isFirstChatLoad; 
+            window.isFirstChatLoad = false; 
             setTimeout(() => {
                 scrollToBottom(shouldSmooth); 
             }, 150);
@@ -1057,8 +1258,24 @@
         const list = document.getElementById('messageList');
         if (list) list.scrollTo({ top: list.scrollHeight, behavior: smooth ? 'smooth' : 'auto' });
     }
+    // --- 監聽訊息清單捲動，控制按鈕與載入歷史紀錄 ---
+    // --- 監聽訊息清單捲動，控制按鈕與載入歷史紀錄 ---
     document.getElementById('messageList').addEventListener('scroll', function() {
-        document.getElementById('scrollBottomBtn').style.display = (this.scrollHeight - this.scrollTop - this.clientHeight > 150) ? 'flex' : 'none';
+        const btn = document.getElementById('scrollBottomBtn');
+        btn.style.display = (this.scrollHeight - this.scrollTop - this.clientHeight > 150) ? 'flex' : 'none';
+
+        // 【新增】：當捲動到最頂部 (scrollTop === 0) 且可能還有舊訊息時，觸發載入
+        if (this.scrollTop === 0 && messagesDocsData.length >= currentMessageLimit) {
+            isFetchingOlder = true;
+            currentMessageLimit += 10; // 往上滑一次，多載入 10 則舊訊息
+            
+            // 在頂部插入一個臨時的載入中動畫
+            const loaderHtml = '<div id="historyLoader" style="text-align:center; padding:15px; color:#999; font-size:0.85rem;"><i class="fas fa-spinner fa-spin"></i> 載入過往紀錄...</div>';
+            this.insertAdjacentHTML('afterbegin', loaderHtml);
+            
+            // 呼叫重新監聽 (抓取更多資料)
+            if (currentSubscribeMessages) currentSubscribeMessages();
+        }
     });
 
     async function sendMessage() {
@@ -1077,6 +1294,56 @@
     }
     document.getElementById('msgInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
     document.getElementById('messageList').addEventListener('click', () => { document.getElementById('msgInput').blur(); });
+
+    // ==========================================
+    // 前端影片壓縮引擎 (FFmpeg.wasm)
+    // ==========================================
+    const { createFFmpeg, fetchFile } = FFmpeg;
+    // 初始化 FFmpeg，設定 log: false 避免終端機洗版
+    const ffmpeg = createFFmpeg({ log: false }); 
+
+    async function compressVideoClientSide(file, inputField) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                // 1. 載入 FFmpeg 核心 (只需載入一次)
+                if (!ffmpeg.isLoaded()) {
+                    inputField.placeholder = "初次啟動影片壓縮引擎中...";
+                    await ffmpeg.load();
+                }
+
+                inputField.placeholder = "影片壓縮中，請勿關閉視窗...";
+                
+                // 2. 將使用者的影片寫入 FFmpeg 的虛擬記憶體中
+                const inputName = 'input' + file.name.substring(file.name.lastIndexOf('.'));
+                const outputName = 'output.mp4';
+                ffmpeg.FS('writeFile', inputName, await fetchFile(file));
+
+                // 3. 執行壓縮指令
+                // 指令說明：
+                // -vf scale=-2:720 (最高畫質限制為 720p，維持比例)
+                // -vcodec libx264 (使用高壓縮比的 h264 編碼)
+                // -crf 28 (畫質與檔案大小的平衡點，數字越大檔案越小，28 是不錯的手機觀看畫質)
+                // -preset veryfast (加快壓縮速度)
+                await ffmpeg.run('-i', inputName, '-vf', 'scale=-2:720', '-vcodec', 'libx264', '-crf', '28', '-preset', 'veryfast', outputName);
+
+                // 4. 從虛擬記憶體讀取壓縮後的檔案
+                const data = ffmpeg.FS('readFile', outputName);
+                
+                // 5. 轉換為 Blob 與 File 物件回傳
+                const blob = new Blob([data.buffer], { type: 'video/mp4' });
+                const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + "_compressed.mp4", { type: 'video/mp4' });
+                
+                // 清理虛擬記憶體
+                ffmpeg.FS('unlink', inputName);
+                ffmpeg.FS('unlink', outputName);
+                
+                resolve(compressedFile);
+            } catch (error) {
+                console.error("影片壓縮失敗:", error);
+                reject(error);
+            }
+        });
+    }
 
     // 檔案上傳與壓縮
     function compressImageClientSide(file, maxSizeMB) {
@@ -1108,27 +1375,94 @@
         });
     }
 
+    // ==========================================
+    // 檔案上傳與前端極致壓縮邏輯
+    // ==========================================
     document.getElementById('fileInput').addEventListener('change', async (e) => {
-        let file = e.target.files[0]; if (!file || !currentChatId) return;
-        const fileType = file.type.startsWith('video/') ? 'video' : 'image', user = auth.currentUser, inputField = document.getElementById('msgInput'), originalPlaceholder = inputField.placeholder;
-        
-        if (fileType === 'video' && file.size > MAX_FILE_SIZE) { alert("影片請小於 10MB！"); e.target.value = ''; return; }
-        if (fileType === 'image' && file.size > MAX_FILE_SIZE) {
-            inputField.placeholder = "圖片壓縮中..."; inputField.disabled = true;
-            try { file = await compressImageClientSide(file, 9.5); } catch (err) { alert("壓縮失敗"); e.target.value=''; inputField.placeholder = originalPlaceholder; inputField.disabled = false; return; }
-        }
+        let file = e.target.files[0]; 
+        if (!file || !currentChatId) return;
 
-        inputField.placeholder = "上傳中..."; inputField.disabled = true;
+        const fileType = file.type.startsWith('video/') ? 'video' : 'image';
+        const user = auth.currentUser;
+        const inputField = document.getElementById('msgInput');
+        const originalPlaceholder = inputField.placeholder;
+        const sendBtn = document.querySelector('.send-btn');
+
+        // 鎖定輸入框，防止壓縮期間使用者亂點
+        inputField.disabled = true;
+        sendBtn.disabled = true;
+
         try {
+            // --- 處理大圖片壓縮 ---
+            if (fileType === 'image') {
+                if (file.size > MAX_FILE_SIZE || file.size > 2 * 1024 * 1024) { // 超過 2MB 就強制壓縮
+                    inputField.placeholder = "圖片智慧壓縮中...";
+                    file = await compressImageClientSide(file, 9.5); // 目標壓到 10MB 以下
+                }
+            } 
+            
+            // --- 處理大影片壓縮 (FFmpeg.wasm) ---
+            else if (fileType === 'video') {
+                if (file.size > 15 * 1024 * 1024) { 
+                    // 如果影片大於 15MB，提示使用者這需要時間
+                    if (!confirm("此影片較大，前端壓縮可能需要 10~30 秒，確定要處理嗎？")) {
+                        throw new Error("USER_CANCEL");
+                    }
+                }
+                
+                // 只要超過 5MB 就進行前端影片壓縮
+                if (file.size > 5 * 1024 * 1024) {
+                    file = await compressVideoClientSide(file, inputField);
+                    
+                    // 壓縮完如果還是大於 10MB (非常罕見)，做最後防線攔截
+                    if (file.size > MAX_FILE_SIZE) {
+                        alert("影片壓縮後仍大於 10MB，請上傳較短的影片。");
+                        throw new Error("FILE_TOO_LARGE");
+                    }
+                }
+            }
+
+            // --- 正式上傳至 Firebase Storage ---
+            inputField.placeholder = "加密上傳中，請稍候...";
+            
             const snapshot = await storage.ref(`chat/${currentChatId}/${Date.now()}_${file.name}`).put(file);
             const downloadUrl = await snapshot.ref.getDownloadURL();
-            const batch = db.batch(), chatRef = db.collection("chats").doc(currentChatId), msgRef = chatRef.collection("messages").doc();
             
-            batch.set(msgRef, { text: "", fileUrl: downloadUrl, fileType: fileType, senderId: user.uid, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
-            batch.update(chatRef, { lastMessage: fileType === 'image' ? '[圖片]' : '[影片]', lastSenderId: user.uid, updatedAt: firebase.firestore.FieldValue.serverTimestamp(), [`lastReadAt.${user.uid}`]: firebase.firestore.FieldValue.serverTimestamp() });
+            // 寫入 Firestore 訊息資料庫
+            const batch = db.batch();
+            const chatRef = db.collection("chats").doc(currentChatId);
+            const msgRef = chatRef.collection("messages").doc();
+            
+            batch.set(msgRef, { 
+                text: "", 
+                fileUrl: downloadUrl, 
+                fileType: fileType, 
+                senderId: user.uid, 
+                timestamp: firebase.firestore.FieldValue.serverTimestamp() 
+            });
+            
+            batch.update(chatRef, { 
+                lastMessage: fileType === 'image' ? '[圖片]' : '[影片]', 
+                lastSenderId: user.uid, 
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp(), 
+                [`lastReadAt.${user.uid}`]: firebase.firestore.FieldValue.serverTimestamp() 
+            });
+            
             await batch.commit();
-        } catch (error) { alert("上傳失敗。"); } 
-        finally { inputField.placeholder = originalPlaceholder; inputField.disabled = false; e.target.value = ''; }
+
+        } catch (error) {
+            if (error.message !== "USER_CANCEL" && error.message !== "FILE_TOO_LARGE") {
+                console.error("處理或上傳失敗:", error);
+                alert("檔案處理或上傳失敗，請更換檔案重試。");
+            }
+        } finally {
+            // 無論成功或失敗，恢復 UI 狀態
+            inputField.placeholder = originalPlaceholder;
+            inputField.disabled = false;
+            sendBtn.disabled = false;
+            e.target.value = '';
+            scrollToBottom(true);
+        }
     });
 
     // 長按選單邏輯
@@ -1169,8 +1503,20 @@
                 const lastMsgSnap = await chatRef.collection("messages").orderBy("timestamp", "desc").limit(1).get();
                 if (!lastMsgSnap.empty) {
                     const lastData = lastMsgSnap.docs[0].data();
-                    await chatRef.update({ lastMessage: lastData.text || (lastData.fileType === 'video' ? '[影片]' : '[圖片]'), lastSenderId: lastData.senderId, updatedAt: lastData.timestamp });
-                } else await chatRef.update({ lastMessage: "尚無訊息", lastSenderId: "" });
+                    let newLastMsg = lastData.text || (lastData.fileType === 'video' ? '[影片]' : '[圖片]');
+                    
+                    // 【新增】：如果退回的上一則訊息是活動卡片，正確處理預覽文字
+                    if (newLastMsg.includes('"type":"event_share"')) {
+                        try {
+                            const parsedMsg = JSON.parse(newLastMsg);
+                            newLastMsg = `分享了活動：${parsedMsg.title}`;
+                        } catch(e) {}
+                    }
+                    
+                    await chatRef.update({ lastMessage: newLastMsg, lastSenderId: lastData.senderId, updatedAt: lastData.timestamp });
+                } else {
+                    await chatRef.update({ lastMessage: "尚無訊息", lastSenderId: "" });
+                }
             }
         } catch (e) { alert("收回失敗"); } finally { closeContextMenu(); }
     }
@@ -1351,29 +1697,91 @@
         else { c.style.display='none'; t.innerHTML='<i class="fas fa-chevron-down"></i> 更多選項'; }
     }
 
+    // ==========================================
+    // 群組設定與成員展開邏輯
+    // ==========================================
     async function openGroupSettings() {
-        openModal('groupSettingsModal'); document.getElementById('moreOptionsContainer').style.display='none'; document.getElementById('moreOptionsToggle').innerHTML='<i class="fas fa-chevron-down"></i> 更多選項';
-        const nameInput = document.getElementById('groupNameEdit'), editMembersBtn = document.getElementById('editMembersBtn');
+        openModal('groupSettingsModal'); 
+        document.getElementById('moreOptionsContainer').style.display='none'; 
+        document.getElementById('moreOptionsToggle').innerHTML='<i class="fas fa-chevron-down"></i> 更多選項';
+        
+        const nameInput = document.getElementById('groupNameEdit');
+        const editMembersBtn = document.getElementById('editMembersBtn');
+        
         nameInput.value = document.getElementById('chatTitle').innerText;
         document.getElementById('editGroupAvatarPreview').src = document.getElementById('targetAvatar').src;
-        window.croppedAvatarBlob = null; resetSaveButtonState();
+        window.croppedAvatarBlob = null; 
+        resetSaveButtonState();
 
         if (nameInput.value === "立法院 Legislature" && document.getElementById('myName').innerText !== "班長") {
-            nameInput.disabled = true; document.querySelector('.avatar-edit-wrapper').style.pointerEvents='none';
-            document.querySelector('.avatar-edit-icon').style.display='none'; document.getElementById('deleteGroupBtn').style.display='none'; editMembersBtn.style.display='none';
+            nameInput.disabled = true; 
+            document.querySelector('.avatar-edit-wrapper').style.pointerEvents='none';
+            document.querySelector('.avatar-edit-icon').style.display='none'; 
+            document.getElementById('deleteGroupBtn').style.display='none'; 
+            editMembersBtn.style.display='none';
         } else {
-            nameInput.disabled = false; document.querySelector('.avatar-edit-wrapper').style.pointerEvents='auto';
-            document.querySelector('.avatar-edit-icon').style.display='flex'; document.getElementById('deleteGroupBtn').style.display='block'; editMembersBtn.style.display='block';
+            nameInput.disabled = false; 
+            document.querySelector('.avatar-edit-wrapper').style.pointerEvents='auto';
+            document.querySelector('.avatar-edit-icon').style.display='flex'; 
+            document.getElementById('deleteGroupBtn').style.display='block'; 
+            editMembersBtn.style.display='block';
         }
 
-        const listEl = document.getElementById('groupMembersList'); listEl.innerHTML = '載入中...';
+        const listEl = document.getElementById('groupMembersList'); 
+        listEl.innerHTML = '<div style="font-size: 13px; color: #999; text-align: center;">載入成員中... <i class="fas fa-spinner fa-spin"></i></div>';
+        
         try {
-            let html = '';
-            for(let uid of window.currentGroupMembers) {
+            // 【修改】：先將抓到的成員資料存進全域快取陣列中
+            const memberPromises = (window.currentGroupMembers || []).map(async uid => {
                 const doc = await db.collection("act").doc(uid).get();
-                if(doc.exists) html += `<div class="member-item"><img src="${doc.data().photoURL}"><span>${doc.data().displayName}</span></div>`;
-            } listEl.innerHTML = html;
-        } catch(e){ listEl.innerHTML="失敗"; }
+                if (doc.exists) return { uid, ...doc.data() };
+                return { uid, displayName: "未知成員", photoURL: "https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true" };
+            });
+
+            window.groupMembersDataCache = await Promise.all(memberPromises);
+            
+            // 預設為收合狀態 (false)，最多顯示 3 人
+            renderGroupMembers(false);
+            
+        } catch(e) { 
+            listEl.innerHTML = '<div style="font-size: 13px; color: red; text-align: center;">載入失敗</div>'; 
+        }
+    }
+
+    // 【新增】：獨立的成員列表渲染與展開/收合邏輯
+    function renderGroupMembers(isExpanded) {
+        const listEl = document.getElementById('groupMembersList');
+        const membersData = window.groupMembersDataCache || [];
+        
+        let html = '';
+        // 決定要顯示幾個人 (若為 true 顯示全部，false 最多顯示 3 個)
+        const displayCount = isExpanded ? membersData.length : Math.min(3, membersData.length);
+
+        for (let i = 0; i < displayCount; i++) {
+            const user = membersData[i];
+            const avatar = user.photoURL || 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true';
+            const name = user.displayName || '未命名成員';
+            html += `
+                <div class="member-item">
+                    <img src="${avatar}" alt="avatar">
+                    <span>${name}</span>
+                </div>
+            `;
+        }
+
+        // 判斷是否需要顯示「展開 / 收起」按鈕
+        if (!isExpanded && membersData.length > 3) {
+            const hiddenCount = membersData.length - 3;
+            html += `<button class="more-members-btn" onclick="renderGroupMembers(true)">
+                        <i class="fas fa-ellipsis-h"></i> 展開其餘 ${hiddenCount} 位成員
+                     </button>`;
+        } else if (isExpanded && membersData.length > 3) {
+            html += `<button class="more-members-btn" onclick="renderGroupMembers(false)">
+                        <i class="fas fa-chevron-up"></i> 收起成員列表
+                     </button>`;
+        }
+
+        listEl.innerHTML = html;
     }
 
     async function saveGroupSettings() {
@@ -1443,23 +1851,30 @@
             events.forEach(ev => {
                 const year = ev.sortDate.getFullYear(); if(year!==currentYear){ currentYear=year; html+=`<div class="event-year-title">${year} 年度</div>`; }
                 const timeStr = ev.sortDate.toLocaleString('zh-TW', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).replace(/\//g,'-'), safeTitle = (ev.title||'').replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                html += `<div class="event-mini-item" onclick="sendEventCard('${ev.id}', '${safeTitle}', '${timeStr}')"><h4 class="event-mini-title">${ev.title}</h4><div class="event-mini-meta"><i class="far fa-clock"></i> ${timeStr}</div></div>`;
+                // 【修改】：加入 ev.deadline 作為第四個參數傳給 sendEventCard
+                const deadlineStr = ev.deadline || '';
+                html += `<div class="event-mini-item" onclick="sendEventCard('${ev.id}', '${safeTitle}', '${timeStr}', '${deadlineStr}')"><h4 class="event-mini-title">${ev.title}</h4><div class="event-mini-meta"><i class="far fa-clock"></i> ${timeStr}</div></div>`;
             }); listEl.innerHTML = html;
         } catch(e){ listEl.innerHTML="失敗"; }
     }
 
-    async function sendEventCard(eventId, title, timeStr) {
+    // 【修改】：接收 deadlineStr 並存入 JSON 中
+    async function sendEventCard(eventId, title, timeStr, deadlineStr) {
         if(!confirm(`發布「${title}」？`)) return; closeModal('activityScheduleModal');
         try {
             const batch = db.batch(), chatRef = db.collection("chats").doc(currentChatId), msgRef = chatRef.collection("messages").doc();
-            batch.set(msgRef, { text: JSON.stringify({ type:'event_share', eventId:eventId, title:title, timeStr:timeStr }), senderId: auth.currentUser.uid, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+            // 將 deadline 一併包進 JSON 字串存入資料庫
+            batch.set(msgRef, { text: JSON.stringify({ type:'event_share', eventId:eventId, title:title, timeStr:timeStr, deadline:deadlineStr }), senderId: auth.currentUser.uid, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
             batch.update(chatRef, { lastMessage: `分享活動：${title}`, lastSenderId: auth.currentUser.uid, updatedAt: firebase.firestore.FieldValue.serverTimestamp(), [`lastReadAt.${auth.currentUser.uid}`]: firebase.firestore.FieldValue.serverTimestamp() });
             await batch.commit(); scrollToBottom(true);
         } catch(e){ alert("失敗"); }
     }
 
     // 投票系統
+    // 投票系統
     let currentEventId = null, currentGalleryImages = [];
+    let eventVotesUnsubscribe = null; // 【新增】：用來記錄並取消舊的監聽器
+    window.eventProfileCache = window.eventProfileCache || {}; // 【新增】：全域成員資料快取
     async function openDocPreview(id) {
         currentEventId = id; currentGalleryImages = [];
         try {
@@ -1501,16 +1916,34 @@
         const countTag = document.getElementById('participant-count-tag');
         const user = auth.currentUser;
 
-        // 1. 先取得當前登入者的名稱 (用來比對 participantNames)
+        // 【優化 1】：立即清空舊畫面，顯示載入中動畫，徹底解決「殘留上一次舊成員」的問題
+        list.innerHTML = "<div style='width: 100%; text-align: center; color: #ccc; font-size: 0.9rem; padding: 10px 0;'><i class='fas fa-spinner fa-spin'></i> 載入成員資料中...</div>";
+        if (countTag) countTag.innerText = "";
+
+        // 【優化 2】：如果之前有綁定過監聽器，先把它取消掉，避免多個活動互相干擾
+        if (eventVotesUnsubscribe) {
+            eventVotesUnsubscribe();
+            eventVotesUnsubscribe = null;
+        }
+
+        // 取得當前登入者的名稱 (用來比對 participantNames)
         let currentUserName = "";
         if (user) {
             try {
-                let uDoc = await db.collection("content").doc(user.uid).get();
-                if (uDoc.exists) {
-                    currentUserName = uDoc.data().text;
+                if (window.eventProfileCache[user.uid]) {
+                    currentUserName = window.eventProfileCache[user.uid].text || window.eventProfileCache[user.uid].displayName;
                 } else {
-                    uDoc = await db.collection("act").doc(user.uid).get();
-                    if (uDoc.exists) currentUserName = uDoc.data().displayName;
+                    let uDoc = await db.collection("content").doc(user.uid).get();
+                    if (uDoc.exists) {
+                        currentUserName = uDoc.data().text;
+                        window.eventProfileCache[user.uid] = uDoc.data();
+                    } else {
+                        uDoc = await db.collection("act").doc(user.uid).get();
+                        if (uDoc.exists) {
+                            currentUserName = uDoc.data().displayName;
+                            window.eventProfileCache[user.uid] = uDoc.data();
+                        }
+                    }
                 }
             } catch (e) { console.error("無法取得名稱:", e); }
             if (!currentUserName) currentUserName = user.displayName || user.email.split('@')[0];
@@ -1531,7 +1964,8 @@
             { id: "031", name: "冠叡" }, { id: "032", name: "祐祥" }, { id: "033", name: "可愛柴" }
         ];
 
-        db.collection("events").doc(eventId).onSnapshot(async (doc) => {
+        // 將監聽器賦值給 eventVotesUnsubscribe 以便下次清除
+        eventVotesUnsubscribe = db.collection("events").doc(eventId).onSnapshot(async (doc) => {
             if(!doc.exists) return; 
             const data = doc.data();
             const participants = data.participants || [];
@@ -1555,24 +1989,36 @@
                 }
             }
 
-            const list = document.getElementById('voter-list');
             if(!participants.length){ 
-                list.innerHTML="<p style='color:#ccc; font-size:0.9rem;'>尚無成員參與...</p>"; 
+                list.innerHTML="<p style='color:#ccc; font-size:0.9rem; width: 100%; text-align: center;'>尚無成員參與...</p>"; 
                 return; 
             }
             
-            // 抓取所有參與者詳細資料 (優先從 content 抓取，若無則從 act 抓取)
-            const memberPromises = participants.map(uid => 
-                db.collection("content").doc(uid).get().then(snap => snap.exists ? snap : db.collection("act").doc(uid).get())
-            );
-            const memberSnaps = await Promise.all(memberPromises);
-            
             const memberMap = {};
-            memberSnaps.forEach(mSnap => {
-                if (mSnap.exists) {
-                    memberMap[mSnap.id] = mSnap.data();
+            
+            // 【優化 3】：加入全域快取 (Cache) 系統。
+            // 抓過資料的成員，下次打開任何活動都會瞬間秒讀，不再浪費流量與等待時間。
+            const memberPromises = participants.map(async (uid) => {
+                if (window.eventProfileCache[uid]) {
+                    memberMap[uid] = window.eventProfileCache[uid];
+                    return;
+                }
+                
+                // 如果快取沒有，才去資料庫抓
+                let snap = await db.collection("content").doc(uid).get();
+                if (snap.exists) {
+                    window.eventProfileCache[uid] = snap.data();
+                    memberMap[uid] = snap.data();
+                } else {
+                    snap = await db.collection("act").doc(uid).get();
+                    if (snap.exists) {
+                        window.eventProfileCache[uid] = snap.data();
+                        memberMap[uid] = snap.data();
+                    }
                 }
             });
+
+            await Promise.all(memberPromises); // 等待所有還沒快取的人抓完資料
 
             // 依照 memberOrder 進行配對與排序渲染
             let htmlContent = "";
@@ -1592,7 +2038,7 @@
                 }
             });
 
-            list.innerHTML = htmlContent;
+            list.innerHTML = htmlContent; // 將排序好的 HTML 一次性塞入畫面
         });
     }
 

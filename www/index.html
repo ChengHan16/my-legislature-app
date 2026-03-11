@@ -129,9 +129,37 @@
             .brand-logo { font-size: 32px; margin-top: 20px; }
             .login-btn { padding: 18px; font-size: 18px; } 
         }
+
+        /* --- 初始載入動畫 (Splash Screen) --- */
+        #splashScreen {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+        .splash-text {
+            color: #003153;
+            font-size: 32px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            animation: pulse-scale 1.5s infinite alternate ease-in-out;
+        }
+        @keyframes pulse-scale {
+            0% { transform: scale(0.9); opacity: 0.7; }
+            100% { transform: scale(1.1); opacity: 1; }
+        }
     </style>
 </head>
 <body>
+<div id="splashScreen">
+    <div class="splash-text"><i class="fas fa-landmark"></i> 立法院 Legislature</div>
+</div>
+
 <div id="loadingOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f0f2f5; z-index: 9999; flex-direction: column; justify-content: center; align-items: center;">
     <i class="fas fa-spinner fa-spin" style="font-size: 3rem; color: #003153; margin-bottom: 20px;"></i>
     <span style="color: #003153; font-size: 1.1rem; font-weight: bold; letter-spacing: 1px;">安全連線中，準備進入系統...</span>
@@ -205,12 +233,26 @@
         }, 300);
     }
 
-    const fallbackTimer = setTimeout(() => { loginWrapper.classList.add("auth-resolved"); }, 3000);
+    // 建立一個顯示登入表單並隱藏載入動畫的函式
+    function showLoginForm() {
+        const splash = document.getElementById('splashScreen');
+        splash.style.opacity = '0';
+        setTimeout(() => { splash.style.visibility = 'hidden'; }, 500);
+        loginWrapper.classList.add("auth-resolved");
+    }
+
+    const fallbackTimer = setTimeout(() => { showLoginForm(); }, 3000);
 
     auth.onAuthStateChanged((user) => {
         clearTimeout(fallbackTimer); 
-        if (user) { navigateToApp(); } 
-        else { loginWrapper.classList.add("auth-resolved"); }
+        if (user) { 
+            // 如果已登入，直接跳轉，載入動畫會一直維持到網頁跳轉
+            navigateToApp(); 
+        } 
+        else { 
+            // 如果未登入，隱藏載入動畫，顯示登入框
+            showLoginForm(); 
+        }
     });
 
     document.getElementById('loginBtn').addEventListener('click', () => {
