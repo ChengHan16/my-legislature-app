@@ -2,6 +2,15 @@
 	"appId": "tw.legislature.app",
 	"appName": "Legislature",
 	"webDir": "www",
+	"plugins": {
+		"PushNotifications": {
+			"presentationOptions": [
+				"badge",
+				"sound",
+				"alert"
+			]
+		}
+	},
 	"backgroundColor": "#f2f4f7",
 	"server": {
 		"hostname": "app.legislature.tw",

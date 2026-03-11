@@ -475,7 +475,7 @@
                 </div>
                 <div class="expand-menu-item" onclick="openGroupBuyListModal()">
                     <div class="icon-circle"><i class="fas fa-shopping-basket"></i></div>
-                    <span>團購</span>
+                    <span>團購功能</span>
                 </div>
             </div>
             
@@ -995,44 +995,17 @@
         if (typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform()) {
             try {
                 const { PushNotifications } = Capacitor.Plugins;
-                
                 let permStatus = await PushNotifications.checkPermissions();
-                
-                if (permStatus.receive === 'prompt') {
-                    permStatus = await PushNotifications.requestPermissions();
-                }
-                
-                if (permStatus.receive !== 'granted') {
-                    alert("⚠️ 錯誤：推播權限未開啟或被拒絕");
-                    return;
-                }
-
-                // 註冊成功，拿到 Token
-                PushNotifications.addListener('registration', async (token) => {
-                    alert("✅ 成功從 Apple 拿到 Token！\n前幾碼: " + token.value.substring(0, 15));
-                    try {
-                        await db.collection("act").doc(userId).set({ pushToken: token.value }, { merge: true });
-                        alert("✅ Token 已經成功寫入資料庫！");
-                    } catch(dbErr) {
-                        alert("❌ 寫入資料庫失敗：" + dbErr.message);
-                    }
-                });
-
-                // 註冊失敗，被 Apple 拒絕
-                PushNotifications.addListener('registrationError', (error) => {
-                    alert("❌ Apple 拒絕發放 Token：\n" + JSON.stringify(error));
-                });
-
-                // 正式向 Apple 發起請求
+                if (permStatus.receive === 'prompt') permStatus = await PushNotifications.requestPermissions();
+                if (permStatus.receive !== 'granted') return;
                 await PushNotifications.register();
-
-            } catch(e) { 
-                alert("❌ 推播外掛執行崩潰：" + e.message); 
-            }
-        } else {
-            console.log("這不是原生 App，不執行推播註冊");
+                PushNotifications.addListener('registration', async (token) => {
+                    await db.collection("act").doc(userId).set({ pushToken: token.value }, { merge: true });
+                });
+            } catch(e) { console.error("推播錯誤:", e); }
         }
     }
+
     auth.onAuthStateChanged(user => {
         if (user) {
             db.collection("act").doc(user.uid).get().then(doc => {
