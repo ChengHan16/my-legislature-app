@@ -992,17 +992,48 @@
     // 3. Auth, 推播與 Messenger 列表載入
     // ==========================================
     async function initPushNotifications(userId) {
-        if (typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform()) {
-            try {
-                const { PushNotifications } = Capacitor.Plugins;
-                let permStatus = await PushNotifications.checkPermissions();
-                if (permStatus.receive === 'prompt') permStatus = await PushNotifications.requestPermissions();
-                if (permStatus.receive !== 'granted') return;
-                await PushNotifications.register();
-                PushNotifications.addListener('registration', async (token) => {
-                    await db.collection("act").doc(userId).set({ pushToken: token.value }, { merge: true });
-                });
-            } catch(e) { console.error("推播錯誤:", e); }
+        // 1. 檢查環境
+        if (typeof Capacitor === 'undefined' || !Capacitor.isNativePlatform()) return;
+
+        try {
+            const { PushNotifications } = Capacitor.Plugins;
+
+            // 2. 檢查權限
+            let permStatus = await PushNotifications.checkPermissions();
+            if (permStatus.receive === 'prompt') {
+                permStatus = await PushNotifications.requestPermissions();
+            }
+            if (permStatus.receive !== 'granted') return;
+
+            // 3. 【重要】在註冊前先設定監聽器
+            // 移除舊的監聽器（選用，防止重複）
+            await PushNotifications.removeAllListeners();
+
+            // 註冊成功後存 Token
+            PushNotifications.addListener('registration', async (token) => {
+                console.log("拿到 Token:", token.value);
+                // 注意：這裡存入資料庫的路徑要跟後端推播腳本讀取的一致
+                await db.collection("users").doc(userId).set({ 
+                    pushToken: token.value,
+                    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+            });
+
+            // 監聽前台收到通知 (App 開啟中)
+            PushNotifications.addListener('pushNotificationReceived', (notification) => {
+                alert("【前台收到通知】\n標題：" + notification.title + "\n內容：" + notification.body);
+            });
+
+            // 監聽點擊通知 (App 在後台時被點擊開啟)
+            PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
+                console.log("使用者點開了通知:", notification);
+            });
+
+            // 4. 正式向 Apple/Google 註冊
+            await PushNotifications.register();
+
+        } catch(e) { 
+            console.error("推播初始化錯誤:", e); 
         }
     }
 
