@@ -384,6 +384,24 @@
         .gb-qty-btn { width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid var(--ly-blue); background: white; color: var(--ly-blue); font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; font-size: 18px; transition: 0.2s;}
         .gb-qty-btn:active { background: var(--ly-blue); color: white; }
         .gb-qty-btn:disabled { border-color: #ccc; color: #ccc; cursor: not-allowed; background: #f9f9f9;}
+
+        /* --- 團購訂單分支明細與備註樣式 --- */
+        .gb-buyers-wrapper { background: #f8f9fa; border-radius: 8px; margin-top: 12px; border-left: 3px solid var(--ly-gold); overflow: hidden; }
+        .gb-buyer-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 12px; border-bottom: 1px dashed #eee; font-size: 0.85rem; color: #444; }
+        .gb-buyer-row:last-child { border-bottom: none; }
+        .gb-buyer-name { font-weight: 800; color: var(--ly-blue); width: 60px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+        .gb-buyer-note { flex: 1; color: #888; margin: 0 10px; text-align: left; font-size: 0.8rem; }
+        .gb-buyer-qty { font-weight: 900; color: #d93025; white-space: nowrap; }
+        
+        .gb-my-note-input { width: 100%; padding: 10px; margin-top: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; background: #fff; box-sizing: border-box; display: none; }
+        .gb-my-note-input:focus { border-color: var(--ly-gold); outline: none; }
+
+        /* --- 團購清單左滑刪除 --- */
+        .swipe-container { position: relative; overflow: hidden; border-radius: 8px; width: 100%; }
+        .swipe-content { position: relative; z-index: 2; transition: transform 0.3s ease; width: 100%; box-sizing: border-box; }
+        .swipe-actions { position: absolute; top: 0; right: 0; height: 100%; width: 80px; display: flex; justify-content: flex-end; align-items: center; z-index: 1; background: #ff4d4d; border-radius: 8px; }
+        .swipe-delete-btn { color: white; background: none; border: none; font-size: 1.4rem; width: 100%; height: 100%; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: background 0.2s;}
+        .swipe-delete-btn:active { background: #cc0000; }
     </style>
 </head>
 <body>
@@ -449,9 +467,9 @@
                     <div class="icon-circle"><i class="fas fa-calendar-alt"></i></div>
                     <span>活動行程</span>
                 </div>
-                <div class="expand-menu-item" onclick="openCreateGroupBuyModal()">
+                <div class="expand-menu-item" onclick="openGroupBuyListModal()">
                     <div class="icon-circle"><i class="fas fa-shopping-basket"></i></div>
-                    <span>發起團購</span>
+                    <span>團購功能</span>
                 </div>
             </div>
             
@@ -611,8 +629,24 @@
                 <button class="btn-modal btn-cancel" style="width: 100%;" onclick="closeModal('activityScheduleModal')">關閉視窗</button>
             </div>
         </div>
+    </div> 
+    
+    <div id="groupBuyListModal" class="modal-overlay" style="z-index: 4000;">
+        <div class="modal-card" style="max-width: 450px !important; height: 80vh; max-height: 600px; display: flex; flex-direction: column; background: #f8f9fa;">
+            <div class="modal-header">
+                <h3><i class="fas fa-shopping-basket"></i> 團購清單</h3>
+                <span style="cursor:pointer;" onclick="closeModal('groupBuyListModal')">&times;</span>
+            </div>
+            <div id="groupBuyListContainer" class="event-mini-list" style="padding: 15px;"></div>
+            
+            <div class="modal-footer" style="justify-content: space-between; background: white; border-top: 1px solid #eee;">
+                <button class="btn-modal btn-cancel" onclick="closeModal('groupBuyListModal')">關閉</button>
+                <button class="btn-modal btn-confirm" onclick="openCreateGroupBuyModal()"><i class="fas fa-plus"></i> 新增團購</button>
+            </div>
+        </div>
+    </div>
 
-        <div id="createGroupBuyModal" class="modal-overlay" style="z-index: 4000;">
+    <div id="createGroupBuyModal" class="modal-overlay" style="z-index: 4000;">
         <div class="modal-card" style="max-width: 500px; max-height: 85vh; display: flex; flex-direction: column;">
             <div class="modal-header">
                 <h3><i class="fas fa-shopping-cart"></i> 發起團購訂單</h3>
@@ -625,7 +659,7 @@
                 </div>
                 <div class="modal-input-group">
                     <label>團購標題</label>
-                    <input type="text" id="gbTitle" placeholder="例如：下午茶飲料、辦公室文具...">
+                    <input type="text" id="gbTitle" placeholder="例如：LOCH 卡包...">
                 </div>
                 <div class="modal-input-group">
                     <label>截止時間</label>
@@ -662,7 +696,6 @@
                 <button class="btn-modal btn-confirm" id="vgbSaveBtn" onclick="saveGroupBuyOrder()">儲存我的訂單</button>
             </div>
         </div>
-    </div>
     </div>
 
     <div id="readReceiptModal" class="modal-overlay" style="z-index: 6000;">
@@ -1293,11 +1326,15 @@
             }, 0);
         } 
         // 否則如果是初次載入、滑動在最底部、或是最新訊息是自己發的，就強制置底
+        // 【修改】：如果是初次載入、滑動在最底部、或是最新訊息是自己發的，就強制置底
         else if (window.isFirstChatLoad || isAtBottom || isLastMessageMine) {
             const shouldSmooth = !window.isFirstChatLoad; 
-            window.isFirstChatLoad = false; 
+            
             setTimeout(() => {
                 scrollToBottom(shouldSmooth); 
+                // 【關鍵修復】：等待延遲捲動確實執行完畢後，才解除「初次載入」的狀態
+                // 這能完美包容 Firebase 在零點幾秒內發生的連續雙次渲染
+                window.isFirstChatLoad = false; 
             }, 150);
         }
     }
@@ -1474,6 +1511,38 @@
                         }, 'image/jpeg', quality);
                     };
                     compress();
+                };
+            };
+        });
+    }
+
+    // ==========================================
+    // 團購專用：圖片極致縮小壓縮 (限制 800px，檔案極小化)
+    // ==========================================
+    function compressGroupBuyImage(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = event => {
+                const img = new Image(); 
+                img.src = event.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    // 團購商品圖不需要太大，限制在 800px 以內即可大幅縮小體積
+                    let width = img.width, height = img.height, maxDim = 800;
+                    if (width > maxDim || height > maxDim) {
+                        if (width > height) { height = Math.round(height * (maxDim / width)); width = maxDim; } 
+                        else { width = Math.round(width * (maxDim / height)); height = maxDim; }
+                    }
+                    canvas.width = width; canvas.height = height;
+                    const ctx = canvas.getContext('2d'); 
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    // 直接輸出 0.7 畫質的 JPEG，通常會在 50KB ~ 150KB 左右
+                    canvas.toBlob(blob => {
+                        if (!blob) return reject(new Error("處理失敗"));
+                        resolve(new File([blob], file.name.replace(/\.[^/.]+$/, "") + "_gb_min.jpg", { type: 'image/jpeg' }));
+                    }, 'image/jpeg', 0.7);
                 };
             };
         });
@@ -2193,9 +2262,105 @@
     // ==========================================
     // 8. 團購系統核心邏輯
     // ==========================================
+    // ==========================================
+    // 8. 團購系統核心邏輯
+    // ==========================================
     let gbItemCount = 0;
 
+    // 【新增】：打開團購清單視窗
+    // 【修改】：打開團購清單視窗並支援左滑
+    async function openGroupBuyListModal() {
+        document.getElementById('expandMenuPanel').style.display = 'none';
+        document.querySelector('.expand-menu-btn').style.transform = 'rotate(0deg)';
+        
+        openModal('groupBuyListModal');
+        const listEl = document.getElementById('groupBuyListContainer');
+        listEl.innerHTML = '<div style="text-align:center; padding:30px; color:#999;"><i class="fas fa-spinner fa-spin fa-2x"></i><br><br>載入團購資料中...</div>';
+        
+        try {
+            const snap = await db.collection("group-orders").orderBy("createdAt", "desc").get();
+            if (snap.empty) {
+                listEl.innerHTML = '<div class="event-empty-state">尚無團購訂單，點擊下方新增。</div>';
+                return;
+            }
+            
+            let html = '';
+            snap.forEach(doc => {
+                const data = doc.data();
+                const deadlineStr = data.deadline ? data.deadline.replace('T', ' ') : '無期限';
+                const safeTitle = (data.title || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                const safeInitiator = (data.initiatorName || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                
+                // 判斷當前使用者是否為該訂單的發起人
+                const isInitiator = data.initiatorId === auth.currentUser.uid;
+                
+                const innerContent = `
+                    <h4 class="event-mini-title">${data.title}</h4>
+                    <div class="event-mini-meta">
+                        <span style="color:var(--ly-blue); font-weight:bold;">[ 代購: ${data.initiatorName} ]</span>
+                    </div>
+                    <div class="event-mini-meta" style="margin-top: 4px; color: #d93025;">
+                        <i class="far fa-clock" style="color: #d93025;"></i> 截止: ${deadlineStr}
+                    </div>
+                `;
+
+                if (isInitiator) {
+                    // 如果是發起人，加入左滑外掛結構
+                    html += `
+                    <div class="swipe-container">
+                        <div class="swipe-actions">
+                            <button class="swipe-delete-btn" onclick="deleteGroupBuy('${doc.id}')"><i class="fas fa-trash-alt"></i></button>
+                        </div>
+                        <div class="swipe-content event-mini-item" style="border-left-color: #28a745; margin-bottom: 0;"
+                             onmousedown="gbSwipeStart(event, this)" 
+                             onmousemove="gbSwipeMove(event, this)" 
+                             onmouseup="gbSwipeEnd(event, this, '${doc.id}', '${safeTitle}', '${safeInitiator}', '${data.deadline}')" 
+                             onmouseleave="gbSwipeEnd(event, this, '${doc.id}', '${safeTitle}', '${safeInitiator}', '${data.deadline}')" 
+                             ontouchstart="gbSwipeStart(event, this)" 
+                             ontouchmove="gbSwipeMove(event, this)" 
+                             ontouchend="gbSwipeEnd(event, this, '${doc.id}', '${safeTitle}', '${safeInitiator}', '${data.deadline}')">
+                            ${innerContent}
+                        </div>
+                    </div>`;
+                } else {
+                    // 不是發起人，保留一般的點擊卡片
+                    html += `
+                    <div class="event-mini-item" style="border-left-color: #28a745;" onclick="sendGroupBuyCard('${doc.id}', '${safeTitle}', '${safeInitiator}', '${data.deadline}')">
+                        ${innerContent}
+                    </div>`;
+                }
+            });
+            listEl.innerHTML = html;
+        } catch (e) {
+            console.error(e);
+            listEl.innerHTML = '<div style="text-align:center; padding:20px; color:red;">載入失敗，請檢查網路狀態。</div>';
+        }
+    }
+
+    // 【新增】：點擊清單中的團購，發布到聊天室
+    async function sendGroupBuyCard(orderId, title, initiator, deadline) {
+        if(!confirm(`要將團購「${title}」發布到聊天室中嗎？`)) return; 
+        closeModal('groupBuyListModal');
+        try {
+            const batch = db.batch();
+            const chatRef = db.collection("chats").doc(currentChatId);
+            const msgRef = chatRef.collection("messages").doc();
+            
+            const payload = {
+                type: 'group_buy', orderId: orderId, title: title, initiator: initiator, deadline: deadline
+            };
+
+            batch.set(msgRef, { text: JSON.stringify(payload), senderId: auth.currentUser.uid, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+            batch.update(chatRef, { lastMessage: `發起了團購：${title}`, lastSenderId: auth.currentUser.uid, updatedAt: firebase.firestore.FieldValue.serverTimestamp(), [`lastReadAt.${auth.currentUser.uid}`]: firebase.firestore.FieldValue.serverTimestamp() });
+            
+            await batch.commit(); 
+            scrollToBottom(true);
+        } catch(e){ alert("發布失敗"); }
+    }
+
+    // 【修改】：原本的新增團購函式，加入關閉清單視窗的動作
     function openCreateGroupBuyModal() {
+        closeModal('groupBuyListModal'); // 如果是從清單打開的，先把清單關掉
         document.getElementById('expandMenuPanel').style.display = 'none';
         document.querySelector('.expand-menu-btn').style.transform = 'rotate(0deg)';
         
@@ -2270,9 +2435,9 @@
                 if (!name || !price) throw new Error('每項商品的「名稱」與「金額」為必填項目。');
 
                 let imgUrl = "";
-                // 如果有上傳圖片，使用前端壓縮並上傳
+                // 如果有上傳圖片，使用「團購專用極致壓縮」並上傳
                 if (fileInput.fileObj) {
-                    const compressedFile = await compressImageClientSide(fileInput.fileObj, 1); // 壓到 1MB 以下
+                    const compressedFile = await compressGroupBuyImage(fileInput.fileObj); // 壓縮到極小化 (約 50~150KB)
                     const snap = await storage.ref(`group-orders/${Date.now()}_${i}.jpg`).put(compressedFile);
                     imgUrl = await snap.ref.getDownloadURL();
                 }
@@ -2336,6 +2501,7 @@
     }
 
     // --- 查看與登記團購 ---
+    // --- 查看與登記團購 ---
     let currentGroupBuyId = null;
     let currentGroupBuyItems = [];
     
@@ -2345,7 +2511,7 @@
         document.getElementById('vgbItemsList').innerHTML = '<div style="text-align:center; padding:30px; color:#999;"><i class="fas fa-spinner fa-spin fa-2x"></i><br><br>載入表單中...</div>';
         
         try {
-            // 抓取主檔
+            // 1. 抓取團購主檔
             const doc = await db.collection('group-orders').doc(orderId).get();
             if (!doc.exists) {
                 document.getElementById('vgbItemsList').innerHTML = '<div style="text-align:center; padding:20px; color:red;">此團購單已被刪除。</div>';
@@ -2360,36 +2526,98 @@
             const isExpired = new Date(data.deadline).getTime() < Date.now();
             const saveBtn = document.getElementById('vgbSaveBtn');
             if (isExpired) {
-                saveBtn.disabled = true;
-                saveBtn.innerText = "登記已截止";
-                saveBtn.style.background = "#ccc";
+                saveBtn.disabled = true; saveBtn.innerText = "登記已截止"; saveBtn.style.background = "#ccc";
             } else {
-                saveBtn.disabled = false;
-                saveBtn.innerText = "儲存我的訂單";
-                saveBtn.style.background = "var(--ly-blue)";
+                saveBtn.disabled = false; saveBtn.innerText = "儲存我的訂單"; saveBtn.style.background = "var(--ly-blue)";
             }
 
-            // 抓取我自己的登記紀錄 (儲存於子集合 orders 中)
-            const myOrderDoc = await db.collection('group-orders').doc(orderId).collection('orders').doc(auth.currentUser.uid).get();
-            const myOrders = myOrderDoc.exists ? (myOrderDoc.data().items || {}) : {};
+            // 2. 抓取「所有成員」的登記紀錄 (為了呈現分支清單)
+            const ordersSnap = await db.collection('group-orders').doc(orderId).collection('orders').get();
+            
+            let allOrdersByItem = {};
+            let myOrdersMap = {};
 
+            // 整理大家點的資料
+            ordersSnap.forEach(oDoc => {
+                const oData = oDoc.data();
+                const uid = oDoc.id;
+                const userItems = oData.items || {};
+                
+                if (uid === auth.currentUser.uid) myOrdersMap = userItems;
+
+                for (let iId in userItems) {
+                    if (!allOrdersByItem[iId]) allOrdersByItem[iId] = [];
+                    
+                    let qty = 0, note = "";
+                    // 兼容舊資料 (純數字) 與新資料 (包含備註的物件)
+                    if (typeof userItems[iId] === 'number') {
+                        qty = userItems[iId];
+                    } else {
+                        qty = userItems[iId].qty || 0;
+                        note = userItems[iId].note || "";
+                    }
+
+                    if (qty > 0) {
+                        allOrdersByItem[iId].push({
+                            userName: oData.userName || "成員",
+                            qty: qty,
+                            note: note
+                        });
+                    }
+                }
+            });
+
+            // 3. 渲染商品、備註輸入框、以及大家的分支清單
             let html = '';
             currentGroupBuyItems.forEach(item => {
-                const myQty = myOrders[item.id] || 0;
+                // 解析我自己的訂單資料
+                let myQty = 0, myNote = "";
+                if (myOrdersMap[item.id]) {
+                    if (typeof myOrdersMap[item.id] === 'number') myQty = myOrdersMap[item.id];
+                    else { myQty = myOrdersMap[item.id].qty; myNote = myOrdersMap[item.id].note || ""; }
+                }
+
                 const imgSrc = item.imgUrl || 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true';
+                
+                // 組合大家的分支訂單清單 HTML
+                let buyersHtml = '';
+                let totalItemQty = 0;
+                if (allOrdersByItem[item.id] && allOrdersByItem[item.id].length > 0) {
+                    buyersHtml += `<div class="gb-buyers-wrapper">`;
+                    allOrdersByItem[item.id].forEach(buyer => {
+                        buyersHtml += `
+                            <div class="gb-buyer-row">
+                                <span class="gb-buyer-name">${buyer.userName}</span>
+                                <span class="gb-buyer-note">${buyer.note ? `(備註：${buyer.note})` : ''}</span>
+                                <span class="gb-buyer-qty">數量：${buyer.qty}</span>
+                            </div>
+                        `;
+                        totalItemQty += buyer.qty;
+                    });
+                    // 如果有人買，最底下顯示總計
+                    buyersHtml += `<div class="gb-buyer-row" style="background:#f1f3f5; font-weight:bold; justify-content:flex-end;">🔥 總計：${totalItemQty} 件</div>`;
+                    buyersHtml += `</div>`;
+                }
+
                 html += `
-                    <div class="gb-order-item">
-                        <img src="${imgSrc}" onclick="if('${item.imgUrl}') openImageModal('${item.imgUrl}')">
-                        <div class="gb-order-info">
-                            <h4>${item.name}</h4>
-                            <p>$${item.price} ${item.quantity ? `<span style="color:#d93025; font-size:12px;">(限量 ${item.quantity})</span>` : ''}</p>
-                            ${item.note ? `<p style="font-size:0.75rem; color:#888; margin-top:4px; background:#f4f4f4; padding:2px 6px; border-radius:4px;">${item.note}</p>` : ''}
+                    <div class="gb-order-item" style="flex-direction: column; align-items: stretch; padding: 15px 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <img src="${imgSrc}" onclick="if('${item.imgUrl}') openImageModal('${item.imgUrl}')" style="width:55px; height:55px; border-radius:8px; object-fit:cover; border:1px solid #ddd;">
+                            <div class="gb-order-info" style="flex:1; padding:0 15px;">
+                                <h4 style="margin:0 0 5px 0; font-size:1rem; color:var(--ly-blue); font-weight:800;">${item.name}</h4>
+                                <p style="margin:0; font-size:0.9rem; color:#555; font-weight:600;">$${item.price} ${item.quantity ? `<span style="color:#d93025; font-size:12px;">(限量 ${item.quantity})</span>` : ''}</p>
+                                ${item.note ? `<p style="font-size:0.75rem; color:#888; margin-top:4px; background:#f4f4f4; padding:2px 6px; border-radius:4px;">${item.note}</p>` : ''}
+                            </div>
+                            <div class="gb-qty-controls" style="display:flex; align-items:center; gap:12px;">
+                                <button class="gb-qty-btn" onclick="changeGbQty('${item.id}', -1)" ${isExpired ? 'disabled' : ''}>-</button>
+                                <span id="qty-${item.id}" style="font-weight:900; font-size:16px; min-width:20px; text-align:center;">${myQty}</span>
+                                <button class="gb-qty-btn" onclick="changeGbQty('${item.id}', 1)" ${isExpired ? 'disabled' : ''}>+</button>
+                            </div>
                         </div>
-                        <div class="gb-qty-controls">
-                            <button class="gb-qty-btn" onclick="changeGbQty('${item.id}', -1)" ${isExpired ? 'disabled' : ''}>-</button>
-                            <span id="qty-${item.id}" style="font-weight:900; font-size:16px; min-width:20px; text-align:center;">${myQty}</span>
-                            <button class="gb-qty-btn" onclick="changeGbQty('${item.id}', 1)" ${isExpired ? 'disabled' : ''}>+</button>
-                        </div>
+                        
+                        <input type="text" id="note-${item.id}" class="gb-my-note-input" placeholder="✏️ LIMIT OVER 有多少買多少" value="${myNote}" style="display: ${myQty > 0 ? 'block' : 'none'};" ${isExpired ? 'disabled' : ''}>
+
+                        ${buyersHtml}
                     </div>
                 `;
             });
@@ -2404,9 +2632,19 @@
 
     function changeGbQty(itemId, delta) {
         const span = document.getElementById(`qty-${itemId}`);
+        const noteInput = document.getElementById(`note-${itemId}`);
+        
         let val = parseInt(span.innerText) + delta;
         if (val < 0) val = 0;
         span.innerText = val;
+        
+        // 【新增】：如果數量大於 0，彈出備註輸入框；若歸零則隱藏並清空
+        if (val > 0) {
+            noteInput.style.display = 'block';
+        } else {
+            noteInput.style.display = 'none';
+            noteInput.value = '';
+        }
     }
 
     async function saveGroupBuyOrder() {
@@ -2420,8 +2658,11 @@
             let totalQty = 0;
             currentGroupBuyItems.forEach(item => {
                 const qty = parseInt(document.getElementById(`qty-${item.id}`).innerText);
+                const note = document.getElementById(`note-${item.id}`).value.trim();
+                
+                // 【修改】：將數字改為「包含數量與備註的物件」儲存
                 if (qty > 0) {
-                    myOrder[item.id] = qty;
+                    myOrder[item.id] = { qty: qty, note: note };
                     totalQty += qty;
                 }
             });
@@ -2434,7 +2675,7 @@
                 await orderRef.delete(); 
             } else {
                 await orderRef.set({
-                    userName: document.getElementById('myName').innerText, // 順便存下名字方便代購人查看
+                    userName: document.getElementById('myName').innerText, 
                     items: myOrder,
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
@@ -2447,6 +2688,98 @@
         } finally {
             btn.disabled = false; 
             btn.innerText = "儲存我的訂單";
+        }
+    }
+
+    // ==========================================
+    // 9. 團購系統：左滑互動與徹底刪除引擎
+    // ==========================================
+    let gbStartX = 0, gbCurrentX = 0, isGbSwiping = false, gbSwipedOpen = null;
+
+    function gbSwipeStart(e, el) {
+        if (gbSwipedOpen && gbSwipedOpen !== el) {
+            gbSwipedOpen.style.transform = 'translateX(0px)';
+            gbSwipedOpen = null;
+        }
+        gbStartX = e.type.includes('mouse') ? e.pageX : e.touches[0].clientX;
+        gbCurrentX = 0;
+        isGbSwiping = true;
+        el.style.transition = 'none';
+    }
+
+    function gbSwipeMove(e, el) {
+        if (!isGbSwiping) return;
+        const x = e.type.includes('mouse') ? e.pageX : e.touches[0].clientX;
+        gbCurrentX = x - gbStartX;
+        // 限制只能向左滑動，且最多滑動 90px
+        if (gbCurrentX < 0 && gbCurrentX > -90) {
+            el.style.transform = `translateX(${gbCurrentX}px)`;
+        }
+    }
+
+    function gbSwipeEnd(e, el, orderId, title, initiator, deadline) {
+        if (!isGbSwiping) return;
+        isGbSwiping = false;
+        el.style.transition = 'transform 0.3s ease';
+        
+        if (gbCurrentX < -45) {
+            // 滑動超過一半，將其固定在左側顯示垃圾桶 (-80px)
+            el.style.transform = 'translateX(-80px)';
+            gbSwipedOpen = el;
+        } else {
+            // 滑動太小，回彈歸位
+            el.style.transform = 'translateX(0px)';
+            if (gbSwipedOpen === el) gbSwipedOpen = null;
+            
+            // 如果幾乎沒滑動 (位移 < 10px)，就當作一般點擊處理 (傳送到聊天室)
+            if (Math.abs(gbCurrentX) < 10 && orderId) {
+                sendGroupBuyCard(orderId, title, initiator, deadline);
+            }
+        }
+        gbCurrentX = 0;
+    }
+
+    // 執行徹底刪除 (主文件、子集合、圖片檔案)
+    async function deleteGroupBuy(orderId) {
+        if (!confirm("確定要刪除此團購單嗎？\n這將會清除所有成員的訂購紀錄與圖片，且無法復原！")) return;
+
+        const btn = event.currentTarget;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        btn.disabled = true;
+
+        try {
+            // 1. 取得這筆團購的資料，抓出所有的圖片網址進行刪除
+            const docSnap = await db.collection("group-orders").doc(orderId).get();
+            if (docSnap.exists) {
+                const items = docSnap.data().items || [];
+                for (let item of items) {
+                    if (item.imgUrl) {
+                        try { await storage.refFromURL(item.imgUrl).delete(); } 
+                        catch(err) { console.warn("圖片已經不存在或刪除失敗"); }
+                    }
+                }
+            }
+
+            // 2. 刪除所有成員在裡面登記的訂單 (子集合 orders)
+            const ordersSnap = await db.collection("group-orders").doc(orderId).collection("orders").get();
+            if (!ordersSnap.empty) {
+                const batch = db.batch();
+                ordersSnap.forEach(doc => { batch.delete(doc.ref); });
+                await batch.commit();
+            }
+
+            // 3. 刪除團購單主文件
+            await db.collection("group-orders").doc(orderId).delete();
+
+            alert("✅ 團購單與相關資料已徹底刪除！");
+            
+            // 重新載入團購清單畫面
+            openGroupBuyListModal();
+        } catch(e) {
+            console.error(e);
+            alert("刪除失敗，請檢查網路連線。");
+            btn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+            btn.disabled = false;
         }
     }
     </script>
