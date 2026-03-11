@@ -1,5 +1,6 @@
 import UIKit
 import Capacitor
+import FirebaseCore // <-- 1. 新增這行
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -7,7 +8,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+        
+        FirebaseApp.configure() // <-- 2. 新增這行：啟動 Firebase 引擎
+        
         return true
     }
 

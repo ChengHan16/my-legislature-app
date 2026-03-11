@@ -18,6 +18,7 @@
 		"androidScheme": "https"
 	},
 	"packageClassList": [
+		"FCMPlugin",
 		"PushNotificationsPlugin"
 	]
 }
