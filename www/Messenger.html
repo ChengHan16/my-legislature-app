@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
-    
+    <link rel="icon" href="data:,">
     <style>
         /* --- 全域基礎與阻擋選取 --- */
         * { -webkit-touch-callout: none !important; -webkit-user-select: none !important; user-select: none !important; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -994,52 +994,50 @@
     // 3. Auth, 推播與 Messenger 列表載入
     // ==========================================
     async function initPushNotifications(userId) {
-        // 1. 檢查環境
         if (typeof Capacitor === 'undefined' || !Capacitor.isNativePlatform()) return;
 
         try {
-            const { PushNotifications } = Capacitor.Plugins;
+            // 【修改 1】：同時引入 PushNotifications 和 FCM
+            const { PushNotifications, FCM } = Capacitor.Plugins;
 
-            // 2. 檢查權限
             let permStatus = await PushNotifications.checkPermissions();
             if (permStatus.receive === 'prompt') {
                 permStatus = await PushNotifications.requestPermissions();
             }
             if (permStatus.receive !== 'granted') return;
 
-            // 3. 【重要】在註冊前先設定監聽器
-            // 移除舊的監聽器（選用，防止重複）
             await PushNotifications.removeAllListeners();
 
-            // 註冊成功後存 Token
+            // 【修改 2】：轉換 Token 並存入資料庫
             PushNotifications.addListener('registration', async (token) => {
-                console.log("原始 Token:", token.value);
+                console.log("拿到 Apple 原始 Token:", token.value);
                 
-                // 檢查 Token 長度：FCM Token 通常長達 100 字元以上且包含冒號或底線
-                // 如果 token.value 很短（例如 64 位元），那是 APNs Token，Firebase Console 可能無法直接使用。
-                
-                await db.collection("act").doc(userId).set({ 
-                    pushToken: token.value,
-                    platform: 'ios',
-                    env: 'production',
-                    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-                }, { merge: true });
-                
-                // 提示使用者（測試用）
-                // alert("Token 已更新，請至後台檢查。"); 
+                try {
+                    // 透過 FCM 套件，將 Apple Token 轉換為 Firebase 專用 Token
+                    const fcmResult = await FCM.getToken();
+                    console.log("成功轉換為 FCM Token:", fcmResult.token);
+                    
+                    // 確保你存入的是 fcmResult.token，而不是 token.value
+                    await db.collection("act").doc(userId).set({ 
+                        pushToken: fcmResult.token, 
+                        platform: 'ios',
+                        env: 'production',
+                        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                    }, { merge: true });
+                    
+                } catch (err) {
+                    console.error("FCM Token 轉換失敗:", err);
+                }
             });
 
-            // 監聽前台收到通知 (App 開啟中)
             PushNotifications.addListener('pushNotificationReceived', (notification) => {
                 alert("【前台收到通知】\n標題：" + notification.title + "\n內容：" + notification.body);
             });
 
-            // 監聽點擊通知 (App 在後台時被點擊開啟)
             PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
                 console.log("使用者點開了通知:", notification);
             });
 
-            // 4. 正式向 Apple/Google 註冊
             await PushNotifications.register();
 
         } catch(e) { 
