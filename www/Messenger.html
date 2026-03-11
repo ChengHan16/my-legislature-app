@@ -125,7 +125,13 @@
         .msg.theirs { background: var(--white); color: #333; border-radius: 18px 18px 18px 4px; border: 1px solid #dee2e6; }
         .time-divider { align-self: center; font-size: 0.75rem; color: #888; margin: 20px 0 10px 0; background: rgba(0,0,0,0.05); padding: 4px 14px; border-radius: 20px; font-weight: 500; }
         .read-status { font-size: 0.7rem; color: #999; margin-top: 3px; padding-right: 5px; height: 14px; }
+        .read-status { font-size: 0.7rem; color: #999; margin-top: 3px; padding-right: 5px; height: 14px; }
         .read-status.group-read { cursor: pointer; color: var(--ly-blue); font-weight: 600; transition: opacity 0.2s; display: inline-block; }
+        
+        /* 讓非自己的訊息「已讀」標籤避開頭像，精準對齊文字氣泡 */
+        .msg-wrapper.theirs .read-status {
+            margin-left: 52px; 
+        }
         .read-status.group-read:hover { opacity: 0.7; text-decoration: underline; }
         
         .input-area { flex-shrink: 0; background: var(--white); padding: 0; display: flex; flex-direction: column; align-items: center; border-top: 1px solid #e9ecef; box-shadow: 0 -2px 10px rgba(0,0,0,0.03); width: 100%; position: relative;}
@@ -1340,11 +1346,15 @@
     }
 
     // 已讀邏輯
-    function getReaders(msgTime) {
+    // 已讀邏輯：計算誰讀了這則訊息 (排除發送者本人)
+    function getReaders(msgTime, senderId) {
         if (!window.isCurrentChatGroup || !window.groupReadTimes || !msgTime) return [];
         const readers = [];
         window.currentGroupMembers.forEach(uid => {
-            if (uid !== auth.currentUser.uid && window.groupReadTimes[uid] && window.groupReadTimes[uid].toDate() >= msgTime) readers.push(uid);
+            // 如果該成員不是發送者，且已讀時間大於訊息發送時間，就列入已讀名單
+            if (uid !== senderId && window.groupReadTimes[uid] && window.groupReadTimes[uid].toDate() >= msgTime) {
+                readers.push(uid);
+            }
         });
         return readers;
     }
@@ -1366,6 +1376,7 @@
         const currentUid = auth.currentUser.uid;
 
         if (!window.isCurrentChatGroup) {
+            // 單人對話維持原樣 (只顯示自己的訊息是否被對方已讀)
             let lastReadMsgId = null;
             for (let i = messagesDocsData.length - 1; i >= 0; i--) {
                 const msg = messagesDocsData[i].data(), msgTime = msg.timestamp ? msg.timestamp.toDate() : new Date();
@@ -1376,17 +1387,25 @@
                 if (wrapper) wrapper.insertAdjacentHTML('beforeend', `<div class="read-status">已讀</div>`);
             }
         } else {
+            // 【群組對話修改】：不分是誰發的訊息，全部計算已讀
             messagesDocsData.forEach(doc => {
                 const msg = doc.data(), msgTime = msg.timestamp ? msg.timestamp.toDate() : new Date();
-                if (msg.senderId === currentUid) {
-                    const readers = getReaders(msgTime);
-                    if (readers.length > 0) {
-                        let names = readers.map(uid => (window.chatMembersCache[uid]?.displayName || "成員"));
-                        let displayText = names.length <= 2 ? names.join("、") : names.slice(0, 2).join("、") + `...等 ${names.length} 人`;
-                        const readHtml = `<div class="read-status group-read" onclick="openReadModal('${readers.join(',')}')">已讀: ${displayText}</div>`;
-                        const wrapper = document.getElementById('msg-' + doc.id)?.closest('.msg-wrapper');
-                        if (wrapper) wrapper.insertAdjacentHTML('beforeend', readHtml);
-                    }
+                
+                // 傳入發送者 ID，取得其他已讀的成員
+                const readers = getReaders(msgTime, msg.senderId);
+                
+                if (readers.length > 0) {
+                    // 把 UID 轉換為名稱，如果是自己，就顯示「你」
+                    let names = readers.map(uid => {
+                        if (uid === currentUid) return "你";
+                        return (window.chatMembersCache[uid]?.displayName || "成員");
+                    });
+                    
+                    let displayText = names.length <= 2 ? names.join("、") : names.slice(0, 2).join("、") + `...等 ${names.length} 人`;
+                    const readHtml = `<div class="read-status group-read" onclick="openReadModal('${readers.join(',')}')"> ${displayText}</div>`;
+                    
+                    const wrapper = document.getElementById('msg-' + doc.id)?.closest('.msg-wrapper');
+                    if (wrapper) wrapper.insertAdjacentHTML('beforeend', readHtml);
                 }
             });
         }
