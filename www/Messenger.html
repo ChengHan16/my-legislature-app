@@ -245,7 +245,16 @@
         .avatar-edit-wrapper:hover .avatar-edit-icon{ background: var(--ly-gold); transform: scale(1.1);}
         
         .zoom-slider-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 250px; width: 40px; background: rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 15px 0; }
-        #cropperZoomSlider { -webkit-appearance: slider-vertical; writing-mode: bt-lr; height: 100%; width: 6px; cursor: pointer; accent-color: var(--ly-gold); outline: none; }
+        #cropperZoomSlider { 
+            appearance: auto; 
+            writing-mode: vertical-lr; /* 現代標準：垂直排列 */
+            direction: rtl; /* 讓數值方向由下往上增加 */
+            height: 100%; 
+            width: 8px; /* 稍微加寬一點點，讓手機更好滑動 */
+            cursor: pointer; 
+            accent-color: var(--ly-gold); 
+            outline: none; 
+        }
         .cropper-view-box, .cropper-face { border-radius: 50%; }
 
         .group-members-list { display: flex; flex-direction: column; gap: 10px; margin-top: 5px; background: #f8f9fa; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); max-height: 200px; overflow-y: auto; }
@@ -355,6 +364,26 @@
             animation: spin-char 1.5s linear infinite;
             display: inline-block; /* 必須加上這個，transform 旋轉才會生效 */
         }
+
+        /* --- 團購系統專用樣式 --- */
+        .gb-item-row { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; background: #f9f9f9; padding: 10px; border-radius: 8px; border: 1px solid #eee; flex-wrap: wrap; position: relative;}
+        .gb-item-row input { flex: 1; min-width: 70px; padding: 10px 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;}
+        .gb-item-row input:focus { border-color: var(--ly-gold); outline: none; }
+        .img-upload-btn { background: var(--ly-blue); color: white; padding: 10px; border-radius: 6px; cursor: pointer; white-space: nowrap; font-size: 13px; font-weight: bold;}
+        .gb-item-row img { width: 40px; height: 40px; object-fit: cover; border-radius: 6px; display: none; border: 1px solid #ccc;}
+        .btn-add-item { background: rgba(0, 49, 83, 0.1); color: var(--ly-blue); border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-size: 14px; font-weight: bold; margin-bottom: 15px; display: block; width: 100%; transition: 0.2s;}
+        .btn-add-item:hover { background: rgba(0, 49, 83, 0.2); }
+        .btn-remove-item { position: absolute; right: -5px; top: -5px; background: #ff4d4d; color: white; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 10px; cursor: pointer; z-index: 5;}
+        
+        .gb-order-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 10px; border-bottom: 1px solid #eee; }
+        .gb-order-item img { width: 55px; height: 55px; border-radius: 8px; object-fit: cover; cursor: pointer; border: 1px solid #ddd;}
+        .gb-order-info { flex: 1; padding: 0 15px; }
+        .gb-order-info h4 { margin: 0 0 5px 0; font-size: 1rem; color: var(--ly-blue); font-weight: 800;}
+        .gb-order-info p { margin: 0; font-size: 0.9rem; color: #555; font-weight: 600;}
+        .gb-qty-controls { display: flex; align-items: center; gap: 12px; }
+        .gb-qty-btn { width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid var(--ly-blue); background: white; color: var(--ly-blue); font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; font-size: 18px; transition: 0.2s;}
+        .gb-qty-btn:active { background: var(--ly-blue); color: white; }
+        .gb-qty-btn:disabled { border-color: #ccc; color: #ccc; cursor: not-allowed; background: #f9f9f9;}
     </style>
 </head>
 <body>
@@ -419,6 +448,10 @@
                 <div class="expand-menu-item" onclick="handleActivitySchedule()">
                     <div class="icon-circle"><i class="fas fa-calendar-alt"></i></div>
                     <span>活動行程</span>
+                </div>
+                <div class="expand-menu-item" onclick="openCreateGroupBuyModal()">
+                    <div class="icon-circle"><i class="fas fa-shopping-basket"></i></div>
+                    <span>發起團購</span>
                 </div>
             </div>
             
@@ -578,6 +611,58 @@
                 <button class="btn-modal btn-cancel" style="width: 100%;" onclick="closeModal('activityScheduleModal')">關閉視窗</button>
             </div>
         </div>
+
+        <div id="createGroupBuyModal" class="modal-overlay" style="z-index: 4000;">
+        <div class="modal-card" style="max-width: 500px; max-height: 85vh; display: flex; flex-direction: column;">
+            <div class="modal-header">
+                <h3><i class="fas fa-shopping-cart"></i> 發起團購訂單</h3>
+                <span style="cursor:pointer;" onclick="closeModal('createGroupBuyModal')">&times;</span>
+            </div>
+            <div class="modal-body" style="flex: 1; overflow-y: auto; padding: 20px;">
+                <div class="modal-input-group">
+                    <label>代購成員 (發起人)</label>
+                    <input type="text" id="gbInitiator" disabled style="background:#f8f9fa; font-weight:bold; color:var(--ly-blue); border:none;">
+                </div>
+                <div class="modal-input-group">
+                    <label>團購標題</label>
+                    <input type="text" id="gbTitle" placeholder="例如：下午茶飲料、辦公室文具...">
+                </div>
+                <div class="modal-input-group">
+                    <label>截止時間</label>
+                    <input type="datetime-local" id="gbDeadline">
+                </div>
+                
+                <div style="height: 1px; background: #eee; margin: 20px 0;"></div>
+                <label style="display:block; font-size: 14px; color: var(--ly-blue); font-weight: 800; margin-bottom: 12px;"><i class="fas fa-box-open"></i> 商品列表</label>
+                
+                <div id="gbItemsContainer"></div>
+                <button class="btn-add-item" onclick="addGroupBuyItemRow()"><i class="fas fa-plus"></i> 增加一項商品</button>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-modal btn-cancel" onclick="closeModal('createGroupBuyModal')">取消</button>
+                <button class="btn-modal btn-confirm" id="gbSubmitBtn" onclick="submitGroupBuy()">發布到聊天室</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="viewGroupBuyModal" class="modal-overlay" style="z-index: 4000;">
+        <div class="modal-card" style="max-width: 500px; max-height: 85vh; display: flex; flex-direction: column;">
+            <div class="modal-header">
+                <h3 id="vgbTitle" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80%;">團購詳情</h3>
+                <span style="cursor:pointer;" onclick="closeModal('viewGroupBuyModal')">&times;</span>
+            </div>
+            <div style="padding: 15px 20px; background: #fffdf5; border-bottom: 2px solid #eee; font-size: 0.95rem; color: #555;">
+                <div style="margin-bottom: 5px;"><strong><i class="fas fa-user-tag" style="color:var(--ly-gold);"></i> 代購成員：</strong> <span id="vgbInitiator" style="font-weight:bold; color:var(--ly-blue);"></span></div>
+                <div><strong><i class="far fa-clock" style="color:var(--ly-gold);"></i> 截止時間：</strong> <span id="vgbDeadline" style="font-weight:bold; color:#d93025;"></span></div>
+            </div>
+            <div class="modal-body" id="vgbItemsList" style="flex: 1; overflow-y: auto; padding: 10px 20px;">
+                </div>
+            <div class="modal-footer" style="background: white; border-top: 1px solid #eee;">
+                <button class="btn-modal btn-cancel" onclick="closeModal('viewGroupBuyModal')">關閉</button>
+                <button class="btn-modal btn-confirm" id="vgbSaveBtn" onclick="saveGroupBuyOrder()">儲存我的訂單</button>
+            </div>
+        </div>
+    </div>
     </div>
 
     <div id="readReceiptModal" class="modal-overlay" style="z-index: 6000;">
@@ -744,9 +829,12 @@
 
         countdownEls.forEach((el) => {
             const eventId = el.getAttribute('data-event-id');
+            // 【新增】：讀取所屬集合名稱 (預設為 events，若為團購則是 group-orders)
+            const collectionName = el.getAttribute('data-collection') || 'events';
             if (!eventId) return;
 
-            // 更新畫面的專用函式
+            const cacheKey = collectionName + '_' + eventId;
+
             const applyCountdownUI = (deadlineStr) => {
                 if (deadlineStr) {
                     const cdText = getCardCountdownText(deadlineStr);
@@ -759,40 +847,26 @@
                 }
             };
 
-            // 狀態 1：資料已經抓完並轉成字串了，直接秒速顯示
-            if (typeof window.eventDeadlineCache[eventId] === 'string') {
-                applyCountdownUI(window.eventDeadlineCache[eventId]);
+            if (typeof window.eventDeadlineCache[cacheKey] === 'string') {
+                applyCountdownUI(window.eventDeadlineCache[cacheKey]);
                 return;
             }
 
-            // 狀態 2：資料「正在」跟伺服器索取中（是一個 Promise）。
-            // 讓這個新生成的 HTML 標籤也加入等待行列，等抓完一起更新
-            if (window.eventDeadlineCache[eventId] instanceof Promise) {
-                window.eventDeadlineCache[eventId].then(deadlineStr => {
-                    applyCountdownUI(deadlineStr);
-                });
+            if (window.eventDeadlineCache[cacheKey] instanceof Promise) {
+                window.eventDeadlineCache[cacheKey].then(applyCountdownUI);
                 return;
             }
 
-            // 狀態 3：完全沒抓過，發起第一次資料庫請求，並存入 Promise
-            window.eventDeadlineCache[eventId] = db.collection("events").doc(eventId).get().then(evDoc => {
-                let deadlineStr = "";
-                if (evDoc.exists && evDoc.data().deadline) {
-                    deadlineStr = evDoc.data().deadline;
-                }
-                // 抓完之後，把 Promise 替換成真正的字串，以後就不用再等了
-                window.eventDeadlineCache[eventId] = deadlineStr;
+            window.eventDeadlineCache[cacheKey] = db.collection(collectionName).doc(eventId).get().then(evDoc => {
+                let deadlineStr = (evDoc.exists && evDoc.data().deadline) ? evDoc.data().deadline : "";
+                window.eventDeadlineCache[cacheKey] = deadlineStr;
                 return deadlineStr;
             }).catch(e => {
-                console.error("抓取活動期限失敗", e);
-                window.eventDeadlineCache[eventId] = "";
+                window.eventDeadlineCache[cacheKey] = "";
                 return "";
             });
 
-            // 讓目前的標籤等待這個剛發起的請求
-            window.eventDeadlineCache[eventId].then(deadlineStr => {
-                applyCountdownUI(deadlineStr);
-            });
+            window.eventDeadlineCache[cacheKey].then(applyCountdownUI);
         });
     }
 
@@ -818,15 +892,27 @@
 
     function openChatRoom(chatId) {
         currentChatId = chatId;
+        
+        // 【新增】：在動畫開始前，立刻清空舊的變數與畫面，避免殘留
+        messagesDocsData = []; 
+        document.getElementById('messageList').innerHTML = "";
+        
         chatViewDOM.style.transform = 'translateX(0%)';
         initChatData(chatId);
     }
 
     function closeChatRoom() {
         chatViewDOM.style.transform = 'translateX(100%)';
+        
+        // 取消 Firebase 監聽器
         if (chatSnapshotUnsubscribe) { chatSnapshotUnsubscribe(); chatSnapshotUnsubscribe = null; }
         if (messagesSnapshotUnsubscribe) { messagesSnapshotUnsubscribe(); messagesSnapshotUnsubscribe = null; }
+        
+        // 【新增】：徹底清除狀態與資料，確保下次進來一定是全新的狀態
         currentChatId = null;
+        currentSubscribeMessages = null;
+        messagesDocsData = []; 
+        
         updateMyStatus(false);
     }
 
@@ -954,12 +1040,14 @@
             }
 
             // 【新增】：防呆處理，如果 lastMessage 變成 JSON 程式碼，將它轉換回正常的預覽文字
+            // 【新增】：防呆處理，如果 lastMessage 變成 JSON 程式碼，將它轉換回正常的預覽文字
             let displayLastMsg = chat.lastMessage || '尚無訊息';
             if (displayLastMsg.includes('"type":"event_share"')) {
-                try {
-                    const parsedMsg = JSON.parse(displayLastMsg);
-                    displayLastMsg = `分享了活動：${parsedMsg.title}`;
-                } catch(e) {}
+                try { const parsedMsg = JSON.parse(displayLastMsg); displayLastMsg = `分享了活動：${parsedMsg.title}`; } catch(e) {}
+            } 
+            // 【新增這段】：處理外部列表的團購預覽
+            else if (displayLastMsg.includes('"type":"group_buy"')) {
+                try { const parsedMsg = JSON.parse(displayLastMsg); displayLastMsg = `發起了團購：${parsedMsg.title}`; } catch(e) {}
             }
 
             return `
@@ -994,9 +1082,11 @@
         const user = auth.currentUser;
         if (!user) return;
         
-        window.isFirstChatLoad = true; // 【新增這一行】標記這是第一次開啟這個對話
+        window.isFirstChatLoad = true; 
         
-        document.getElementById('messageList').innerHTML = "";
+        // 【修改】：雙重防呆，確保剛點進來時畫面一定是乾淨的
+        messagesDocsData = [];
+        document.getElementById('messageList').innerHTML = "<div style='text-align:center; padding:20px; color:#999; font-size:14px;'><i class='fas fa-spinner fa-spin'></i> 載入對話中...</div>";
         document.getElementById('chatTitle').innerText = "載入中...";
         window.chatMembersCache = {};
         
@@ -1133,10 +1223,7 @@
                     const parsed = JSON.parse(msg.text);
                     if (parsed.type === 'event_share') {
                         isEventCard = true; safeText = `分享了活動：${parsed.title}`;
-                        
-                        // 【修改】：完全捨棄舊的寫死方式。改用帶有 data-event-id 的動態標籤，交由計時器自動接管處理
-                        let countdownHtml = `<span class="msg-event-countdown dynamic-countdown" data-event-id="${parsed.eventId}" style="display:none;"></span>`;
-
+                        let countdownHtml = `<span class="msg-event-countdown dynamic-countdown" data-event-id="${parsed.eventId}" data-collection="events" style="display:none;"></span>`;
                         contentHtml += `
                             <div onclick="openDocPreview('${parsed.eventId}')" class="msg-event-card">
                                 <div class="msg-event-header">
@@ -1146,7 +1233,24 @@
                                 <div class="msg-event-title">${parsed.title}</div>
                                 <div class="msg-event-time"><i class="far fa-clock"></i> ${parsed.timeStr}</div>
                             </div>`;
-                    } else safeText = msg.text.replace(/"/g, '&quot;').replace(/'/g, "\\'");
+                    } 
+                    // 【新增】：團購卡片渲染邏輯
+                    else if (parsed.type === 'group_buy') {
+                        isEventCard = true; safeText = `發起了團購：${parsed.title}`;
+                        let countdownHtml = `<span class="msg-event-countdown dynamic-countdown" data-event-id="${parsed.orderId}" data-collection="group-orders" style="display:none;"></span>`;
+                        contentHtml += `
+                            <div onclick="openGroupBuyDetail('${parsed.orderId}')" class="msg-event-card" style="border-color: #28a745;">
+                                <div class="msg-event-header">
+                                    <span style="color:#28a745;"><i class="fas fa-shopping-cart"></i> 團購訂單</span>
+                                    ${countdownHtml}
+                                </div>
+                                <div class="msg-event-title">${parsed.title}</div>
+                                <div class="msg-event-time" style="font-weight:bold; color:#555; margin-top:4px;">
+                                    [ 代購: ${parsed.initiator} ]
+                                </div>
+                            </div>`;
+                    }
+                    else safeText = msg.text.replace(/"/g, '&quot;').replace(/'/g, "\\'");
                 } catch (e) { safeText = msg.text.replace(/"/g, '&quot;').replace(/'/g, "\\'"); }
             }
 
@@ -2085,6 +2189,266 @@
     function closeSettings() { closeModal('settingsModal'); }
     function handleLogout() { if(confirm("確定登出？")) auth.signOut().then(()=>window.location.href="index.html"); }
 
+
+    // ==========================================
+    // 8. 團購系統核心邏輯
+    // ==========================================
+    let gbItemCount = 0;
+
+    function openCreateGroupBuyModal() {
+        document.getElementById('expandMenuPanel').style.display = 'none';
+        document.querySelector('.expand-menu-btn').style.transform = 'rotate(0deg)';
+        
+        // 自動帶入當前成員名稱
+        document.getElementById('gbInitiator').value = document.getElementById('myName').innerText;
+        document.getElementById('gbTitle').value = '';
+        document.getElementById('gbDeadline').value = '';
+        document.getElementById('gbItemsContainer').innerHTML = '';
+        gbItemCount = 0;
+        addGroupBuyItemRow(); // 預設先給一行
+        openModal('createGroupBuyModal');
+    }
+
+    function addGroupBuyItemRow() {
+        const container = document.getElementById('gbItemsContainer');
+        const rowId = `gb-item-${gbItemCount++}`;
+        const html = `
+            <div class="gb-item-row" id="${rowId}">
+                <div onclick="document.getElementById('${rowId}').remove()" class="btn-remove-item"><i class="fas fa-times"></i></div>
+                <label class="img-upload-btn">
+                    <i class="fas fa-camera"></i> 圖片
+                    <input type="file" accept="image/*" style="display:none;" onchange="previewGBImage(this, '${rowId}')">
+                </label>
+                <img id="img-prev-${rowId}">
+                <input type="text" class="gb-i-name" placeholder="商品名稱" style="flex: 2;">
+                <input type="number" class="gb-i-price" placeholder="單價金額" style="flex: 1;">
+                <input type="number" class="gb-i-qty" placeholder="數量限制(選填)" style="flex: 1;">
+                <input type="text" class="gb-i-note" placeholder="備註說明(選填)" style="flex: 3; min-width: 100%;">
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', html);
+    }
+
+    function previewGBImage(input, rowId) {
+        const file = input.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = document.getElementById(`img-prev-${rowId}`);
+                img.src = e.target.result;
+                img.style.display = 'block';
+                input.fileObj = file; 
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    async function submitGroupBuy() {
+        const title = document.getElementById('gbTitle').value.trim();
+        const deadline = document.getElementById('gbDeadline').value;
+        const initiatorName = document.getElementById('gbInitiator').value;
+        
+        if (!title || !deadline) return alert('請完整填寫「團購標題」與「截止時間」！');
+        
+        const rows = document.querySelectorAll('.gb-item-row');
+        if (rows.length === 0) return alert('請至少新增一項商品！');
+
+        const btn = document.getElementById('gbSubmitBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 建立中...';
+
+        try {
+            let items = [];
+            for (let i = 0; i < rows.length; i++) {
+                const row = rows[i];
+                const name = row.querySelector('.gb-i-name').value.trim();
+                const price = row.querySelector('.gb-i-price').value.trim();
+                const qty = row.querySelector('.gb-i-qty').value.trim();
+                const note = row.querySelector('.gb-i-note').value.trim();
+                const fileInput = row.querySelector('input[type="file"]');
+                
+                if (!name || !price) throw new Error('每項商品的「名稱」與「金額」為必填項目。');
+
+                let imgUrl = "";
+                // 如果有上傳圖片，使用前端壓縮並上傳
+                if (fileInput.fileObj) {
+                    const compressedFile = await compressImageClientSide(fileInput.fileObj, 1); // 壓到 1MB 以下
+                    const snap = await storage.ref(`group-orders/${Date.now()}_${i}.jpg`).put(compressedFile);
+                    imgUrl = await snap.ref.getDownloadURL();
+                }
+
+                items.push({
+                    id: `item_${Date.now()}_${i}`,
+                    name, 
+                    price: Number(price), 
+                    quantity: qty, 
+                    note, 
+                    imgUrl
+                });
+            }
+
+            // 1. 寫入 group-orders 集合
+            const newOrderRef = db.collection('group-orders').doc();
+            await newOrderRef.set({
+                title,
+                initiatorId: auth.currentUser.uid,
+                initiatorName,
+                deadline,
+                items,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            // 2. 傳送訊息卡片到當前聊天室
+            const batch = db.batch();
+            const chatRef = db.collection("chats").doc(currentChatId);
+            const msgRef = chatRef.collection("messages").doc();
+            
+            const payload = {
+                type: 'group_buy',
+                orderId: newOrderRef.id,
+                title: title,
+                initiator: initiatorName,
+                deadline: deadline
+            };
+
+            batch.set(msgRef, { 
+                text: JSON.stringify(payload), 
+                senderId: auth.currentUser.uid, 
+                timestamp: firebase.firestore.FieldValue.serverTimestamp() 
+            });
+            batch.update(chatRef, { 
+                lastMessage: `發起了團購：${title}`, 
+                lastSenderId: auth.currentUser.uid, 
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp(), 
+                [`lastReadAt.${auth.currentUser.uid}`]: firebase.firestore.FieldValue.serverTimestamp() 
+            });
+            
+            await batch.commit();
+            closeModal('createGroupBuyModal');
+            scrollToBottom(true);
+
+        } catch(e) {
+            alert(e.message || "建立團購失敗，請稍後再試。");
+        } finally {
+            btn.disabled = false;
+            btn.innerText = '發布到聊天室';
+        }
+    }
+
+    // --- 查看與登記團購 ---
+    let currentGroupBuyId = null;
+    let currentGroupBuyItems = [];
+    
+    async function openGroupBuyDetail(orderId) {
+        currentGroupBuyId = orderId;
+        openModal('viewGroupBuyModal');
+        document.getElementById('vgbItemsList').innerHTML = '<div style="text-align:center; padding:30px; color:#999;"><i class="fas fa-spinner fa-spin fa-2x"></i><br><br>載入表單中...</div>';
+        
+        try {
+            // 抓取主檔
+            const doc = await db.collection('group-orders').doc(orderId).get();
+            if (!doc.exists) {
+                document.getElementById('vgbItemsList').innerHTML = '<div style="text-align:center; padding:20px; color:red;">此團購單已被刪除。</div>';
+                return;
+            }
+            const data = doc.data();
+            document.getElementById('vgbTitle').innerText = data.title;
+            document.getElementById('vgbInitiator').innerText = data.initiatorName;
+            document.getElementById('vgbDeadline').innerText = data.deadline.replace('T', ' ');
+            currentGroupBuyItems = data.items || [];
+
+            const isExpired = new Date(data.deadline).getTime() < Date.now();
+            const saveBtn = document.getElementById('vgbSaveBtn');
+            if (isExpired) {
+                saveBtn.disabled = true;
+                saveBtn.innerText = "登記已截止";
+                saveBtn.style.background = "#ccc";
+            } else {
+                saveBtn.disabled = false;
+                saveBtn.innerText = "儲存我的訂單";
+                saveBtn.style.background = "var(--ly-blue)";
+            }
+
+            // 抓取我自己的登記紀錄 (儲存於子集合 orders 中)
+            const myOrderDoc = await db.collection('group-orders').doc(orderId).collection('orders').doc(auth.currentUser.uid).get();
+            const myOrders = myOrderDoc.exists ? (myOrderDoc.data().items || {}) : {};
+
+            let html = '';
+            currentGroupBuyItems.forEach(item => {
+                const myQty = myOrders[item.id] || 0;
+                const imgSrc = item.imgUrl || 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true';
+                html += `
+                    <div class="gb-order-item">
+                        <img src="${imgSrc}" onclick="if('${item.imgUrl}') openImageModal('${item.imgUrl}')">
+                        <div class="gb-order-info">
+                            <h4>${item.name}</h4>
+                            <p>$${item.price} ${item.quantity ? `<span style="color:#d93025; font-size:12px;">(限量 ${item.quantity})</span>` : ''}</p>
+                            ${item.note ? `<p style="font-size:0.75rem; color:#888; margin-top:4px; background:#f4f4f4; padding:2px 6px; border-radius:4px;">${item.note}</p>` : ''}
+                        </div>
+                        <div class="gb-qty-controls">
+                            <button class="gb-qty-btn" onclick="changeGbQty('${item.id}', -1)" ${isExpired ? 'disabled' : ''}>-</button>
+                            <span id="qty-${item.id}" style="font-weight:900; font-size:16px; min-width:20px; text-align:center;">${myQty}</span>
+                            <button class="gb-qty-btn" onclick="changeGbQty('${item.id}', 1)" ${isExpired ? 'disabled' : ''}>+</button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            if (currentGroupBuyItems.length === 0) html = '<div style="text-align:center;">無商品項目</div>';
+            document.getElementById('vgbItemsList').innerHTML = html;
+
+        } catch (e) {
+            document.getElementById('vgbItemsList').innerHTML = '<div style="text-align:center; padding:20px; color:red;">讀取失敗，請檢查網路。</div>';
+        }
+    }
+
+    function changeGbQty(itemId, delta) {
+        const span = document.getElementById(`qty-${itemId}`);
+        let val = parseInt(span.innerText) + delta;
+        if (val < 0) val = 0;
+        span.innerText = val;
+    }
+
+    async function saveGroupBuyOrder() {
+        if (!currentGroupBuyId) return;
+        const btn = document.getElementById('vgbSaveBtn');
+        btn.disabled = true; 
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 儲存中...';
+        
+        try {
+            const myOrder = {};
+            let totalQty = 0;
+            currentGroupBuyItems.forEach(item => {
+                const qty = parseInt(document.getElementById(`qty-${item.id}`).innerText);
+                if (qty > 0) {
+                    myOrder[item.id] = qty;
+                    totalQty += qty;
+                }
+            });
+
+            // 存入子集合
+            const orderRef = db.collection('group-orders').doc(currentGroupBuyId).collection('orders').doc(auth.currentUser.uid);
+            
+            if (totalQty === 0) {
+                // 若數量全為 0，直接刪除這份訂單紀錄
+                await orderRef.delete(); 
+            } else {
+                await orderRef.set({
+                    userName: document.getElementById('myName').innerText, // 順便存下名字方便代購人查看
+                    items: myOrder,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            }
+            
+            alert("✅ 您的訂單已成功儲存！");
+            closeModal('viewGroupBuyModal');
+        } catch(e) {
+            alert("儲存失敗，請重試。");
+        } finally {
+            btn.disabled = false; 
+            btn.innerText = "儲存我的訂單";
+        }
+    }
     </script>
 </body>
 </html>
