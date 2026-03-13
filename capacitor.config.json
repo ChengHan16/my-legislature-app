@@ -1,16 +1,17 @@
 {
   "appId": "tw.legislature.app",
-  "appName": "Legislature",
+  "appName": "立法院",
   "webDir": "www",
-  "plugins": {
-    "PushNotifications": {
-      "presentationOptions": ["badge", "sound", "alert"]
-    }
-  },
-  "backgroundColor": "#f2f4f7", 
+  "bundledWebRuntime": false,
+  "backgroundColor": "#f2f4f7",
   "server": {
     "hostname": "app.legislature.tw",
     "iosScheme": "https",
     "androidScheme": "https"
+  },
+  "plugins": {
+    "PushNotifications": {
+      "presentationOptions": ["badge", "sound", "alert"]
+    }
   }
 }

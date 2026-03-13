@@ -61,7 +61,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         
         // 【關鍵修正】：強制告訴 Firebase 這是 TestFlight 正式環境的 Token
-        Messaging.messaging().setAPNSToken(deviceToken, type: .prod) 
+        Messaging.messaging().setAPNSToken(deviceToken, type: .unknown)
         
         NotificationCenter.default.post(name: .capacitorDidRegisterForRemoteNotifications, object: deviceToken)
     }
