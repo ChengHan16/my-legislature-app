@@ -65,6 +65,15 @@ exports.sendChatNotification = onDocumentCreated("chats/{chatId}/messages/{messa
     try {
         const response = await admin.messaging().sendEachForMulticast(message);
         console.log('成功發送推播:', response.successCount, '失敗:', response.failureCount);
+        
+        // 🚨 【新增這段】：把失敗的「真正原因」印在日誌裡
+        if (response.failureCount > 0) {
+            response.responses.forEach((resp, idx) => {
+                if (!resp.success) {
+                    console.error(`Token ${idx} 發送失敗的詳細原因:`, resp.error);
+                }
+            });
+        }
     } catch (error) {
         console.error('推播發送失敗:', error);
     }
