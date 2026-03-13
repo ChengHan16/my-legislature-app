@@ -1042,9 +1042,22 @@
             });
 
             PushNotifications.addListener('pushNotificationReceived', (notification) => {
-                alert("【前台收到通知】\n標題：" + notification.title + "\n內容：" + notification.body);
-            });
+                // 收到通知時，呼叫我們自訂的漂亮橫幅，並自動在 4 秒後收合
+                const notifEl = document.getElementById('inAppNotification');
+                document.getElementById('inAppNotifTitle').innerText = notification.title || '新訊息';
+                document.getElementById('inAppNotifBody').innerText = notification.body || '';
 
+                notifEl.style.display = 'flex';
+                void notifEl.offsetWidth; // 觸發重繪
+                notifEl.style.top = 'env(safe-area-inset-top, 20px)'; // 避開瀏海
+                notifEl.style.opacity = '1';
+
+                setTimeout(() => {
+                    notifEl.style.top = '-100px';
+                    notifEl.style.opacity = '0';
+                    setTimeout(() => { notifEl.style.display = 'none'; }, 400);
+                }, 4000);
+            });
             PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
                 console.log("使用者點開了通知:", notification);
             });
@@ -2870,4 +2883,13 @@
     }
     </script>
 </body>
+
+    <div id="inAppNotification" style="display:none; position:fixed; top:-100px; left:50%; transform:translateX(-50%); width:90%; max-width:400px; background:rgba(0, 49, 83, 0.95); color:white; padding:15px; border-radius:12px; box-shadow:0 10px 25px rgba(0,0,0,0.2); z-index:999999; align-items:center; gap:15px; cursor:pointer; backdrop-filter:blur(10px); transition:top 0.4s ease, opacity 0.4s ease; opacity:0;">
+        <i class="fas fa-bell" style="color: var(--ly-gold); font-size: 1.5rem;"></i>
+        <div style="flex:1;">
+            <div id="inAppNotifTitle" style="font-weight:bold; font-size:15px; margin-bottom:5px; color:var(--ly-gold);">標題</div>
+            <div id="inAppNotifBody" style="font-size:13px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">內容</div>
+        </div>
+    </div>
+    
 </html>
