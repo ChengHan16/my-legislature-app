@@ -90,12 +90,23 @@
             background: white; display: flex; align-items: center; padding: 18px 20px; 
             margin-bottom: 0px; border-radius: 8px; cursor: pointer; transition: all 0.3s ease;
             border: 1px solid var(--border-color); border-left: 6px solid transparent;
+            position: relative; /* 【關鍵新增】 */
         }
         .chat-item:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.08); border-color: #ffffff; }
-        .chat-info { flex-grow: 1; padding-left: 5px; }
-        .chat-info h4 { margin: 0 0 6px 0; font-size: 1.25rem; color: var(--ly-blue); }
+        .chat-info { 
+            flex-grow: 1; padding-left: 5px; 
+            min-width: 0; /* 【關鍵新增】 */
+        }
+        .chat-info h4 { 
+            margin: 0 0 6px 0; font-size: 1.25rem; color: var(--ly-blue); 
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; /* 【關鍵新增】不換行處理 */
+            flex: 1; min-width: 0; /* 配合右側時間排版 */
+        }
         .chat-info p { margin: 0; color: #666; font-size: 1.05rem; display: -webkit-box; line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; word-break: break-all; }
-        .chat-time { font-size: 0.85rem; color: #999; font-weight: 500; }
+        .chat-time { 
+            font-size: 0.85rem; color: #999; font-weight: 500; 
+            flex-shrink: 0; margin-left: 10px; /* 【關鍵新增】 */
+        }
         .chat-item.unread { background-color: #fdfcf5; border-left: 6px solid var(--ly-gold) !important; }
         .chat-item.unread h4 { font-weight: 900 !important; color: var(--ly-blue); }
         .chat-item.unread p { color: #000 !important; font-weight: 800 !important; background: transparent !important; }
@@ -1127,7 +1138,8 @@
             const myLastRead = chat.lastReadAt?.[currentUser.uid] ? chat.lastReadAt[currentUser.uid].toDate() : new Date(0);
             const isUnread = chat.lastSenderId !== currentUser.uid && updatedAt > myLastRead;
             const unreadClass = isUnread ? "unread" : "";
-            const pinIcon = (chat.isGroup && chat.groupName === "立法院 Legislature") ? '<i class="fas fa-thumbtack" style="color:var(--ly-gold); margin-right:6px; transform:rotate(-45deg);"></i>' : '';
+            // 1. 修改 pinIcon：加入絕對定位 (position: absolute)，釘在卡片左上角
+            const pinIcon = (chat.isGroup && chat.groupName === "立法院 Legislature") ? '<i class="fas fa-thumbtack" style="color:var(--ly-gold); position:absolute; top:10px; left:12px; transform:rotate(-45deg); font-size:14px;"></i>' : '';
 
             let timeStr = "";
             if (chat.updatedAt) {
@@ -1136,24 +1148,21 @@
                 else timeStr = `${updatedAt.getFullYear()}/${(updatedAt.getMonth() + 1).toString().padStart(2,'0')}/${updatedAt.getDate().toString().padStart(2,'0')}`;
             }
 
-            // 【新增】：防呆處理，如果 lastMessage 變成 JSON 程式碼，將它轉換回正常的預覽文字
-            // 【新增】：防呆處理，如果 lastMessage 變成 JSON 程式碼，將它轉換回正常的預覽文字
             let displayLastMsg = chat.lastMessage || '尚無訊息';
             if (displayLastMsg.includes('"type":"event_share"')) {
                 try { const parsedMsg = JSON.parse(displayLastMsg); displayLastMsg = `分享了活動：${parsedMsg.title}`; } catch(e) {}
             } 
-            // 【新增這段】：處理外部列表的團購預覽
             else if (displayLastMsg.includes('"type":"group_buy"')) {
                 try { const parsedMsg = JSON.parse(displayLastMsg); displayLastMsg = `發起了團購：${parsedMsg.title}`; } catch(e) {}
             }
 
+            // 2. 重構 HTML：將 pinIcon 獨立拉出來，並確保 h4 標題乾淨
             return `
                 <div class="chat-item ${unreadClass}" onclick="openChatRoom('${chatId}')">
-                    <img class="user-avatar" src="${avatar}" style="${avatarStyle}">
+                    ${pinIcon} <img class="user-avatar" src="${avatar}" style="${avatarStyle}">
                     <div class="chat-info">
-                        <div style="display:flex; justify-content:space-between; align-items:baseline;">
-                            <h4>${pinIcon}${title}</h4>
-                            <span class="chat-time">${timeStr}</span>
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <h4>${title}</h4> <span class="chat-time">${timeStr}</span>
                         </div>
                         <p>${displayLastMsg}</p>
                     </div>

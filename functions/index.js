@@ -2,88 +2,72 @@ const { onDocumentCreated } = require("firebase-functions/v2/firestore");
 const admin = require("firebase-admin");
 admin.initializeApp();
 
-// 監聽 chats/{chatId}/messages/ 集合中是否有新增訊息
 exports.sendChatNotification = onDocumentCreated("chats/{chatId}/messages/{messageId}", async (event) => {
-    // V2 語法：資料放在 event.data，網址參數放在 event.params
+    // 取得新增的訊息資料
     const snap = event.data;
     if (!snap) return null;
 
-    const messageData = snap.data();
+    const newValue = snap.data();
+    const senderId = newValue.senderId;
+    
+    // 解析訊息內容 (防呆處理圖片與影片)
+    let text = newValue.text || (newValue.fileType === 'video' ? '傳送了一段影片' : '傳送了一張圖片');
+    if (text.includes('"type":"event_share"')) text = "分享了一個活動";
+    if (text.includes('"type":"group_buy"')) text = "發起了一個團購";
+
+    // 從 event.params 取得網址上的 chatId
     const chatId = event.params.chatId;
-    const senderId = messageData.senderId;
 
-    try {
-        // 1. 取得聊天室資訊，找出所有成員
-        const chatDoc = await admin.firestore().collection('chats').doc(chatId).get();
-        if (!chatDoc.exists) return null;
-        const chatData = chatDoc.data();
-        const members = chatData.members || [];
-        
-        // 取得發送者的名稱
-        const senderDoc = await admin.firestore().collection('act').doc(senderId).get();
-        const senderName = senderDoc.exists ? senderDoc.data().displayName : "有新訊息";
+    // 1. 取得聊天室資訊
+    const chatDoc = await admin.firestore().collection('chats').doc(chatId).get();
+    const chatData = chatDoc.data();
+    
+    if (!chatData || !chatData.members) return null;
 
-        // 準備推播內容 (判斷是文字、圖片還是活動卡片)
-        let textContent = "傳送了新訊息";
-        if (messageData.text) {
-            try {
-                const parsed = JSON.parse(messageData.text);
-                if (parsed.type === 'event_share') {
-                    textContent = `分享了活動：${parsed.title}`;
-                } else {
-                    textContent = messageData.text;
-                }
-            } catch (e) {
-                textContent = messageData.text;
-            }
-        } else if (messageData.fileUrl) {
-            textContent = messageData.fileType === 'video' ? '[傳送了影片]' : '[傳送了圖片]';
+    // 找出需要接收通知的成員（排除發送者本人）
+    const receivers = chatData.members.filter(uid => uid !== senderId);
+    
+    // 2. 取得發送者的名字
+    const senderDoc = await admin.firestore().collection('act').doc(senderId).get();
+    const senderName = senderDoc.exists ? senderDoc.data().displayName : '成員';
+
+    // 3. 收集所有接收者的 Push Token
+    const tokens = [];
+    for (const uid of receivers) {
+        const userDoc = await admin.firestore().collection('act').doc(uid).get();
+        if (userDoc.exists && userDoc.data().pushToken) {
+            tokens.push(userDoc.data().pushToken); 
         }
+    }
 
-        const groupName = chatData.isGroup ? `[${chatData.groupName}] ` : "";
-
-        // 2. 找出除了發送者以外，所有成員的 Push Token
-        const tokens = [];
-        for (const uid of members) {
-            if (uid !== senderId) {
-                const userDoc = await admin.firestore().collection('act').doc(uid).get();
-                if (userDoc.exists && userDoc.data().pushToken) {
-                    tokens.push(userDoc.data().pushToken);
-                }
-            }
-        }
-
-        // 3. 如果有找到 Token，正式發送推播給 Apple
-        if (tokens.length > 0) {
-            const message = {
-                tokens: tokens,
-                notification: {
-                    title: `${groupName}${senderName}`,
-                    body: textContent,
-                },
-                data: {
-                    chatId: chatId
-                },
-                apns: {
-                    payload: {
-                        aps: {
-                            sound: 'default',
-                            badge: 1 // 讓 App 圖示右上角出現紅點數字
-                        }
-                    }
-                }
-            };
-
-            // 呼叫 Firebase Admin SDK 發送多點推播
-            const response = await admin.messaging().sendEachForMulticast(message);
-            console.log('成功發送推播，成功數量:', response.successCount);
-        } else {
-            console.log('沒有找到其他成員的推播 Token');
-        }
-        return null;
-
-    } catch (error) {
-        console.error('發送推播發生錯誤:', error);
+    if (tokens.length === 0) {
+        console.log('沒有找到接收者的 Token，停止發送推播');
         return null;
     }
+
+    // 4. 打包推播內容 (使用最新版 Multicast 格式)
+    const message = {
+        notification: {
+            title: chatData.isGroup ? chatData.groupName : senderName,
+            body: chatData.isGroup ? `${senderName}: ${text}` : text,
+        },
+        apns: {
+            payload: {
+                aps: {
+                    sound: 'default' // 讓 iOS 收到時有提示音
+                }
+            }
+        },
+        tokens: tokens // 一次發送給所有收集到的裝置
+    };
+
+    // 5. 正式發送推播
+    try {
+        const response = await admin.messaging().sendEachForMulticast(message);
+        console.log('成功發送推播:', response.successCount, '失敗:', response.failureCount);
+    } catch (error) {
+        console.error('推播發送失敗:', error);
+    }
+
+    return null;
 });

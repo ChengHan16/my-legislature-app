@@ -57,10 +57,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     // --- 貼上這段 Capacitor 推播必須的原生代碼 ---
+    // --- 貼上這段 Capacitor 推播必須的原生代碼 ---
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         
-        // <-- 新增這行：將 Apple 授權的 Token 正式移交給 Firebase
-        Messaging.messaging().apnsToken = deviceToken 
+        // 【關鍵修正】：強制告訴 Firebase 這是 TestFlight 正式環境的 Token
+        Messaging.messaging().setAPNSToken(deviceToken, type: .prod) 
         
         NotificationCenter.default.post(name: .capacitorDidRegisterForRemoteNotifications, object: deviceToken)
     }
