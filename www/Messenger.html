@@ -125,26 +125,26 @@
         .msg-wrapper { display: flex; flex-direction: column; width: 100%; margin-bottom: 4px; }
         .msg-wrapper.mine { align-items: flex-end; }
         .msg-wrapper.theirs { align-items: flex-start; }
-        .msg-row { display: flex; align-items: flex-end; gap: 10px; width: 100%; }
+        .msg-row { display: flex; align-items: flex-end; gap: 5px; width: 100%; }
         .msg-row.mine { justify-content: flex-end; }
         .msg-row.theirs { justify-content: flex-start; }
         .msg-avatar { width: 35px; height: 35px; border-radius: 50%; flex-shrink: 0; border: 1px solid #ddd; object-fit: cover; background: #fff; margin:0;}
         .msg-avatar-container { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; width: 42px; flex-shrink: 0; gap: 4px; }
         .msg-avatar-name { font-size: 10px; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 45px; text-align: center; line-height: 1; }
-        .msg { max-width: 75%; padding: 12px 16px; font-size: 15px; line-height: 1.5; word-wrap: break-word; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-radius: 18px; -webkit-user-select: auto !important; user-select: auto !important; }
+        .msg { max-width: 75%; padding: 12px 16px; font-size: 15px; line-height: 1.5; word-wrap: break-word; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-radius: 18px; -webkit-user-select: none !important; user-select: none !important; cursor: default; }
         .msg.media-only { background: transparent !important; border: none !important; box-shadow: none !important; padding: 0 !important; -webkit-user-select: none !important; user-select: none !important; }
         .msg.media-only .msg-media { border: 1px solid rgba(0,0,0,0.05); }
         .msg.mine { background: var(--ly-blue); color: var(--white); border-radius: 18px 18px 4px 18px; border-right: 3px solid var(--ly-gold); }
         .msg.theirs { background: var(--white); color: #333; border-radius: 18px 18px 18px 4px; border: 1px solid #dee2e6; }
         .time-divider { align-self: center; font-size: 0.75rem; color: #888; margin: 20px 0 10px 0; background: rgba(0,0,0,0.05); padding: 4px 14px; border-radius: 20px; font-weight: 500; }
-        .read-status { font-size: 0.7rem; color: #999; margin-top: 3px; padding-right: 5px; height: 14px; }
-        .read-status { font-size: 0.7rem; color: #999; margin-top: 3px; padding-right: 5px; height: 14px; }
-        .read-status.group-read { cursor: pointer; color: var(--ly-blue); font-weight: 600; transition: opacity 0.2s; display: inline-block; }
         
-        /* 讓非自己的訊息「已讀」標籤避開頭像，精準對齊文字氣泡 */
-        .msg-wrapper.theirs .read-status {
-            margin-left: 52px; 
-        }
+        /* --- 訊息時間與已讀狀態 --- */
+        .msg-meta { display: flex; flex-direction: column; justify-content: flex-end; margin: 0 6px; min-width: 40px; padding-bottom: 2px;}
+        .msg-meta.mine { align-items: flex-end; }
+        .msg-meta.theirs { align-items: flex-start; }
+        .msg-time { font-size: 11px; color: #999; line-height: 1; }
+        .read-status { font-size: 11px; color: #999; line-height: 1; margin-bottom: 4px; padding: 0; white-space: nowrap; }
+        .read-status.group-read { cursor: pointer; color: var(--ly-blue); font-weight: 600; transition: opacity 0.2s; }
         .read-status.group-read:hover { opacity: 0.7; text-decoration: underline; }
         
         .input-area { flex-shrink: 0; background: var(--white); padding: 0; display: flex; flex-direction: column; align-items: center; border-top: 1px solid #e9ecef; box-shadow: 0 -2px 10px rgba(0,0,0,0.03); width: 100%; position: relative;}
@@ -228,16 +228,34 @@
         .msg-event-time { font-size: 0.85rem; color: #555; display: flex; align-items: center; gap: 5px; }
 
         /* --- 其他 Modal 與組件 (完美適配 iOS dVH) --- */
-        .modal-overlay { position: fixed; inset: 0; width: 100vw; height: 100dvh; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; z-index: 3000; padding: env(safe-area-inset-top, 20px) 20px 20px 20px; box-sizing: border-box;}
-        .modal-card { background: white; width: 100%; max-width: 450px; max-height: 85dvh; display: flex; flex-direction: column; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.3); border: 1px solid var(--border-color); animation: modalFadeIn 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); margin: 0;}
+        .modal-overlay { position: fixed; inset: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; z-index: 3000; padding: env(safe-area-inset-top, 20px) 20px 20px 20px; box-sizing: border-box; overflow: hidden;}        .modal-card { background: white; width: 100%; max-width: 450px; max-height: 85dvh; display: flex; flex-direction: column; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.3); border: 1px solid var(--border-color); animation: modalFadeIn 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); margin: 0;}
         @keyframes modalFadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
         .modal-header { flex-shrink: 0; background: var(--ly-blue-trans); padding: 15px 20px; color: white; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--ly-gold); }
         .modal-header h3 { margin: 0; font-size: 1.1rem; }
-        .modal-body { flex: 1; padding: 20px; overflow-y: auto; -webkit-overflow-scrolling: touch;}
+        .modal-body { flex: 1; padding: 20px; overflow-x: hidden; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: none; width: 100%; box-sizing: border-box; }
+
+        /* --- 新增活動 (Event) 專用樣式 --- */
+        .field-adder-bar { display: flex; flex-wrap: wrap; gap: 8px; margin: 15px 0; padding: 10px; background: #f8f9fa; border-radius: 8px; border: 1px solid #eee; width: 100%; box-sizing: border-box; }
+        .tag-btn { background: white; border: 1.5px solid var(--ly-blue); color: var(--ly-blue); padding: 5px 12px; border-radius: 20px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; font-weight: bold; }
+        .tag-btn:hover { background: var(--ly-blue); color: white; }
+        .tag-btn-img { background: #fdf7e3; border-color: var(--ly-gold); color: #856404; }
+        .tag-btn-img:hover { background: var(--ly-gold); color: white; }
+        .draggable-item { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; padding: 12px; margin-bottom: 10px; background: #fff; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; width: 100%;}
+        .drag-handle { color: #ccc; padding: 10px; cursor: grab; }
+        .btn-remove-field { width: 35px; height: 35px; border-radius: 8px; background: #fff0f0; color: #d93025; border: 1px solid #f8d7da; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;}
+        .image-field-preview { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; width: 100%; box-sizing: border-box; }
+        .preview-card { position: relative; width: 80px; height: 80px; border-radius: 8px; overflow: hidden; border: 1px solid #eee; cursor: grab; }
+        .preview-card img { width: 100%; height: 100%; object-fit: cover; }
+        .preview-remove-btn { position: absolute; bottom: 2px; right: 2px; background: rgba(255,255,255,0.9); color: #d93025; border-radius: 4px; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.7rem; border: 1px solid #d93025; }
+        .member-preview-list { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px; background: #fafafa; border: 1.5px dashed #d0d0d0; border-radius: 8px; min-height: 40px; align-items: center; width: 100%; box-sizing: border-box; }
+        .ev-dynamic-input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 16px; appearance: none; box-sizing: border-box; }
+        .ev-dynamic-input:focus { border-color: var(--ly-gold); outline: none; }
+        .picker-search-wrapper { position: relative; flex: 1; min-width: 150px; }
+        .picker-search-wrapper i { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #aaa; }
+        .picker-search-wrapper input { width: 100%; padding: 8px 10px 8px 30px; border-radius: 20px; border: 1px solid #ddd; font-size: 16px; appearance: none; box-sizing: border-box; }
         .modal-input-group { margin-bottom: 20px; }
         .modal-input-group label { display: block; font-size: 13px; color: var(--ly-blue); font-weight: 700; margin-bottom: 8px; text-align: left;}
-        .modal-input-group input { width: 100%; padding: 12px 15px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1rem; outline: none; box-sizing: border-box;}
-        .modal-input-group input:focus { border-color: var(--ly-gold); }
+        .modal-input-group input { width: 100%; padding: 12px 15px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 16px; outline: none; box-sizing: border-box; appearance: none;}        .modal-input-group input:focus { border-color: var(--ly-gold); }
         .modal-footer { flex-shrink: 0; padding: 15px 20px; background: #f8f9fa; display: flex; justify-content: flex-end; gap: 12px; }
         .btn-modal { padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; border: none; transition: 0.3s;}
         .btn-confirm { background: var(--ly-blue); color: white; }
@@ -394,8 +412,7 @@
 
         /* --- 團購系統專用樣式 --- */
         .gb-item-row { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; background: #f9f9f9; padding: 10px; border-radius: 8px; border: 1px solid #eee; flex-wrap: wrap; position: relative;}
-        .gb-item-row input { flex: 1; min-width: 70px; padding: 10px 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;}
-        .gb-item-row input:focus { border-color: var(--ly-gold); outline: none; }
+.gb-item-row input { flex: 1; min-width: 70px; padding: 10px 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 16px; appearance: none;}        .gb-item-row input:focus { border-color: var(--ly-gold); outline: none; }
         .img-upload-btn { background: var(--ly-blue); color: white; padding: 10px; border-radius: 6px; cursor: pointer; white-space: nowrap; font-size: 13px; font-weight: bold;}
         .gb-item-row img { width: 40px; height: 40px; object-fit: cover; border-radius: 6px; display: none; border: 1px solid #ccc;}
         .btn-add-item { background: rgba(0, 49, 83, 0.1); color: var(--ly-blue); border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-size: 14px; font-weight: bold; margin-bottom: 15px; display: block; width: 100%; transition: 0.2s;}
@@ -420,15 +437,34 @@
         .gb-buyer-note { flex: 1; color: #888; margin: 0 10px; text-align: left; font-size: 0.8rem; }
         .gb-buyer-qty { font-weight: 900; color: #d93025; white-space: nowrap; }
         
-        .gb-my-note-input { width: 100%; padding: 10px; margin-top: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; background: #fff; box-sizing: border-box; display: none; }
-        .gb-my-note-input:focus { border-color: var(--ly-gold); outline: none; }
+.gb-my-note-input { width: 100%; padding: 10px; margin-top: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 16px; background: #fff; box-sizing: border-box; display: none; appearance: none;}        .gb-my-note-input:focus { border-color: var(--ly-gold); outline: none; }
 
-        /* --- 團購清單左滑刪除 --- */
-        .swipe-container { position: relative; overflow: hidden; border-radius: 8px; width: 100%; }
-        .swipe-content { position: relative; z-index: 2; transition: transform 0.3s ease; width: 100%; box-sizing: border-box; }
-        .swipe-actions { position: absolute; top: 0; right: 0; height: 100%; width: 80px; display: flex; justify-content: flex-end; align-items: center; z-index: 1; background: #ff4d4d; border-radius: 8px; }
-        .swipe-delete-btn { color: white; background: none; border: none; font-size: 1.4rem; width: 100%; height: 100%; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: background 0.2s;}
+        /* --- 左滑容器 (終極修復 iOS 隱藏塌陷 Bug) --- */
+        .swipe-container { 
+            position: relative; 
+            overflow: hidden; 
+            border-radius: 8px; 
+            width: 100%; 
+            display: block !important; /* 強制顯示，防止被隱藏 */
+            flex-shrink: 0; /* 防止被外層 flex 擠壓成 0 */
+            transform: translateZ(0); /* 觸發 iOS 硬體加速，防止元素消失 */
+        }
+        .swipe-content { 
+            position: relative; 
+            z-index: 2; 
+            transition: transform 0.3s ease; 
+            width: 100%; 
+            box-sizing: border-box; 
+            background: white; 
+        }
+        .swipe-actions { position: absolute; top: 0; bottom: 0; right: 0; width: 80px; display: flex; justify-content: flex-end; align-items: center; z-index: 1; background: #ff4d4d; border-radius: 8px; }
+        .swipe-delete-btn { color: white; background: none; border: none; font-size: 1.4rem; width: 100%; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: background 0.2s;}
         .swipe-delete-btn:active { background: #cc0000; }
+
+        /* --- 活動清單左滑雙按鈕 (編輯/刪除) --- */
+        .swipe-actions-dual { position: absolute; top: 0; bottom: 0; right: 0; width: 150px; display: flex; z-index: 1; border-radius: 8px; overflow: hidden; }
+        .swipe-edit-btn { background: var(--ly-blue); color: white; border: none; font-size: 1.3rem; width: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.2s; padding: 0; margin: 0; }
+        .swipe-delete-btn-half { background: #ff4d4d; color: white; border: none; font-size: 1.3rem; width: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.2s; padding: 0; margin: 0; }
     </style>
 </head>
 <body>
@@ -441,7 +477,7 @@
         <header class="messenger-header">
             <div class="header-content">
                 <div class="user-profile">
-                    <img id="myAvatar" class="user-avatar" src="https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true" alt="Profile" onclick="openSettings()" style="cursor: pointer;">
+                    <img id="myAvatar" class="user-avatar" src="https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true" alt="Profile" onclick="openSettings()" style="cursor: pointer; width: 60px; height: 60px;">
                     <span id="myName" class="user-name">載入中...</span>
                 </div>
                 <div class="header-actions">
@@ -490,7 +526,7 @@
 
         <div class="input-area">
             <div id="expandMenuPanel" class="expand-menu-panel">
-                <div class="expand-menu-item" onclick="handleActivitySchedule()">
+                <div class="expand-menu-item" onclick="resetScheduleHeader(); handleActivitySchedule()">
                     <div class="icon-circle"><i class="fas fa-calendar-alt"></i></div>
                     <span>活動行程</span>
                 </div>
@@ -655,15 +691,111 @@
     <div id="activityScheduleModal" class="modal-overlay" style="z-index: 4000;">
         <div class="modal-card" style="max-width: 450px !important; height: 80vh; max-height: 600px; display: flex; flex-direction: column; background: #f8f9fa;">
             <div class="modal-header">
-                <h3><i class="fas fa-calendar-check"></i> 活動行程總覽</h3>
-                <span style="cursor:pointer;" onclick="closeModal('activityScheduleModal')">&times;</span>
+                <h3 id="scheduleModalTitle" style="transition: 0.3s;"><i class="fas fa-calendar-check"></i> 活動行程總覽</h3>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <i class="fas fa-globe" id="scheduleToggleIcon" style="font-size: 1.3rem; cursor: pointer; transition: transform 0.3s ease, color 0.3s ease; color: white;" onclick="toggleScheduleMode()" title="切換私人/公開模式"></i>
+                    <span style="cursor:pointer; font-size: 1.4rem;" onclick="closeModal('activityScheduleModal')">&times;</span>
+                </div>
             </div>
             <div id="activityScheduleList" class="event-mini-list" style="padding: 15px;"></div>
-            <div class="modal-footer" style="justify-content: center; background: white;">
-                <button class="btn-modal btn-cancel" style="width: 100%;" onclick="closeModal('activityScheduleModal')">關閉視窗</button>
+            <div class="modal-footer" style="justify-content: space-between; background: white; border-top: 1px solid #eee;">
+                <button class="btn-modal btn-cancel" onclick="closeModal('activityScheduleModal')">關閉</button>
+                <button class="btn-modal btn-confirm" onclick="openCreateEventModal()"><i class="fas fa-plus"></i> 新增活動</button>
             </div>
         </div>
     </div> 
+
+    <div id="createEventModal" class="modal-overlay" style="z-index: 5000;">
+        <div class="modal-card" style="max-width: 500px; max-height: 85dvh; display: flex; flex-direction: column;">
+            <div class="modal-header">
+                <h3><i class="fas fa-calendar-plus"></i> 發起新活動</h3>
+                <span style="cursor:pointer;" onclick="closeModal('createEventModal')">&times;</span>
+            </div>
+            <div class="modal-body" style="background: white;">
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 10px; background: #fff5f5; border-radius: 8px; border: 1px dashed #d93025;">
+                    <label style="font-weight: bold; color: #d93025; margin: 0;"><i class="fas fa-user-secret"></i> 設為私人活動 (僅限授權可見)</label>
+                    <input type="checkbox" id="ev-is-private" onchange="toggleEventPrivateMode(this.checked)" style="width: 20px; height: 20px; accent-color: #d93025;">
+                </div>
+
+                <div class="modal-input-group">
+                    <label>① 活動標題 <small style="color:red;">(必填)</small></label>
+                    <input type="text" id="ev-title" class="ev-dynamic-input" placeholder="請輸入標題">
+                </div>
+
+                <div id="dynamic-fields-container" style="width: 100%;"></div>
+
+                <div class="field-adder-bar">
+                    <button class="tag-btn" onclick="addEventField('headline', '標題')">+ 標題</button>
+                    <button class="tag-btn" onclick="addEventField('location', '地點')">+ 地點</button>
+                    <button class="tag-btn" onclick="addEventField('meetup', '集合時間')">+ 集合時間</button>
+                    <button class="tag-btn" onclick="addEventField('time', '活動時間')">+ 活動時間</button>
+                    <button class="tag-btn" onclick="addEventField('content_text', '活動內容')">+ 內容</button>
+                    <button class="tag-btn tag-btn-img" onclick="addEventField('image_upload', '活動照片')">
+                        <i class="fas fa-image"></i> + 照片
+                    </button>
+                </div>
+
+                <div id="public-participants-section" style="margin-top: 20px;">
+                    <label style="font-weight: bold; color: var(--ly-blue); display: block; margin-bottom: 8px;">參加成員名單</label>
+                    <div id="selected-members-preview" class="member-preview-list">
+                        <p style="color: #999; font-size: 0.9em; margin:0;">尚未選擇成員</p>
+                    </div>
+                    <div style="text-align: center; margin-top: 10px;">
+                        <button class="btn-modal btn-cancel" onclick="openEventMemberPicker('participants')" style="width: 100%;">
+                            <i class="fas fa-users-cog"></i> 編輯參加名單
+                        </button>
+                    </div>
+                </div>
+
+                <div id="private-auth-section" style="display: none; background: #fff5f5; padding: 15px; border-radius: 8px; border: 1px dashed #d93025; margin-top: 20px;">
+                    <label style="font-weight: bold; color: #d93025; display: block; margin-bottom: 8px;">授權檢視成員 (私人模式)</label>
+                    <div id="authorized-members-preview" class="member-preview-list" style="background: white; border-color: #ffcccb;">
+                        <p style="color: #999; font-size: 0.9em; margin:0;">尚未授權任何成員</p>
+                    </div>
+                    <div style="text-align: center; margin-top: 10px;">
+                        <button class="btn-modal btn-cancel" onclick="openEventMemberPicker('authorized')" style="width: 100%; color: #d93025; border-color: #d93025;">
+                            <i class="fas fa-user-plus"></i> 編輯授權名單
+                        </button>
+                    </div>
+                </div> 
+
+                <div class="modal-input-group" style="margin-top: 20px;">
+                    <label>投票/報名 截止時間</label>
+                    <input type="datetime-local" id="ev-deadline" class="ev-dynamic-input">
+                </div>
+            </div>
+            <div class="modal-footer" style="justify-content: space-between;">
+                <button class="btn-modal btn-cancel" onclick="closeModal('createEventModal')">取消</button>
+                <button class="btn-modal btn-confirm" id="btnSubmitEvent" onclick="submitNewEvent()">確認發布</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="eventMemberPickerModal" class="modal-overlay" style="z-index: 6000;">
+        <div class="modal-card" style="max-width: 450px; max-height: 80dvh; display: flex; flex-direction: column;">
+            <div class="modal-header">
+                <h3 id="evPickerTitle"><i class="fas fa-users"></i> 選擇成員</h3>
+                <span style="cursor:pointer;" onclick="closeModal('eventMemberPickerModal')">&times;</span>
+            </div>
+            <div style="padding: 15px; background: white; border-bottom: 1px solid #eee; flex-shrink: 0;">
+                <div style="display:flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+                    <button class="tag-btn" onclick="toggleAllEventMembers(true)" style="border-color: #28a745; color: #28a745;">全選</button>
+                    <button class="tag-btn" onclick="toggleAllEventMembers(false)" style="border-color: #d93025; color: #d93025;">移除</button>
+                    <div class="picker-search-wrapper">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="ev-member-search" placeholder="搜尋..." oninput="searchEventMember()">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-body" style="background: #f8f9fa;">
+                <div id="ev-picker-grid" class="user-select-list"></div>
+            </div>
+            <div class="modal-footer" style="justify-content: center;">
+                <button class="btn-modal btn-confirm" style="width: 100%;" onclick="saveEventSelectedMembers()">確認勾選</button>
+            </div>
+        </div> 
+    </div>
     
     <div id="groupBuyListModal" class="modal-overlay" style="z-index: 4000;">
         <div class="modal-card" style="max-width: 450px !important; height: 80vh; max-height: 600px; display: flex; flex-direction: column; background: #f8f9fa;">
@@ -708,7 +840,7 @@
             </div>
             <div class="modal-footer">
                 <button class="btn-modal btn-cancel" onclick="closeModal('createGroupBuyModal')">取消</button>
-                <button class="btn-modal btn-confirm" id="gbSubmitBtn" onclick="submitGroupBuy()">發布到聊天室</button>
+                <button class="btn-modal btn-confirm" id="gbSubmitBtn" onclick="submitGroupBuy()">儲存訂單</button>
             </div>
         </div>
     </div>
@@ -747,25 +879,60 @@
         </div>
     </div>
 
+    <div id="pinnedMessageModal" class="modal-overlay" style="z-index: 6000;">
+        <div class="modal-card" style="max-width: 350px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-thumbtack" style="transform: rotate(-45deg);"></i> 釘選訊息內容</h3>
+                <span style="cursor:pointer;" onclick="closeModal('pinnedMessageModal')">&times;</span>
+            </div>
+            <div class="modal-body" style="padding: 20px; background: #f8f9fa;">
+                <div style="font-size: 0.85rem; color: #666; margin-bottom: 10px; display: flex; justify-content: space-between; border-bottom: 1px dashed #ddd; padding-bottom: 8px;" id="pinnedMsgSenderTime">
+                    </div>
+                <div style="font-size: 1.05rem; color: #333; line-height: 1.6; background: white; padding: 15px; border-radius: 12px; border: 1px solid #dee2e6; word-break: break-word; box-shadow: 0 2px 8px rgba(0,0,0,0.03);" id="pinnedMsgContent">
+                    </div>
+            </div>
+            <div class="modal-footer" style="justify-content: center; background: white;">
+                <button class="btn-modal btn-cancel" style="width: 100%;" onclick="closeModal('pinnedMessageModal')">關閉視窗</button>
+            </div>
+        </div>
+    </div>
+
     <div id="contextMenu" class="context-menu">
         <button id="pinMenuBtn" onclick="pinMessage()"><i class="fas fa-thumbtack"></i> 釘選</button>
         <button id="replyMenuBtn" onclick="triggerMenuReply()"><i class="fas fa-reply"></i> 回覆</button>
+        <button id="copyMenuBtn" onclick="copyMessage()"><i class="fas fa-copy"></i> 複製</button>
         <button id="multiSelectMenuBtn" onclick="enterSelectMode()"><i class="fas fa-trash-alt"></i> 收回</button>
     </div>
 
-    <div id="settingsModal" class="modal-overlay" style="display: none; align-items: center; justify-content: center; z-index: 5000;">
-        <div class="modal-card">
-            <div class="modal-header">
-                <h3>設定</h3>
-                <span style="cursor:pointer; font-size: 1.5rem;" onclick="closeSettings()">&times;</span>
+    <div id="settingsView" class="app-view" style="z-index: 30; transform: translateX(100%);">
+        <header class="messenger-header">
+            <div class="header-content" style="padding: 15px 20px;">
+                <div class="user-profile">
+                    <button class="back-btn" onclick="closeSettings()"><i class="fas fa-chevron-left"></i></button>
+                    <span class="user-name">個人設定</span>
+                </div>
             </div>
-            <div class="modal-body" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: white;">
-                <img id="settingsAvatar" src="https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid var(--ly-gold); margin-bottom: 20px;">
-                <h2 id="settingsName" style="color: var(--ly-blue); margin-bottom: 40px;">成員名稱</h2>
-                <button class="btn-modal btn-confirm" style="width: 200px; background: #dc3545; font-size: 1.1rem;" onclick="handleLogout()">
-                    <i class="fas fa-sign-out-alt"></i> 登出
-                </button>
+        </header>
+        <div style="flex: 1; display: flex; flex-direction: column; align-items: center; padding: 40px 20px; background: white; overflow-y: auto;">
+            <input type="file" id="settingsAvatarInput" accept="image/*" style="display: none;" onchange="handleSettingsAvatarChange(event)">
+            
+            <div class="avatar-edit-wrapper" onclick="document.getElementById('settingsAvatarInput').click()" style="margin-bottom: 20px;">
+                <img id="settingsAvatar" src="" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid var(--ly-gold); transition: 0.2s;">
+                <div class="avatar-edit-icon" style="width: 32px; height: 32px; font-size: 14px;"><i class="fas fa-camera"></i></div>
             </div>
+
+            <h2 id="settingsName" style="color: var(--ly-blue); margin-bottom: 5px;">載入中...</h2>
+            <p id="settingsEmail" style="color: #666; font-size: 1rem; margin-bottom: 5px;">載入中...</p>
+            <p id="settingsUid" style="color: #aaa; font-size: 0.8rem; margin-bottom: 20px; font-family: monospace;">UID: ...</p>
+            
+            <div style="width: 100%; max-width: 300px; display: flex; gap: 10px; margin-bottom: 30px;">
+                <button class="btn-modal btn-cancel" style="flex: 1; padding: 10px; border-radius: 8px; font-size: 0.9rem;" onclick="handleChangeEmail()"><i class="fas fa-envelope"></i> 修改信箱</button>
+                <button class="btn-modal btn-cancel" style="flex: 1; padding: 10px; border-radius: 8px; font-size: 0.9rem;" onclick="handleChangePassword()"><i class="fas fa-key"></i> 修改密碼</button>
+            </div>
+
+            <button class="btn-modal btn-confirm" style="width: 100%; max-width: 300px; background: #ff4d4d; font-size: 1.1rem; padding: 15px; border-radius: 30px; box-shadow: 0 4px 15px rgba(255,77,77,0.3);" onclick="handleLogout()">
+                <i class="fas fa-sign-out-alt"></i> 登出帳號
+            </button>
         </div>
     </div>
 
@@ -805,6 +972,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-storage-compat.js"></script>
     <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
     <script>
     // ==========================================
@@ -1240,11 +1408,21 @@
             const data = doc.data();
             
             // 釘選列處理
+            // 釘選列處理
             const pinnedBar = document.getElementById('pinnedMessageBar'), pinnedText = document.getElementById('pinnedText'), unpinBtn = document.getElementById('unpinBtn');
             if (data.pinnedMessage?.text) {
-                pinnedBar.style.display = 'flex'; pinnedText.innerText = data.pinnedMessage.text;
-                pinnedText.onclick = () => scrollToOriginalMsg(data.pinnedMessage.id); unpinBtn.disabled = false;
-            } else { pinnedBar.style.display = 'none'; }
+                // 【新增】：把釘選的完整資料存到全域變數，供彈窗讀取
+                window.currentPinnedMessage = data.pinnedMessage;
+                pinnedBar.style.display = 'flex'; 
+                pinnedText.innerText = data.pinnedMessage.text;
+                
+                // 【修改】：點擊時不再往上滑，改為開啟彈窗
+                pinnedText.onclick = openPinnedModal; 
+                unpinBtn.disabled = false;
+            } else { 
+                window.currentPinnedMessage = null;
+                pinnedBar.style.display = 'none'; 
+            }
             
             window.isCurrentChatGroup = !!data.isGroup;
             window.currentGroupMembers = data.members || [];
@@ -1262,6 +1440,7 @@
 
             if (data.isGroup) {
                 const rawGroupName = data.groupName || "未命名群組";
+                window.currentRawGroupName = rawGroupName; // 【新增】：儲存未縮減的原始群組名稱
                 // 【修改】：套用中段省略函式
                 document.getElementById('chatTitle').innerText = formatMiddleEllipsis(rawGroupName);
                 document.getElementById('targetAvatar').src = data.groupAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.groupName)}&background=003153&color=fff`;
@@ -1348,8 +1527,9 @@
             const wrapper = document.createElement('div');
             wrapper.className = `msg-wrapper ${isMine ? 'mine' : 'theirs'} ${isLastInSequence ? 'last-in-group' : ''}`;
 
-            // 【新增】：加上 onclick 支援選擇模式點擊，並插入打勾圖示
-            let html = `<div class="msg-row ${isMine ? 'mine' : 'theirs'}" onclick="toggleMsgSelect('${msgId}', ${isMine})">`;
+            // 【修改】：加入動態 style。如果是在群組且是別人的訊息，就切換為頂部對齊 (flex-start)
+            let rowStyle = (!isMine && window.isCurrentChatGroup) ? 'align-items: flex-start;' : '';
+            let html = `<div class="msg-row ${isMine ? 'mine' : 'theirs'}" onclick="toggleMsgSelect('${msgId}', ${isMine})" style="${rowStyle}">`;
             
             if (isMine) {
                 const isChecked = window.selectedMsgIds && window.selectedMsgIds.has(msgId);
@@ -1427,11 +1607,36 @@
             const mediaClass = isMediaOnly ? 'media-only' : '';
             
             // 【移除左右滑動回覆，僅保留長按呼叫選單功能】
+            // 【移除左右滑動回覆，僅保留長按呼叫選單功能】
             let interactEvents = isMine ? 
                 `ontouchstart="handlePressStart(event, '${msgId}', 'true', '${safeText}')" ontouchmove="handlePressEnd()" ontouchend="handlePressEnd()" onmousedown="handlePressStart(event, '${msgId}', 'true', '${safeText}')" onmouseup="handlePressEnd()" onmouseleave="handlePressEnd()" oncontextmenu="event.preventDefault(); activeMsgId='${msgId}'; activeMsgTextForMenu='${safeText}'; showContextMenu(event, true);"` : 
                 `ontouchstart="handlePressStart(event, '${msgId}', 'false', '${safeText}')" ontouchmove="handlePressEnd()" ontouchend="handlePressEnd()" onmousedown="handlePressStart(event, '${msgId}', 'false', '${safeText}')" onmouseup="handlePressEnd()" onmouseleave="handlePressEnd()" oncontextmenu="event.preventDefault(); activeMsgId='${msgId}'; activeMsgTextForMenu='${safeText}'; showContextMenu(event, false);"`;
 
-            html += `<div id="msg-${msgId}" class="msg ${isMine ? 'mine' : 'theirs'} ${mediaClass}" ${interactEvents}>${contentHtml}</div></div>`;
+            // 產生時間與已讀的排版 HTML
+            // 產生時間的字串
+            const timeStr = msgTime.toLocaleTimeString('zh-TW', {hour: '2-digit', minute:'2-digit', hour12: false});
+            
+            // 【修改】：判斷是否為群組對話，給予不同的排版結構
+            // 【修改】：完美還原群組對話「上下堆疊」的排版
+            if (window.isCurrentChatGroup) {
+                const alignStyle = isMine ? 'align-items: flex-end;' : 'align-items: flex-start;';
+                html += `<div style="display: flex; flex-direction: column; max-width: 75%; ${alignStyle}">`;
+                // 訊息氣泡本體：將 margin-bottom 加大到 8px 增加一點點間隔
+                html += `<div id="msg-${msgId}" class="msg ${isMine ? 'mine' : 'theirs'} ${mediaClass}" style="max-width: 100%; margin-bottom: 8px;" ${interactEvents}>${contentHtml}</div>`;
+                
+                // 下方區塊存放時間與已讀
+                html += `<div class="msg-meta ${isMine ? 'mine' : 'theirs'}" id="meta-${msgId}" style="margin: 0 4px; display: flex; flex-direction: column; ${alignStyle}">`;
+                html += `<div class="msg-time">${timeStr}</div>`;
+                html += `</div></div>`;
+            } else {
+                // 單人對話：維持原本時間在泡泡兩側的排版
+                const metaHtml = `<div class="msg-meta ${isMine ? 'mine' : 'theirs'}" id="meta-${msgId}"><div class="msg-time">${timeStr}</div></div>`;
+                if (isMine) html += metaHtml;
+                html += `<div id="msg-${msgId}" class="msg ${isMine ? 'mine' : 'theirs'} ${mediaClass}" ${interactEvents}>${contentHtml}</div>`;
+                if (!isMine) html += metaHtml;
+            }
+
+            html += `</div>`; // 關閉 .msg-row
             wrapper.innerHTML = html;
             list.appendChild(wrapper);
         });
@@ -1492,36 +1697,31 @@
         const currentUid = auth.currentUser.uid;
 
         if (!window.isCurrentChatGroup) {
-            // 單人對話維持原樣 (只顯示自己的訊息是否被對方已讀)
             let lastReadMsgId = null;
             for (let i = messagesDocsData.length - 1; i >= 0; i--) {
                 const msg = messagesDocsData[i].data(), msgTime = msg.timestamp ? msg.timestamp.toDate() : new Date();
                 if (msg.senderId === currentUid && msgTime <= opponentReadTime) { lastReadMsgId = messagesDocsData[i].id; break; }
             }
             if (lastReadMsgId) {
-                const wrapper = document.getElementById('msg-' + lastReadMsgId)?.closest('.msg-wrapper');
-                if (wrapper) wrapper.insertAdjacentHTML('beforeend', `<div class="read-status">已讀</div>`);
+                const metaEl = document.getElementById('meta-' + lastReadMsgId);
+                if (metaEl) metaEl.insertAdjacentHTML('afterbegin', `<div class="read-status">已讀</div>`);
             }
         } else {
-            // 【群組對話修改】：不分是誰發的訊息，全部計算已讀
             messagesDocsData.forEach(doc => {
                 const msg = doc.data(), msgTime = msg.timestamp ? msg.timestamp.toDate() : new Date();
+                let readers = getReaders(msgTime, msg.senderId);
                 
-                // 傳入發送者 ID，取得其他已讀的成員
-                const readers = getReaders(msgTime, msg.senderId);
+                // 1. 過濾掉自己，絕對不會在已讀名單看到「你」
+                readers = readers.filter(uid => uid !== currentUid);
                 
                 if (readers.length > 0) {
-                    // 把 UID 轉換為名稱，如果是自己，就顯示「你」
-                    let names = readers.map(uid => {
-                        if (uid === currentUid) return "你";
-                        return (window.chatMembersCache[uid]?.displayName || "成員");
-                    });
-                    
+                    let names = readers.map(uid => window.chatMembersCache[uid]?.displayName || "成員");
                     let displayText = names.length <= 2 ? names.join("、") : names.slice(0, 2).join("、") + `...等 ${names.length} 人`;
-                    const readHtml = `<div class="read-status group-read" onclick="openReadModal('${readers.join(',')}')"> ${displayText}</div>`;
+                    const readHtml = `<div class="read-status group-read" onclick="openReadModal('${readers.join(',')}')">${displayText}</div>`;
                     
-                    const wrapper = document.getElementById('msg-' + doc.id)?.closest('.msg-wrapper');
-                    if (wrapper) wrapper.insertAdjacentHTML('beforeend', readHtml);
+                    // 2. 將已讀狀態插入到時間容器 (.msg-meta) 內，達成圖片中的堆疊效果
+                    const metaEl = document.getElementById('meta-' + doc.id);
+                    if (metaEl) metaEl.insertAdjacentHTML('afterbegin', readHtml);
                 }
             });
         }
@@ -1791,7 +1991,11 @@
     function showContextMenu(e, isMine) {
         if(e && e.cancelable) e.preventDefault(); 
         const menu = document.getElementById('contextMenu');
-        // 只保留這個整合後的收回按鈕
+        
+        // 判斷是否為純文字訊息，如果是才顯示「複製」
+        const isText = activeMsgTextForMenu && !activeMsgTextForMenu.includes('[圖片/影片]') && !activeMsgTextForMenu.includes('分享了活動') && !activeMsgTextForMenu.includes('發起了團購');
+        document.getElementById('copyMenuBtn').style.display = isText ? 'flex' : 'none';
+        
         document.getElementById('multiSelectMenuBtn').style.display = isMine ? 'flex' : 'none';
         menu.style.display = 'flex'; menu.style.flexDirection = 'row'; menu.style.gap = '2px';
         
@@ -1836,11 +2040,63 @@
 
     async function pinMessage() {
         if (!activeMsgId) return;
-        await db.collection("chats").doc(currentChatId).update({ pinnedMessage: { id: activeMsgId, text: activeMsgTextForMenu } });
+        
+        // 1. 從目前畫面快取中找出這則訊息，撈出時間與發送者ID
+        const msgDoc = messagesDocsData.find(doc => doc.id === activeMsgId);
+        let senderName = "成員";
+        let timeStr = "未知時間";
+
+        if (msgDoc) {
+            const msgData = msgDoc.data();
+            const isMine = msgData.senderId === auth.currentUser.uid;
+            
+            // 判斷發送者名字
+            if (isMine) {
+                senderName = document.getElementById('myName').innerText;
+            } else {
+                const senderCache = window.chatMembersCache[msgData.senderId] || {};
+                senderName = senderCache.displayName || "成員";
+            }
+            
+            // 格式化時間
+            if (msgData.timestamp) {
+                const d = msgData.timestamp.toDate();
+                timeStr = `${d.getFullYear()}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getDate().toString().padStart(2,'0')} ${d.toLocaleTimeString('zh-TW', {hour: '2-digit', minute:'2-digit', hour12: false})}`;
+            }
+        }
+
+        // 2. 打包成完整的釘選物件
+        const pinnedData = { 
+            id: activeMsgId, 
+            text: activeMsgTextForMenu,
+            senderName: senderName,
+            timeStr: timeStr
+        };
+
+        // 3. 上傳更新 (Firebase 會自動把這包新資料覆蓋掉舊的，達成「自動刪除舊釘選」的效果)
+        await db.collection("chats").doc(currentChatId).update({ pinnedMessage: pinnedData });
         closeContextMenu();
     }
-    async function unpinMessage() { if (confirm("移除釘選？")) await db.collection("chats").doc(currentChatId).update({ pinnedMessage: firebase.firestore.FieldValue.delete() }); }
 
+    async function unpinMessage() { 
+        if (confirm("移除釘選？")) await db.collection("chats").doc(currentChatId).update({ pinnedMessage: firebase.firestore.FieldValue.delete() }); 
+    }
+
+    // 【新增】：點擊上方橫幅時，跳出詳細視窗的函式
+    function openPinnedModal() {
+        if (!window.currentPinnedMessage) return;
+        const pm = window.currentPinnedMessage;
+        
+        // 相容舊資料，若舊釘選沒有這些欄位就給預設值
+        const sender = pm.senderName || "群組成員";
+        const time = pm.timeStr || "";
+        const text = pm.text || "";
+        
+        document.getElementById('pinnedMsgSenderTime').innerHTML = `<span><i class="fas fa-user" style="color:var(--ly-gold);"></i> ${sender}</span> <span><i class="far fa-clock"></i> ${time}</span>`;
+        document.getElementById('pinnedMsgContent').innerHTML = escapeHtml(text).replace(/\n/g, '<br>');
+        
+        openModal('pinnedMessageModal');
+    }
     // 滑動與回覆
     /*let touchStartX = 0, swipeMsgId = null, swipeMsgText = "", isSwipeMine = false;
     function handleSwipeStart(e, id, text, isMineStr) { touchStartX = e.touches[0].clientX; swipeMsgId = id; swipeMsgText = text; isSwipeMine = isMineStr === 'true'; }
@@ -2021,7 +2277,8 @@
         const nameInput = document.getElementById('groupNameEdit');
         const editMembersBtn = document.getElementById('editMembersBtn');
         
-        nameInput.value = document.getElementById('chatTitle').innerText;
+        // 【修改】：優先使用儲存的原始群組名稱，不使用被縮減的文字
+        nameInput.value = window.currentRawGroupName || document.getElementById('chatTitle').innerText;
         document.getElementById('editGroupAvatarPreview').src = document.getElementById('targetAvatar').src;
         window.croppedAvatarBlob = null; 
         resetSaveButtonState();
@@ -2148,29 +2405,151 @@
         if(p && p.style.display==='flex' && !p.contains(e.target) && !b.contains(e.target)) { p.style.display='none'; b.style.transform='rotate(0deg)'; }
     }, true);
 
-    async function handleActivitySchedule() {
-        document.getElementById('expandMenuPanel').style.display='none'; document.querySelector('.expand-menu-btn').style.transform='rotate(0deg)';
-        openModal('activityScheduleModal'); const listEl = document.getElementById('activityScheduleList'); listEl.innerHTML = '載入中...';
-        try {
-            const snap = await db.collection("events").get(); let events = [];
-            snap.forEach(doc => {
-                const ev = doc.data(); if(ev.isPrivate) return;
-                const timeField = ev.fields?.find(f => f.type === 'time'), sortDate = timeField?.content ? new Date(timeField.content) : (ev.createdAt?.toDate() || new Date());
-                events.push({ id: doc.id, ...ev, sortDate });
-            });
-            events.sort((a,b)=>b.sortDate - a.sortDate); if(events.length===0){ listEl.innerHTML="無行程"; return; }
-            
-            let html = '', currentYear = null;
-            events.forEach(ev => {
-                const year = ev.sortDate.getFullYear(); if(year!==currentYear){ currentYear=year; html+=`<div class="event-year-title">${year} 年度</div>`; }
-                const timeStr = ev.sortDate.toLocaleString('zh-TW', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).replace(/\//g,'-'), safeTitle = (ev.title||'').replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                // 【修改】：加入 ev.deadline 作為第四個參數傳給 sendEventCard
-                const deadlineStr = ev.deadline || '';
-                html += `<div class="event-mini-item" onclick="sendEventCard('${ev.id}', '${safeTitle}', '${timeStr}', '${deadlineStr}')"><h4 class="event-mini-title">${ev.title}</h4><div class="event-mini-meta"><i class="far fa-clock"></i> ${timeStr}</div></div>`;
-            }); listEl.innerHTML = html;
-        } catch(e){ listEl.innerHTML="失敗"; }
+    // ==========================================
+    // 活動總覽：公開/私人切換與載入邏輯
+    // ==========================================
+    let isSchedulePrivateMode = false;
+
+    function resetScheduleHeader() {
+        isSchedulePrivateMode = false;
+        const icon = document.getElementById('scheduleToggleIcon');
+        const title = document.getElementById('scheduleModalTitle');
+        if (icon && title) {
+            icon.className = 'fas fa-globe';
+            icon.style.color = 'white';
+            icon.style.transform = 'rotate(0deg) scale(1)';
+            title.innerHTML = '<i class="fas fa-calendar-check"></i> 活動行程總覽';
+        }
     }
 
+    function toggleScheduleMode() {
+        isSchedulePrivateMode = !isSchedulePrivateMode;
+        const icon = document.getElementById('scheduleToggleIcon');
+        const title = document.getElementById('scheduleModalTitle');
+        
+        // 1. 縮小並旋轉 (消失感)
+        icon.style.transform = 'scale(0.1) rotate(180deg)';
+        
+        setTimeout(() => {
+            if (isSchedulePrivateMode) {
+                // 切換為私人模式 (紅色 user-secret)
+                icon.className = 'fas fa-user-secret';
+                icon.style.color = '#d93025'; 
+                title.innerHTML = '<i class="fas fa-user-secret" style="color: #d93025;"></i> 私人活動行程';
+            } else {
+                // 切換回公開模式 (白色 globe)
+                icon.className = 'fas fa-globe';
+                icon.style.color = 'white';
+                title.innerHTML = '<i class="fas fa-calendar-check"></i> 活動行程總覽';
+            }
+            
+            // 2. 放大並轉回來 (彈出感)
+            icon.style.transform = 'scale(1.2) rotate(360deg)';
+            
+            setTimeout(() => {
+                icon.style.transform = 'scale(1) rotate(360deg)';
+            }, 150);
+            
+        }, 150);
+
+        // 重新載入列表
+        handleActivitySchedule();
+    }
+
+    async function handleActivitySchedule() {
+        document.getElementById('expandMenuPanel').style.display='none'; 
+        document.querySelector('.expand-menu-btn').style.transform='rotate(0deg)';
+        openModal('activityScheduleModal'); 
+        const listEl = document.getElementById('activityScheduleList'); 
+        listEl.innerHTML = '<div style="text-align:center; padding:20px;"><i class="fas fa-spinner fa-spin"></i> 載入中...</div>';
+        
+        try {
+            const currentUser = auth.currentUser;
+            const currentEmail = currentUser ? currentUser.email : '';
+            const currentUid = currentUser ? currentUser.uid : '';
+
+            const snap = await db.collection("events").get(); 
+            let events = [];
+            snap.forEach(doc => {
+                const ev = doc.data(); 
+                
+                const isCreator = (ev.creator === currentEmail && currentEmail !== '') || 
+                                  (ev.creatorUid === currentUid && currentUid !== '') || 
+                                  (ev.creator === currentUid && currentUid !== '');
+
+                // 【分類邏輯】：根據當前的模式過濾清單
+                if (isSchedulePrivateMode) {
+                    // 私人模式：只抓取 isPrivate=true，且你有權限看的
+                    if (!ev.isPrivate) return;
+                    const authMembers = ev.authorizedMembers || [];
+                    if (!isCreator && !authMembers.includes(currentUid)) return; 
+                } else {
+                    // 公開模式：只抓取公開的 (過濾掉所有 isPrivate=true 的)
+                    if (ev.isPrivate) return;
+                }
+
+                let sortDate = new Date();
+                const timeField = ev.fields?.find(f => f.type === 'time');
+                if (timeField && timeField.content) {
+                    sortDate = new Date(timeField.content);
+                } else if (ev.createdAt && typeof ev.createdAt.toDate === 'function') {
+                    sortDate = ev.createdAt.toDate();
+                }
+
+                events.push({ id: doc.id, ...ev, sortDate, isCreator });
+            });
+            
+            events.sort((a,b)=>b.sortDate - a.sortDate); 
+            if(events.length===0){ 
+                const emptyMsg = isSchedulePrivateMode ? "目前無私人行程" : "目前無公開行程";
+                listEl.innerHTML=`<div class='event-empty-state'>${emptyMsg}</div>`; 
+                return; 
+            }
+            
+            // 【新增】：在清單最上方加入左滑提示框
+            let html = `
+            <div style="background: #fffdf5; border: 1px solid #ffeeba; color: #856404; padding: 10px 15px; border-radius: 8px; font-size: 0.85rem; display: flex; align-items: center; gap: 10px; margin-bottom: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+                <i class="fas fa-lightbulb" style="color: var(--ly-gold); font-size: 1.2rem;"></i>
+                <span style="line-height: 1.4;"><b>小提示：</b>自己建立的活動，向左滑動即可「編輯」或「刪除」。</span>
+            </div>`;
+            
+            let currentYear = null;
+            events.forEach(ev => {
+                const year = ev.sortDate.getFullYear(); 
+                if(year!==currentYear){ currentYear=year; html+=`<div class="event-year-title">${year} 年度</div>`; }
+                const timeStr = ev.sortDate.toLocaleString('zh-TW', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).replace(/\//g,'-');
+                const safeTitle = (ev.title||'').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                const deadlineStr = ev.deadline || '';
+                
+                // 私人活動顯示鎖頭
+                const lockIcon = ev.isPrivate ? '<i class="fas fa-lock" style="color:#d93025; margin-right:5px;" title="私人活動"></i>' : '';
+                const innerContent = `<h4 class="event-mini-title">${lockIcon}${ev.title}</h4><div class="event-mini-meta"><i class="far fa-clock"></i> ${timeStr}</div>`;
+
+                if (ev.isCreator) {
+                    html += `
+                    <div class="swipe-container">
+                        <div class="swipe-actions-dual">
+                            <button class="swipe-edit-btn" onclick="editEvent('${ev.id}')"><i class="fas fa-edit"></i></button>
+                            <button class="swipe-delete-btn-half" onclick="deleteEvent('${ev.id}')"><i class="fas fa-trash-alt"></i></button>
+                        </div>
+                        <div class="swipe-content event-mini-item" style="margin-bottom: 0;"
+                             onmousedown="evSwipeStart(event, this)" onmousemove="evSwipeMove(event, this)" 
+                             onmouseup="evSwipeEnd(event, this, '${ev.id}', '${safeTitle}', '${timeStr}', '${deadlineStr}')" 
+                             onmouseleave="evSwipeEnd(event, this, '${ev.id}', '${safeTitle}', '${timeStr}', '${deadlineStr}')" 
+                             ontouchstart="evSwipeStart(event, this)" ontouchmove="evSwipeMove(event, this)" 
+                             ontouchend="evSwipeEnd(event, this, '${ev.id}', '${safeTitle}', '${timeStr}', '${deadlineStr}')">
+                            ${innerContent}
+                        </div>
+                    </div>`;
+                } else {
+                    html += `<div class="event-mini-item" onclick="sendEventCard('${ev.id}', '${safeTitle}', '${timeStr}', '${deadlineStr}')">${innerContent}</div>`;
+                }
+            }); 
+            listEl.innerHTML = html;
+        } catch(e){ listEl.innerHTML="<div style='text-align:center; color:red; padding:20px;'>載入失敗，請檢查網路</div>"; console.error(e); }
+    }
+
+    // 【修改】：接收 deadlineStr 並存入 JSON 中
     // 【修改】：接收 deadlineStr 並存入 JSON 中
     async function sendEventCard(eventId, title, timeStr, deadlineStr) {
         if(!confirm(`發布「${title}」？`)) return; closeModal('activityScheduleModal');
@@ -2181,6 +2560,44 @@
             batch.update(chatRef, { lastMessage: `分享活動：${title}`, lastSenderId: auth.currentUser.uid, updatedAt: firebase.firestore.FieldValue.serverTimestamp(), [`lastReadAt.${auth.currentUser.uid}`]: firebase.firestore.FieldValue.serverTimestamp() });
             await batch.commit(); scrollToBottom(true);
         } catch(e){ alert("失敗"); }
+    }
+
+    // ==========================================
+    // 活動清單：左滑物理引擎 (先有視覺效果)
+    // ==========================================
+    let evSwipeStartX = 0, evSwipeCurrentX = 0, isEvItemSwiping = false, evSwipedItemOpen = null;
+
+    function evSwipeStart(e, el) {
+        if (evSwipedItemOpen && evSwipedItemOpen !== el) { evSwipedItemOpen.style.transform = 'translateX(0px)'; evSwipedItemOpen = null; }
+        evSwipeStartX = e.type.includes('mouse') ? e.pageX : e.touches[0].clientX;
+        evSwipeCurrentX = 0; isEvItemSwiping = true; el.style.transition = 'none';
+    }
+    
+    function evSwipeMove(e, el) {
+        if (!isEvItemSwiping) return;
+        const x = e.type.includes('mouse') ? e.pageX : e.touches[0].clientX;
+        evSwipeCurrentX = x - evSwipeStartX;
+        // 限制向左滑動最多 160px，不能向右滑
+        if (evSwipeCurrentX < 0 && evSwipeCurrentX > -160) el.style.transform = `translateX(${evSwipeCurrentX}px)`;
+    }
+    
+    function evSwipeEnd(e, el, eventId, title, timeStr, deadline) {
+        if (!isEvItemSwiping) return;
+        isEvItemSwiping = false; el.style.transition = 'transform 0.3s ease';
+        
+        if (evSwipeCurrentX < -75) {
+            // 滑超過一半，固定展開兩個按鈕 (總寬度150px)
+            el.style.transform = 'translateX(-150px)';
+            evSwipedItemOpen = el;
+        } else {
+            // 回彈
+            el.style.transform = 'translateX(0px)';
+            if (evSwipedItemOpen === el) evSwipedItemOpen = null;
+            
+            // 如果幾乎沒滑動 (當作點擊)，觸發原本的發送卡片功能
+            if (Math.abs(evSwipeCurrentX) < 10 && eventId) sendEventCard(eventId, title, timeStr, deadline);
+        }
+        evSwipeCurrentX = 0;
     }
 
     // 投票系統
@@ -2394,14 +2811,571 @@
     async function forceDownload(url, filename) { try { const r = await fetch(url, {mode:'cors'}); const b = await r.blob(); const l = document.createElement('a'); l.href = URL.createObjectURL(b); l.download = filename; l.click(); URL.revokeObjectURL(l.href); } catch(e){ window.open(url, '_blank'); } }
 
     // 設定與登出
-    function openSettings() { document.getElementById('settingsName').innerText=document.getElementById('myName').innerText; document.getElementById('settingsAvatar').src=document.getElementById('myAvatar').src; openModal('settingsModal'); }
-    function closeSettings() { closeModal('settingsModal'); }
+    // ==========================================
+    // 設定頁面與滿版滑動邏輯
+    // ==========================================
+    const settingsViewDOM = document.getElementById('settingsView');
+    let isSettingsSwiping = false, settingsPageStartX = 0, settingsPageCurrentX = 0;
+
+    settingsViewDOM.addEventListener('touchstart', (e) => {
+        if (e.touches[0].clientX < 40) { 
+            isSettingsSwiping = true; 
+            settingsPageStartX = e.touches[0].clientX; 
+            settingsViewDOM.style.transition = 'none'; 
+        }
+    });
+    settingsViewDOM.addEventListener('touchmove', (e) => {
+        if (!isSettingsSwiping) return;
+        settingsPageCurrentX = e.touches[0].clientX - settingsPageStartX;
+        if (settingsPageCurrentX > 0) { e.preventDefault(); settingsViewDOM.style.transform = `translateX(${settingsPageCurrentX}px)`; }
+    }, { passive: false });
+    settingsViewDOM.addEventListener('touchend', (e) => {
+        if (!isSettingsSwiping) return;
+        isSettingsSwiping = false;
+        settingsViewDOM.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
+        if (settingsPageCurrentX > window.innerWidth / 3 || settingsPageCurrentX > 30) {
+            closeSettings();
+        } else {
+            settingsViewDOM.style.transform = 'translateX(0%)';
+        }
+        settingsPageCurrentX = 0;
+    });
+
+    async function openSettings() { 
+        settingsViewDOM.style.transform = 'translateX(0%)'; 
+        document.getElementById('settingsAvatar').src = document.getElementById('myAvatar').src;
+        document.getElementById('settingsName').innerText = document.getElementById('myName').innerText;
+        document.getElementById('settingsUid').innerText = `UID: ${auth.currentUser.uid}`;
+        document.getElementById('settingsEmail').innerText = auth.currentUser.email || '讀取中...';
+        
+        try {
+            const doc = await db.collection("act").doc(auth.currentUser.uid).get();
+            if (doc.exists && doc.data().email) {
+                document.getElementById('settingsEmail').innerText = doc.data().email;
+            }
+        } catch(e) { console.error('無法讀取 act 中的 email', e); }
+    }
+    
+    function closeSettings() { settingsViewDOM.style.transform = 'translateX(100%)'; }
     function handleLogout() { if(confirm("確定登出？")) auth.signOut().then(()=>window.location.href="index.html"); }
 
+    // 【新增】：修改信箱功能
+    async function handleChangeEmail() {
+        const user = auth.currentUser;
+        if (!user) return;
+        const newEmail = prompt("請輸入新的信箱地址：", user.email);
+        if (!newEmail || newEmail === user.email) return;
+        
+        try {
+            await user.updateEmail(newEmail);
+            // 同步更新 act 集合裡的資料
+            await db.collection("act").doc(user.uid).update({ email: newEmail });
+            document.getElementById('settingsEmail').innerText = newEmail;
+            alert("信箱修改成功！");
+        } catch(e) {
+            // 如果超過一段時間未登入，Firebase 會要求重新驗證
+            if (e.code === 'auth/requires-recent-login') {
+                alert("為了安全起見，修改信箱需要您重新登入。請登出後再試一次。");
+            } else {
+                alert("修改失敗：" + e.message);
+            }
+        }
+    }
+
+    // 【新增】：修改密碼功能
+    async function handleChangePassword() {
+        const user = auth.currentUser;
+        if (!user) return;
+        const newPassword = prompt("請輸入新的密碼 (至少 6 個字元)：");
+        if (!newPassword) return;
+        if (newPassword.length < 6) return alert("密碼長度至少需要 6 個字元！");
+        
+        try {
+            await user.updatePassword(newPassword);
+            alert("密碼修改成功！下次請使用新密碼登入。");
+        } catch(e) {
+            if (e.code === 'auth/requires-recent-login') {
+                alert("為了安全起見，修改密碼需要您重新登入。請登出後再試一次。");
+            } else {
+                alert("修改失敗：" + e.message);
+            }
+        }
+    }
+
+    // --- 複製訊息功能 ---
+
+    // --- 複製訊息功能 ---
+    function copyMessage() {
+        if (!activeMsgTextForMenu) return;
+        // 移除可能殘留的 HTML 實體 (例如把 &quot; 轉回 ")
+        const unescapedText = activeMsgTextForMenu.replace(/&quot;/g, '"').replace(/&#039;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+        
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(unescapedText).then(() => {
+                closeContextMenu();
+            });
+        } else {
+            // 舊版瀏覽器與 iOS webview 的備用複製方案
+            const textArea = document.createElement("textarea");
+            textArea.value = unescapedText;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try { document.execCommand('copy'); } catch (err) {}
+            textArea.remove();
+            closeContextMenu();
+        }
+    }
+
+    // --- 設定頁面：上傳/更新個人大頭貼 ---
+    async function handleSettingsAvatarChange(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const user = auth.currentUser;
+        if (!user) return;
+
+        try {
+            // 1. UI 顯示載入中
+            const avatarImg = document.getElementById('settingsAvatar');
+            avatarImg.style.opacity = '0.5';
+
+            // 2. 使用既有的前端函數壓縮圖片至 1MB 以下 (傳入 1 代表 1MB)
+            const compressedFile = await compressImageClientSide(file, 1);
+
+            // 3. 取得舊照片網址，準備稍後刪除
+            const userDocRef = db.collection("act").doc(user.uid);
+            const userDoc = await userDocRef.get();
+            const oldPhotoUrl = userDoc.exists ? userDoc.data().photoURL : null;
+
+            // 4. 上傳到 Storage 的 avatars 資料夾
+            const snap = await storage.ref(`avatars/${user.uid}_${Date.now()}.jpg`).put(compressedFile);
+            const newUrl = await snap.ref.getDownloadURL();
+
+            // 5. 更新 Firestore act 集合
+            await userDocRef.update({ photoURL: newUrl });
+
+            // 6. 刪除舊照片 (加上防呆機制：只刪除 Storage 中 avatars 資料夾內的圖片)
+            if (oldPhotoUrl && oldPhotoUrl.includes('firebasestorage') && oldPhotoUrl.includes('%2Favatars%2F')) {
+                try { await storage.refFromURL(oldPhotoUrl).delete(); } catch(err) { console.warn('刪除舊頭像失敗', err); }
+            }
+
+            // 7. 更新畫面顯示
+            avatarImg.src = newUrl;
+            document.getElementById('myAvatar').src = newUrl;
+            avatarImg.style.opacity = '1';
+            
+        } catch (error) {
+            console.error("更新大頭貼失敗:", error);
+            alert("圖片上傳失敗，請重試");
+            document.getElementById('settingsAvatar').style.opacity = '1';
+        }
+        e.target.value = '';
+    }
+
 
     // ==========================================
-    // 8. 團購系統核心邏輯
+    // 移植：活動發起系統核心邏輯 (Event Creator)
     // ==========================================
+    let evSelectedUIDs = [];
+    let evAuthorizedUIDs = [];
+    let evPickerMode = 'participants'; 
+    let evTempSelectedUIDs = [];
+    let isEvPrivate = false;
+    let currentEditingEventId = null; // 全域變數紀錄編輯狀態
+
+    function openCreateEventModal() {
+        closeModal('activityScheduleModal'); // 關閉行程總覽
+        currentEditingEventId = null; // 確保是新增模式
+        document.querySelector('#createEventModal h3').innerHTML = '<i class="fas fa-calendar-plus"></i> 發起新活動';
+        document.getElementById('btnSubmitEvent').innerHTML = '確認發布';
+
+        // 重置表單
+        document.getElementById('ev-title').value = '';
+        document.getElementById('ev-deadline').value = '';
+        document.getElementById('dynamic-fields-container').innerHTML = '';
+        document.getElementById('ev-is-private').checked = false;
+        toggleEventPrivateMode(false);
+        evSelectedUIDs = [];
+        evAuthorizedUIDs = [];
+        renderEvMemberPreview(evSelectedUIDs, 'participants');
+        renderEvMemberPreview(evAuthorizedUIDs, 'authorized');
+        openModal('createEventModal');
+    }
+
+    // 【新增】：讀取歷史資料進入編輯模式
+    async function editEvent(eventId) {
+        currentEditingEventId = eventId;
+        closeModal('activityScheduleModal'); // 關閉列表
+        
+        // 變更表單標題與按鈕
+        document.querySelector('#createEventModal h3').innerHTML = '<i class="fas fa-edit"></i> 編輯活動';
+        document.getElementById('btnSubmitEvent').innerHTML = '<i class="fas fa-save"></i> 儲存修改';
+        
+        const doc = await db.collection("events").doc(eventId).get();
+        if (!doc.exists) return;
+        const data = doc.data();
+
+        document.getElementById('ev-title').value = data.title;
+        document.getElementById('ev-deadline').value = data.deadline || "";
+        
+        document.getElementById('ev-is-private').checked = !!data.isPrivate;
+        toggleEventPrivateMode(!!data.isPrivate);
+
+        if (data.isPrivate) {
+            evAuthorizedUIDs = data.authorizedMembers || [];
+            renderEvMemberPreview(evAuthorizedUIDs, 'authorized');
+            evSelectedUIDs = [];
+        } else {
+            evSelectedUIDs = data.participants || [];
+            renderEvMemberPreview(evSelectedUIDs, 'participants');
+            evAuthorizedUIDs = [];
+        }
+
+        const container = document.getElementById('dynamic-fields-container');
+        container.innerHTML = ""; 
+        if (data.fields) {
+            let imageGroup = [];
+            data.fields.forEach(f => {
+                if(f.type === 'image_upload') imageGroup.push(f.content);
+                else {
+                    addEventField(f.type, f.label);
+                    const last = container.lastElementChild;
+                    const input = last.querySelector('.ev-dynamic-input');
+                    if(input) input.value = f.content;
+                }
+            });
+            if(imageGroup.length > 0) {
+                addEventField('image_upload', '活動照片');
+                const lastImgField = container.querySelector('.draggable-item[data-type="image_upload"]');
+                if(lastImgField) {
+                    const fid = lastImgField.id.replace('field-', '');
+                    updateEvImageField(fid, imageGroup);
+                }
+            }
+        }
+        openModal('createEventModal');
+    }
+
+    // 【新增】：徹底刪除活動與雲端圖片功能
+    async function deleteEvent(eventId) {
+        if (!confirm("確定要刪除此活動嗎？\n(若有上傳照片也會一併從雲端清除)")) return;
+        try {
+            const doc = await db.collection("events").doc(eventId).get();
+            if (doc.exists && doc.data().fields) {
+                // 清理圖片 Storage
+                doc.data().fields.forEach(f => {
+                    if(f.type === 'image_upload' && f.content) {
+                        try{ storage.refFromURL(f.content).delete(); } catch(e){}
+                    }
+                });
+            }
+            await db.collection("events").doc(eventId).delete();
+            alert("活動已刪除！");
+            handleActivitySchedule(); // 重新整理清單
+        } catch(e) { alert("刪除失敗: " + e.message); }
+    }
+
+    function toggleEventPrivateMode(isPrivate) {
+        isEvPrivate = isPrivate;
+        const pubSec = document.getElementById('public-participants-section');
+        const privSec = document.getElementById('private-auth-section');
+        if (isPrivate) {
+            pubSec.style.display = 'none';
+            privSec.style.display = 'block';
+            // 預設將自己加入授權名單
+            if (auth.currentUser && !evAuthorizedUIDs.includes(auth.currentUser.uid)) {
+                evAuthorizedUIDs.push(auth.currentUser.uid);
+                renderEvMemberPreview(evAuthorizedUIDs, 'authorized');
+            }
+        } else {
+            pubSec.style.display = 'block';
+            privSec.style.display = 'none';
+        }
+    }
+
+    function addEventField(type, label) {
+        const container = document.getElementById('dynamic-fields-container');
+        if (type === 'image_upload' && container.querySelector('.draggable-item[data-type="image_upload"]')) {
+            return alert("「活動照片」欄位已存在，可在內部多選圖片。");
+        }
+        const fieldId = Date.now();
+        let inputHtml = '';
+        if (type === 'image_upload') {
+            inputHtml = `
+                <div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column;">
+                    <label style="font-size:0.85em; color:var(--ly-blue); font-weight:bold; margin-bottom:5px;">${label} (可多選)</label>
+                    <input type="file" class="ev-dynamic-file" accept="image/*" multiple onchange="handleEvDynamicImage(this, '${fieldId}')" style="width: 100%; margin: 0; font-size:16px;">
+                    <div id="preview-${fieldId}" class="image-field-preview"></div>
+                    <input type="hidden" class="ev-dynamic-input" id="hidden-${fieldId}" data-field-type="images_json">
+                </div>`;
+        } else if (type === 'time' || type === 'meetup') {
+            inputHtml = `
+                <div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column;">
+                    <label style="font-size:0.85em; color:var(--ly-blue); font-weight:bold; margin-bottom:5px;">${label}</label>
+                    <input type="datetime-local" class="ev-dynamic-input" style="width: 100%; margin: 0;">
+                </div>`;
+        } else {
+            inputHtml = `
+                <div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column;">
+                    <label style="font-size:0.85em; color:var(--ly-blue); font-weight:bold; margin-bottom:5px;">${label}</label>
+                    <textarea class="ev-dynamic-input" placeholder="請輸入${label}" style="width: 100%; margin: 0; min-height: 80px; resize: vertical; padding: 10px;"></textarea>
+                </div>`;
+        }
+        const html = `
+            <div class="draggable-item" data-type="${type}" id="field-${fieldId}">
+                <i class="fas fa-grip-lines drag-handle"></i>
+                ${inputHtml}
+                <button class="btn-remove-field" onclick="this.closest('.draggable-item').remove()" title="刪除"><i class="fas fa-trash-alt"></i></button>
+            </div>`;
+        container.insertAdjacentHTML('beforeend', html);
+        initEvSortable();
+        if (type === 'image_upload') initEvImageSortable(fieldId);
+    }
+
+    function initEvSortable() {
+        if (typeof Sortable !== 'undefined') {
+            const el = document.getElementById('dynamic-fields-container');
+            if (el && !el.sortableInst) el.sortableInst = Sortable.create(el, { handle: '.drag-handle', delay: 0 });
+        }
+    }
+    function initEvImageSortable(fieldId) {
+        if (typeof Sortable !== 'undefined') {
+            const el = document.getElementById(`preview-${fieldId}`);
+            const hidden = document.getElementById(`hidden-${fieldId}`);
+            if (el) Sortable.create(el, {
+                animation: 150, onEnd: function() {
+                    const newOrder = [];
+                    el.querySelectorAll('.preview-card img').forEach(img => newOrder.push(img.src));
+                    hidden.value = JSON.stringify(newOrder);
+                }
+            });
+        }
+    }
+
+    async function handleEvDynamicImage(input, fieldId) {
+        const hiddenInput = document.getElementById(`hidden-${fieldId}`);
+        let currentData = [];
+        try { if(hiddenInput.value) currentData = JSON.parse(hiddenInput.value); } catch(e){}
+        if (!Array.isArray(currentData)) currentData = currentData ? [currentData] : [];
+
+        if (input.files && input.files.length > 0) {
+            for (const file of Array.from(input.files)) {
+                // 使用原有的前端壓縮函數 (壓至 2MB 以下)
+                const compressed = await compressImageClientSide(file, 2); 
+                const reader = new FileReader();
+                const base64 = await new Promise(resolve => {
+                    reader.onload = e => resolve(e.target.result);
+                    reader.readAsDataURL(compressed);
+                });
+                currentData.push(base64);
+            }
+            updateEvImageField(fieldId, currentData);
+        }
+        input.value = '';
+    }
+
+    function updateEvImageField(fieldId, dataArray) {
+        document.getElementById(`hidden-${fieldId}`).value = JSON.stringify(dataArray);
+        const container = document.getElementById(`preview-${fieldId}`);
+        container.innerHTML = "";
+        dataArray.forEach((src, idx) => {
+            const card = document.createElement('div');
+            card.className = 'preview-card';
+            card.innerHTML = `<img src="${src}"><div class="preview-remove-btn"><i class="fas fa-trash"></i></div>`;
+            card.querySelector('.preview-remove-btn').onclick = (e) => {
+                e.stopPropagation();
+                if(confirm("移除此照片？")) {
+                    dataArray.splice(idx, 1);
+                    updateEvImageField(fieldId, dataArray);
+                }
+            };
+            container.appendChild(card);
+        });
+        initEvImageSortable(fieldId);
+    }
+
+    async function openEventMemberPicker(mode) {
+        evPickerMode = mode;
+        const grid = document.getElementById('ev-picker-grid');
+        grid.innerHTML = '<div style="text-align:center; padding:20px;"><i class="fas fa-spinner fa-spin"></i></div>';
+        openModal('eventMemberPickerModal');
+        
+        document.getElementById('evPickerTitle').innerHTML = mode === 'authorized' ? '<i class="fas fa-user-lock"></i> 授權成員' : '<i class="fas fa-users"></i> 參加成員';
+        evTempSelectedUIDs = mode === 'authorized' ? [...evAuthorizedUIDs] : [...evSelectedUIDs];
+
+        try {
+            const snap = await db.collection("act").get();
+            let html = '';
+            snap.forEach(doc => {
+                const d = doc.data();
+                if (mode === 'authorized' && doc.id === auth.currentUser.uid) {
+                    if (!evTempSelectedUIDs.includes(doc.id)) evTempSelectedUIDs.push(doc.id);
+                }
+                const isChecked = evTempSelectedUIDs.includes(doc.id) ? 'checked' : '';
+                html += `
+                <label class="user-select-item">
+                    <input type="checkbox" value="${doc.id}" class="ev-member-checkbox" ${isChecked} onchange="toggleEvTempMember(this)">
+                    <div class="user-select-card">
+                        <img src="${d.photoURL || 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true'}">
+                        <span class="ev-picker-name">${d.displayName || '未知'}</span>
+                    </div>
+                </label>`;
+            });
+            grid.innerHTML = html;
+        } catch(e) { grid.innerHTML="讀取失敗"; }
+    }
+
+    function toggleEvTempMember(checkbox) {
+        if (checkbox.checked) {
+            if (!evTempSelectedUIDs.includes(checkbox.value)) evTempSelectedUIDs.push(checkbox.value);
+        } else {
+            evTempSelectedUIDs = evTempSelectedUIDs.filter(id => id !== checkbox.value);
+        }
+    }
+
+    function toggleAllEventMembers(isSelect) {
+        document.querySelectorAll('.ev-member-checkbox').forEach(cb => {
+            cb.checked = isSelect;
+            toggleEvTempMember(cb);
+        });
+    }
+
+    function searchEventMember() {
+        const kw = document.getElementById('ev-member-search').value.toLowerCase();
+        document.querySelectorAll('#ev-picker-grid .user-select-item').forEach(item => {
+            const name = item.querySelector('.ev-picker-name').innerText.toLowerCase();
+            item.style.display = name.includes(kw) ? 'block' : 'none';
+        });
+    }
+
+    async function saveEventSelectedMembers() {
+        if (evPickerMode === 'authorized') {
+            evAuthorizedUIDs = [...evTempSelectedUIDs];
+            renderEvMemberPreview(evAuthorizedUIDs, 'authorized');
+        } else {
+            evSelectedUIDs = [...evTempSelectedUIDs];
+            renderEvMemberPreview(evSelectedUIDs, 'participants');
+        }
+        closeModal('eventMemberPickerModal');
+    }
+
+    async function renderEvMemberPreview(uids, type) {
+        const container = document.getElementById(type === 'authorized' ? 'authorized-members-preview' : 'selected-members-preview');
+        if (uids.length === 0) return container.innerHTML = '<p style="color:#999; margin:0;">無</p>';
+        container.innerHTML = '載入中...';
+        try {
+            const promises = uids.map(uid => db.collection("act").doc(uid).get());
+            const docs = await Promise.all(promises);
+            container.innerHTML = docs.map(d => {
+                if(!d.exists) return '';
+                const data = d.data();
+                return `<div class="user-select-card" style="width: 70px; padding: 5px; background: white;">
+                    <img src="${data.photoURL || 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true'}" style="width:35px;height:35px;margin:0 0 5px 0;">
+                    <span style="font-size:11px;">${data.displayName}</span>
+                </div>`;
+            }).join('');
+        } catch(e) {}
+    }
+
+    async function submitNewEvent() {
+        const title = document.getElementById('ev-title').value.trim();
+        const deadline = document.getElementById('ev-deadline').value;
+        if (!title) return alert("活動標題為必填項目");
+
+        let shouldSendToChat = false;
+
+        // 【修改】：智慧判斷邏輯
+        if (currentEditingEventId) {
+            // 如果是編輯模式，只問要不要儲存
+            if (!confirm("確定要儲存此活動的修改嗎？")) return;
+        } else {
+            // 如果是新增模式，詢問是否要發布到聊天室 (按取消依然會儲存)
+            shouldSendToChat = confirm("活動準備建立！\n\n請問是否要立即將此活動「發布到目前的聊天室」？\n\n▶ 按【確定】：儲存，並發送卡片到聊天室\n▶ 按【取消】：僅儲存，等一下再發送");
+        }
+
+        const btn = document.getElementById('btnSubmitEvent');
+        btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 處理中...';
+
+        try {
+            const dynamicFields = [];
+            const items = document.querySelectorAll('#dynamic-fields-container .draggable-item');
+            for (const it of items) {
+                const type = it.getAttribute('data-type');
+                const label = it.querySelector('label').innerText.replace(/ \(.*\)/, '');
+                let val = it.querySelector('.ev-dynamic-input').value;
+                
+                // 若為圖片，將 Base64 上傳至 Storage 換取 URL
+                if (type === 'image_upload' && val) {
+                    let images = JSON.parse(val);
+                    for (const b64 of images) {
+                        if (b64.startsWith('data:image')) {
+                            const name = `events/${Date.now()}_${Math.random().toString(36).substr(2, 9)}.jpg`;
+                            const snap = await storage.ref(name).putString(b64, 'data_url');
+                            const url = await snap.ref.getDownloadURL();
+                            dynamicFields.push({ type, label, content: url });
+                        } else {
+                            dynamicFields.push({ type, label, content: b64 });
+                        }
+                    }
+                    continue;
+                }
+                dynamicFields.push({ type, label, content: val });
+            }
+
+            const namesPromise = isEvPrivate ? evAuthorizedUIDs : evSelectedUIDs;
+            const nameDocs = await Promise.all(namesPromise.map(id => db.collection("act").doc(id).get()));
+            const names = nameDocs.map(d => d.exists ? d.data().displayName : '');
+
+            const eventData = {
+                title, deadline, fields: dynamicFields,
+                participants: evSelectedUIDs, participantNames: isEvPrivate ? [] : names,
+                isPrivate: isEvPrivate,
+                authorizedMembers: isEvPrivate ? evAuthorizedUIDs : [],
+                authorizedMemberNames: isEvPrivate ? names : [],
+                creator: auth.currentUser.email || '',
+                creatorUid: auth.currentUser.uid 
+            };
+
+            if (currentEditingEventId) {
+                // 【編輯模式】：更新資料，不發送新卡片
+                eventData.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
+                await db.collection("events").doc(currentEditingEventId).update(eventData);
+                closeModal('createEventModal');
+                alert("活動修改成功！");
+                handleActivitySchedule(); // 重新打開活動總覽刷新清單
+            } else {
+                // 【新增模式】：寫入集合
+                eventData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+                const newDoc = await db.collection("events").add(eventData);
+
+                // 【關鍵修改】：根據剛才的選擇 (shouldSendToChat) 決定要不要送卡片
+                if (shouldSendToChat && currentChatId) {
+                    const batch = db.batch(), chatRef = db.collection("chats").doc(currentChatId), msgRef = chatRef.collection("messages").doc();
+                    const timeStr = new Date().toLocaleTimeString('zh-TW', {hour: '2-digit', minute:'2-digit', hour12: false});
+                    batch.set(msgRef, { text: JSON.stringify({ type:'event_share', eventId:newDoc.id, title:title, timeStr:timeStr, deadline:deadline }), senderId: auth.currentUser.uid, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+                    batch.update(chatRef, { lastMessage: `分享活動：${title}`, lastSenderId: auth.currentUser.uid, updatedAt: firebase.firestore.FieldValue.serverTimestamp(), [`lastReadAt.${auth.currentUser.uid}`]: firebase.firestore.FieldValue.serverTimestamp() });
+                    await batch.commit();
+                    scrollToBottom(true);
+                    
+                    alert("活動建立成功，並已發布至聊天室！");
+                } else {
+                    // 如果按取消，只會跳這個提示，不會發送卡片
+                    alert("活動已成功儲存至行程總覽！（未發布至聊天室）");
+                }
+                
+                closeModal('createEventModal');
+                handleActivitySchedule(); // 自動重新打開總覽列表
+            }
+        } catch(e) { 
+            alert("操作失敗: " + e.message); 
+        } finally {
+            // 恢復按鈕狀態
+            const btn = document.getElementById('btnSubmitEvent');
+            if (btn) {
+                btn.disabled = false; 
+                btn.innerHTML = currentEditingEventId ? '<i class="fas fa-save"></i> 儲存修改' : '確認發布';
+            }
+        }
+    }
     // ==========================================
     // 8. 團購系統核心邏輯
     // ==========================================
@@ -2418,15 +3392,21 @@
         listEl.innerHTML = '<div style="text-align:center; padding:30px; color:#999;"><i class="fas fa-spinner fa-spin fa-2x"></i><br><br>載入團購資料中...</div>';
         
         try {
-            const snap = await db.collection("group-orders").orderBy("createdAt", "desc").get();
-            if (snap.empty) {
-                listEl.innerHTML = '<div class="event-empty-state">尚無團購訂單，點擊下方新增。</div>';
-                return;
-            }
-            
-            let html = '';
-            snap.forEach(doc => {
-                const data = doc.data();
+                const snap = await db.collection("group-orders").orderBy("createdAt", "desc").get();
+                if (snap.empty) {
+                    listEl.innerHTML = '<div class="event-empty-state">尚無團購訂單，點擊下方新增。</div>';
+                    return;
+                }
+                
+                // 【新增】：在團購清單最上方加入左滑提示框
+                let html = `
+                <div style="background: #fffdf5; border: 1px solid #ffeeba; color: #856404; padding: 10px 15px; border-radius: 8px; font-size: 0.85rem; display: flex; align-items: center; gap: 10px; margin-bottom: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+                    <i class="fas fa-lightbulb" style="color: var(--ly-gold); font-size: 1.2rem;"></i>
+                    <span style="line-height: 1.4;"><b>小提示：</b>自己發起的團購，向左滑動即可徹底「刪除」。</span>
+                </div>`;
+
+                snap.forEach(doc => {
+                    const data = doc.data();
                 const deadlineStr = data.deadline ? data.deadline.replace('T', ' ') : '無期限';
                 const safeTitle = (data.title || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
                 const safeInitiator = (data.initiatorName || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
@@ -2528,7 +3508,7 @@
                 <input type="text" class="gb-i-name" placeholder="商品名稱" style="flex: 2;">
                 <input type="number" class="gb-i-price" placeholder="單價金額" style="flex: 1;">
                 <input type="number" class="gb-i-qty" placeholder="數量限制(選填)" style="flex: 1;">
-                <input type="text" class="gb-i-note" placeholder="備註說明(選填)" style="flex: 3; min-width: 100%;">
+                <input type="text" class="gb-i-note" placeholder="備註說明(選填)" style="flex-basis: 100%; box-sizing: border-box;">
             </div>
         `;
         container.insertAdjacentHTML('beforeend', html);
@@ -2558,9 +3538,12 @@
         const rows = document.querySelectorAll('.gb-item-row');
         if (rows.length === 0) return alert('請至少新增一項商品！');
 
+        // 【新增】：詢問是否要順便發布到聊天室
+        let shouldSendToChat = confirm("團購訂單準備建立！\n\n請問是否要立即將此團購「發布到目前的聊天室」？\n\n▶ 按【確定】：儲存，並發送卡片到聊天室\n▶ 按【取消】：僅儲存，等一下再發送");
+
         const btn = document.getElementById('gbSubmitBtn');
         btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 建立中...';
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 處理中...';
 
         try {
             let items = [];
@@ -2575,9 +3558,8 @@
                 if (!name || !price) throw new Error('每項商品的「名稱」與「金額」為必填項目。');
 
                 let imgUrl = "";
-                // 如果有上傳圖片，使用「團購專用極致壓縮」並上傳
                 if (fileInput.fileObj) {
-                    const compressedFile = await compressGroupBuyImage(fileInput.fileObj); // 壓縮到極小化 (約 50~150KB)
+                    const compressedFile = await compressGroupBuyImage(fileInput.fileObj); 
                     const snap = await storage.ref(`group-orders/${Date.now()}_${i}.jpg`).put(compressedFile);
                     imgUrl = await snap.ref.getDownloadURL();
                 }
@@ -2603,40 +3585,37 @@
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             });
 
-            // 2. 傳送訊息卡片到當前聊天室
-            const batch = db.batch();
-            const chatRef = db.collection("chats").doc(currentChatId);
-            const msgRef = chatRef.collection("messages").doc();
-            
-            const payload = {
-                type: 'group_buy',
-                orderId: newOrderRef.id,
-                title: title,
-                initiator: initiatorName,
-                deadline: deadline
-            };
+            // 2. 【修改】：根據剛才的選擇 (shouldSendToChat) 決定要不要送卡片
+            if (shouldSendToChat && currentChatId) {
+                const batch = db.batch();
+                const chatRef = db.collection("chats").doc(currentChatId);
+                const msgRef = chatRef.collection("messages").doc();
+                
+                const payload = {
+                    type: 'group_buy', orderId: newOrderRef.id, title: title, initiator: initiatorName, deadline: deadline
+                };
 
-            batch.set(msgRef, { 
-                text: JSON.stringify(payload), 
-                senderId: auth.currentUser.uid, 
-                timestamp: firebase.firestore.FieldValue.serverTimestamp() 
-            });
-            batch.update(chatRef, { 
-                lastMessage: `發起了團購：${title}`, 
-                lastSenderId: auth.currentUser.uid, 
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp(), 
-                [`lastReadAt.${auth.currentUser.uid}`]: firebase.firestore.FieldValue.serverTimestamp() 
-            });
-            
-            await batch.commit();
+                batch.set(msgRef, { text: JSON.stringify(payload), senderId: auth.currentUser.uid, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+                batch.update(chatRef, { lastMessage: `發起了團購：${title}`, lastSenderId: auth.currentUser.uid, updatedAt: firebase.firestore.FieldValue.serverTimestamp(), [`lastReadAt.${auth.currentUser.uid}`]: firebase.firestore.FieldValue.serverTimestamp() });
+                
+                await batch.commit();
+                scrollToBottom(true);
+                alert("✅ 團購建立成功，並已發布至聊天室！");
+            } else {
+                // 按取消只儲存
+                alert("✅ 團購已成功儲存至清單！（未發布至聊天室）");
+            }
+
             closeModal('createGroupBuyModal');
-            scrollToBottom(true);
+            
+            // 【新增】：儲存完畢後，自動為你打開團購清單總覽，方便查看
+            openGroupBuyListModal();
 
         } catch(e) {
             alert(e.message || "建立團購失敗，請稍後再試。");
         } finally {
             btn.disabled = false;
-            btn.innerText = '發布到聊天室';
+            btn.innerText = '儲存訂單'; // 【修改】：復原按鈕文字
         }
     }
 
