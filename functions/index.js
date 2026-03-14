@@ -69,10 +69,14 @@ exports.sendChatNotification = onDocumentCreated("chats/{chatId}/messages/{messa
     console.log("✅ 準備發射推播！Token 內容:", tokens);
     // --- 替換到這裡 ---
 
+    // --- 找到 index.js 的 message 變數，替換成這樣 ---
     const message = {
         notification: {
             title: chatData.isGroup ? chatData.groupName : senderName,
             body: chatData.isGroup ? `${senderName}: ${text}` : text,
+        },
+        data: {
+            chatId: String(chatId) // 【新增這行】：把聊天室 ID 當作隱藏包裹寄給手機
         },
         apns: {
             payload: {
@@ -83,21 +87,25 @@ exports.sendChatNotification = onDocumentCreated("chats/{chatId}/messages/{messa
     };
 
     try {
-        // 🚨 【最關鍵的一行】：呼叫我們獨立建立的 "pushApp" 來發送推播！
-        // 它會拿著你給的實體金鑰直接通關，絕對不會再報錯！
+        // 使用 sendEachForMulticast 發送給多人
         const response = await pushApp.messaging().sendEachForMulticast(message);
         
-        console.log('成功發送推播:', response.successCount, '失敗:', response.failureCount);
+        console.log('推播發送結束，成功數量:', response.successCount);
         
+        // 如果有失敗，我們過濾出失敗原因但不中斷執行
         if (response.failureCount > 0) {
+            const failedTokens = [];
             response.responses.forEach((resp, idx) => {
                 if (!resp.success) {
-                    console.error(`Token ${idx} 發送失敗的詳細原因:`, resp.error);
+                    console.warn(`Token ${idx} 發送失敗:`, resp.error.message);
+                    // 這裡可以收集失效的 Token，以後從資料庫刪除
                 }
             });
         }
+        
     } catch (error) {
-        console.error('推播發送失敗:', error);
+        // 這裡攔截的是「嚴重的系統錯誤」（例如金鑰完全失效）
+        console.error('推播發送過程發生嚴重錯誤:', error);
     }
 
     return null;

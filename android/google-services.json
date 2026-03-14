@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "940345852074",
+    "project_id": "llwb-ed686",
+    "storage_bucket": "llwb-ed686.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:940345852074:android:e12cfc421cff45512350d3",
+        "android_client_info": {
+          "package_name": "tw.legislature.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDn0Ug_wytEfBl4uopsUUkalWuNZ-j_n0Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
