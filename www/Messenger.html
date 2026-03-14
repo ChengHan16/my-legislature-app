@@ -3159,8 +3159,8 @@
 
         if (input.files && input.files.length > 0) {
             for (const file of Array.from(input.files)) {
-                // 使用原有的前端壓縮函數 (壓至 2MB 以下)
-                const compressed = await compressImageClientSide(file, 2); 
+                // 【修改】：將壓縮限制從 2MB 改為 1MB 以下，達到極小化效果
+                const compressed = await compressImageClientSide(file, 1); 
                 const reader = new FileReader();
                 const base64 = await new Promise(resolve => {
                     reader.onload = e => resolve(e.target.result);
