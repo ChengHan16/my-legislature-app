@@ -742,7 +742,7 @@
                         <p style="color: #999; font-size: 0.9em; margin:0;">尚未選擇成員</p>
                     </div>
                     <div style="text-align: center; margin-top: 10px;">
-                        <button class="btn-modal btn-cancel" onclick="openEventMemberPicker('participants')" style="width: 100%;">
+                        <button id="editPublicParticipantsBtn" class="btn-modal btn-cancel" onclick="openEventMemberPicker('participants')" style="width: 100%; transition: 0.3s;">
                             <i class="fas fa-users-cog"></i> 編輯參加名單
                         </button>
                     </div>
@@ -1010,6 +1010,29 @@
     let isFetchingOlder = false; // 【新增】：標記是否正在向上載入舊訊息
     let currentSubscribeMessages = null; // 【新增】：儲存重新監聽的函式
 
+    // ==========================================
+    // 全域成員排序規則 (Member Sort Order)
+    // ==========================================
+    const memberOrderList = [
+        { id: "001", name: "もも" }, { id: "002", name: "班長" }, { id: "003", name: "俊齊" },
+        { id: "004", name: "博峻" }, { id: "005", name: "佳偉" }, { id: "006", name: "書銘" },
+        { id: "007", name: "江旭" }, { id: "008", name: "尊玄" }, { id: "009", name: "俊諺" },
+        { id: "010", name: "成一" }, { id: "011", name: "宗航" }, { id: "012", name: "崇憲" },
+        { id: "013", name: "光庭" }, { id: "014", name: "威丞" }, { id: "015", name: "韋仁" },
+        { id: "016", name: "祐瑜" }, { id: "017", name: "至軒" }, { id: "018", name: "奕賢" },
+        { id: "019", name: "正德" }, { id: "020", name: "鈞儒" }, { id: "021", name: "凱瑞" },
+        { id: "022", name: "承遠" }, { id: "023", name: "皓鈞" }, { id: "024", name: "鎮遠" },
+        { id: "025", name: "智皓" }, { id: "026", name: "哲遠" }, { id: "027", name: "隆勳" },
+        { id: "028", name: "柏鑫" }, { id: "029", name: "承佑" }, { id: "030", name: "凱駿" },
+        { id: "031", name: "冠叡" }, { id: "032", name: "祐祥" }, { id: "033", name: "可愛柴" }
+    ];
+
+    function getMemberSortIndex(name) {
+        if (!name) return 999;
+        const idx = memberOrderList.findIndex(m => m.name === name);
+        return idx === -1 ? 999 : idx; // 找不到的人排在最後面
+    }
+
     // 工具函式：字串中段省略 (Middle Ellipsis)
     function formatMiddleEllipsis(str, maxLength = 14) {
         if (!str || str.length <= maxLength) return str;
@@ -1225,29 +1248,9 @@
             });
 
             // --- 找到這段並替換 ---
+            // 【修改】：完全移除 App 內自訂的藍色橫幅，由 iOS / Android 系統原生通知接管
             PushNotifications.addListener('pushNotificationReceived', (notification) => {
-                
-                // 【新增】：盤查邏輯。如果這則推播的 chatId，等於我目前正在看的 currentChatId，就直接略過！
-                if (notification.data && notification.data.chatId === currentChatId) {
-                    console.log("📍 已在當前聊天室，攔截並隱藏通知橫幅");
-                    return; 
-                }
-
-                // 以下維持原樣：呼叫我們自訂的漂亮橫幅，並自動在 4 秒後收合
-                const notifEl = document.getElementById('inAppNotification');
-                document.getElementById('inAppNotifTitle').innerText = notification.title || '新訊息';
-                document.getElementById('inAppNotifBody').innerText = notification.body || '';
-
-                notifEl.style.display = 'flex';
-                void notifEl.offsetWidth; // 觸發重繪
-                notifEl.style.top = 'env(safe-area-inset-top, 20px)'; // 避開瀏海
-                notifEl.style.opacity = '1';
-
-                setTimeout(() => {
-                    notifEl.style.top = '-100px';
-                    notifEl.style.opacity = '0';
-                    setTimeout(() => { notifEl.style.display = 'none'; }, 400);
-                }, 4000);
+                console.log("已接收到推播通知，交由系統原生 UI 處理:", notification);
             });
             PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
                 console.log("使用者點開了通知:", notification);
@@ -2045,6 +2048,8 @@
         const msgDoc = messagesDocsData.find(doc => doc.id === activeMsgId);
         let senderName = "成員";
         let timeStr = "未知時間";
+        let fileUrl = null;
+        let fileType = null;
 
         if (msgDoc) {
             const msgData = msgDoc.data();
@@ -2063,6 +2068,12 @@
                 const d = msgData.timestamp.toDate();
                 timeStr = `${d.getFullYear()}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getDate().toString().padStart(2,'0')} ${d.toLocaleTimeString('zh-TW', {hour: '2-digit', minute:'2-digit', hour12: false})}`;
             }
+
+            // 【新增】：提取圖片或影片網址
+            if (msgData.fileUrl) {
+                fileUrl = msgData.fileUrl;
+                fileType = msgData.fileType;
+            }
         }
 
         // 2. 打包成完整的釘選物件
@@ -2070,10 +2081,12 @@
             id: activeMsgId, 
             text: activeMsgTextForMenu,
             senderName: senderName,
-            timeStr: timeStr
+            timeStr: timeStr,
+            fileUrl: fileUrl,   // 【新增儲存網址】
+            fileType: fileType  // 【新增儲存類型】
         };
 
-        // 3. 上傳更新 (Firebase 會自動把這包新資料覆蓋掉舊的，達成「自動刪除舊釘選」的效果)
+        // 3. 上傳更新
         await db.collection("chats").doc(currentChatId).update({ pinnedMessage: pinnedData });
         closeContextMenu();
     }
@@ -2083,6 +2096,7 @@
     }
 
     // 【新增】：點擊上方橫幅時，跳出詳細視窗的函式
+    // 【新增】：點擊上方橫幅時，跳出詳細視窗的函式
     function openPinnedModal() {
         if (!window.currentPinnedMessage) return;
         const pm = window.currentPinnedMessage;
@@ -2090,10 +2104,33 @@
         // 相容舊資料，若舊釘選沒有這些欄位就給預設值
         const sender = pm.senderName || "群組成員";
         const time = pm.timeStr || "";
-        const text = pm.text || "";
+        let text = pm.text || "";
         
+        // 【新增】：判斷是否為圖片或影片，並生成預覽 HTML
+        let mediaHtml = "";
+        if (pm.fileUrl) {
+            if (pm.fileType === 'video') {
+                mediaHtml = `<video src="${pm.fileUrl}" controls style="max-width: 100%; max-height: 300px; border-radius: 8px; margin-top: 10px; display: block; border: 1px solid #eee; background: #000;"></video>`;
+            } else {
+                mediaHtml = `<img src="${pm.fileUrl}" style="max-width: 100%; max-height: 300px; border-radius: 8px; margin-top: 10px; display: block; border: 1px solid #eee; cursor: pointer;" onclick="openImageModal(this.src)">`;
+            }
+            
+            // 防呆：如果文字只是預設的替代文字，就清空它，避免畫面上重複顯示 "這是圖片"
+            if (text === '[圖片/影片]' || text === '[圖片]' || text === '[影片]') {
+                text = "";
+            }
+        }
+
         document.getElementById('pinnedMsgSenderTime').innerHTML = `<span><i class="fas fa-user" style="color:var(--ly-gold);"></i> ${sender}</span> <span><i class="far fa-clock"></i> ${time}</span>`;
-        document.getElementById('pinnedMsgContent').innerHTML = escapeHtml(text).replace(/\n/g, '<br>');
+        
+        // 組合文字與媒體預覽
+        let contentHtml = text ? escapeHtml(text).replace(/\n/g, '<br>') : "";
+        contentHtml += mediaHtml; 
+
+        // 如果既沒有文字也沒有圖片(防呆處理)
+        if (!contentHtml) contentHtml = "<span style='color:#999;'>無內容</span>";
+
+        document.getElementById('pinnedMsgContent').innerHTML = contentHtml;
         
         openModal('pinnedMessageModal');
     }
@@ -2177,12 +2214,16 @@
         openModal('newChatModal'); document.getElementById('targetUserName').value = '';
         const listEl = document.getElementById('singleUserList'); listEl.innerHTML = '<div style="text-align:center;">載入中...</div>';
         try {
-            const snap = await db.collection("act").get(); let html = '';
-            snap.forEach(doc => {
-                if (doc.id !== auth.currentUser.uid) {
-                    const data = doc.data();
-                    html += `<label class="user-select-item"><input type="radio" name="singleChatUser" value="${data.displayName}" onclick="document.getElementById('targetUserName').value = this.value"><div class="user-select-card"><img src="${data.photoURL||'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true'}"><span>${data.displayName}</span></div></label>`;
-                }
+            const snap = await db.collection("act").get(); 
+            let users = [];
+            snap.forEach(doc => { if (doc.id !== auth.currentUser.uid) users.push({id: doc.id, ...doc.data()}); });
+            
+            // 【套用排序】
+            users.sort((a, b) => getMemberSortIndex(a.displayName) - getMemberSortIndex(b.displayName));
+
+            let html = '';
+            users.forEach(data => {
+                html += `<label class="user-select-item"><input type="radio" name="singleChatUser" value="${data.displayName}" onclick="document.getElementById('targetUserName').value = this.value"><div class="user-select-card"><img src="${data.photoURL||'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true'}"><span>${data.displayName}</span></div></label>`;
             });
             listEl.innerHTML = html || '<div style="text-align:center;">無資料</div>';
         } catch(e){ listEl.innerHTML="載入失敗"; }
@@ -2232,10 +2273,18 @@
         openModal('createGroupModal'); document.getElementById('createGroupAvatarPreview').src='https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true'; window.croppedAvatarBlob = null;
         const listEl = document.getElementById('groupUserList'); listEl.innerHTML = '<div style="text-align:center;">載入中...</div>';
         try {
-            const snap = await db.collection("act").get(); let html = '';
-            snap.forEach(doc => {
-                if (doc.id !== auth.currentUser.uid) html += `<label class="user-select-item"><input type="checkbox" value="${doc.id}" class="group-member-checkbox"><div class="user-select-card"><img src="${doc.data().photoURL||'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true'}"><span>${doc.data().displayName}</span></div></label>`;
-            }); listEl.innerHTML = html || '無成員';
+            const snap = await db.collection("act").get(); 
+            let users = [];
+            snap.forEach(doc => { if (doc.id !== auth.currentUser.uid) users.push({id: doc.id, ...doc.data()}); });
+            
+            // 【套用排序】
+            users.sort((a, b) => getMemberSortIndex(a.displayName) - getMemberSortIndex(b.displayName));
+
+            let html = '';
+            users.forEach(data => {
+                html += `<label class="user-select-item"><input type="checkbox" value="${data.id}" class="group-member-checkbox"><div class="user-select-card"><img src="${data.photoURL||'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true'}"><span>${data.displayName}</span></div></label>`;
+            }); 
+            listEl.innerHTML = html || '無成員';
         } catch(e){ listEl.innerHTML="載入失敗"; }
     }
 
@@ -2319,11 +2368,16 @@
     }
 
     // 【新增】：獨立的成員列表渲染與展開/收合邏輯
+    // 【新增】：獨立的成員列表渲染與展開/收合邏輯
     function renderGroupMembers(isExpanded) {
         const listEl = document.getElementById('groupMembersList');
         const membersData = window.groupMembersDataCache || [];
         
+        // 【套用排序】：對群組設定裡的成員進行排序
+        membersData.sort((a, b) => getMemberSortIndex(a.displayName) - getMemberSortIndex(b.displayName));
+
         let html = '';
+        // 決定要顯示幾個人 (若為 true 顯示全部，false 最多顯示 3 個)
         // 決定要顯示幾個人 (若為 true 顯示全部，false 最多顯示 3 個)
         const displayCount = isExpanded ? membersData.length : Math.min(3, membersData.length);
 
@@ -2377,11 +2431,19 @@
     async function openEditMembersModal() {
         openModal('editMembersModal'); const listEl = document.getElementById('editMembersList'); listEl.innerHTML='載入中...';
         try {
-            const snap = await db.collection("act").get(); let html = '';
-            snap.forEach(doc => {
-                const isChecked = window.currentGroupMembers.includes(doc.id) ? 'checked' : '';
-                html += `<label class="user-select-item"><input type="checkbox" value="${doc.id}" class="edit-group-member-checkbox" ${isChecked}><div class="user-select-card"><img src="${doc.data().photoURL}"><span>${doc.data().displayName}</span></div></label>`;
-            }); listEl.innerHTML = html;
+            const snap = await db.collection("act").get(); 
+            let users = [];
+            snap.forEach(doc => { users.push({id: doc.id, ...doc.data()}); });
+            
+            // 【套用排序】
+            users.sort((a, b) => getMemberSortIndex(a.displayName) - getMemberSortIndex(b.displayName));
+
+            let html = '';
+            users.forEach(data => {
+                const isChecked = window.currentGroupMembers.includes(data.id) ? 'checked' : '';
+                html += `<label class="user-select-item"><input type="checkbox" value="${data.id}" class="edit-group-member-checkbox" ${isChecked}><div class="user-select-card"><img src="${data.photoURL}"><span>${data.displayName}</span></div></label>`;
+            }); 
+            listEl.innerHTML = html;
         } catch(e){ listEl.innerHTML="失敗"; }
     }
     
@@ -2982,6 +3044,27 @@
     let isEvPrivate = false;
     let currentEditingEventId = null; // 全域變數紀錄編輯狀態
 
+    // 【新增】：檢查是否為班長，決定是否鎖住「編輯參加名單」按鈕
+    function checkParticipantEditPermission() {
+        const btn = document.getElementById('editPublicParticipantsBtn');
+        if (!btn) return;
+        
+        // 抓取當前使用者的名稱
+        const myName = document.getElementById('myName').innerText.trim();
+        
+        if (myName === '班長') {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-users-cog"></i> 編輯參加名單';
+            btn.style.opacity = '1';
+            btn.style.cursor = 'pointer';
+        } else {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-lock" style="color: #d93025;"></i> 編輯參加名單';
+            btn.style.opacity = '0.6';
+            btn.style.cursor = 'not-allowed';
+        }
+    }
+
     function openCreateEventModal() {
         closeModal('activityScheduleModal'); // 關閉行程總覽
         currentEditingEventId = null; // 確保是新增模式
@@ -2998,6 +3081,10 @@
         evAuthorizedUIDs = [];
         renderEvMemberPreview(evSelectedUIDs, 'participants');
         renderEvMemberPreview(evAuthorizedUIDs, 'authorized');
+        
+        // 【執行權限檢查】
+        checkParticipantEditPermission();
+        
         openModal('createEventModal');
     }
 
@@ -3052,6 +3139,10 @@
                 }
             }
         }
+        
+        // 【執行權限檢查】
+        checkParticipantEditPermission();
+        
         openModal('createEventModal');
     }
 
@@ -3204,16 +3295,21 @@
 
         try {
             const snap = await db.collection("act").get();
+            let users = [];
+            snap.forEach(doc => { users.push({ id: doc.id, ...doc.data() }); });
+            
+            // 【套用排序】：活動成員選擇器
+            users.sort((a, b) => getMemberSortIndex(a.displayName) - getMemberSortIndex(b.displayName));
+
             let html = '';
-            snap.forEach(doc => {
-                const d = doc.data();
-                if (mode === 'authorized' && doc.id === auth.currentUser.uid) {
-                    if (!evTempSelectedUIDs.includes(doc.id)) evTempSelectedUIDs.push(doc.id);
+            users.forEach(d => {
+                if (mode === 'authorized' && d.id === auth.currentUser.uid) {
+                    if (!evTempSelectedUIDs.includes(d.id)) evTempSelectedUIDs.push(d.id);
                 }
-                const isChecked = evTempSelectedUIDs.includes(doc.id) ? 'checked' : '';
+                const isChecked = evTempSelectedUIDs.includes(d.id) ? 'checked' : '';
                 html += `
                 <label class="user-select-item">
-                    <input type="checkbox" value="${doc.id}" class="ev-member-checkbox" ${isChecked} onchange="toggleEvTempMember(this)">
+                    <input type="checkbox" value="${d.id}" class="ev-member-checkbox" ${isChecked} onchange="toggleEvTempMember(this)">
                     <div class="user-select-card">
                         <img src="${d.photoURL || 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true'}">
                         <span class="ev-picker-name">${d.displayName || '未知'}</span>
@@ -3265,9 +3361,14 @@
         try {
             const promises = uids.map(uid => db.collection("act").doc(uid).get());
             const docs = await Promise.all(promises);
-            container.innerHTML = docs.map(d => {
-                if(!d.exists) return '';
-                const data = d.data();
+            
+            let users = [];
+            docs.forEach(d => { if(d.exists) users.push(d.data()) });
+            
+            // 【套用排序】：活動小頭像預覽列
+            users.sort((a, b) => getMemberSortIndex(a.displayName) - getMemberSortIndex(b.displayName));
+
+            container.innerHTML = users.map(data => {
                 return `<div class="user-select-card" style="width: 70px; padding: 5px; background: white;">
                     <img src="${data.photoURL || 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true'}" style="width:35px;height:35px;margin:0 0 5px 0;">
                     <span style="font-size:11px;">${data.displayName}</span>
@@ -4016,13 +4117,5 @@
     }
     </script>
 </body>
-
-    <div id="inAppNotification" style="display:none; position:fixed; top:-100px; left:50%; transform:translateX(-50%); width:90%; max-width:400px; background:rgba(0, 49, 83, 0.95); color:white; padding:15px; border-radius:12px; box-shadow:0 10px 25px rgba(0,0,0,0.2); z-index:999999; align-items:center; gap:15px; cursor:pointer; backdrop-filter:blur(10px); transition:top 0.4s ease, opacity 0.4s ease; opacity:0;">
-        <i class="fas fa-bell" style="color: var(--ly-gold); font-size: 1.5rem;"></i>
-        <div style="flex:1;">
-            <div id="inAppNotifTitle" style="font-weight:bold; font-size:15px; margin-bottom:5px; color:var(--ly-gold);">標題</div>
-            <div id="inAppNotifBody" style="font-size:13px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">內容</div>
-        </div>
-    </div>
-    
+        
 </html>
