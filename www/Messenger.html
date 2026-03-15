@@ -48,38 +48,67 @@
             position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.2);
             border-bottom: 1px solid rgba(255,255,255,0.1); padding-top: env(safe-area-inset-top);
         }
+
+        /* 改 */
+        /* --- 頂部標題列 (首頁) --- */
         .header-content {
             max-width: var(--container-width); margin: 0 auto; 
-            padding: 0 41px; /* 【關鍵對齊】：精準對應下方列表的偏移量 41px */
-            height: 80px;
+            /* 【完美對齊】：左側精準鎖死 41px (對齊下方頭貼)，右側留白 20px 給按鈕 */
+            padding: 0 20px 0 41px; 
+            height: 65px; 
             display: flex; align-items: center; justify-content: space-between; box-sizing: border-box;
         }
-        @media (max-width: 750px) { .header-content { padding: 0 41px; } }
-        /* 確保左側個人資料區塊具有彈性，不會硬擠右邊的按鈕 */
-        .user-profile { display: flex; align-items: center; flex: 1; min-width: 0; }
-        .user-avatar { width: 55px; height: 55px; border-radius: 50%; object-fit: cover; margin-right: 15px; flex-shrink: 0; }
+        
+        /* 【關鍵修復】：確保手機版 (iOS/安卓) 左側也絕對維持 41px，絕對不跑版 */
+        @media (max-width: 750px) { 
+            .header-content { 
+                height: 65px; 
+                padding: 0 20px 0 41px; 
+            }
+            /* 【關鍵修正】：加上 .header-content */
+            .header-content .user-avatar { 
+                width: 38px !important; height: 38px !important; 
+                margin-right: 12px;
+            }
+        }
+        
+        /* 聊天室內部的標題列 (維持緊湊，不受首頁對齊影響) */
+        #chatView .header-content { height: 55px; padding: 0 15px !important; }
+        /* 【關鍵修正】：加上 .header-content */
+        #chatView .header-content .user-avatar { width: 38px !important; height: 38px !important; }
 
-        /* 加入防長檔名換行設計，太長會自動變 ... */
-/* 加入防長檔名換行設計，稍微縮小字體並強制加上右側安全間距 */
+        .user-profile { display: flex; align-items: center; flex: 1; min-width: 0; }
+        
+        /* 【關鍵修正】：加上 .header-content，只影響頂部標題的頭像 */
+        .header-content .user-avatar { 
+            width: 55px !important; height: 55px !important; 
+            border-radius: 50%; object-fit: cover; margin-right: 15px; flex-shrink: 0; 
+        }
+
         .user-name { 
             font-weight: 800; 
-            font-size: 1.2rem; /* 【修改】：從 1.35rem 縮小到 1.2rem，看起來更精緻 */
+            font-size: 1.1rem; /* 【修改】：名字字體從 1.2rem 縮小至 1.1rem */
             color: white; 
             letter-spacing: 1px; 
             white-space: nowrap; 
             overflow: hidden; 
             text-overflow: ellipsis; 
-            margin-right: 15px; /* 【關鍵修改】：強制文字右邊一定要留 15px 的空白，絕對不會撞到按鈕 */
+            margin-right: 15px; 
         }
-        /* 【關鍵修復】：強制右側容器水平並排，且絕對不壓縮變形 */
-        .header-actions { display: flex; flex-direction: row; align-items: center; gap: 12px; flex-shrink: 0; }
 
-        /* 移除原有的 margin-left 改用 flex gap，並加上 flex-shrink: 0 防止按鈕變形 */
+        .header-actions { display: flex; flex-direction: row; align-items: center; gap: 8px; flex-shrink: 0; }
+
         .header-actions button {
             background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.2); 
-            color: white; width: 42px; height: 42px; border-radius: 50%; cursor: pointer; margin-left: 0;
-            font-size: 1.1rem; transition: 0.3s; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+            color: white; 
+            width: 36px; height: 36px; /* 【修改】：右上角按鈕從 42px 縮小至 36px */
+            border-radius: 50%; cursor: pointer; margin-left: 0;
+            font-size: 1.05rem; /* 稍微縮小圖標 */
+            transition: 0.3s; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
         }
+
+        /* 順便微調返回鍵大小與間距 (尋找 .back-btn 覆蓋) */
+        .back-btn { background: none; border: none; margin-right: 10px; cursor: pointer; color: var(--ly-gold); font-size: 1.3rem; transition: 0.3s; display: flex; align-items: center; }
         
         /* --- Messenger 列表樣式 --- */
         .chat-list { 
@@ -91,6 +120,17 @@
             margin-bottom: 0px; border-radius: 8px; cursor: pointer; transition: all 0.3s ease;
             border: 1px solid var(--border-color); border-left: 6px solid transparent;
             position: relative; /* 【關鍵新增】 */
+        }
+
+        /* --- 強制統一首頁聊天列表的大頭貼尺寸 (不受頂部 Header 影響) --- */
+        /* --- 聊天列表大頭貼 --- */
+        .chat-item .user-avatar {
+            width: 55px;  /* 群組預設為 55px */
+            height: 55px;
+            margin-right: 15px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
         }
         .chat-item:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.08); border-color: #ffffff; }
         .chat-info { 
@@ -148,11 +188,43 @@
         .read-status.group-read:hover { opacity: 0.7; text-decoration: underline; }
         
         .input-area { flex-shrink: 0; background: var(--white); padding: 0; display: flex; flex-direction: column; align-items: center; border-top: 1px solid #e9ecef; box-shadow: 0 -2px 10px rgba(0,0,0,0.03); width: 100%; position: relative;}
-        .input-container { max-width: var(--container-width); width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px 15px; padding-bottom: calc(12px + env(safe-area-inset-bottom)); box-sizing: border-box; }
-        #msgInput { flex: 1; height: 44px; padding: 0 18px; border: 1.5px solid #eee; border-radius: 25px; outline: none; font-size: 16px; background: #f8f9fa; transition: border-color 0.3s; }
+        .input-container { 
+            max-width: var(--container-width); width: 100%; display: flex; align-items: center; 
+            gap: 10px; /* 【修改】：按鈕間距從 12px 縮小至 10px */
+            padding: 8px 12px; /* 【修改】：上下內距從 12px 縮減至 8px，讓底部更貼合 */
+            padding-bottom: calc(8px + env(safe-area-inset-bottom)); box-sizing: border-box; 
+        }
+
+        #msgInput { 
+            flex: 1; 
+            height: 38px; 
+            min-height: 38px;
+            max-height: 100px; /* 允許輸入多行時自動長高，最高到 100px */
+            padding: 8px 16px; /* 調整內距讓單行文字垂直置中 */
+            border: 1.5px solid #eee; border-radius: 20px; outline: none; 
+            font-size: 15px; 
+            background: #f8f9fa; transition: border-color 0.3s; 
+            resize: none; /* 禁止手動拉大框框 */
+            font-family: inherit; /* 確保字體和原本一樣 */
+            line-height: 1.4;
+            overflow-y: auto; /* 超過最大高度時顯示捲軸 */
+            box-sizing: border-box;
+        }
         #msgInput:focus { border-color: var(--ly-gold); background: #fff; }
-        .send-btn { background: var(--ly-blue); color: var(--white); border: none; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 10px rgba(0, 49, 83, 0.2); flex-shrink: 0; }
-        .attach-btn, .expand-menu-btn { background: none; border: none; color: #888; font-size: 1.4rem; cursor: pointer; padding: 0 5px; display: flex; align-items: center; justify-content: center; transition: 0.3s;}
+
+        .send-btn { 
+            background: var(--ly-blue); color: var(--white); border: none; 
+            width: 38px; height: 38px; /* 【修改】：發送按鈕從 44px 縮小，與輸入框等高 */
+            border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 10px rgba(0, 49, 83, 0.2); flex-shrink: 0; 
+            font-size: 1rem; /* 紙飛機圖標對應縮小 */
+        }
+
+        .attach-btn, .expand-menu-btn { 
+            background: none; border: none; color: #888; 
+            font-size: 1.35rem; /* 【修改】：左側 + 號與迴紋針縮小 */
+            cursor: pointer; padding: 0 4px; display: flex; align-items: center; justify-content: center; transition: 0.3s;
+        }
+        
         .attach-btn:hover, .expand-menu-btn:hover { color: var(--ly-blue); }
         .msg-media { max-width: 100%; max-height: 250px; border-radius: 12px; margin-top: 5px; display: block; cursor: pointer; }
         
@@ -547,7 +619,7 @@
                 <button class="expand-menu-btn" onclick="toggleExpandMenu(event)"><i class="fas fa-plus"></i></button>
                 <input type="file" id="fileInput" accept="image/*,video/*" style="display: none;">
                 <button class="attach-btn" onclick="document.getElementById('fileInput').click()"><i class="fas fa-paperclip"></i></button>
-                <input type="text" id="msgInput" placeholder="請輸入訊息..." autocomplete="off">
+                <textarea id="msgInput" placeholder="請輸入訊息..." autocomplete="off" rows="1"></textarea>
                 <button class="send-btn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
             </div>
         </div>
@@ -1775,7 +1847,9 @@
         const input = document.getElementById('msgInput'), text = input.value.trim();
         if (!text || !currentChatId) return;
         const user = auth.currentUser;
-        input.value = ""; scrollToBottom(true); 
+        input.value = ""; 
+        input.style.height = '38px'; // 【新增】：送出後將高度歸位
+        scrollToBottom(true);
 
         try {
             const batch = db.batch(), chatRef = db.collection("chats").doc(currentChatId), msgRef = chatRef.collection("messages").doc();
@@ -1785,7 +1859,32 @@
             cancelReply();
         } catch (error) { console.error("發送失敗:", error); }
     }
-    document.getElementById('msgInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+    const msgInputDOM = document.getElementById('msgInput');
+    
+    // 處理 Enter 鍵邏輯
+    msgInputDOM.addEventListener('keydown', (e) => { 
+        if (e.key === 'Enter') {
+            // 簡易偵測是否為行動裝置
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            
+            // 手機版：直接 return 讓系統自然換行，不觸發傳送
+            if (isMobile) return; 
+            
+            // 電腦版：若沒有按住 Shift，則阻止換行並送出訊息
+            if (!isMobile && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        }
+    });
+
+    // 輸入文字時，自動調整輸入框高度 (最高 100px)
+    msgInputDOM.addEventListener('input', function() {
+        this.style.height = '38px'; // 先重置回單行高度
+        const newHeight = Math.min(this.scrollHeight, 100); 
+        this.style.height = newHeight + 'px';
+    });
+
     document.getElementById('messageList').addEventListener('click', () => { document.getElementById('msgInput').blur(); });
 
     // ==========================================
@@ -2563,24 +2662,33 @@
             const currentEmail = currentUser ? currentUser.email : '';
             const currentUid = currentUser ? currentUser.uid : '';
 
+            // 【新增】：取得當前使用者的名稱，判斷是否擁有「班長」特權
+            const myName = document.getElementById('myName').innerText.trim();
+            const isMonitor = (myName === '班長');
+
             const snap = await db.collection("events").get(); 
             let events = [];
-            snap.forEach(doc => {
+
+            // 【修改】：使用 Promise.all 來安全地非同步抓取「建立人名稱」
+            const promises = snap.docs.map(async doc => {
                 const ev = doc.data(); 
                 
                 const isCreator = (ev.creator === currentEmail && currentEmail !== '') || 
                                   (ev.creatorUid === currentUid && currentUid !== '') || 
                                   (ev.creator === currentUid && currentUid !== '');
 
+                // 【新增】：判斷是否有編輯與刪除權限 (建立者本人 或 班長)
+                const canEditDelete = isCreator || isMonitor;
+
                 // 【分類邏輯】：根據當前的模式過濾清單
                 if (isSchedulePrivateMode) {
-                    // 私人模式：只抓取 isPrivate=true，且你有權限看的
-                    if (!ev.isPrivate) return;
+                    // 私人模式：只抓取 isPrivate=true，且你有權限看的 (班長擁有最高檢視權)
+                    if (!ev.isPrivate) return null;
                     const authMembers = ev.authorizedMembers || [];
-                    if (!isCreator && !authMembers.includes(currentUid)) return; 
+                    if (!isCreator && !isMonitor && !authMembers.includes(currentUid)) return null; 
                 } else {
                     // 公開模式：只抓取公開的 (過濾掉所有 isPrivate=true 的)
-                    if (ev.isPrivate) return;
+                    if (ev.isPrivate) return null;
                 }
 
                 let sortDate = new Date();
@@ -2591,8 +2699,31 @@
                     sortDate = ev.createdAt.toDate();
                 }
 
-                events.push({ id: doc.id, ...ev, sortDate, isCreator });
+                // 【新增】：抓取發起人名稱 (優先看快取，沒有就讀取資料庫)
+                let creatorName = "未知";
+                if (ev.creatorUid) {
+                    if (window.chatMembersCache && window.chatMembersCache[ev.creatorUid]) {
+                        creatorName = window.chatMembersCache[ev.creatorUid].displayName || "未知";
+                    } else {
+                        try {
+                            const uDoc = await db.collection("act").doc(ev.creatorUid).get();
+                            if (uDoc.exists) {
+                                creatorName = uDoc.data().displayName;
+                                if (!window.chatMembersCache) window.chatMembersCache = {};
+                                window.chatMembersCache[ev.creatorUid] = uDoc.data();
+                            }
+                        } catch(e) {}
+                    }
+                } else if (ev.creator) {
+                    creatorName = ev.creator.split('@')[0]; // 兼容舊資料
+                }
+
+                return { id: doc.id, ...ev, sortDate, canEditDelete, creatorName };
             });
+
+            // 等待所有名稱都抓取完畢，並過濾掉 null 的項目
+            const resolvedEvents = await Promise.all(promises);
+            events = resolvedEvents.filter(ev => ev !== null);
             
             events.sort((a,b)=>b.sortDate - a.sortDate); 
             if(events.length===0){ 
@@ -2601,11 +2732,15 @@
                 return; 
             }
             
-            // 【新增】：在清單最上方加入左滑提示框
+            // 【修改】：根據身分顯示對應的提示文字
+            const tipText = isMonitor 
+                ? "<b>班長特權：</b>您擁有所有活動的「編輯」與「刪除」權限，向左滑動即可操作。" 
+                : "<b>小提示：</b>自己建立的活動，向左滑動即可「編輯」或「刪除」。";
+
             let html = `
             <div style="background: #fffdf5; border: 1px solid #ffeeba; color: #856404; padding: 10px 15px; border-radius: 8px; font-size: 0.85rem; display: flex; align-items: center; gap: 10px; margin-bottom: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
                 <i class="fas fa-lightbulb" style="color: var(--ly-gold); font-size: 1.2rem;"></i>
-                <span style="line-height: 1.4;"><b>小提示：</b>自己建立的活動，向左滑動即可「編輯」或「刪除」。</span>
+                <span style="line-height: 1.4;">${tipText}</span>
             </div>`;
             
             let currentYear = null;
@@ -2618,9 +2753,17 @@
                 
                 // 私人活動顯示鎖頭
                 const lockIcon = ev.isPrivate ? '<i class="fas fa-lock" style="color:#d93025; margin-right:5px;" title="私人活動"></i>' : '';
-                const innerContent = `<h4 class="event-mini-title">${lockIcon}${ev.title}</h4><div class="event-mini-meta"><i class="far fa-clock"></i> ${timeStr}</div>`;
+                
+                // 【修改】：卡片內部排版，將建立人靠右對齊並加上精緻背景標籤
+                const innerContent = `
+                    <h4 class="event-mini-title">${lockIcon}${ev.title}</h4>
+                    <div class="event-mini-meta" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                        <span><i class="far fa-clock"></i> ${timeStr}</span>
+                        <span style="color: var(--ly-blue); font-weight: bold; font-size: 0.8rem; background: rgba(0,49,83,0.08); padding: 2px 8px; border-radius: 12px;">建立人：${ev.creatorName}</span>
+                    </div>`;
 
-                if (ev.isCreator) {
+                // 【修改】：判斷條件從 isCreator 改為 canEditDelete
+                if (ev.canEditDelete) {
                     html += `
                     <div class="swipe-container">
                         <div class="swipe-actions-dual">
