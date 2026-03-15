@@ -53,29 +53,26 @@
         /* --- 頂部標題列 (首頁) --- */
         .header-content {
             max-width: var(--container-width); margin: 0 auto; 
-            /* 【完美對齊】：左側精準鎖死 41px (對齊下方頭貼)，右側留白 20px 給按鈕 */
-            padding: 0 20px 0 41px; 
-            height: 65px; 
+            padding: 0 20px 0 41px !important; 
+            height: 62px; /* 【微調】：提高 3px */
             display: flex; align-items: center; justify-content: space-between; box-sizing: border-box;
         }
         
-        /* 【關鍵修復】：確保手機版 (iOS/安卓) 左側也絕對維持 41px，絕對不跑版 */
         @media (max-width: 750px) { 
             .header-content { 
-                height: 65px; 
-                padding: 0 20px 0 41px; 
+                height: 62px; /* 【微調】：提高 3px */
+                padding: 0 20px 0 41px !important; 
             }
-            /* 【關鍵修正】：加上 .header-content */
             .header-content .user-avatar { 
                 width: 38px !important; height: 38px !important; 
                 margin-right: 12px;
             }
         }
         
-        /* 聊天室內部的標題列 (維持緊湊，不受首頁對齊影響) */
-        #chatView .header-content { height: 55px; padding: 0 15px !important; }
+        /* 聊天室內部的標題列 (與首頁統一高度，解決切換畫面時的高低落差) */
+        #chatView .header-content { height: 62px; padding: 0 15px !important; } /* 【微調】：提高 3px */
         /* 【關鍵修正】：加上 .header-content */
-        #chatView .header-content .user-avatar { width: 38px !important; height: 38px !important; }
+        #chatView .header-content .user-avatar { width: 50px !important; height: 50px !important; }
 
         .user-profile { display: flex; align-items: center; flex: 1; min-width: 0; }
         
@@ -190,17 +187,17 @@
         .input-area { flex-shrink: 0; background: var(--white); padding: 0; display: flex; flex-direction: column; align-items: center; border-top: 1px solid #e9ecef; box-shadow: 0 -2px 10px rgba(0,0,0,0.03); width: 100%; position: relative;}
         .input-container { 
             max-width: var(--container-width); width: 100%; display: flex; align-items: center; 
-            gap: 10px; /* 【修改】：按鈕間距從 12px 縮小至 10px */
-            padding: 8px 12px; /* 【修改】：上下內距從 12px 縮減至 8px，讓底部更貼合 */
-            padding-bottom: calc(8px + env(safe-area-inset-bottom)); box-sizing: border-box; 
+            gap: 10px; 
+            padding: 6px 12px; /* 【微調】：降低 2px */
+            padding-bottom: calc(6px + env(safe-area-inset-bottom)); box-sizing: border-box; 
         }
 
         #msgInput { 
             flex: 1; 
-            height: 38px; 
-            min-height: 38px;
-            max-height: 100px; /* 允許輸入多行時自動長高，最高到 100px */
-            padding: 8px 16px; /* 調整內距讓單行文字垂直置中 */
+            height: 36px; /* 【微調】：降低 2px */
+            min-height: 36px;
+            max-height: 100px; 
+            padding: 7px 16px; /* 微調內距讓文字維持置中 */
             border: 1.5px solid #eee; border-radius: 20px; outline: none; 
             font-size: 15px; 
             background: #f8f9fa; transition: border-color 0.3s; 
@@ -988,14 +985,18 @@
         <div style="flex: 1; display: flex; flex-direction: column; align-items: center; padding: 40px 20px; background: white; overflow-y: auto;">
             <input type="file" id="settingsAvatarInput" accept="image/*" style="display: none;" onchange="handleSettingsAvatarChange(event)">
             
-            <div class="avatar-edit-wrapper" onclick="document.getElementById('settingsAvatarInput').click()" style="margin-bottom: 20px;">
-                <img id="settingsAvatar" src="" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid var(--ly-gold); transition: 0.2s;">
-                <div class="avatar-edit-icon" style="width: 32px; height: 32px; font-size: 14px;"><i class="fas fa-camera"></i></div>
+            <div class="avatar-edit-wrapper" style="position: relative; width: 120px; height: 120px; margin-bottom: 10px; display: inline-block;">
+                
+                <img id="settingsAvatar" src="" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid var(--ly-gold); transition: 0.2s; cursor: pointer; display: block; margin: 0 auto;" onclick="openImageModal(this.src)">
+                
+                <div class="avatar-edit-icon" style="position: absolute; bottom: 0; right: 0; background: var(--ly-blue); color: white; border-radius: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; border: 2px solid white; font-size: 14px; cursor: pointer; z-index: 2; box-shadow: 0 2px 5px rgba(0,0,0,0.2);" onclick="event.stopPropagation(); document.getElementById('settingsAvatarInput').click();">
+                    <i class="fas fa-camera"></i>
+                </div>
             </div>
 
-            <h2 id="settingsName" style="color: var(--ly-blue); margin-bottom: 5px;">載入中...</h2>
-            <p id="settingsEmail" style="color: #666; font-size: 1rem; margin-bottom: 5px;">載入中...</p>
-            <p id="settingsUid" style="color: #aaa; font-size: 0.8rem; margin-bottom: 20px; font-family: monospace;">UID: ...</p>
+            <h2 id="settingsName" style="color: var(--ly-blue); margin: 0 0 5px 0; text-align: center; width: 100%;">載入中...</h2>
+            <p id="settingsEmail" style="color: #666; font-size: 1rem; margin: 0 0 5px 0; text-align: center; width: 100%;">載入中...</p>
+            <p id="settingsUid" style="color: #aaa; font-size: 0.8rem; margin: 0 0 25px 0; font-family: monospace; text-align: center; width: 100%;">UID: ...</p>
             
             <div style="width: 100%; max-width: 300px; display: flex; gap: 10px; margin-bottom: 30px;">
                 <button class="btn-modal btn-cancel" style="flex: 1; padding: 10px; border-radius: 8px; font-size: 0.9rem;" onclick="handleChangeEmail()"><i class="fas fa-envelope"></i> 修改信箱</button>
@@ -1258,7 +1259,11 @@
     chatViewDOM.addEventListener('touchmove', (e) => {
         if (!isChatSwiping) return;
         chatPageCurrentX = e.touches[0].clientX - chatPageStartX;
-        if (chatPageCurrentX > 0) { e.preventDefault(); chatViewDOM.style.transform = `translateX(${chatPageCurrentX}px)`; }
+        if (chatPageCurrentX > 0) { 
+            // 【修復】：確認事件可以被取消時，才阻止預設行為
+            if (e.cancelable) { e.preventDefault(); } 
+            chatViewDOM.style.transform = `translateX(${chatPageCurrentX}px)`; 
+        }
     }, { passive: false });
     
     chatViewDOM.addEventListener('touchend', (e) => {
@@ -1693,10 +1698,8 @@
             
             // 【移除左右滑動回覆，僅保留長按呼叫選單功能】
             // 【移除左右滑動回覆，僅保留長按呼叫選單功能】
-            let interactEvents = isMine ? 
-                `ontouchstart="handlePressStart(event, '${msgId}', 'true', '${safeText}')" ontouchmove="handlePressEnd()" ontouchend="handlePressEnd()" onmousedown="handlePressStart(event, '${msgId}', 'true', '${safeText}')" onmouseup="handlePressEnd()" onmouseleave="handlePressEnd()" oncontextmenu="event.preventDefault(); activeMsgId='${msgId}'; activeMsgTextForMenu='${safeText}'; showContextMenu(event, true);"` : 
-                `ontouchstart="handlePressStart(event, '${msgId}', 'false', '${safeText}')" ontouchmove="handlePressEnd()" ontouchend="handlePressEnd()" onmousedown="handlePressStart(event, '${msgId}', 'false', '${safeText}')" onmouseup="handlePressEnd()" onmouseleave="handlePressEnd()" oncontextmenu="event.preventDefault(); activeMsgId='${msgId}'; activeMsgTextForMenu='${safeText}'; showContextMenu(event, false);"`;
-
+            // 【修改】：統一綁定智慧互動引擎 (長按 + 左右滑動)
+            let interactEvents = `ontouchstart="msgInteractionStart(event, '${msgId}', '${isMine}', '${safeText}', this)" ontouchmove="msgInteractionMove(event, this)" ontouchend="msgInteractionEnd(event, this)" onmousedown="msgInteractionStart(event, '${msgId}', '${isMine}', '${safeText}', this)" onmousemove="msgInteractionMove(event, this)" onmouseup="msgInteractionEnd(event, this)" onmouseleave="msgInteractionEnd(event, this)" oncontextmenu="event.preventDefault(); activeMsgId='${msgId}'; activeMsgTextForMenu='${safeText}'; showContextMenu(event, ${isMine});"`;
             // 產生時間與已讀的排版 HTML
             // 產生時間的字串
             const timeStr = msgTime.toLocaleTimeString('zh-TW', {hour: '2-digit', minute:'2-digit', hour12: false});
@@ -2113,15 +2116,138 @@
     });
 
     // 長按選單邏輯
+    // ==========================================
+    // 訊息互動邏輯 (長按選單 + 左右滑動回覆)
+    // ==========================================
     let pressTimer, activeMsgId = null, activeMsgTextForMenu = "", longPressActive = false, skipNextClick = false;
-    function handlePressStart(e, msgId, isMineStr, text) {
-        if (e.button === 2) return;
-        activeMsgId = msgId; activeMsgTextForMenu = text; longPressActive = false;
-        pressTimer = setTimeout(() => { longPressActive = true; showContextMenu(e, isMineStr === 'true'); }, 300);
+    let msgTouchStartX = 0, msgTouchStartY = 0, msgSwipeId = null, msgSwipeText = "", msgIsMine = false, isMsgSwiping = false;
+
+    function msgInteractionStart(e, id, isMineStr, text, el) {
+        if (e.button === 2) return; // 略過右鍵
+        const touch = e.type.includes('mouse') ? e : e.touches[0];
+        msgTouchStartX = touch.clientX;
+        msgTouchStartY = touch.clientY;
+        msgSwipeId = id;
+        msgSwipeText = text;
+        msgIsMine = isMineStr === 'true';
+        isMsgSwiping = false;
+        el.style.transition = 'none';
+
+        // 設定長按計時器
+        activeMsgId = id;
+        activeMsgTextForMenu = text;
+        longPressActive = false;
+        pressTimer = setTimeout(() => {
+            if (!isMsgSwiping) { // 如果沒有在滑動，才觸發長按選單
+                longPressActive = true;
+                showContextMenu(e, msgIsMine);
+            }
+        }, 300);
     }
-    function handlePressEnd() {
+
+    function msgInteractionMove(e, el) {
+        if (!msgTouchStartX) return;
+        const touch = e.type.includes('mouse') ? e : e.touches[0];
+        let diffX = touch.clientX - msgTouchStartX;
+        let diffY = Math.abs(touch.clientY - msgTouchStartY);
+
+        // 如果移動距離超過 15px，取消長按判定 (稍微放寬長按時手指抖動的容錯率)
+        if (Math.abs(diffX) > 15 || diffY > 15) {
+            clearTimeout(pressTimer);
+            if (longPressActive) return; 
+        }
+
+        // 【防誤觸 1】：如果垂直滑動超過 10px，且橫向還不到 25px，就絕對判定為「上下捲動」，直接放掉控制權
+        if (diffY > 10 && Math.abs(diffX) < 25 && !isMsgSwiping) {
+            msgTouchStartX = 0; 
+            return;
+        }
+
+        // 【防誤觸 2】：手指必須橫向滑動超過 25px，才會鎖定進入「左右滑動回覆」模式
+        if (Math.abs(diffX) > 25) isMsgSwiping = true;
+
+        if (isMsgSwiping) {
+            // 【關鍵：加入滑動阻力】：乘以 0.4 的摩擦係數。手指滑 100px，氣泡只會移動 40px，手感會變得很沈穩！
+            let visualDiffX = diffX * 0.4;
+
+            // 自己：向左滑回覆 (diffX < 0)
+            if (msgIsMine && diffX < 0 && visualDiffX > -60) {
+                if (e.cancelable) e.preventDefault(); // 鎖定上下捲動
+                el.style.transform = `translateX(${visualDiffX}px)`;
+            }
+            // 對方：向右滑回覆 (diffX > 0)
+            else if (!msgIsMine && diffX > 0 && visualDiffX < 60) {
+                if (e.cancelable) e.preventDefault();
+                el.style.transform = `translateX(${visualDiffX}px)`;
+            }
+        }
+    }
+
+    function msgInteractionEnd(e, el) {
         clearTimeout(pressTimer);
-        if (longPressActive) { skipNextClick = true; longPressActive = false; setTimeout(() => skipNextClick = false, 100); }
+        
+        if (longPressActive) {
+            skipNextClick = true;
+            longPressActive = false;
+            setTimeout(() => skipNextClick = false, 100);
+            msgTouchStartX = 0;
+            return;
+        }
+
+        if (!msgTouchStartX || !isMsgSwiping) {
+            msgTouchStartX = 0;
+            return;
+        }
+
+        const touch = e.type.includes('mouse') ? e : (e.changedTouches ? e.changedTouches[0] : e);
+        let diffX = touch.clientX - msgTouchStartX;
+
+        // 動畫回彈歸位
+        el.style.transition = 'transform 0.3s ease';
+        el.style.transform = 'translateX(0px)';
+        setTimeout(() => { el.style.transition = ''; }, 300);
+
+        // 【防誤觸 3】：因為有阻力，手指實際要向旁邊滑超過 70px，才會真正觸發「回覆」
+        if ((msgIsMine && diffX < -70) || (!msgIsMine && diffX > 70)) {
+            setReplyMode(msgSwipeId, msgSwipeText);
+        }
+
+        msgTouchStartX = 0;
+        isMsgSwiping = false;
+    }
+
+    function msgInteractionEnd(e, el) {
+        clearTimeout(pressTimer);
+        
+        // 處理長按結束後的狀態
+        if (longPressActive) {
+            skipNextClick = true;
+            longPressActive = false;
+            setTimeout(() => skipNextClick = false, 100);
+            msgTouchStartX = 0;
+            return;
+        }
+
+        if (!msgTouchStartX || !isMsgSwiping) {
+            msgTouchStartX = 0;
+            return;
+        }
+
+        const touch = e.type.includes('mouse') ? e : (e.changedTouches ? e.changedTouches[0] : e);
+        let diffX = touch.clientX - msgTouchStartX;
+
+        // 動畫回彈歸位
+        el.style.transition = 'transform 0.3s ease';
+        el.style.transform = 'translateX(0px)';
+        setTimeout(() => { el.style.transition = ''; }, 300);
+
+        // 判斷是否達到觸發回覆的距離 (滑動超過 45px)
+        if ((msgIsMine && diffX < -45) || (!msgIsMine && diffX > 45)) {
+            setReplyMode(msgSwipeId, msgSwipeText);
+        }
+
+        msgTouchStartX = 0;
+        isMsgSwiping = false;
     }
     function showContextMenu(e, isMine) {
         if(e && e.cancelable) e.preventDefault(); 
@@ -3065,7 +3191,11 @@
     settingsViewDOM.addEventListener('touchmove', (e) => {
         if (!isSettingsSwiping) return;
         settingsPageCurrentX = e.touches[0].clientX - settingsPageStartX;
-        if (settingsPageCurrentX > 0) { e.preventDefault(); settingsViewDOM.style.transform = `translateX(${settingsPageCurrentX}px)`; }
+        if (settingsPageCurrentX > 0) { 
+            // 【修復】：確認事件可以被取消時，才阻止預設行為
+            if (e.cancelable) { e.preventDefault(); } 
+            settingsViewDOM.style.transform = `translateX(${settingsPageCurrentX}px)`; 
+        }
     }, { passive: false });
     settingsViewDOM.addEventListener('touchend', (e) => {
         if (!isSettingsSwiping) return;
@@ -3660,6 +3790,7 @@
 
     // 【新增】：打開團購清單視窗
     // 【修改】：打開團購清單視窗並支援左滑
+    // 【修改】：打開團購清單視窗並支援左滑與班長特權
     async function openGroupBuyListModal() {
         document.getElementById('expandMenuPanel').style.display = 'none';
         document.querySelector('.expand-menu-btn').style.transform = 'rotate(0deg)';
@@ -3669,27 +3800,39 @@
         listEl.innerHTML = '<div style="text-align:center; padding:30px; color:#999;"><i class="fas fa-spinner fa-spin fa-2x"></i><br><br>載入團購資料中...</div>';
         
         try {
-                const snap = await db.collection("group-orders").orderBy("createdAt", "desc").get();
-                if (snap.empty) {
-                    listEl.innerHTML = '<div class="event-empty-state">尚無團購訂單，點擊下方新增。</div>';
-                    return;
-                }
-                
-                // 【新增】：在團購清單最上方加入左滑提示框
-                let html = `
-                <div style="background: #fffdf5; border: 1px solid #ffeeba; color: #856404; padding: 10px 15px; border-radius: 8px; font-size: 0.85rem; display: flex; align-items: center; gap: 10px; margin-bottom: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
-                    <i class="fas fa-lightbulb" style="color: var(--ly-gold); font-size: 1.2rem;"></i>
-                    <span style="line-height: 1.4;"><b>小提示：</b>自己發起的團購，向左滑動即可徹底「刪除」。</span>
-                </div>`;
+            // 【新增】：取得當前使用者的名稱，判斷是否擁有「班長」特權
+            const myName = document.getElementById('myName').innerText.trim();
+            const isMonitor = (myName === '班長');
 
-                snap.forEach(doc => {
-                    const data = doc.data();
+            const snap = await db.collection("group-orders").orderBy("createdAt", "desc").get();
+            if (snap.empty) {
+                listEl.innerHTML = '<div class="event-empty-state">尚無團購訂單，點擊下方新增。</div>';
+                return;
+            }
+            
+            // 【修改】：根據身分顯示對應的提示文字
+            // 【修改】：更新提示文字，加入「編輯」
+            const tipText = isMonitor 
+                ? "<b>班長特權：</b>您擁有所有團購的「編輯」與「刪除」權限，向左滑動即可操作。" 
+                : "<b>小提示：</b>自己發起的團購，向左滑動即可「編輯」或「刪除」。";
+
+            let html = `
+            <div style="background: #fffdf5; border: 1px solid #ffeeba; color: #856404; padding: 10px 15px; border-radius: 8px; font-size: 0.85rem; display: flex; align-items: center; gap: 10px; margin-bottom: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+                <i class="fas fa-lightbulb" style="color: var(--ly-gold); font-size: 1.2rem;"></i>
+                <span style="line-height: 1.4;">${tipText}</span>
+            </div>`;
+
+            snap.forEach(doc => {
+                const data = doc.data();
                 const deadlineStr = data.deadline ? data.deadline.replace('T', ' ') : '無期限';
                 const safeTitle = (data.title || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
                 const safeInitiator = (data.initiatorName || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
                 
                 // 判斷當前使用者是否為該訂單的發起人
                 const isInitiator = data.initiatorId === auth.currentUser.uid;
+                
+                // 【新增】：判斷是否有刪除權限 (發起者本人 或 班長)
+                const canDelete = isInitiator || isMonitor;
                 
                 const innerContent = `
                     <h4 class="event-mini-title">${data.title}</h4>
@@ -3701,12 +3844,14 @@
                     </div>
                 `;
 
-                if (isInitiator) {
-                    // 如果是發起人，加入左滑外掛結構
+                // 【修改】：判斷條件從 isInitiator 改為 canDelete
+                // 【修改】：加入雙按鈕 (編輯/刪除) 結構
+                if (canDelete) {
                     html += `
                     <div class="swipe-container">
-                        <div class="swipe-actions">
-                            <button class="swipe-delete-btn" onclick="deleteGroupBuy('${doc.id}')"><i class="fas fa-trash-alt"></i></button>
+                        <div class="swipe-actions-dual">
+                            <button class="swipe-edit-btn" onclick="editGroupBuy('${doc.id}')"><i class="fas fa-edit"></i></button>
+                            <button class="swipe-delete-btn-half" onclick="deleteGroupBuy('${doc.id}')"><i class="fas fa-trash-alt"></i></button>
                         </div>
                         <div class="swipe-content event-mini-item" style="border-left-color: #28a745; margin-bottom: 0;"
                              onmousedown="gbSwipeStart(event, this)" 
@@ -3720,7 +3865,6 @@
                         </div>
                     </div>`;
                 } else {
-                    // 不是發起人，保留一般的點擊卡片
                     html += `
                     <div class="event-mini-item" style="border-left-color: #28a745;" onclick="sendGroupBuyCard('${doc.id}', '${safeTitle}', '${safeInitiator}', '${data.deadline}')">
                         ${innerContent}
@@ -3756,18 +3900,73 @@
     }
 
     // 【修改】：原本的新增團購函式，加入關閉清單視窗的動作
+    // 【新增】：全域變數紀錄目前是否為編輯團購模式
+    let currentEditingGroupBuyId = null; 
+
+    // 【新增】：讀取舊資料並進入編輯模式
+    async function editGroupBuy(orderId) {
+        currentEditingGroupBuyId = orderId;
+        closeModal('groupBuyListModal');
+        
+        document.querySelector('#createGroupBuyModal h3').innerHTML = '<i class="fas fa-edit"></i> 編輯團購訂單';
+        document.getElementById('gbSubmitBtn').innerHTML = '<i class="fas fa-save"></i> 儲存修改';
+
+        try {
+            const doc = await db.collection("group-orders").doc(orderId).get();
+            if (!doc.exists) return alert("找不到團購資料");
+            const data = doc.data();
+
+            document.getElementById('gbInitiator').value = data.initiatorName || '';
+            document.getElementById('gbTitle').value = data.title || '';
+            document.getElementById('gbDeadline').value = data.deadline || '';
+
+            const container = document.getElementById('gbItemsContainer');
+            container.innerHTML = '';
+            gbItemCount = 0;
+
+            const items = data.items || [];
+            items.forEach(item => {
+                const rowId = `gb-item-${gbItemCount++}`;
+                // 【關鍵】：把舊圖片網址藏在 data-old-url 裡面，方便送出時判斷
+                const imgHtml = item.imgUrl ? `<img id="img-prev-${rowId}" src="${item.imgUrl}" style="display:block; border: 1px solid #ccc;" data-old-url="${item.imgUrl}">` : `<img id="img-prev-${rowId}">`;
+                
+                const html = `
+                    <div class="gb-item-row" id="${rowId}">
+                        <div onclick="document.getElementById('${rowId}').remove()" class="btn-remove-item"><i class="fas fa-times"></i></div>
+                        <label class="img-upload-btn">
+                            <i class="fas fa-camera"></i> 圖片
+                            <input type="file" accept="image/*" style="display:none;" onchange="previewGBImage(this, '${rowId}')">
+                        </label>
+                        ${imgHtml}
+                        <input type="text" class="gb-i-name" placeholder="商品名稱" style="flex: 2;" value="${item.name || ''}">
+                        <input type="number" class="gb-i-price" placeholder="單價金額" style="flex: 1;" value="${item.price || ''}">
+                        <input type="number" class="gb-i-qty" placeholder="數量限制(選填)" style="flex: 1;" value="${item.quantity || ''}">
+                        <input type="text" class="gb-i-note" placeholder="備註說明(選填)" style="flex-basis: 100%; box-sizing: border-box;" value="${item.note || ''}">
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', html);
+            });
+
+            openModal('createGroupBuyModal');
+        } catch(e) { alert("讀取失敗"); }
+    }
+
+    // 【修改】：原本的新增團購函式，加入關閉清單視窗的動作與重置狀態
     function openCreateGroupBuyModal() {
-        closeModal('groupBuyListModal'); // 如果是從清單打開的，先把清單關掉
+        currentEditingGroupBuyId = null; // 【新增】：重置編輯狀態
+        document.querySelector('#createGroupBuyModal h3').innerHTML = '<i class="fas fa-shopping-cart"></i> 發起團購訂單';
+        document.getElementById('gbSubmitBtn').innerHTML = '儲存訂單';
+
+        closeModal('groupBuyListModal'); 
         document.getElementById('expandMenuPanel').style.display = 'none';
         document.querySelector('.expand-menu-btn').style.transform = 'rotate(0deg)';
         
-        // 自動帶入當前成員名稱
         document.getElementById('gbInitiator').value = document.getElementById('myName').innerText;
         document.getElementById('gbTitle').value = '';
         document.getElementById('gbDeadline').value = '';
         document.getElementById('gbItemsContainer').innerHTML = '';
         gbItemCount = 0;
-        addGroupBuyItemRow(); // 預設先給一行
+        addGroupBuyItemRow(); 
         openModal('createGroupBuyModal');
     }
 
@@ -3815,8 +4014,14 @@
         const rows = document.querySelectorAll('.gb-item-row');
         if (rows.length === 0) return alert('請至少新增一項商品！');
 
-        // 【新增】：詢問是否要順便發布到聊天室
-        let shouldSendToChat = confirm("團購訂單準備建立！\n\n請問是否要立即將此團購「發布到目前的聊天室」？\n\n▶ 按【確定】：儲存，並發送卡片到聊天室\n▶ 按【取消】：僅儲存，等一下再發送");
+        let shouldSendToChat = false;
+
+        // 【新增】：判斷是新增還是編輯
+        if (currentEditingGroupBuyId) {
+            if (!confirm("確定要儲存此團購的修改嗎？")) return;
+        } else {
+            shouldSendToChat = confirm("團購訂單準備建立！\n\n請問是否要立即將此團購「發布到目前的聊天室」？\n\n▶ 按【確定】：儲存，並發送卡片到聊天室\n▶ 按【取消】：僅儲存，等一下再發送");
+        }
 
         const btn = document.getElementById('gbSubmitBtn');
         btn.disabled = true;
@@ -3831,14 +4036,18 @@
                 const qty = row.querySelector('.gb-i-qty').value.trim();
                 const note = row.querySelector('.gb-i-note').value.trim();
                 const fileInput = row.querySelector('input[type="file"]');
+                const oldImgPreview = row.querySelector(`img[id^="img-prev-"]`);
                 
                 if (!name || !price) throw new Error('每項商品的「名稱」與「金額」為必填項目。');
 
                 let imgUrl = "";
+                // 【新增邏輯】：如果有上傳新圖片就壓縮上傳，否則保留原圖片網址
                 if (fileInput.fileObj) {
                     const compressedFile = await compressGroupBuyImage(fileInput.fileObj); 
                     const snap = await storage.ref(`group-orders/${Date.now()}_${i}.jpg`).put(compressedFile);
                     imgUrl = await snap.ref.getDownloadURL();
+                } else if (oldImgPreview && oldImgPreview.getAttribute('data-old-url')) {
+                    imgUrl = oldImgPreview.getAttribute('data-old-url');
                 }
 
                 items.push({
@@ -3851,48 +4060,54 @@
                 });
             }
 
-            // 1. 寫入 group-orders 集合
-            const newOrderRef = db.collection('group-orders').doc();
-            await newOrderRef.set({
-                title,
-                initiatorId: auth.currentUser.uid,
-                initiatorName,
-                deadline,
-                items,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-
-            // 2. 【修改】：根據剛才的選擇 (shouldSendToChat) 決定要不要送卡片
-            if (shouldSendToChat && currentChatId) {
-                const batch = db.batch();
-                const chatRef = db.collection("chats").doc(currentChatId);
-                const msgRef = chatRef.collection("messages").doc();
-                
-                const payload = {
-                    type: 'group_buy', orderId: newOrderRef.id, title: title, initiator: initiatorName, deadline: deadline
-                };
-
-                batch.set(msgRef, { text: JSON.stringify(payload), senderId: auth.currentUser.uid, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
-                batch.update(chatRef, { lastMessage: `發起了團購：${title}`, lastSenderId: auth.currentUser.uid, updatedAt: firebase.firestore.FieldValue.serverTimestamp(), [`lastReadAt.${auth.currentUser.uid}`]: firebase.firestore.FieldValue.serverTimestamp() });
-                
-                await batch.commit();
-                scrollToBottom(true);
-                alert("✅ 團購建立成功，並已發布至聊天室！");
+            if (currentEditingGroupBuyId) {
+                // 【更新模式】
+                await db.collection('group-orders').doc(currentEditingGroupBuyId).update({
+                    title,
+                    deadline,
+                    items,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                alert("✅ 團購修改成功！");
+                closeModal('createGroupBuyModal');
+                openGroupBuyListModal(); // 自動重新打開清單
             } else {
-                // 按取消只儲存
-                alert("✅ 團購已成功儲存至清單！（未發布至聊天室）");
+                // 【新增模式】
+                const newOrderRef = db.collection('group-orders').doc();
+                await newOrderRef.set({
+                    title,
+                    initiatorId: auth.currentUser.uid,
+                    initiatorName,
+                    deadline,
+                    items,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                if (shouldSendToChat && currentChatId) {
+                    const batch = db.batch();
+                    const chatRef = db.collection("chats").doc(currentChatId);
+                    const msgRef = chatRef.collection("messages").doc();
+                    
+                    const payload = { type: 'group_buy', orderId: newOrderRef.id, title: title, initiator: initiatorName, deadline: deadline };
+
+                    batch.set(msgRef, { text: JSON.stringify(payload), senderId: auth.currentUser.uid, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+                    batch.update(chatRef, { lastMessage: `發起了團購：${title}`, lastSenderId: auth.currentUser.uid, updatedAt: firebase.firestore.FieldValue.serverTimestamp(), [`lastReadAt.${auth.currentUser.uid}`]: firebase.firestore.FieldValue.serverTimestamp() });
+                    
+                    await batch.commit();
+                    scrollToBottom(true);
+                    alert("✅ 團購建立成功，並已發布至聊天室！");
+                } else {
+                    alert("✅ 團購已成功儲存至清單！（未發布至聊天室）");
+                }
+                closeModal('createGroupBuyModal');
+                openGroupBuyListModal();
             }
 
-            closeModal('createGroupBuyModal');
-            
-            // 【新增】：儲存完畢後，自動為你打開團購清單總覽，方便查看
-            openGroupBuyListModal();
-
         } catch(e) {
-            alert(e.message || "建立團購失敗，請稍後再試。");
+            alert(e.message || "操作失敗，請稍後再試。");
         } finally {
             btn.disabled = false;
-            btn.innerText = '儲存訂單'; // 【修改】：復原按鈕文字
+            btn.innerText = currentEditingGroupBuyId ? '儲存修改' : '儲存訂單';
         }
     }
 
@@ -4118,9 +4333,9 @@
         isGbSwiping = false;
         el.style.transition = 'transform 0.3s ease';
         
-        if (gbCurrentX < -45) {
-            // 滑動超過一半，將其固定在左側顯示垃圾桶 (-80px)
-            el.style.transform = 'translateX(-80px)';
+        if (gbCurrentX < -75) {
+            // 【修改】：滑動超過一半，將其固定在左側顯示兩個按鈕 (-150px)
+            el.style.transform = 'translateX(-150px)';
             gbSwipedOpen = el;
         } else {
             // 滑動太小，回彈歸位
