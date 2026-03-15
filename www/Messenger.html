@@ -188,8 +188,8 @@
         .input-container { 
             max-width: var(--container-width); width: 100%; display: flex; align-items: center; 
             gap: 10px; 
-            padding: 6px 12px; /* 【微調】：降低 2px */
-            padding-bottom: calc(6px + env(safe-area-inset-bottom)); box-sizing: border-box; 
+            padding: 8px 12px; /* 【微調】：降低 2px */
+            padding-bottom: calc(4px + env(safe-area-inset-bottom)); box-sizing: border-box; 
         }
 
         #msgInput { 
@@ -1311,24 +1311,38 @@
             await PushNotifications.removeAllListeners();
 
             // 【修改 2】：轉換 Token 並存入資料庫
+            // 【修改】：支援 iOS 與 Android 雙平台的 Token 處理邏輯
             PushNotifications.addListener('registration', async (token) => {
-                console.log("拿到 Apple 原始 Token:", token.value);
+                console.log("註冊成功，取得底層 Token:", token.value);
                 
+                let finalToken = token.value;
+                const platform = Capacitor.getPlatform(); // 取得當前是 ios 還是 android
+
+                // 只有 iOS 需要透過 FCM 插件將 APNs 轉換為 FCM Token
+                if (platform === 'ios') {
+                    try {
+                        const fcmResult = await FCM.getToken();
+                        finalToken = fcmResult.token;
+                        console.log("iOS: 成功轉換為 FCM Token:", finalToken);
+                    } catch (err) {
+                        console.error("iOS FCM Token 轉換失敗:", err);
+                        return; // 如果 iOS 轉換失敗，就先不要存入資料庫，以免存入無效憑證
+                    }
+                } else {
+                    console.log("Android: 直接使用原生 FCM Token");
+                }
+
+                // 將最終正確的 Token 存入資料庫
                 try {
-                    // 透過 FCM 套件，將 Apple Token 轉換為 Firebase 專用 Token
-                    const fcmResult = await FCM.getToken();
-                    console.log("成功轉換為 FCM Token:", fcmResult.token);
-                    
-                    // 確保你存入的是 fcmResult.token，而不是 token.value
                     await db.collection("act").doc(userId).set({ 
-                        pushToken: fcmResult.token, 
-                        platform: 'ios',
+                        pushToken: finalToken, 
+                        platform: platform,
                         env: 'production',
                         lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
                     }, { merge: true });
-                    
-                } catch (err) {
-                    console.error("FCM Token 轉換失敗:", err);
+                    console.log(`✅ 成功將 ${platform} Token 存入 Firebase!`);
+                } catch (dbErr) {
+                    console.error("Token 寫入資料庫失敗:", dbErr);
                 }
             });
 
@@ -1362,10 +1376,10 @@
                     if (avatarEl) avatarEl.src = data.photoURL || 'https://via.placeholder.com/45';
                     
                     // --- 2. 確定有身分資料後，才啟動推播註冊 ---
+                    // --- 2. 確定有身分資料後，才啟動推播註冊 ---
                     if (data.displayName) {
-                        // 【防閃退測試】：暫時註解掉推播註冊，測試 Android 是否還會閃退
-                        // initPushNotifications(user.uid);
-                        console.log("推播初始化已暫時關閉，用於測試閃退問題");
+                        // 【解除封印】：正式啟用推播註冊
+                        initPushNotifications(user.uid);
                     } else {
                         console.warn("偵測到帳號無姓名資料，推播註冊暫緩");
                     }
@@ -1530,9 +1544,9 @@
 
             if (data.isGroup) {
                 const rawGroupName = data.groupName || "未命名群組";
-                window.currentRawGroupName = rawGroupName; // 【新增】：儲存未縮減的原始群組名稱
-                // 【修改】：套用中段省略函式
-                document.getElementById('chatTitle').innerText = formatMiddleEllipsis(rawGroupName);
+                window.currentRawGroupName = rawGroupName; 
+                // 【修復】：移除強制縮寫，交給 CSS 判斷是否擠壓
+                document.getElementById('chatTitle').innerText = rawGroupName;
                 document.getElementById('targetAvatar').src = data.groupAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.groupName)}&background=003153&color=fff`;
                 document.getElementById('groupSettingsContainer').style.display = 'block';
                 updateReadStatusUI();
@@ -1544,8 +1558,8 @@
                 db.collection("act").doc(targetUid).get().then(uDoc => {
                     if (uDoc.exists) {
                         const rawUserName = uDoc.data().displayName || "未知成員";
-                        // 【修改】：套用中段省略函式
-                        document.getElementById('chatTitle').innerText = formatMiddleEllipsis(rawUserName);
+                        // 【修復】：移除強制縮寫，交給 CSS 判斷是否擠壓
+                        document.getElementById('chatTitle').innerText = rawUserName;
                         document.getElementById('targetAvatar').src = uDoc.data().photoURL || 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true';
                     }
                     updateReadStatusUI();
