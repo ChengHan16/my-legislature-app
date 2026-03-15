@@ -971,7 +971,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-storage-compat.js"></script>
-    <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
     <script>
@@ -1214,12 +1213,21 @@
         if (typeof Capacitor === 'undefined' || !Capacitor.isNativePlatform()) return;
 
         try {
-            // 【修改 1】：同時引入 PushNotifications 和 FCM
             const { PushNotifications, FCM } = Capacitor.Plugins;
+            
+            // 【防閃退】：確保套件真的有安裝且載入成功
+            if (!PushNotifications) {
+                console.warn("警告: PushNotifications 插件未載入，略過推播註冊");
+                return;
+            }
 
             let permStatus = await PushNotifications.checkPermissions();
             if (permStatus.receive === 'prompt') {
                 permStatus = await PushNotifications.requestPermissions();
+            }
+            if (permStatus.receive !== 'granted') {
+                console.warn("未取得推播權限");
+                return;
             }
             if (permStatus.receive !== 'granted') return;
 
@@ -1278,7 +1286,9 @@
                     
                     // --- 2. 確定有身分資料後，才啟動推播註冊 ---
                     if (data.displayName) {
-                        initPushNotifications(user.uid);
+                        // 【防閃退測試】：暫時註解掉推播註冊，測試 Android 是否還會閃退
+                        // initPushNotifications(user.uid);
+                        console.log("推播初始化已暫時關閉，用於測試閃退問題");
                     } else {
                         console.warn("偵測到帳號無姓名資料，推播註冊暫緩");
                     }
@@ -1781,18 +1791,41 @@
     // ==========================================
     // 前端影片壓縮引擎 (FFmpeg.wasm)
     // ==========================================
-    const { createFFmpeg, fetchFile } = FFmpeg;
-    // 初始化 FFmpeg，設定 log: false 避免終端機洗版
-    const ffmpeg = createFFmpeg({ log: false }); 
+    // ==========================================
+    // 前端影片壓縮引擎 (FFmpeg.wasm) - 延遲啟動安全版
+    // ==========================================
+    // ==========================================
+    // 前端影片壓縮引擎 (FFmpeg.wasm) - 動態載入防閃退版
+    // ==========================================
+    let ffmpeg = null; 
 
     async function compressVideoClientSide(file, inputField) {
         return new Promise(async (resolve, reject) => {
             try {
-                // 1. 載入 FFmpeg 核心 (只需載入一次)
+                // 0. 【防閃退核心】：如果系統中沒有 FFmpeg，才建立 <script> 去下載
+                if (typeof FFmpeg === 'undefined') {
+                    inputField.placeholder = "下載壓縮引擎模組中...";
+                    await new Promise((res, rej) => {
+                        const script = document.createElement('script');
+                        script.src = "https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js";
+                        script.onload = res;
+                        script.onerror = rej;
+                        document.head.appendChild(script);
+                    });
+                }
+
+                // 1. 載入 FFmpeg 核心 (使用者上傳影片時才即時啟動)
+                if (!ffmpeg) {
+                    const { createFFmpeg } = FFmpeg;
+                    ffmpeg = createFFmpeg({ log: false });
+                }
+
                 if (!ffmpeg.isLoaded()) {
                     inputField.placeholder = "初次啟動影片壓縮引擎中...";
                     await ffmpeg.load();
                 }
+                
+                const { fetchFile } = FFmpeg;
 
                 inputField.placeholder = "影片壓縮中，請勿關閉視窗...";
                 
