@@ -334,8 +334,8 @@
         /* 多選模式專用樣式 */
         .msg-checkbox { display: none; font-size: 1.4rem; color: #ccc; margin-right: 10px; transition: 0.2s; align-self: center; flex-shrink: 0; }
         .select-mode-active .msg-checkbox { display: flex; }
-        .select-mode-active .msg-row.mine { cursor: pointer; }
-        .select-mode-active .msg-wrapper.mine .msg { pointer-events: none; opacity: 0.85; transition: 0.2s; }
+        .select-mode-active .msg-row { cursor: pointer; } /* 【解鎖】：雙方訊息都能點擊 */
+        .select-mode-active .msg-wrapper .msg { pointer-events: none; opacity: 0.85; transition: 0.2s; }
         .msg-checkbox.checked { color: var(--ly-gold); }
         .msg-checkbox.checked + .msg { opacity: 1 !important; box-shadow: 0 0 0 3px var(--ly-gold); }
 
@@ -534,6 +534,18 @@
         .swipe-actions-dual { position: absolute; top: 0; bottom: 0; right: 0; width: 150px; display: flex; z-index: 1; border-radius: 8px; overflow: hidden; }
         .swipe-edit-btn { background: var(--ly-blue); color: white; border: none; font-size: 1.3rem; width: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.2s; padding: 0; margin: 0; }
         .swipe-delete-btn-half { background: #ff4d4d; color: white; border: none; font-size: 1.3rem; width: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.2s; padding: 0; margin: 0; }
+    
+        /* --- 正在輸入動畫 --- */
+        .typing-dot {
+            width: 7px; height: 7px; background: #999; border-radius: 50%;
+            animation: typingBounce 1.4s infinite ease-in-out both;
+        }
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes typingBounce {
+            0%, 80%, 100% { transform: scale(0.6); opacity: 0.6; }
+            40% { transform: scale(1); opacity: 1; }
+        }
     </style>
 </head>
 <body>
@@ -1234,6 +1246,9 @@
     function closeChatRoom() {
         chatViewDOM.style.transform = 'translateX(100%)';
         
+        isTyping = false;
+        clearTimeout(typingTimer);
+        clearTypingState();
         // 取消 Firebase 監聽器
         if (chatSnapshotUnsubscribe) { chatSnapshotUnsubscribe(); chatSnapshotUnsubscribe = null; }
         if (messagesSnapshotUnsubscribe) { messagesSnapshotUnsubscribe(); messagesSnapshotUnsubscribe = null; }
@@ -1531,6 +1546,8 @@
             window.isCurrentChatGroup = !!data.isGroup;
             window.currentGroupMembers = data.members || [];
             window.groupReadTimes = data.lastReadAt || {};
+            window.currentTypingData = data.typing || {};
+            renderTypingUI();
 
             // 快取成員資料
             window.currentGroupMembers.forEach(uid => {
@@ -1617,6 +1634,7 @@
             const msg = msgDoc.data(), msgId = msgDoc.id;
             const isMine = msg.senderId === currentUid;
             const msgTime = msg.timestamp ? msg.timestamp.toDate() : new Date();
+            if (msg.hiddenBy && msg.hiddenBy.includes(currentUid)) return;
 
             if (!lastTime || (msgTime - lastTime > 30 * 60 * 1000)) {
                 const timeDiv = document.createElement('div');
@@ -1633,14 +1651,14 @@
 
             // 【修改】：加入動態 style。如果是在群組且是別人的訊息，就切換為頂部對齊 (flex-start)
             let rowStyle = (!isMine && window.isCurrentChatGroup) ? 'align-items: flex-start;' : '';
-            let html = `<div class="msg-row ${isMine ? 'mine' : 'theirs'}" onclick="toggleMsgSelect('${msgId}', ${isMine})" style="${rowStyle}">`;
+            // 【修改】：解鎖 onclick 限制，讓雙方訊息都能被選取
+            let html = `<div class="msg-row ${isMine ? 'mine' : 'theirs'}" onclick="toggleMsgSelect('${msgId}')" style="${rowStyle}">`;
             
-            if (isMine) {
-                const isChecked = window.selectedMsgIds && window.selectedMsgIds.has(msgId);
-                const icon = isChecked ? '<i class="fas fa-check-circle"></i>' : '<i class="far fa-circle"></i>';
-                const checkClass = isChecked ? 'checked' : '';
-                html += `<div class="msg-checkbox ${checkClass}" id="cb-${msgId}">${icon}</div>`;
-            }
+            // 【修改】：不論是誰的訊息，在多選模式下都顯示勾選框
+            const isChecked = window.selectedMsgIds && window.selectedMsgIds.has(msgId);
+            const icon = isChecked ? '<i class="fas fa-check-circle"></i>' : '<i class="far fa-circle"></i>';
+            const checkClass = isChecked ? 'checked' : '';
+            html += `<div class="msg-checkbox ${checkClass}" id="cb-${msgId}">${icon}</div>`;
             
             if (!isMine) {
                 const avatarVisibility = isLastInSequence ? 'visible' : 'hidden';
@@ -1746,6 +1764,7 @@
         // 在最底下的這邊加入這行
         updateDynamicCountdowns(); // 觸發即時倒數更新
         updateReadStatusUI();
+        renderTypingUI(); // 【新增】：在重新渲染訊息列表後，補回正在輸入的動畫
         
         // 【新增】：如果是往上拉載入舊訊息，把卷軸推回原本的相對位置，不要置底
         if (isFetchingOlder) {
@@ -1766,6 +1785,71 @@
                 window.isFirstChatLoad = false; 
             }, 150);
         }
+    }
+
+    // 渲染「正在輸入」的跳動氣泡
+    function renderTypingUI() {
+        const existing = document.getElementById('typingIndicatorWrapper');
+        if (existing) existing.remove();
+
+        if (!window.currentTypingData || !auth.currentUser) return;
+        
+        // 過濾出「正在輸入」的人 (排除自己，且時間戳在 10 秒內防呆，避免有人斷線狀態卡住)
+        const typingUids = Object.keys(window.currentTypingData).filter(uid => {
+            const timestamp = window.currentTypingData[uid];
+            return uid !== auth.currentUser.uid && (Date.now() - timestamp < 10000);
+        });
+
+        if (typingUids.length === 0) return;
+
+        const list = document.getElementById('messageList');
+        const wrapper = document.createElement('div');
+        wrapper.id = 'typingIndicatorWrapper';
+        wrapper.style.width = '100%';
+        
+        let html = '';
+        
+        // 多位成員在輸入時，疊加顯示
+        typingUids.forEach(uid => {
+            const isGroup = window.isCurrentChatGroup;
+            const senderCache = window.chatMembersCache[uid] || {};
+            const avatar = senderCache.photoURL || "https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true";
+            const name = senderCache.displayName || "成員";
+            
+            html += `<div class="msg-wrapper theirs" style="margin-bottom: 4px;">`;
+            
+            if (isGroup) {
+                // 群組顯示：圖片 + 名稱 + 輸入框 (頂部對齊)
+                html += `<div class="msg-row theirs" style="align-items: flex-start;">
+                            <div class="msg-avatar-container" style="visibility: visible;">
+                                <img src="${avatar}" class="msg-avatar">
+                                <span class="msg-avatar-name">${name}</span>
+                            </div>`;
+            } else {
+                // 單人顯示：圖片 + 輸入框 (底部對齊)
+                html += `<div class="msg-row theirs" style="align-items: flex-end;">
+                            <img src="${avatar}" class="msg-avatar" style="visibility: visible;">`;
+            }
+            
+            // 跳動動畫氣泡
+            html += `
+                        <div class="msg theirs" style="padding: 10px 16px; background: #e9ecef; border: none; display: flex; align-items: center; justify-content: center;">
+                            <div style="display: flex; gap: 5px;">
+                                <div class="typing-dot"></div>
+                                <div class="typing-dot"></div>
+                                <div class="typing-dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+        });
+        
+        wrapper.innerHTML = html;
+        list.appendChild(wrapper);
+        
+        // 如果原本就在最底下，就順便往下捲，不要讓動畫跑到畫面外
+        const isAtBottom = list.scrollHeight - list.scrollTop - list.clientHeight < 200;
+        if (isAtBottom) scrollToBottom(true);
     }
 
     // 已讀邏輯
@@ -1864,7 +1948,12 @@
         const input = document.getElementById('msgInput'), text = input.value.trim();
         if (!text || !currentChatId) return;
         const user = auth.currentUser;
-        input.value = ""; 
+        // 【新增】：送出時清除正在輸入的狀態
+        isTyping = false;
+        clearTimeout(typingTimer);
+        clearTypingState();
+        
+        input.value = "";
         input.style.height = '38px'; // 【新增】：送出後將高度歸位
         scrollToBottom(true);
 
@@ -1895,11 +1984,50 @@
         }
     });
 
-    // 輸入文字時，自動調整輸入框高度 (最高 100px)
+    // ==========================================
+    // 正在輸入狀態偵測引擎
+    // ==========================================
+    let typingTimer = null;
+    let isTyping = false;
+    
+    function clearTypingState() {
+        if (!currentChatId || !auth.currentUser) return;
+        db.collection("chats").doc(currentChatId).update({
+            [`typing.${auth.currentUser.uid}`]: firebase.firestore.FieldValue.delete()
+        }).catch(()=>{});
+    }
+
+    // 輸入文字時，自動調整高度，並發送「正在輸入中」狀態
     msgInputDOM.addEventListener('input', function() {
-        this.style.height = '38px'; // 先重置回單行高度
+        this.style.height = '36px'; 
         const newHeight = Math.min(this.scrollHeight, 100); 
         this.style.height = newHeight + 'px';
+
+        if (!currentChatId || !auth.currentUser) return;
+        const text = this.value.trim();
+        
+        if (text.length > 0 && !isTyping) {
+            isTyping = true;
+            db.collection("chats").doc(currentChatId).update({ [`typing.${auth.currentUser.uid}`]: Date.now() }).catch(()=>{});
+        } else if (text.length === 0 && isTyping) {
+            isTyping = false;
+            clearTypingState();
+        }
+        
+        // 每次打字就重置計時器，停下 3 秒則視為停止輸入
+        clearTimeout(typingTimer);
+        if (isTyping) {
+            // 每 2.5 秒更新一次時間戳，確保長篇大論時不會被判定過期
+            if (Date.now() - (window.lastTypingSync || 0) > 2500) {
+                window.lastTypingSync = Date.now();
+                db.collection("chats").doc(currentChatId).update({ [`typing.${auth.currentUser.uid}`]: Date.now() }).catch(()=>{});
+            }
+
+            typingTimer = setTimeout(() => {
+                isTyping = false;
+                clearTypingState();
+            }, 3000);
+        }
     });
 
     document.getElementById('messageList').addEventListener('click', () => { document.getElementById('msgInput').blur(); });
@@ -1913,14 +2041,17 @@
     // ==========================================
     // 前端影片壓縮引擎 (FFmpeg.wasm) - 動態載入防閃退版
     // ==========================================
+    // ==========================================
+    // 前端影片壓縮引擎 (FFmpeg.wasm) - 極致壓縮 5MB 版
+    // ==========================================
     let ffmpeg = null; 
 
-    async function compressVideoClientSide(file, inputField) {
+    // 【修改】：將第二個參數改為 statusTextEl，用來更新對話框內的文字
+    async function compressVideoClientSide(file, statusTextEl) {
         return new Promise(async (resolve, reject) => {
             try {
-                // 0. 【防閃退核心】：如果系統中沒有 FFmpeg，才建立 <script> 去下載
                 if (typeof FFmpeg === 'undefined') {
-                    inputField.placeholder = "下載壓縮引擎模組中...";
+                    if (statusTextEl) statusTextEl.innerText = "下載壓縮引擎模組中...";
                     await new Promise((res, rej) => {
                         const script = document.createElement('script');
                         script.src = "https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js";
@@ -1930,42 +2061,36 @@
                     });
                 }
 
-                // 1. 載入 FFmpeg 核心 (使用者上傳影片時才即時啟動)
                 if (!ffmpeg) {
                     const { createFFmpeg } = FFmpeg;
                     ffmpeg = createFFmpeg({ log: false });
                 }
 
                 if (!ffmpeg.isLoaded()) {
-                    inputField.placeholder = "初次啟動影片壓縮引擎中...";
+                    if (statusTextEl) statusTextEl.innerText = "啟動影片壓縮引擎中...";
                     await ffmpeg.load();
                 }
                 
                 const { fetchFile } = FFmpeg;
 
-                inputField.placeholder = "影片壓縮中，請勿關閉視窗...";
+                if (statusTextEl) statusTextEl.innerText = "影片極致壓縮中 (約需數十秒)...";
                 
-                // 2. 將使用者的影片寫入 FFmpeg 的虛擬記憶體中
                 const inputName = 'input' + file.name.substring(file.name.lastIndexOf('.'));
                 const outputName = 'output.mp4';
                 ffmpeg.FS('writeFile', inputName, await fetchFile(file));
 
-                // 3. 執行壓縮指令
-                // 指令說明：
-                // -vf scale=-2:720 (最高畫質限制為 720p，維持比例)
-                // -vcodec libx264 (使用高壓縮比的 h264 編碼)
-                // -crf 28 (畫質與檔案大小的平衡點，數字越大檔案越小，28 是不錯的手機觀看畫質)
-                // -preset veryfast (加快壓縮速度)
-                await ffmpeg.run('-i', inputName, '-vf', 'scale=-2:720', '-vcodec', 'libx264', '-crf', '28', '-preset', 'veryfast', outputName);
+                // 【極致壓縮參數】：
+                // scale=-2:360 (降至 360p)
+                // -r 20 (降至 20 幀)
+                // -crf 38 (極高壓縮率)
+                // -preset ultrafast (最快處理速度)
+                await ffmpeg.run('-i', inputName, '-vf', 'scale=-2:360', '-r', '20', '-vcodec', 'libx264', '-crf', '38', '-preset', 'ultrafast', outputName);
 
-                // 4. 從虛擬記憶體讀取壓縮後的檔案
                 const data = ffmpeg.FS('readFile', outputName);
                 
-                // 5. 轉換為 Blob 與 File 物件回傳
                 const blob = new Blob([data.buffer], { type: 'video/mp4' });
                 const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + "_compressed.mp4", { type: 'video/mp4' });
                 
-                // 清理虛擬記憶體
                 ffmpeg.FS('unlink', inputName);
                 ffmpeg.FS('unlink', outputName);
                 
@@ -2042,6 +2167,9 @@
     // ==========================================
     // 檔案上傳與前端極致壓縮邏輯
     // ==========================================
+    // ==========================================
+    // 檔案上傳與前端極致壓縮邏輯 (聊天室內顯示虛擬氣泡)
+    // ==========================================
     document.getElementById('fileInput').addEventListener('change', async (e) => {
         let file = e.target.files[0]; 
         if (!file || !currentChatId) return;
@@ -2049,45 +2177,70 @@
         const fileType = file.type.startsWith('video/') ? 'video' : 'image';
         const user = auth.currentUser;
         const inputField = document.getElementById('msgInput');
-        const originalPlaceholder = inputField.placeholder;
         const sendBtn = document.querySelector('.send-btn');
+        const list = document.getElementById('messageList');
 
         // 鎖定輸入框，防止壓縮期間使用者亂點
         inputField.disabled = true;
         sendBtn.disabled = true;
 
+        // 【新增】：在對話框產生一個「處理中」的虛擬氣泡 (含轉圈動畫)
+        const dummyId = 'uploading-dummy-' + Date.now();
+        const dummyHtml = `
+            <div id="${dummyId}" class="msg-wrapper mine">
+                <div class="msg-row mine" style="justify-content: flex-end;">
+                    <div class="msg mine" style="display: flex; align-items: center; gap: 8px; opacity: 0.8; background: #6c757d; border-right-color: #5a6268;">
+                        <i class="fas fa-spinner fa-spin"></i> <span id="${dummyId}-text">檔案準備中...</span>
+                    </div>
+                </div>
+            </div>`;
+        list.insertAdjacentHTML('beforeend', dummyHtml);
+        scrollToBottom(true);
+        
+        // 抓取剛剛產生的氣泡內的文字元素，用來更新進度
+        const dummyTextEl = document.getElementById(`${dummyId}-text`);
+
         try {
-            // --- 處理大圖片壓縮 ---
+            // --- 處理極致圖片壓縮 ---
             if (fileType === 'image') {
-                if (file.size > MAX_FILE_SIZE || file.size > 2 * 1024 * 1024) { // 超過 2MB 就強制壓縮
-                    inputField.placeholder = "圖片智慧壓縮中...";
-                    file = await compressImageClientSide(file, 9.5); // 目標壓到 10MB 以下
-                }
-            } 
+                dummyTextEl.innerText = "圖片極致壓縮中...";
+                file = await compressImageClientSide(file, 0.5); // 強制壓縮至 500KB 以下
+            }
             
             // --- 處理大影片壓縮 (FFmpeg.wasm) ---
+            // --- 處理影片壓縮 (加入 iOS/Safari 安全封鎖防呆機制) ---
             else if (fileType === 'video') {
-                if (file.size > 15 * 1024 * 1024) { 
-                    // 如果影片大於 15MB，提示使用者這需要時間
-                    if (!confirm("此影片較大，前端壓縮可能需要 10~30 秒，確定要處理嗎？")) {
-                        throw new Error("USER_CANCEL");
-                    }
-                }
-                
-                // 只要超過 5MB 就進行前端影片壓縮
-                if (file.size > 5 * 1024 * 1024) {
-                    file = await compressVideoClientSide(file, inputField);
-                    
-                    // 壓縮完如果還是大於 10MB (非常罕見)，做最後防線攔截
-                    if (file.size > MAX_FILE_SIZE) {
-                        alert("影片壓縮後仍大於 10MB，請上傳較短的影片。");
+                // 【核心修復】：檢查瀏覽器是否封鎖了 SharedArrayBuffer
+                if (typeof SharedArrayBuffer === 'undefined') {
+                    // 裝置不支援前端壓縮 (iOS 常見) -> 改用限制檔案大小直接上傳
+                    if (file.size > 15 * 1024 * 1024) { 
+                        alert("⚠️ 您的裝置因系統安全限制，無法啟動影片壓縮引擎。\n請選擇 15MB 以下的影片直接上傳。");
                         throw new Error("FILE_TOO_LARGE");
+                    } else {
+                        dummyTextEl.innerText = "裝置安全限制，跳過壓縮直接上傳...";
+                        console.warn("SharedArrayBuffer 不存在，已切換為原檔直傳模式。");
+                    }
+                } else {
+                    // 裝置支援壓縮引擎 (電腦版 Chrome/Edge 常見) -> 執行原本的極致壓縮
+                    if (file.size > 5 * 1024 * 1024) { 
+                        if (!confirm("此影片較長/較大，為節省空間將進行極致壓縮 (目標 5MB 以下)，處理可能需要 10~30 秒，確定要處理嗎？")) {
+                            throw new Error("USER_CANCEL");
+                        }
+                    }
+                    
+                    if (file.size > 2 * 1024 * 1024) {
+                        file = await compressVideoClientSide(file, dummyTextEl);
+                        
+                        if (file.size > 5 * 1024 * 1024) {
+                            alert("影片時間過長，極致壓縮後檔案仍大於 5MB，請剪輯縮短後再上傳。");
+                            throw new Error("FILE_TOO_LARGE");
+                        }
                     }
                 }
             }
 
             // --- 正式上傳至 Firebase Storage ---
-            inputField.placeholder = "加密上傳中，請稍候...";
+            dummyTextEl.innerText = "加密上傳至雲端中...";
             
             const snapshot = await storage.ref(`chat/${currentChatId}/${Date.now()}_${file.name}`).put(file);
             const downloadUrl = await snapshot.ref.getDownloadURL();
@@ -2120,8 +2273,11 @@
                 alert("檔案處理或上傳失敗，請更換檔案重試。");
             }
         } finally {
-            // 無論成功或失敗，恢復 UI 狀態
-            inputField.placeholder = originalPlaceholder;
+            // 【新增】：處理完畢 (成功或失敗)，移除虛擬氣泡
+            const dummyEl = document.getElementById(dummyId);
+            if (dummyEl) dummyEl.remove();
+
+            // 恢復 UI 狀態
             inputField.disabled = false;
             sendBtn.disabled = false;
             e.target.value = '';
@@ -2271,7 +2427,8 @@
         const isText = activeMsgTextForMenu && !activeMsgTextForMenu.includes('[圖片/影片]') && !activeMsgTextForMenu.includes('分享了活動') && !activeMsgTextForMenu.includes('發起了團購');
         document.getElementById('copyMenuBtn').style.display = isText ? 'flex' : 'none';
         
-        document.getElementById('multiSelectMenuBtn').style.display = isMine ? 'flex' : 'none';
+        // 【修改】：不論是誰的訊息，永遠顯示「收回/隱藏」按鈕
+        document.getElementById('multiSelectMenuBtn').style.display = 'flex';
         menu.style.display = 'flex'; menu.style.flexDirection = 'row'; menu.style.gap = '2px';
         
         const msgEl = document.getElementById('msg-' + activeMsgId); if (!msgEl) return;
@@ -2986,7 +3143,7 @@
     async function openDocPreview(id) {
         currentEventId = id; currentGalleryImages = [];
         try {
-            const docSnap = await db.collection("events").doc(id).get(); if (!docSnap.exists) return alert("找不到");
+            const docSnap = await db.collection("events").doc(id).get(); if (!docSnap.exists) return alert("該活動已被刪除");
             const ev = docSnap.data(), contentArea = document.getElementById('doc-content');
             document.querySelector('.doc-header').innerHTML = `<h2 style="color:var(--ly-blue); text-align:center;">${ev.title}</h2><div style="text-align:center; font-size:0.85rem; color:#666;">存檔：${ev.formattedDate||'--'}</div>`;
             contentArea.innerHTML = "";
@@ -4445,8 +4602,8 @@
         });
     }
 
-    function toggleMsgSelect(msgId, isMine) {
-        if (!window.isSelectMode || !isMine) return;
+    function toggleMsgSelect(msgId) {
+        if (!window.isSelectMode) return; // 【解鎖】：移除 !isMine 限制
         
         const cb = document.getElementById(`cb-${msgId}`);
         if (!cb) return;
@@ -4465,8 +4622,10 @@
     }
 
     async function confirmMultiRevoke() {
-        if (!window.selectedMsgIds || window.selectedMsgIds.size === 0) return alert("請先選擇要收回的訊息");
-        if (!confirm(`確定要收回 ${window.selectedMsgIds.size} 則訊息？\n這將從所有人裝置中刪除。`)) return;
+        if (!window.selectedMsgIds || window.selectedMsgIds.size === 0) return alert("請先選擇要處理的訊息");
+        
+        // 【修改提示文字】
+        if (!confirm(`確定要處理這 ${window.selectedMsgIds.size} 則訊息？\n\n・您發送的訊息：將從資料庫永久刪除。\n・對方發送的：將從您的畫面中隱藏。`)) return;
 
         const btn = document.querySelector('#selectActionBar button:last-child');
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 處理中...';
@@ -4475,46 +4634,57 @@
         try {
             const batch = db.batch();
             const chatRef = db.collection("chats").doc(currentChatId);
+            const currentUid = auth.currentUser.uid;
             
-            // 抓取所有選擇的訊息，並同時清空 Storage 中的圖片/影片
             const promises = [];
             for (let msgId of window.selectedMsgIds) {
                 promises.push(chatRef.collection("messages").doc(msgId).get());
             }
             const msgDocs = await Promise.all(promises);
             
+            let deletedCount = 0;
+            
             msgDocs.forEach(doc => {
                 if (doc.exists) {
-                    if (doc.data().fileUrl) storage.refFromURL(doc.data().fileUrl).delete().catch(()=>{});
-                    batch.delete(doc.ref);
+                    if (doc.data().senderId === currentUid) {
+                        // 【自己的訊息】：永久刪除並清除 Storage
+                        if (doc.data().fileUrl) storage.refFromURL(doc.data().fileUrl).delete().catch(()=>{});
+                        batch.delete(doc.ref);
+                        deletedCount++;
+                    } else {
+                        // 【對方的訊息】：在資料庫加上 hiddenBy 陣列標記 (僅對你隱藏)
+                        batch.update(doc.ref, { hiddenBy: firebase.firestore.FieldValue.arrayUnion(currentUid) });
+                    }
                 }
             });
 
-            // 重新計算最新的 lastMessage (排除掉被我們刪除的)
-            const limitCount = window.selectedMsgIds.size + 1;
-            const lastMsgSnap = await chatRef.collection("messages").orderBy("timestamp", "desc").limit(limitCount).get();
-            
-            let newLastData = null;
-            for (let doc of lastMsgSnap.docs) {
-                if (!window.selectedMsgIds.has(doc.id)) {
+            // 只有當「真正刪除」了訊息時，才需要重新計算最後一則訊息 (避免隱藏別人訊息影響到其他人的列表顯示)
+            if (deletedCount > 0) {
+                const limitCount = window.selectedMsgIds.size + 1;
+                const lastMsgSnap = await chatRef.collection("messages").orderBy("timestamp", "desc").limit(limitCount).get();
+                
+                let newLastData = null;
+                for (let doc of lastMsgSnap.docs) {
+                    // 跳過被我們刪除的訊息
+                    if (window.selectedMsgIds.has(doc.id) && doc.data().senderId === currentUid) continue;
                     newLastData = doc.data();
                     break;
                 }
-            }
 
-            if (newLastData) {
-                let newLastMsg = newLastData.text || (newLastData.fileType === 'video' ? '[影片]' : '[圖片]');
-                if (newLastMsg.includes('"type":"event_share"')) newLastMsg = "分享了一個活動";
-                if (newLastMsg.includes('"type":"group_buy"')) newLastMsg = "發起了一個團購";
-                batch.update(chatRef, { lastMessage: newLastMsg, lastSenderId: newLastData.senderId, updatedAt: newLastData.timestamp });
-            } else {
-                batch.update(chatRef, { lastMessage: "尚無訊息", lastSenderId: "" });
+                if (newLastData) {
+                    let newLastMsg = newLastData.text || (newLastData.fileType === 'video' ? '[影片]' : '[圖片]');
+                    if (newLastMsg.includes('"type":"event_share"')) newLastMsg = "分享了一個活動";
+                    if (newLastMsg.includes('"type":"group_buy"')) newLastMsg = "發起了一個團購";
+                    batch.update(chatRef, { lastMessage: newLastMsg, lastSenderId: newLastData.senderId, updatedAt: newLastData.timestamp });
+                } else {
+                    batch.update(chatRef, { lastMessage: "尚無訊息", lastSenderId: "" });
+                }
             }
 
             await batch.commit();
             cancelSelectMode();
         } catch (e) {
-            alert("收回失敗: " + e.message);
+            alert("操作失敗: " + e.message);
         } finally {
             btn.innerHTML = '<i class="fas fa-trash-alt"></i> 收回';
             btn.disabled = false;
