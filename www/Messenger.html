@@ -1091,12 +1091,17 @@
             color: #e0e0e0 !important;
         }
 
-        /* 7. 假密碼公文特例 (保留紙張顏色，但文字加深以提高對比) */
+        /* 7. 假密碼公文特例 (完美融入深色模式的乾淨排版) */
         body.dark-mode .fake-content-paper { 
-            background: #e0e0e0 !important; 
-            color: #222 !important; 
-            padding: 15px;
-            border-radius: 4px;
+            background: transparent !important; 
+            padding: 0 !important;
+        }
+        body.dark-mode .fake-content-paper p,
+        body.dark-mode .fake-content-paper div {
+            color: #e0e0e0 !important; /* 內文轉為舒適的淺灰色 */
+        }
+        body.dark-mode .fake-content-paper h2 {
+            color: var(--ly-gold) !important; /* 標題轉為高質感的金色 */
         }
     </style>
 </head>
@@ -1160,15 +1165,15 @@
         <div class="input-area">
             <div id="expandMenuPanel" class="expand-menu-panel">
                 <div class="expand-menu-item" onclick="resetScheduleHeader(); handleActivitySchedule()">
-                    <div class="icon-circle"><i class="fas fa-calendar-alt"></i></div>
+                    <div class="icon-circle" style="color: #003153;"><i class="fas fa-calendar-alt"></i></div>
                     <span>活動行程</span>
                 </div>
                 <div class="expand-menu-item" onclick="openGroupBuyListModal()">
-                    <div class="icon-circle"><i class="fas fa-shopping-basket"></i></div>
+                    <div class="icon-circle" style="color: #003153;"><i class="fas fa-shopping-basket"></i></div>
                     <span>團購功能</span>
                 </div>
-                <!--機密文件圖標顏色 style="color: #003153;"-->
-                <div class="expand-menu-item" onclick="openConfidentialListModal()"> <div class="icon-circle" style="color: #003153;"><i class="fas fa-user-secret"></i></div>
+                <div class="expand-menu-item" onclick="openConfidentialListModal()"> 
+                    <div class="icon-circle" style="color: #003153;"><i class="fas fa-user-secret"></i></div>
                     <span>機密文件</span>
                 </div>
             </div>
@@ -1795,10 +1800,26 @@
         
         <div style="flex: 1; overflow-y: auto; padding: 25px 20px; background: transparent; -webkit-overflow-scrolling: touch;">
             <div class="release-timeline">
-                
+
                 <div class="release-item latest">
                     <div class="version-title">
-                        <span class="v-badge latest">v 1.0.86</span>
+                        <span class="v-badge latest">v 1.0.87</span>
+                        <span class="v-date">最新版本</span>
+                    </div>
+                    <div class="v-content">
+                        <ul>
+                            <li><b>【iOS 適配】</b>實裝 Apple 原生「分享/儲存」選單，完美支援 iPhone/iPad 點擊直接下載圖片與影片至相簿。</li>
+                            <li><b>【iOS 適配】</b>導入安全區域 (Safe Area) 偵測，解決多媒體預覽按鈕遭動態島或瀏海遮擋的問題。</li>
+                            <li><b>【體驗優化】</b>離開聊天室時，系統將自動收起手機虛擬鍵盤並清空未送出的文字，維持畫面整潔。</li>
+                            <li><b>【功能升級】</b>升級「圖片極致壓縮引擎」，自動辨識並放行 GIF 動態圖檔，完美保留原始動畫。</li>
+                            <li><b>【系統優化】</b>強化深色模式初始引擎，確保首次載入絕對為「明亮模式」，並精準記憶使用者後續偏好。</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="release-item">
+                    <div class="version-title">
+                        <span class="v-badge">v 1.0.86</span>
                         <span class="v-date">最新版本</span>
                     </div>
                     <div class="v-content">
@@ -1929,7 +1950,7 @@
     </div>
 
     <div id="imageModal" class="image-modal" onclick="if(event.target === this) closeMediaModal()">
-        <div style="position: absolute; top: 20px; right: 25px; display: flex; gap: 25px; align-items: center; z-index: 100001;">
+        <div style="position: absolute; top: calc(20px + env(safe-area-inset-top)); right: 25px; display: flex; gap: 25px; align-items: center; z-index: 100001;">
             <button onclick="downloadCurrentMedia()" style="background: none; border: none; color: white; font-size: 22px; cursor: pointer; text-shadow: 0 2px 5px rgba(0,0,0,0.5);" title="下載檔案"><i id="mediaDownloadIcon" class="fas fa-download"></i></button>
             <button onclick="closeMediaModal()" style="background: none; border: none; color: white; font-size: 35px; cursor: pointer; text-shadow: 0 2px 5px rgba(0,0,0,0.5);" title="關閉">&times;</button>
         </div>
@@ -1998,11 +2019,21 @@
     // 0. 系統初始化與深色模式
     // ==========================================
     document.addEventListener("DOMContentLoaded", () => {
-        if (localStorage.getItem('darkMode') === 'true') {
+        // 【強化】：檢查 localStorage 的深色模式設定
+        const savedDarkMode = localStorage.getItem('darkMode');
+        
+        if (savedDarkMode === 'true') {
+            // 如果使用者曾手動切換為深色，就維持深色
             document.body.classList.add('dark-mode');
+        } else {
+            // 【關鍵防呆】：如果是 null (第一次用) 或 false，強制清除深色 class
+            // 這樣就算手機系統是深色模式，也不會干擾到我們 App 的預設淺色外觀
+            document.body.classList.remove('dark-mode');
+            // 如果是第一次用，主動幫他記下「現在是淺色」
+            if (savedDarkMode === null) localStorage.setItem('darkMode', 'false');
         }
         
-        // 【新增】：檢查是否看過操作說明，若看過則切換回「新增對話」按鈕
+        // 檢查是否看過操作說明，若看過則切換回「新增對話」按鈕
         if (localStorage.getItem('hasSeenGuide') === 'true') {
             const btn = document.getElementById('topNavActionBtn');
             if (btn) {
@@ -2010,7 +2041,7 @@
                 btn.title = '新增對話';
                 btn.style.background = '';
                 btn.style.borderColor = '';
-                btn.classList.remove('guide-calling-btn'); // 【新增】：拔除呼喚動畫
+                btn.classList.remove('guide-calling-btn'); // 拔除呼喚動畫
             }
         }
     });
@@ -2230,7 +2261,15 @@
         
         updateMyStatus(false);
         cancelReply();
-        closeContextMenu();
+        closeContextMenu(); 
+
+        // 【新增】：離開時清空輸入框並強制收起手機鍵盤
+        const msgInput = document.getElementById('msgInput');
+        if (msgInput) {
+            msgInput.value = '';
+            msgInput.style.height = '36px'; // 恢復預設高度
+            msgInput.blur(); // 強制失去焦點，收起鍵盤
+        }
     }
 
     chatViewDOM.addEventListener('touchstart', (e) => {
@@ -3158,6 +3197,12 @@
     // 檔案上傳與壓縮
     function compressImageClientSide(file, maxSizeMB) {
         return new Promise((resolve, reject) => {
+            // 【終極防護】：雙重檢查！只要 MIME 類型包含 gif，或是檔名結尾是 .gif，無條件放行保留原圖！
+            if (file && (file.type.includes('gif') || file.name.toLowerCase().endsWith('.gif'))) {
+                console.log("偵測到 GIF，跳過 Canvas 壓縮程序！");
+                return resolve(file);
+            }
+
             const maxSize = maxSizeMB * 1024 * 1024, reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onload = event => {
@@ -3190,6 +3235,11 @@
     // ==========================================
     function compressGroupBuyImage(file) {
         return new Promise((resolve, reject) => {
+            // 【終極防護】：雙重檢查！只要是 GIF 就放行！
+            if (file && (file.type.includes('gif') || file.name.toLowerCase().endsWith('.gif'))) {
+                return resolve(file);
+            }
+
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onload = event => {
@@ -3197,7 +3247,6 @@
                 img.src = event.target.result;
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    // 團購商品圖不需要太大，限制在 800px 以內即可大幅縮小體積
                     let width = img.width, height = img.height, maxDim = 800;
                     if (width > maxDim || height > maxDim) {
                         if (width > height) { height = Math.round(height * (maxDim / width)); width = maxDim; } 
@@ -3207,7 +3256,6 @@
                     const ctx = canvas.getContext('2d'); 
                     ctx.drawImage(img, 0, 0, width, height);
                     
-                    // 直接輸出 0.7 畫質的 JPEG，通常會在 50KB ~ 150KB 左右
                     canvas.toBlob(blob => {
                         if (!blob) return reject(new Error("處理失敗"));
                         resolve(new File([blob], file.name.replace(/\.[^/.]+$/, "") + "_gb_min.jpg", { type: 'image/jpeg' }));
@@ -4494,7 +4542,42 @@
 
     async function downloadCurrentImage() { forceDownload(currentGalleryImages[currentSlideIndex], `photo_${Date.now()}.jpg`); }
     async function downloadAllImages() { if(!confirm("確定下載全部？")) return; for(let i=0; i<currentGalleryImages.length; i++){ await forceDownload(currentGalleryImages[i], `batch_${i}.jpg`); await new Promise(r=>setTimeout(r,800)); } alert("已送出"); }
-    async function forceDownload(url, filename) { try { const r = await fetch(url, {mode:'cors'}); const b = await r.blob(); const l = document.createElement('a'); l.href = URL.createObjectURL(b); l.download = filename; l.click(); URL.revokeObjectURL(l.href); } catch(e){ window.open(url, '_blank'); } }
+    // 【修改】：完美適配 iOS 與 Android 的下載/儲存引擎
+    async function forceDownload(url, filename) { 
+        try { 
+            const r = await fetch(url, { mode: 'cors' }); 
+            const b = await r.blob(); 
+            
+            // 1. iOS 原生完美解法：呼叫系統「分享/儲存」選單
+            if (navigator.canShare && navigator.share) {
+                try {
+                    const file = new File([b], filename, { type: b.type });
+                    if (navigator.canShare({ files: [file] })) {
+                        await navigator.share({
+                            files: [file],
+                            title: filename
+                        });
+                        return; // 成功呼叫原生選單，結束函式
+                    }
+                } catch (shareErr) {
+                    console.log("使用者取消分享或失敗，退回傳統模式");
+                }
+            }
+
+            // 2. 電腦版與 Android 的傳統下載解法
+            const l = document.createElement('a'); 
+            l.href = URL.createObjectURL(b); 
+            l.download = filename; 
+            document.body.appendChild(l); // 必須加到 DOM 裡面有些瀏覽器才理你
+            l.click(); 
+            document.body.removeChild(l);
+            URL.revokeObjectURL(l.href); 
+            
+        } catch(e) { 
+            // 3. 終極防呆：直接把網址開在新視窗，讓使用者手動「長按儲存」
+            window.open(url, '_blank'); 
+        } 
+    }
 
     // 設定與登出
     // ==========================================
@@ -6215,17 +6298,17 @@
                 html += `
                 <div style="background:#f8f9fa; border:1px solid #ddd; border-left:4px solid var(--ly-gold); padding:15px; margin-bottom:15px; border-radius:8px;">
                     <h4 style="margin:0 0 10px 0; color:#333;">${acc.sysTitle}</h4>
-                    <div style="margin-bottom:8px;">
-                        <strong>帳號：</strong>
-                        <div class="cipher-input-group" style="display:inline-flex; width: 200px;">
-                            <input type="text" id="v-acc-${idx}" value="${cUser}" data-real-val="${acc.user}" data-cipher-val="${cUser}" readonly style="background:transparent; border:none; outline:none; font-size:1.1rem; color:var(--ly-blue); font-weight:bold; font-family:monospace;">
+                    <div style="margin-bottom:8px; display: flex; align-items: center;">
+                        <strong style="white-space: nowrap; margin-right: 8px;">帳號：</strong>
+                        <div class="cipher-input-group" style="flex: 1;">
+                            <input type="text" id="v-acc-${idx}" value="${cUser}" data-real-val="${acc.user}" data-cipher-val="${cUser}" readonly style="width: 100%; background: transparent !important; border: none; outline: none; font-size: 1.1rem; color: var(--ly-blue); font-weight: bold; font-family: monospace; padding-left: 0;">
                             <button class="cipher-eye-btn" onmousedown="showViewAccount('v-acc-${idx}')" onmouseup="hideViewAccount('v-acc-${idx}')" ontouchstart="showViewAccount('v-acc-${idx}')" ontouchend="hideViewAccount('v-acc-${idx}')"><i class="fas fa-eye"></i></button>
                         </div>
                     </div>
-                    <div>
-                        <strong>密碼：</strong>
-                        <div class="cipher-input-group" style="display:inline-flex; width: 200px;">
-                            <input type="password" id="v-pass-${idx}" value="${acc.pass}" readonly style="background:transparent; border:none; outline:none; font-size:1.1rem; color:#d93025; font-weight:bold; font-family:monospace;">
+                    <div style="display: flex; align-items: center;">
+                        <strong style="white-space: nowrap; margin-right: 8px;">密碼：</strong>
+                        <div class="cipher-input-group" style="flex: 1;">
+                            <input type="password" id="v-pass-${idx}" value="${acc.pass}" readonly style="width: 100%; background: transparent !important; border: none; outline: none; font-size: 1.1rem; color: #d93025; font-weight: bold; font-family: monospace; padding-left: 0;">
                             <button class="cipher-eye-btn" onmousedown="showCipherPreview('v-pass-${idx}')" onmouseup="hideCipherPreview('v-pass-${idx}')" ontouchstart="showCipherPreview('v-pass-${idx}')" ontouchend="hideCipherPreview('v-pass-${idx}')"><i class="fas fa-eye"></i></button>
                         </div>
                     </div>
