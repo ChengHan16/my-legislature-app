@@ -139,7 +139,7 @@
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis; /* 【關鍵新增】不換行處理 */
             flex: 1; min-width: 0; /* 配合右側時間排版 */
         }
-        .chat-info p { margin: 0; color: #666; font-size: 1.05rem; display: -webkit-box; line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; word-break: break-all; }
+        .chat-info p { margin: 0; color: #666; font-size: 1.05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
         .chat-time { 
             font-size: 0.85rem; color: #999; font-weight: 500; 
             flex-shrink: 0; margin-left: 10px; /* 【關鍵新增】 */
@@ -189,7 +189,7 @@
             max-width: var(--container-width); width: 100%; display: flex; align-items: center; 
             gap: 10px; 
             padding: 8px 12px; /* 【微調】：降低 2px */
-            padding-bottom: calc(4.5px + env(safe-area-inset-bottom)); box-sizing: border-box; 
+            padding-bottom: calc(4.2px + env(safe-area-inset-bottom)); box-sizing: border-box; 
         }
 
         #msgInput { 
@@ -371,11 +371,11 @@
         }
         .cropper-view-box, .cropper-face { border-radius: 50%; }
 
-        .group-members-list { display: flex; flex-direction: column; gap: 10px; margin-top: 5px; background: #f8f9fa; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); max-height: 200px; overflow-y: auto; }
-        .member-item { display: flex; align-items: center; gap: 12px; }
-        .member-item img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1px solid #ddd; }
-        .member-item span { font-size: 14px; color: #333; font-weight: 600; }
-        .more-members-btn { background: none; border: none; color: var(--ly-blue); font-size: 13px; font-weight: bold; cursor: pointer; padding: 8px 0 4px 0; text-align: center; width: 100%; transition: color 0.2s; }
+        .group-members-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 5px; background: #f8f9fa; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); max-height: 260px; overflow-y: auto; }
+        .member-item { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px 5px; background: #fffdf5; border: 1.5px solid var(--ly-gold); border-radius: 8px; }
+        .member-item img { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid var(--ly-blue); margin-bottom: 6px; margin-right: 0;}
+        .member-item span { font-size: 13px; color: var(--ly-gold); font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; text-align: center; }
+        .more-members-btn { grid-column: 1 / -1; background: none; border: none; color: var(--ly-blue); font-size: 13px; font-weight: bold; cursor: pointer; padding: 8px 0 4px 0; text-align: center; width: 100%; transition: color 0.2s; }
 
         @keyframes pulse-save { 0% { box-shadow: 0 0 0 0 rgba(207, 169, 0, 0.7); background-color: var(--ly-gold); color: #fff; } 70% { box-shadow: 0 0 0 10px rgba(207, 169, 0, 0); background-color: #e6bc00; color: #fff; } 100% { box-shadow: 0 0 0 0 rgba(207, 169, 0, 0); background-color: var(--ly-gold); color: #fff; } }
         .btn-highlight { animation: pulse-save 1.5s infinite !important; border: none !important; }
@@ -550,13 +550,206 @@
         /* ==========================================
            表情符號回應專用樣式
            ========================================== */
-        .reaction-bar { display: flex; gap: 8px; padding: 10px; border-bottom: 1px solid #eee; justify-content: center; background: #f8f9fa; border-radius: 12px 12px 0 0; }
-        .reaction-btn { font-size: 1.5rem; background: none; border: none; cursor: pointer; transition: 0.2s; padding: 4px; display: flex; align-items: center; justify-content: center;}
+        /* ==========================================
+           表情符號回應專用樣式 (霸氣滿版)
+           ========================================== */
+        .reaction-bar { display: flex; gap: 18px; padding: 16px 10px; border-bottom: 1px solid #eee; justify-content: center; background: #f8f9fa; border-radius: 12px 12px 0 0; }
+        .reaction-btn { font-size: 2.8rem; background: none; border: none; cursor: pointer; transition: 0.2s; padding: 0; margin: 0; display: flex; align-items: center; justify-content: center; line-height: 1; }
+        .reaction-btn:active { transform: scale(1.2); }
         .reaction-btn:active { transform: scale(1.3); }
-        .msg-reactions { display: flex; flex-wrap: wrap; gap: 4px; margin-top: -10px; margin-bottom: 8px; z-index: 2; position: relative; padding: 0 10px; }
+        .msg-reactions { display: flex; flex-wrap: wrap; gap: 4px; margin-top: -6px; margin-bottom: 8px; z-index: 2; position: relative; padding: 0 10px; }
         .reaction-badge { background: white; border: 1px solid #ddd; border-radius: 12px; font-size: 0.85rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 4px; cursor: pointer; transition: 0.2s;}
         .reaction-badge:active { transform: scale(1.1); }
         .reaction-badge.my-reaction { background: #fffdf5; border-color: var(--ly-gold); }
+
+        /* ==========================================
+           深色模式 (Dark Mode) - 立法院特調版
+           ========================================== */
+        body.dark-mode {
+            --bg-gray: #121212; 
+            --white: #1e1e1e; 
+            --border-color: #333333;
+            /* 針對深色底，將文字藍色調亮以便閱讀，但保留沉穩感 */
+            --ly-blue: #5ba4d6; 
+            /* 頂部導覽列保持原汁原味的深藍色 */
+            --ly-blue-trans: rgba(0, 30, 50, 0.95); 
+            --ly-gold: #d4b424; 
+            color: #e0e0e0;
+        }
+        
+        /* 基礎背景與卡片 */
+        body.dark-mode .chat-item, body.dark-mode .input-area, body.dark-mode .modal-card, 
+        body.dark-mode .context-menu, body.dark-mode .expand-menu-panel, body.dark-mode .pinned-bar, 
+        body.dark-mode #selectActionBar, body.dark-mode .field-adder-bar, body.dark-mode .member-preview-list,
+        body.dark-mode .modal-footer, body.dark-mode .reply-preview-bar {
+            background: var(--white); border-color: var(--border-color); color: #e0e0e0;
+        }
+        /* Settings 專用背景 */
+        body.dark-mode #settingsView > div { background: #121212 !important; color: #e0e0e0; }
+        
+        /* 對話氣泡 */
+        body.dark-mode .msg.theirs { background: #2a2a2a; border-color: #444; color: #e0e0e0; }
+        body.dark-mode .msg.mine { background: #004c82; color: #fff; border-right-color: var(--ly-gold); }
+        
+        /* 輸入框與表單 */
+        body.dark-mode input, body.dark-mode textarea, body.dark-mode .ev-dynamic-input, 
+        body.dark-mode .gb-item-row input, body.dark-mode .gb-my-note-input {
+            background: #2a2a2a !important; color: #e0e0e0 !important; border-color: #444 !important;
+        }
+        body.dark-mode .gb-item-row { background: #2a2a2a; border-color: #444; }
+
+        /* 文字色彩適配 */
+        body.dark-mode h2, body.dark-mode h3, body.dark-mode label, body.dark-mode span:not(.msg-event-countdown), body.dark-mode p { color: #e0e0e0; }
+        body.dark-mode .chat-info h4, body.dark-mode .event-mini-title, body.dark-mode .gb-order-info h4, body.dark-mode .doc-sub-title { color: var(--ly-blue); }
+        body.dark-mode .chat-info p, body.dark-mode .chat-time, body.dark-mode .msg-time, body.dark-mode .event-mini-meta, body.dark-mode .gb-order-info p { color: #aaa !important; }
+        body.dark-mode .user-name { color: #fff; }
+        body.dark-mode .modal-header h3, body.dark-mode .btn-confirm, body.dark-mode .fab { color: #fff !important; }
+        
+        /* 輔助 UI (表情、按鈕、卡片) */
+        body.dark-mode .reaction-bar, body.dark-mode .time-divider { background: #2a2a2a; border-color: #444; color: #e0e0e0; }
+        body.dark-mode .reaction-badge { background: #2a2a2a; border-color: #555; color: #e0e0e0; }
+        body.dark-mode .reaction-badge.my-reaction { background: #333; border-color: var(--ly-gold); }
+        body.dark-mode .btn-cancel { background: #2a2a2a; color: #e0e0e0; border-color: #444; }
+        body.dark-mode .event-mini-item, body.dark-mode .member-item, body.dark-mode .user-select-card { background: #1e1e1e; border-color: #444; }
+        body.dark-mode .msg-event-card { background: #22221a; border-color: var(--ly-gold); }
+        body.dark-mode .reply-snippet { background: rgba(255,255,255,0.1); color: #ccc; }
+        
+        /* 專屬設定頁切換按鈕背景 */
+        body.dark-mode #darkModeContainer { background: #2a2a2a !important; border-color: #444 !important; }
+
+        /* ==========================================
+           釘選視窗專用樣式
+           ========================================== */
+        #pinnedMsgContent img, #pinnedMsgContent video {
+            display: block;
+            margin: 10px auto !important; /* 強制所有圖片與影片置中顯示 */
+        }
+
+        /* ==========================================
+           深色模式 (Dark Mode) - 顏色修正補丁
+           ========================================== */
+        
+        /* 1. 修正釘選訊息與長按選單，強制變為淺色文字 */
+        body.dark-mode .pinned-content, 
+        body.dark-mode .context-menu button { 
+            color: #e0e0e0 !important; 
+        }
+        body.dark-mode .context-menu button:hover { 
+            background: #333 !important; 
+        }
+
+        /* 2. 將彈跳視窗底部 (modal-footer) 與成員名單 (readReceiptList 等) 改為特調 #121b24 */
+        body.dark-mode .modal-footer, 
+        body.dark-mode .group-members-list { 
+            background: #121b24 !important; 
+            border-color: #2a3642 !important; 
+        }
+        
+        /* 順便微調名單內的成員小卡片，讓它在 #121b24 背景上能浮現出來 */
+        body.dark-mode .member-item { 
+            background: #1e2b38 !important; 
+            border-color: #33475b !important; 
+        }
+
+        /* 3. 活動與團購 Modal 內部背景強制轉暗 */
+        body.dark-mode #activityScheduleModal .modal-card,
+        body.dark-mode #groupBuyListModal .modal-card,
+        body.dark-mode #createEventModal .modal-body,
+        body.dark-mode #createGroupBuyModal .modal-body,
+        body.dark-mode #viewGroupBuyModal .modal-body,
+        body.dark-mode #eventMemberPickerModal .modal-body,
+        body.dark-mode #editMembersModal .modal-body {
+            background-color: #121b24 !important;
+        }
+
+        /* 4. 針對寫死 inline style 的區塊 (例如搜尋欄、詳情標頭) */
+        body.dark-mode #eventMemberPickerModal .modal-card > div[style*="background: white"],
+        body.dark-mode #viewGroupBuyModal .modal-card > div[style*="background: #fffdf5"] {
+            background-color: #1e2b38 !important;
+            border-bottom-color: #2a3642 !important;
+        }
+
+        /* 5. 提示框 (班長特權 / 小提示的黃底框) 修正 */
+        body.dark-mode div[style*="background: #fffdf5"][style*="color: #856404"] {
+            background-color: rgba(207, 169, 0, 0.1) !important;
+            border-color: rgba(207, 169, 0, 0.3) !important;
+            color: #d4b424 !important; /* 暗色模式的專屬金色 */
+        }
+        body.dark-mode div[style*="background: #fffdf5"][style*="color: #856404"] span {
+            color: #e0e0e0 !important;
+        }
+
+        /* 6. 參加成員與群組成員的「卡片選取狀態」修正 (高對比暗金風格) */
+        body.dark-mode .user-select-card {
+            background: #1e2b38 !important;
+            border-color: #2a3642 !important;
+            box-shadow: none !important;
+        }
+        body.dark-mode .user-select-card span {
+            color: #aaa !important;
+        }
+        /* 點擊選取後的狀態 */
+        body.dark-mode .user-select-item input:checked + .user-select-card {
+            background: rgba(207, 169, 0, 0.15) !important; /* 帶點金色的暗底 */
+            border-color: var(--ly-gold) !important;
+            box-shadow: 0 0 12px rgba(207, 169, 0, 0.3) !important;
+        }
+        body.dark-mode .user-select-item input:checked + .user-select-card span {
+            color: var(--ly-gold) !important;
+            font-weight: 900 !important;
+        }
+
+        /* 7. 其他輸入框外框、私人活動紅框與次要背景 */
+        body.dark-mode .member-preview-list,
+        body.dark-mode .field-adder-bar,
+        body.dark-mode .gb-item-row {
+            background: #1e2b38 !important;
+            border-color: #2a3642 !important;
+        }
+        body.dark-mode #private-auth-section {
+            background: rgba(217, 48, 37, 0.1) !important;
+            border-color: rgba(217, 48, 37, 0.5) !important;
+        }
+        body.dark-mode .tag-btn {
+            background: transparent !important;
+        }
+
+        /* ==========================================
+           操作說明頁面專用樣式
+           ========================================== */
+        .guide-section { 
+            margin-bottom: 20px; 
+            padding: 18px; 
+            background: #f8f9fa; 
+            border-radius: 4px;  /* 【修改】：從 12px 改為 4px，提升俐落與專業感 */
+            border-left: 4px solid var(--ly-blue); 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+        .guide-section h4 { 
+            margin: 0 0 12px 0; 
+            color: var(--ly-blue); 
+            font-size: 1.15rem; 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+            border-bottom: 1px dashed #ddd;
+            padding-bottom: 8px;
+        }
+        .guide-list { 
+            margin: 0; 
+            padding-left: 22px; 
+            color: #444; 
+            font-size: 0.95rem; 
+            line-height: 1.7; 
+        }
+        .guide-list li { margin-bottom: 8px; }
+        .guide-list li::marker { color: var(--ly-gold); font-weight: bold; }
+
+        /* 操作說明頁面的深色模式適配 */
+        body.dark-mode #guideView { background: var(--bg-gray); }
+        body.dark-mode .guide-section { background: #1e2b38; border-left-color: var(--ly-gold); border-color: #2a3642; }
+        body.dark-mode .guide-section h4 { color: var(--ly-gold); border-bottom-color: #33475b; }
+        body.dark-mode .guide-list { color: #ccc; }
     </style>
 </head>
 <body>
@@ -721,7 +914,7 @@
                     <input type="text" id="groupNameEdit" oninput="markAsUnsaved()">
                 </div>
                 <div class="modal-input-group" style="text-align: left; margin-bottom: 0;">
-                    <label>群組成員</label>
+                    <label id="groupMembersLabel">群組成員</label>
                     <div id="groupMembersList" class="group-members-list"></div>
                     <button id="editMembersBtn" class="btn-modal btn-cancel" style="width: 100%; margin-top: 10px; display: none;" onclick="openEditMembersModal()">
                         <i class="fas fa-user-edit"></i> 編輯群組成員
@@ -956,7 +1149,7 @@
         </div>
     </div>
 
-    <div id="readReceiptModal" class="modal-overlay" style="z-index: 6000;">
+    <div id="readReceiptModal" class="modal-overlay" style="z-index: 6000;" onclick="if(event.target === this) closeModal('readReceiptModal')">
         <div class="modal-card" style="max-width: 350px;">
             <div class="modal-header">
                 <h3><i class="fas fa-eye"></i> 已讀成員</h3>
@@ -971,6 +1164,21 @@
         </div>
     </div>
 
+    <div id="reactionMembersModal" class="modal-overlay" style="z-index: 6000;" onclick="if(event.target === this && !window.preventReactionClose) closeModal('reactionMembersModal')">
+        <div class="modal-card" style="max-width: 350px;">
+            <div class="modal-header">
+                <h3 id="reactionModalTitle"><i class="fas fa-thumbs-up"></i> 回應成員</h3>
+                <span style="cursor:pointer;" onclick="closeModal('reactionMembersModal')">&times;</span>
+            </div>
+            <div class="modal-body" style="padding: 15px;">
+                <div id="reactionMembersList" class="group-members-list" style="max-height: 300px; padding: 5px; border: none; background: transparent;"></div>
+            </div>
+            <div class="modal-footer" style="justify-content: center; background: white; border-top: 1px solid #eee;">
+                <button class="btn-modal btn-cancel" style="width: 100%;" onclick="closeModal('reactionMembersModal')">關閉</button>
+            </div>
+        </div>
+    </div>
+
     <div id="pinnedMessageModal" class="modal-overlay" style="z-index: 6000;">
         <div class="modal-card" style="max-width: 350px;">
             <div class="modal-header">
@@ -980,7 +1188,7 @@
             <div class="modal-body" style="padding: 20px; background: #f8f9fa;">
                 <div style="font-size: 0.85rem; color: #666; margin-bottom: 10px; display: flex; justify-content: space-between; border-bottom: 1px dashed #ddd; padding-bottom: 8px;" id="pinnedMsgSenderTime">
                     </div>
-                <div style="font-size: 1.05rem; color: #333; line-height: 1.6; background: white; padding: 15px; border-radius: 12px; border: 1px solid #dee2e6; word-break: break-word; box-shadow: 0 2px 8px rgba(0,0,0,0.03);" id="pinnedMsgContent">
+                <div style="font-size: 1.05rem; color: inherit; line-height: 1.6; word-break: break-word; padding: 10px 5px;" id="pinnedMsgContent">
                     </div>
             </div>
             <div class="modal-footer" style="justify-content: center; background: white;">
@@ -989,7 +1197,23 @@
         </div>
     </div>
 
-    <div id="contextMenu" class="context-menu" style="flex-direction: column; padding: 0; overflow: hidden;">
+    <div id="pinConfirmModal" class="modal-overlay" style="z-index: 6000;" onclick="if(event.target === this) closeModal('pinConfirmModal')">
+        <div class="modal-card" style="max-width: 320px;">
+            <div class="modal-header" style="background: #003153; border-bottom: 3px solid #ff4d4d;">
+                <h3 style="color: white;"><i class="fas fa-exclamation-circle" style="color: #ff4d4d;"></i> 覆蓋釘選確認</h3>
+                <span style="cursor:pointer; color: white;" onclick="closeModal('pinConfirmModal')">&times;</span>
+            </div>
+            <div class="modal-body" style="padding: 25px 20px; text-align: center; font-size: 1.05rem; font-weight: 500;">
+                目前已有釘選訊息，是否要覆蓋原本的釘選？
+            </div>
+            <div class="modal-footer" style="justify-content: center; gap: 15px;">
+                <button class="btn-modal btn-cancel" style="flex: 1;" onclick="closeModal('pinConfirmModal')">取消</button>
+                <button class="btn-modal btn-confirm" style="flex: 1; background: #ff4d4d; border: none; box-shadow: 0 4px 10px rgba(255, 77, 77, 0.2);" onclick="executePinMessage()">確定覆蓋</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="contextMenu" class="context-menu" style="flex-direction: column; padding: 0; overflow: hidden; width: 320px;">
         <div class="reaction-bar">
             <button class="reaction-btn" onclick="sendReaction('👍')">👍</button>
             <button class="reaction-btn" onclick="sendReaction('❤️')">❤️</button>
@@ -997,11 +1221,11 @@
             <button class="reaction-btn" onclick="sendReaction('🙏')">🙏</button>
             <button class="reaction-btn" onclick="sendReaction('👀')">👀</button>
         </div>
-        <div style="display: flex; flex-direction: column; padding: 6px;">
-            <button id="pinMenuBtn" onclick="pinMessage()"><i class="fas fa-thumbtack"></i> 釘選</button>
-            <button id="replyMenuBtn" onclick="triggerMenuReply()"><i class="fas fa-reply"></i> 回覆</button>
-            <button id="copyMenuBtn" onclick="copyMessage()"><i class="fas fa-copy"></i> 複製</button>
-            <button id="multiSelectMenuBtn" onclick="enterSelectMode()"><i class="fas fa-trash-alt"></i> 收回</button>
+        <div style="display: flex; flex-direction: row; justify-content: space-around; padding: 6px;">
+            <button id="pinMenuBtn" onclick="pinMessage()" style="flex:1; justify-content:center; padding: 10px 5px;"><i class="fas fa-thumbtack"></i> 釘選</button>
+            <button id="replyMenuBtn" onclick="triggerMenuReply()" style="flex:1; justify-content:center; padding: 10px 5px;"><i class="fas fa-reply"></i> 回覆</button>
+            <button id="copyMenuBtn" onclick="copyMessage()" style="flex:1; justify-content:center; padding: 10px 5px;"><i class="fas fa-copy"></i> 複製</button>
+            <button id="multiSelectMenuBtn" onclick="enterSelectMode()" style="flex:1; justify-content:center; padding: 10px 5px;"><i class="fas fa-trash-alt"></i> 收回</button>
         </div>
     </div>
 
@@ -1030,14 +1254,82 @@
             <p id="settingsEmail" style="color: #666; font-size: 1rem; margin: 0 0 5px 0; text-align: center; width: 100%;">載入中...</p>
             <p id="settingsUid" style="color: #aaa; font-size: 0.8rem; margin: 0 0 25px 0; font-family: monospace; text-align: center; width: 100%;">UID: ...</p>
             
-            <div style="width: 100%; max-width: 300px; display: flex; gap: 10px; margin-bottom: 30px;">
+
+            <div id="darkModeContainer" onclick="toggleDarkModeWithAnim()" style="width: 100%; max-width: 300px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 12px 15px; background: #f8f9fa; border-radius: 8px; border: 1px solid #eee; box-sizing: border-box; cursor: pointer; transition: 0.2s;">
+                <span style="font-weight: bold; color: var(--ly-blue);"><i class="fas fa-palette"></i> 外觀模式切換</span>
+                <i class="fas fa-sun" id="darkModeToggleIcon" style="font-size: 1.5rem; color: #e67e22; transition: transform 0.3s ease, color 0.3s ease;"></i>
+            </div>
+
+            <div style="width: 100%; max-width: 300px; display: flex; gap: 10px; margin-bottom: 15px;">
                 <button class="btn-modal btn-cancel" style="flex: 1; padding: 10px; border-radius: 8px; font-size: 0.9rem;" onclick="handleChangeEmail()"><i class="fas fa-envelope"></i> 修改信箱</button>
                 <button class="btn-modal btn-cancel" style="flex: 1; padding: 10px; border-radius: 8px; font-size: 0.9rem;" onclick="handleChangePassword()"><i class="fas fa-key"></i> 修改密碼</button>
             </div>
 
+            <button class="btn-modal btn-cancel" style="width: 100%; max-width: 300px; padding: 12px; border-radius: 8px; font-size: 1rem; margin-bottom: 30px; color: var(--ly-blue); border: 1px solid var(--ly-blue); font-weight: bold;" onclick="openGuide()">
+                <i class="fas fa-book-open"></i> 系統操作說明
+            </button>
+
             <button class="btn-modal btn-confirm" style="width: 100%; max-width: 300px; background: #ff4d4d; font-size: 1.1rem; padding: 15px; border-radius: 30px; box-shadow: 0 4px 15px rgba(255,77,77,0.3);" onclick="handleLogout()">
                 <i class="fas fa-sign-out-alt"></i> 登出帳號
             </button>
+        </div>
+    </div>
+
+    <div id="guideView" class="app-view" style="z-index: 40; transform: translateX(100%);">
+        <header class="messenger-header">
+            <div class="header-content" style="padding: 15px 20px;">
+                <div class="user-profile">
+                    <button class="back-btn" onclick="closeGuide()"><i class="fas fa-chevron-left"></i></button>
+                    <span class="user-name">系統操作說明</span>
+                </div>
+            </div>
+        </header>
+        
+        <div style="flex: 1; overflow-y: auto; padding: 25px 20px; background: transparent; -webkit-overflow-scrolling: touch;">
+            
+            <div class="guide-section">
+                <h4><i class="fas fa-info-circle"></i> 基礎操作</h4>
+                <ul class="guide-list">
+                    <li>點擊左上角的「個人大頭貼」即可切換到設定頁面。</li>
+                </ul>
+            </div>
+
+            <div class="guide-section">
+                <h4><i class="fas fa-comments"></i> 聊天與訊息功能</h4>
+                <ul class="guide-list">
+                    <li>傳送 <b>.png / .jpeg / .gif</b> 等網址時，系統會自動轉換成預覽圖片。</li>
+                    <li>針對單一訊息<b>向左或向右滑動</b>，即可快速回覆該則訊息。</li>
+                    <li><b>長按訊息</b>會喚出專屬選單（包含：釘選、回覆、複製、收回）。</li>
+                    <li><b>長按別人按的「表情符號」</b>，即可查看點擊該表情的成員清單。</li>
+                    <li>在群組對話中，點擊訊息時間旁邊的<b>「已讀」</b>，可查看所有已讀成員。</li>
+                </ul>
+            </div>
+
+            <div class="guide-section">
+                <h4><i class="fas fa-calendar-alt"></i> 建立活動功能</h4>
+                <ul class="guide-list">
+                    <li><b>發起活動：</b>點擊對話框左側的「+」>「活動行程」>「新增活動」。</li>
+                    <li><b>隱私設定：</b>活動可設為「公開」或「私人」（私人模式僅限您授權的成員檢視與參與）。</li>
+                    <li><b>自訂欄位：</b>支援動態新增地點、集合時間、詳細內容，並可上傳多張活動照片。</li>
+                    <li><b>管理行程：</b>在行程總覽中，對著自己建立的卡片<b>向左滑動</b>即可「編輯」或「刪除」。</li>
+                    <li><b>行程確認：</b>活動發布至聊天室後，成員可直接點擊卡片進行「參與」或「下次再說」的統計。</li>
+                </ul>
+            </div>
+
+            <div class="guide-section">
+                <h4><i class="fas fa-shopping-cart"></i> 建立團購功能</h4>
+                <ul class="guide-list">
+                    <li><b>發起團購：</b>點擊對話框左側的「+」>「團購功能」>「新增團購」。</li>
+                    <li><b>商品設定：</b>可無限新增商品品項，並為各商品設定單價、數量上限及專屬預覽圖。</li>
+                    <li><b>登記訂購：</b>成員點擊聊天室的團購卡片後，可自由調整購買數量，並能針對單一商品填寫「專屬備註」（如：微糖少冰、尺寸 L）。</li>
+                    <li><b>自動統整：</b>系統會自動加總每項商品的總訂購數，並列出各成員的點單明細與備註，方便代購者一目了然。</li>
+                    <li><b>管理訂單：</b>在團購清單中，對著自己發起的訂單<b>向左滑動</b>即可「編輯」或徹底「刪除」。</li>
+                </ul>
+            </div>
+            
+            <div style="text-align: center; color: #aaa; font-size: 0.8rem; margin-top: 30px; margin-bottom: 20px;">
+                © 立法院 Legislature Communication System
+            </div>
         </div>
     </div>
 
@@ -1115,6 +1407,51 @@
     let currentSubscribeMessages = null; // 【新增】：儲存重新監聽的函式
 
     // ==========================================
+    // 0. 系統初始化與深色模式
+    // ==========================================
+    document.addEventListener("DOMContentLoaded", () => {
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.body.classList.add('dark-mode');
+        }
+    });
+
+    // ==========================================
+    // 深色模式動態切換引擎
+    // ==========================================
+    function toggleDarkModeWithAnim() {
+        const isDark = document.body.classList.contains('dark-mode');
+        const icon = document.getElementById('darkModeToggleIcon');
+        
+        // 1. 縮小並旋轉 (消失感)
+        icon.style.transform = 'scale(0.1) rotate(180deg)';
+        
+        setTimeout(() => {
+            if (!isDark) {
+                // 切換為深色模式 (變成金色月亮)
+                document.body.classList.add('dark-mode');
+                localStorage.setItem('darkMode', 'true');
+                icon.className = 'fas fa-moon';
+                icon.style.color = '#f1c40f'; 
+            } else {
+                // 切換回淺色模式 (變成橘色太陽)
+                document.body.classList.remove('dark-mode');
+                localStorage.setItem('darkMode', 'false');
+                icon.className = 'fas fa-sun';
+                icon.style.color = '#e67e22'; 
+            }
+            
+            // 2. 放大並轉回來 (彈出感)
+            icon.style.transform = 'scale(1.3) rotate(360deg)';
+            
+            setTimeout(() => {
+                // 3. 恢復正常大小
+                icon.style.transform = 'scale(1) rotate(360deg)';
+            }, 150);
+            
+        }, 150);
+    }
+
+    // ==========================================
     // 全域成員排序規則 (Member Sort Order)
     // ==========================================
     const memberOrderList = [
@@ -1157,7 +1494,8 @@
             const cleanUrl = url.replace(/&amp;/g, '&'); 
             // 偵測是否為圖片或 GIF 結尾
             if (cleanUrl.match(/\.(jpeg|jpg|gif|png|webp)(\?.*)?$/i)) {
-                return `<a href="${cleanUrl}" target="_blank" style="color: inherit; text-decoration: underline; word-break: break-all;">${url}</a><br><img src="${cleanUrl}" class="msg-media" style="margin-top: 5px; max-height: 200px; border-radius: 8px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" onclick="if(!skipNextClick) openImageModal(this.src)" onload="scrollToBottom()">`;
+                // 【修改】：替換為智慧載入機制 handleImageLoad
+                return `<img src="${cleanUrl}" class="msg-media" onclick="if(!skipNextClick) openImageModal(this.src)" onload="handleImageLoad(this)">`;
             }
             return `<a href="${cleanUrl}" target="_blank" style="color: inherit; text-decoration: underline; word-break: break-all;">${url}</a>`;
         });
@@ -1291,6 +1629,7 @@
         messagesDocsData = []; 
         
         updateMyStatus(false);
+        cancelReply();
     }
 
     chatViewDOM.addEventListener('touchstart', (e) => {
@@ -1747,18 +2086,22 @@
 
             if (msg.fileUrl) {
                 if (msg.fileType === 'video') {
-                    // 【修改】：加上 onloadeddata="scrollToBottom()"
-                    contentHtml += `<video src="${msg.fileUrl}" controls class="msg-media" onloadeddata="scrollToBottom()"></video>`;
+                    // 【修改】：替換為智慧載入機制 handleImageLoad
+                    contentHtml += `<video src="${msg.fileUrl}" controls class="msg-media" onloadeddata="handleImageLoad(this)"></video>`;
                 } else {
-                    // 【修改】：加上 onload="scrollToBottom()"
-                    contentHtml += `<img src="${msg.fileUrl}" class="msg-media" onload="scrollToBottom()" onclick="if(!skipNextClick) openImageModal(this.src)">`;
+                    // 【修改】：替換為智慧載入機制 handleImageLoad
+                    contentHtml += `<img src="${msg.fileUrl}" class="msg-media" onload="handleImageLoad(this)" onclick="if(!skipNextClick) openImageModal(this.src)">`;
                 }
             }
             
             if (msg.text && !isEventCard) contentHtml += (msg.fileUrl ? '<br>' : '') + highlightMentions(linkifyAndPreview(escapeHtml(msg.text)));
             
-            // 【修復溢出 bug】：活動卡片與純圖片都套用 media-only，徹底去除原生氣泡的白底與內距
-            if (isEventCard || (msg.fileUrl && !msg.replyToId && !msg.text)) {
+            // 【新增】：嚴格判斷文字是否「純粹只有一個圖片/GIF網址」(不含其他文字)
+            const textTrimmed = msg.text ? msg.text.trim() : "";
+            const isOnlyImageLink = /^https?:\/\/[^\s]+\.(jpeg|jpg|gif|png|webp)(\?[^\s]*)?$/i.test(textTrimmed);
+
+            // 【修復溢出 bug】：活動卡片、純上傳圖片、以及「純圖片網址」都套用 media-only，徹底去除氣泡外框
+            if (isEventCard || (msg.fileUrl && !msg.replyToId && !msg.text) || (isOnlyImageLink && !msg.replyToId)) {
                 isMediaOnly = true;
             }
 
@@ -1794,7 +2137,14 @@
                     const countText = uids.length > 1 ? `<span style="margin-left: 4px; font-weight: bold; color: #555;">${uids.length}</span>` : '';
                     
                     reactionsHtml += `
-                    <div class="${badgeClass}" onclick="toggleReaction('${msgId}', '${emoji}')" style="padding: 2px 8px 2px 8px;">
+                    <div class="${badgeClass}" 
+                         ontouchstart="rxnStart(event, '${msgId}', '${emoji}')"
+                         ontouchend="rxnEnd(event, '${msgId}', '${emoji}')"
+                         onmousedown="rxnStart(event, '${msgId}', '${emoji}')"
+                         onmouseup="rxnEnd(event, '${msgId}', '${emoji}')"
+                         onmouseleave="rxnLeave(event)"
+                         oncontextmenu="event.preventDefault(); event.stopPropagation();"
+                         style="padding: 2px 8px 2px 8px; user-select: none;">
                         <span>${emoji}</span>
                         <div style="display: flex; margin-left: 6px; padding-left: 6px; border-left: 1px solid rgba(0,0,0,0.1); align-items: center;">
                             <div style="display: flex; padding-left: 6px;">${avatarsHtml}</div>
@@ -1847,13 +2197,12 @@
         } 
         // 否則如果是初次載入、滑動在最底部、或是最新訊息是自己發的，就強制置底
         // 【修改】：如果是初次載入、滑動在最底部、或是最新訊息是自己發的，就強制置底
-        else if (window.isFirstChatLoad || isAtBottom || isLastMessageMine) {
+        // 【修正】：移除 isLastMessageMine，避免在回看歷史紀錄時，點擊表情符號被強制拉到最底
+        else if (window.isFirstChatLoad || isAtBottom) {
             const shouldSmooth = !window.isFirstChatLoad; 
             
             setTimeout(() => {
                 scrollToBottom(shouldSmooth); 
-                // 【關鍵修復】：等待延遲捲動確實執行完畢後，才解除「初次載入」的狀態
-                // 這能完美包容 Firebase 在零點幾秒內發生的連續雙次渲染
                 window.isFirstChatLoad = false; 
             }, 150);
         }
@@ -1992,6 +2341,18 @@
         const list = document.getElementById('messageList');
         if (list) list.scrollTo({ top: list.scrollHeight, behavior: smooth ? 'smooth' : 'auto' });
     }
+
+    // 【新增】：智慧圖片/影片載入防跳動處理
+    window.handleImageLoad = function(media) {
+        if (media.dataset.loaded) return; // 避免重複觸發
+        media.dataset.loaded = 'true';
+        
+        const list = document.getElementById('messageList');
+        // 只有在畫面「已經接近最底部」時，圖片撐開才自動往下滾；在往上回顧舊訊息時絕對不動
+        if (list.scrollHeight - list.scrollTop - list.clientHeight < 300) {
+            scrollToBottom(false);
+        }
+    };
     // --- 監聽訊息清單捲動，控制按鈕與載入歷史紀錄 ---
     // --- 監聽訊息清單捲動，控制按鈕與載入歷史紀錄 ---
     document.getElementById('messageList').addEventListener('scroll', function() {
@@ -2542,11 +2903,34 @@
         } catch (e) { alert("收回失敗"); } finally { closeContextMenu(); }
     }
 
+    // 【新增】：全域變數，用來記錄準備要釘選的訊息
+    let pendingPinMsgId = null;
+    let pendingPinMsgText = "";
+
     async function pinMessage() {
         if (!activeMsgId) return;
+
+        // 記錄當下的訊息 ID 與文字，避免選單關閉後被清空
+        pendingPinMsgId = activeMsgId;
+        pendingPinMsgText = activeMsgTextForMenu;
+
+        // 檢查是否已經有釘選訊息，有的話跳出「自訂確認視窗」
+        if (window.currentPinnedMessage && window.currentPinnedMessage.id !== activeMsgId) {
+            closeContextMenu(); // 先關閉長按選單
+            openModal('pinConfirmModal'); // 打開自訂視窗
+            return;
+        }
+
+        // 如果沒有釘選，直接執行
+        executePinMessage();
+    }
+
+    // 【新增】：實際執行釘選與上傳資料庫的函式
+    async function executePinMessage() {
+        if (!pendingPinMsgId) return;
         
         // 1. 從目前畫面快取中找出這則訊息，撈出時間與發送者ID
-        const msgDoc = messagesDocsData.find(doc => doc.id === activeMsgId);
+        const msgDoc = messagesDocsData.find(doc => doc.id === pendingPinMsgId);
         let senderName = "成員";
         let timeStr = "未知時間";
         let fileUrl = null;
@@ -2570,7 +2954,6 @@
                 timeStr = `${d.getFullYear()}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getDate().toString().padStart(2,'0')} ${d.toLocaleTimeString('zh-TW', {hour: '2-digit', minute:'2-digit', hour12: false})}`;
             }
 
-            // 【新增】：提取圖片或影片網址
             if (msgData.fileUrl) {
                 fileUrl = msgData.fileUrl;
                 fileType = msgData.fileType;
@@ -2579,17 +2962,23 @@
 
         // 2. 打包成完整的釘選物件
         const pinnedData = { 
-            id: activeMsgId, 
-            text: activeMsgTextForMenu,
+            id: pendingPinMsgId, 
+            text: pendingPinMsgText,
             senderName: senderName,
             timeStr: timeStr,
-            fileUrl: fileUrl,   // 【新增儲存網址】
-            fileType: fileType  // 【新增儲存類型】
+            fileUrl: fileUrl,
+            fileType: fileType
         };
 
         // 3. 上傳更新
         await db.collection("chats").doc(currentChatId).update({ pinnedMessage: pinnedData });
+        
         closeContextMenu();
+        closeModal('pinConfirmModal'); // 成功後關閉確認視窗
+        
+        // 清空暫存
+        pendingPinMsgId = null;
+        pendingPinMsgText = "";
     }
 
     async function unpinMessage() { 
@@ -2611,9 +3000,11 @@
         let mediaHtml = "";
         if (pm.fileUrl) {
             if (pm.fileType === 'video') {
-                mediaHtml = `<video src="${pm.fileUrl}" controls style="max-width: 100%; max-height: 300px; border-radius: 8px; margin-top: 10px; display: block; border: 1px solid #eee; background: #000;"></video>`;
+                // 加入 margin: 10px auto 置中
+                mediaHtml = `<video src="${pm.fileUrl}" controls style="max-width: 100%; max-height: 300px; border-radius: 8px; margin: 10px auto; display: block; border: 1px solid #eee; background: #000;"></video>`;
             } else {
-                mediaHtml = `<img src="${pm.fileUrl}" style="max-width: 100%; max-height: 300px; border-radius: 8px; margin-top: 10px; display: block; border: 1px solid #eee; cursor: pointer;" onclick="openImageModal(this.src)">`;
+                // 加入 margin: 10px auto 置中
+                mediaHtml = `<img src="${pm.fileUrl}" style="max-width: 100%; max-height: 300px; border-radius: 8px; margin: 10px auto; display: block; border: 1px solid #eee; cursor: pointer;" onclick="openImageModal(this.src)">`;
             }
             
             // 防呆：如果文字只是預設的替代文字，就清空它，避免畫面上重複顯示 "這是圖片"
@@ -2624,9 +3015,9 @@
 
         document.getElementById('pinnedMsgSenderTime').innerHTML = `<span><i class="fas fa-user" style="color:var(--ly-gold);"></i> ${sender}</span> <span><i class="far fa-clock"></i> ${time}</span>`;
         
-        // 組合文字與媒體預覽
-        let contentHtml = text ? escapeHtml(text).replace(/\n/g, '<br>') : "";
-        contentHtml += mediaHtml; 
+        // 【修改】：組合文字與媒體預覽，並套用 linkifyAndPreview 讓純網址自動轉為預覽圖片
+        let contentHtml = text ? linkifyAndPreview(escapeHtml(text).replace(/\n/g, '<br>')) : "";
+        contentHtml += mediaHtml;
 
         // 如果既沒有文字也沒有圖片(防呆處理)
         if (!contentHtml) contentHtml = "<span style='color:#999;'>無內容</span>";
@@ -2850,6 +3241,9 @@
         const listEl = document.getElementById('groupMembersList'); 
         listEl.innerHTML = '<div style="font-size: 13px; color: #999; text-align: center;">載入成員中... <i class="fas fa-spinner fa-spin"></i></div>';
         
+        // 【新增】：動態顯示群組成員總人數
+        document.getElementById('groupMembersLabel').innerText = `群組成員 (${window.currentGroupMembers.length})`;
+        
         try {
             // 【修改】：先將抓到的成員資料存進全域快取陣列中
             const memberPromises = (window.currentGroupMembers || []).map(async uid => {
@@ -2868,8 +3262,7 @@
         }
     }
 
-    // 【新增】：獨立的成員列表渲染與展開/收合邏輯
-    // 【新增】：獨立的成員列表渲染與展開/收合邏輯
+    // 【修改】：九宮格版的成員列表渲染邏輯
     function renderGroupMembers(isExpanded) {
         const listEl = document.getElementById('groupMembersList');
         const membersData = window.groupMembersDataCache || [];
@@ -2878,9 +3271,8 @@
         membersData.sort((a, b) => getMemberSortIndex(a.displayName) - getMemberSortIndex(b.displayName));
 
         let html = '';
-        // 決定要顯示幾個人 (若為 true 顯示全部，false 最多顯示 3 個)
-        // 決定要顯示幾個人 (若為 true 顯示全部，false 最多顯示 3 個)
-        const displayCount = isExpanded ? membersData.length : Math.min(3, membersData.length);
+        // 【修改】：決定要顯示幾個人，從原本的 3 改為 9 (因為變成 3 欄排版，顯示 3 行剛剛好)
+        const displayCount = isExpanded ? membersData.length : Math.min(9, membersData.length);
 
         for (let i = 0; i < displayCount; i++) {
             const user = membersData[i];
@@ -2894,13 +3286,13 @@
             `;
         }
 
-        // 判斷是否需要顯示「展開 / 收起」按鈕
-        if (!isExpanded && membersData.length > 3) {
-            const hiddenCount = membersData.length - 3;
+        // 判斷是否需要顯示「展開 / 收起」按鈕 (數字同步改為 9)
+        if (!isExpanded && membersData.length > 9) {
+            const hiddenCount = membersData.length - 9;
             html += `<button class="more-members-btn" onclick="renderGroupMembers(true)">
                         <i class="fas fa-ellipsis-h"></i> 展開其餘 ${hiddenCount} 位成員
                      </button>`;
-        } else if (isExpanded && membersData.length > 3) {
+        } else if (isExpanded && membersData.length > 9) {
             html += `<button class="more-members-btn" onclick="renderGroupMembers(false)">
                         <i class="fas fa-chevron-up"></i> 收起成員列表
                      </button>`;
@@ -3458,6 +3850,18 @@
         document.getElementById('settingsName').innerText = document.getElementById('myName').innerText;
         document.getElementById('settingsUid').innerText = `UID: ${auth.currentUser.uid}`;
         document.getElementById('settingsEmail').innerText = auth.currentUser.email || '讀取中...';
+        // 【新增】：同步深色模式開關狀態
+        // 【修改】：同步深色模式圖示狀態
+        const isDark = document.body.classList.contains('dark-mode');
+        const darkIcon = document.getElementById('darkModeToggleIcon');
+        if (isDark) {
+            darkIcon.className = 'fas fa-moon';
+            darkIcon.style.color = '#f1c40f';
+        } else {
+            darkIcon.className = 'fas fa-sun';
+            darkIcon.style.color = '#e67e22';
+        }
+        darkIcon.style.transform = 'scale(1) rotate(0deg)'; // 確保圖示角度歸零
         
         try {
             const doc = await db.collection("act").doc(auth.currentUser.uid).get();
@@ -3469,6 +3873,47 @@
     
     function closeSettings() { settingsViewDOM.style.transform = 'translateX(100%)'; }
     function handleLogout() { if(confirm("確定登出？")) auth.signOut().then(()=>window.location.href="index.html"); }
+
+    // ==========================================
+    // 系統操作說明頁面：滿版滑動邏輯
+    // ==========================================
+    const guideViewDOM = document.getElementById('guideView');
+    let isGuideSwiping = false, guidePageStartX = 0, guidePageCurrentX = 0;
+
+    guideViewDOM.addEventListener('touchstart', (e) => {
+        if (e.touches[0].clientX < 40) { 
+            isGuideSwiping = true; 
+            guidePageStartX = e.touches[0].clientX; 
+            guideViewDOM.style.transition = 'none'; 
+        }
+    });
+    guideViewDOM.addEventListener('touchmove', (e) => {
+        if (!isGuideSwiping) return;
+        guidePageCurrentX = e.touches[0].clientX - guidePageStartX;
+        if (guidePageCurrentX > 0) { 
+            if (e.cancelable) { e.preventDefault(); } 
+            guideViewDOM.style.transform = `translateX(${guidePageCurrentX}px)`; 
+        }
+    }, { passive: false });
+    guideViewDOM.addEventListener('touchend', (e) => {
+        if (!isGuideSwiping) return;
+        isGuideSwiping = false;
+        guideViewDOM.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
+        if (guidePageCurrentX > window.innerWidth / 3 || guidePageCurrentX > 30) {
+            closeGuide();
+        } else {
+            guideViewDOM.style.transform = 'translateX(0%)';
+        }
+        guidePageCurrentX = 0;
+    });
+
+    function openGuide() { 
+        guideViewDOM.style.transform = 'translateX(0%)'; 
+    }
+    
+    function closeGuide() { 
+        guideViewDOM.style.transform = 'translateX(100%)'; 
+    }
 
     // 【新增】：修改信箱功能
     async function handleChangeEmail() {
@@ -4761,6 +5206,74 @@
             btn.innerHTML = '<i class="fas fa-trash-alt"></i> 收回';
             btn.disabled = false;
         }
+    }
+
+    // ==========================================
+    // 表情符號長按查看成員引擎
+    // ==========================================
+    let rxnTimer = null, isRxnLongPress = false;
+
+    function rxnStart(e, msgId, emoji) {
+        e.stopPropagation();
+        if (e.button === 2) return; // 略過滑鼠右鍵
+        isRxnLongPress = false;
+        
+        // 設定 400 毫秒的長按判定
+        rxnTimer = setTimeout(() => {
+            isRxnLongPress = true;
+            showReactionMembers(msgId, emoji);
+        }, 400);
+    }
+
+    function rxnLeave(e) {
+        clearTimeout(rxnTimer);
+    }
+
+    function rxnEnd(e, msgId, emoji) {
+        e.stopPropagation();
+        clearTimeout(rxnTimer);
+        
+        // 如果手指放開時還沒達到長按標準，就當作是普通的「點擊 (收回/加入)」
+        if (!isRxnLongPress) {
+            if (e.type === 'touchend') e.preventDefault(); // 防止手機端點擊穿透
+            toggleReaction(msgId, emoji);
+        }
+    }
+
+    function showReactionMembers(msgId, emoji) {
+        const msgDoc = messagesDocsData.find(d => d.id === msgId);
+        if (!msgDoc) return;
+        
+        const data = msgDoc.data();
+        const reactions = data.reactions || {};
+        
+        // 篩選出按了這個特定表情的 UID 們
+        const uids = Object.keys(reactions).filter(uid => reactions[uid] === emoji);
+        const listEl = document.getElementById('reactionMembersList');
+        let html = '';
+        
+        // 共用剛才寫好的九宮格卡片樣式
+        uids.forEach(uid => {
+            const member = window.chatMembersCache[uid] || {};
+            const name = member.displayName || "未知成員";
+            const avatar = member.photoURL || 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true';
+            
+            html += `
+                <div class="member-item" style="border-color: #ddd; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                    <img src="${avatar}" style="border-color: #eee;">
+                    <span style="color: #444;">${name}</span>
+                </div>
+            `;
+        });
+        
+        listEl.innerHTML = html;
+        document.getElementById('reactionModalTitle').innerHTML = `<span>${emoji}</span> 回應成員 <span style="font-size:14px;color:#ccc;">(${uids.length})</span>`;
+        
+        // 【新增】：設定 0.5 秒安全鎖，避免手指離開螢幕時誤觸關閉
+        window.preventReactionClose = true;
+        setTimeout(() => { window.preventReactionClose = false; }, 750);
+        
+        openModal('reactionMembersModal');
     }
 
     // ==========================================
