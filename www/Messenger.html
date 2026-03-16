@@ -103,6 +103,27 @@
             font-size: 1.05rem; /* 稍微縮小圖標 */
             transition: 0.3s; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
         }
+        .header-actions button {
+            background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.2); 
+            color: white; 
+            width: 36px; height: 36px;
+            border-radius: 50%; cursor: pointer; margin-left: 0;
+            font-size: 1.05rem; 
+            transition: 0.3s; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        }
+
+        /* ==========================================
+           【新增】：新手指引按鈕的呼喚動畫
+           ========================================== */
+        @keyframes guidePulseAnim {
+            0% { box-shadow: 0 0 0 0 rgba(85, 164, 214, 0.7); transform: scale(1); }
+            50% { transform: scale(1.08); } /* 微微放大產生心跳感 */
+            70% { box-shadow: 0 0 0 10px rgba(85, 164, 214, 0); transform: scale(1); } /* 光圈擴散並消失 */
+            100% { box-shadow: 0 0 0 0 rgba(85, 164, 214, 0); transform: scale(1); }
+        }
+        .guide-calling-btn {
+            animation: guidePulseAnim 2s infinite;
+        }
 
         /* 順便微調返回鍵大小與間距 (尋找 .back-btn 覆蓋) */
         .back-btn { background: none; border: none; margin-right: 10px; cursor: pointer; color: var(--ly-gold); font-size: 1.3rem; transition: 0.3s; display: flex; align-items: center; }
@@ -343,7 +364,33 @@
         .user-select-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(85px, 1fr)); gap: 15px; padding: 10px; background: transparent; border: none; }
         .user-select-item { display: block; margin: 0; padding: 0; cursor: pointer; }
         .user-select-item input { display: none; }
-        .user-select-card { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 5px; background: white; border: 1.5px solid #eee; border-radius: 12px; transition: all 0.2s ease; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
+        .user-select-card { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 5px; background: white; border: 1.5px solid #eee; border-radius: 12px; transition: all 0.2s ease; box-shadow: 0 2px 6px rgba(0,0,0,0.03); position: relative; overflow: hidden; }
+        
+        /* 【新增】：選取後的覆蓋打勾遮罩與動畫 */
+        .user-select-card::before {
+            content: '\f00c';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(1.5px);
+            -webkit-backdrop-filter: blur(1.5px);
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 38px;
+            color: var(--ly-gold);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform: scale(0.5);
+        }
+        .user-select-item input:checked + .user-select-card::before {
+            opacity: 1;
+            transform: scale(1);
+        }
         .user-select-card:hover { border-color: #ddd; box-shadow: 0 4px 10px rgba(0,0,0,0.08); transform: translateY(-2px); }
         .user-select-card img { width: 55px; height: 55px; border-radius: 50%; object-fit: cover; margin-bottom: 8px; border:none; flex-shrink:0;}
         .user-select-card span { font-size: 13px; font-weight: 600; color: #333; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; padding: 0 4px; }
@@ -404,8 +451,23 @@
         .highlight-animation { animation: highlightMsg 2s ease-out; }
 
         .context-menu { display: none; position: fixed; background: var(--white); border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); padding: 6px; z-index: 10000; border: 1px solid rgba(0,0,0,0.05); }
-        .context-menu button { background: none; border: none; color: #444; font-size: 14px; padding: 10px 16px; cursor: pointer; display: flex; align-items: center; gap: 8px; border-radius: 8px; font-weight: bold; white-space: nowrap; }
+        
+        /* 1. 選單內按鈕共用樣式 (移除寫死的 font-size，改由下方獨立控制) */
+        .context-menu button { background: none; border: none; color: #444; padding: 10px 16px; cursor: pointer; display: flex; align-items: center; gap: 8px; border-radius: 8px; font-weight: bold; white-space: nowrap; }
         .context-menu button:hover { background: #f2f4f7; }
+        
+        /* 2. 【獨立控制】下方的文字按鈕 (如：回覆、收回 multiSelectMenuBtn) */
+        .context-menu div:nth-child(2) button { 
+            font-size: 14px; 
+        }
+        
+        /* 3. 【獨立控制】上方的表情符號按鈕 (reaction-btn) */
+        .context-menu .reaction-btn { 
+            font-size: 22px !important; /* 您可在此自由調整表情符號的專屬大小 */
+            padding: 8px;
+            justify-content: center;
+        }
+
         #revokeMenuBtn { color: #ff4d4d; }
 
         /* 圖片/文件預覽 */
@@ -553,7 +615,7 @@
         /* ==========================================
            表情符號回應專用樣式 (霸氣滿版)
            ========================================== */
-        .reaction-bar { display: flex; gap: 18px; padding: 16px 10px; border-bottom: 1px solid #eee; justify-content: center; background: #f8f9fa; border-radius: 12px 12px 0 0; }
+        .reaction-bar { display: flex; gap: 10px; padding: 10px 5px; border-bottom: 1px solid #eee; justify-content: center; background: #f8f9fa; border-radius: 12px 12px 0 0; }
         .reaction-btn { font-size: 2.8rem; background: none; border: none; cursor: pointer; transition: 0.2s; padding: 0; margin: 0; display: flex; align-items: center; justify-content: center; line-height: 1; }
         .reaction-btn:active { transform: scale(1.2); }
         .reaction-btn:active { transform: scale(1.3); }
@@ -694,9 +756,9 @@
             border-color: var(--ly-gold) !important;
             box-shadow: 0 0 12px rgba(207, 169, 0, 0.3) !important;
         }
-        body.dark-mode .user-select-item input:checked + .user-select-card span {
-            color: var(--ly-gold) !important;
-            font-weight: 900 !important;
+        /* 深色模式下的打勾遮罩 */
+        body.dark-mode .user-select-item input:checked + .user-select-card::before {
+            background: rgba(30, 43, 56, 0.75) !important;
         }
 
         /* 7. 其他輸入框外框、私人活動紅框與次要背景 */
@@ -750,6 +812,292 @@
         body.dark-mode .guide-section { background: #1e2b38; border-left-color: var(--ly-gold); border-color: #2a3642; }
         body.dark-mode .guide-section h4 { color: var(--ly-gold); border-bottom-color: #33475b; }
         body.dark-mode .guide-list { color: #ccc; }
+
+        /* 8. 公文預覽 (doc-paper) 專屬深色模式修正 */
+        body.dark-mode .doc-paper {
+            background-color: #1e2b38 !important;
+            border-color: #2a3642 !important;
+            /* 【修改】：拔除左側藍金雙線，只保留極簡的橫線底紋 */
+            background-image: linear-gradient(#2a3642 1px, transparent 1px) !important;
+        }
+        
+        /* 修正公文內的文字顏色，覆蓋掉寫死的 inline style */
+        body.dark-mode #doc-content,
+        body.dark-mode #doc-content div {
+            color: #e0e0e0 !important;
+        }
+        body.dark-mode .doc-header h2,
+        body.dark-mode #doc-content strong,
+        body.dark-mode .doc-sub-title {
+            color: var(--ly-gold) !important; /* 將深色模式下的標題統一改為高亮金色 */
+            border-left-color: var(--ly-gold) !important;
+        }
+        
+        /* 修正右上角關閉按鈕 */
+        body.dark-mode .doc-close-btn {
+            color: #aaa !important;
+        }
+        body.dark-mode .doc-close-btn:hover {
+            color: #fff !important;
+        }
+        
+        /* 修正底部的投票區塊與成員名單 */
+        body.dark-mode .vote-panel {
+            background: #121b24 !important;
+            border-color: #2a3642 !important;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4) !important;
+        }
+        body.dark-mode .voter-box span {
+            color: #ccc !important;
+        }
+        body.dark-mode #participant-count-tag {
+            color: #888 !important;
+        }
+
+        /* ==========================================
+           版本更新內容 (Release Notes) 專用樣式
+           ========================================== */
+        .release-timeline {
+            position: relative;
+            padding-left: 20px;
+            margin-top: 10px;
+        }
+        .release-timeline::before {
+            content: '';
+            position: absolute;
+            left: 5px;
+            top: 5px;
+            bottom: 0;
+            width: 2px;
+            background: #e9ecef;
+        }
+        .release-item {
+            position: relative;
+            margin-bottom: 25px;
+        }
+        .release-item::before {
+            content: '';
+            position: absolute;
+            left: -20px;
+            top: 6px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--ly-blue);
+            border: 2px solid white;
+            box-shadow: 0 0 0 2px rgba(0, 49, 83, 0.2);
+            z-index: 2;
+        }
+        .release-item.latest::before {
+            background: var(--ly-gold);
+            box-shadow: 0 0 0 3px rgba(207, 169, 0, 0.3);
+        }
+        .version-title {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        .v-badge {
+            background: var(--ly-blue);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 900;
+            letter-spacing: 1px;
+        }
+        .v-badge.latest {
+            background: var(--ly-gold);
+            color: var(--ly-blue);
+        }
+        .v-date {
+            font-size: 0.8rem;
+            color: #888;
+            font-weight: bold;
+        }
+        .v-content {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #eee;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+            font-size: 0.95rem;
+            color: #444;
+            line-height: 1.6;
+        }
+        .v-content ul { margin: 0; padding-left: 20px; }
+        .v-content li { margin-bottom: 6px; }
+
+        /* 深色模式適配 */
+        body.dark-mode .release-timeline::before { background: #33475b; }
+        body.dark-mode .release-item::before { border-color: #1e2b38; box-shadow: 0 0 0 2px rgba(91, 164, 214, 0.2); }
+        body.dark-mode .v-content { background: #1e2b38; border-color: #2a3642; color: #ccc; }
+        body.dark-mode .v-date { color: #888; }
+
+        /* ==========================================
+           機密文件 (Confidential) 專用樣式
+           ========================================== */
+        .confidential-card {
+            background: #2b2b2b;
+            border: 1px solid #444;
+            border-left: 5px solid #d93025;
+            color: #fff;
+        }
+        .cipher-input-group {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .cipher-input-group input {
+            padding-right: 40px !important;
+            font-family: monospace;
+            letter-spacing: 1px;
+        }
+        .cipher-eye-btn {
+            position: absolute;
+            right: 10px;
+            background: none;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: 0.2s;
+        }
+        .cipher-eye-btn:hover { color: var(--ly-blue); }
+        .acc-pass-row {
+            background: #fdfdfd;
+            border: 1px dashed #ccc;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            position: relative;
+        }
+        .cipher-hint {
+            font-size: 0.75rem;
+            color: #d93025;
+            margin-top: 4px;
+            display: block;
+        }
+
+        /* 橫向切換按鈕 (Tabs) 樣式 */
+        /* 橫向切換按鈕 (Tabs) 樣式 */
+        .cd-tab { flex: 1; padding: 10px 2px; border: none; background: transparent; color: #666; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 0.9rem; white-space: nowrap; overflow: hidden; }
+        .cd-tab.active { background: white; color: var(--ly-blue); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        
+        /* 深色模式適配 */
+        body.dark-mode .cd-type-tabs { background: #111; }
+        body.dark-mode .cd-tab { color: #888; }
+        body.dark-mode .cd-tab.active { background: #333; color: var(--ly-gold); }
+
+        /* ==========================================
+           機密文件列表 (檔案總管風格)
+           ========================================== */
+        .cd-list-item { display: flex; align-items: center; padding: 15px; background: #1a1a1a; gap: 15px; color: #e0e0e0; border-bottom: 1px solid #2a2a2a; }
+        .cd-list-item .cd-icon { font-size: 1.5rem; color: #fbd341; flex-shrink: 0; width: 25px; text-align: center; }
+        .cd-list-item .cd-icon { font-size: 1.8rem; color: #fbd341; flex-shrink: 0; width: 35px; text-align: center; } /* 稍微放大圖示 */
+        .cd-list-info { display: flex; flex-direction: column; flex: 1; min-width: 0; gap: 6px; }
+        .cd-list-title { font-size: 1.1rem; color: #fff; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+        .cd-list-meta { display: flex; flex-wrap: wrap; gap: 10px; font-size: 0.8rem; color: #aaa; align-items: center; }
+        .cd-list-meta span { display: flex; align-items: center; gap: 4px; white-space: nowrap; }
+        .cd-meta-highlight { color: #5ba4d6; }
+        /* 列表左滑刪除覆蓋樣式 */
+        .cd-swipe-content { background: #1a1a1a !important; border-bottom: 1px solid #2a2a2a !important; margin: 0 !important; }
+
+        /* ==========================================
+           機密系統專屬：銳利邊角與深色陰影 (提升專業感)
+           ========================================== */
+        /* 強制將機密相關的四個彈跳視窗圓角縮小 */
+        #confidentialListModal .modal-card,
+        #createConfidentialModal .modal-card,
+        #unlockConfidentialModal .modal-card,
+        #viewConfidentialModal .modal-card {
+            border-radius: 4px !important;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.7) !important;
+        }
+        
+        /* 將視窗內的按鈕、輸入框也一併銳利化 */
+        #confidentialListModal .btn-modal,
+        #createConfidentialModal .btn-modal,
+        #unlockConfidentialModal .btn-modal,
+        #viewConfidentialModal .btn-modal,
+        #unlock-pass-input,
+        .acc-pass-row {
+            border-radius: 2px !important;
+        }
+
+        /* 讓解鎖視窗的輸入框更有終端機的感覺 */
+        #unlock-pass-input {
+            border: 1px solid #666 !important;
+            background: #111 !important;
+        }
+        #unlock-pass-input:focus {
+            border-color: #d93025 !important;
+            box-shadow: 0 0 8px rgba(217, 48, 37, 0.4) !important;
+        }
+
+        /* ==========================================
+           機密文件系統：深色模式終極適配補丁
+           ========================================== */
+        
+        /* 1. 修正「傳送機密文件」Modal 本體背景 (覆蓋 inline style) */
+        body.dark-mode #createConfidentialModal .modal-body {
+            background-color: #121b24 !important;
+        }
+        
+        /* 2. 修正「指定傳遞對象」名單區塊的白底與邊框 */
+        body.dark-mode #cd-recipient-list {
+            background-color: #1e2b38 !important;
+            border-color: #2a3642 !important;
+        }
+
+        /* 3. 修正「帳號密碼」每一列的背景與邊框 */
+        body.dark-mode .acc-pass-row {
+            background-color: #1e2b38 !important;
+            border-color: #33475b !important;
+        }
+
+        /* 4. 修正「上傳檔案」輸入框的白底 */
+        body.dark-mode #cd-file-input {
+            background-color: #2a2a2a !important;
+            color: #e0e0e0 !important;
+            border-color: #444 !important;
+        }
+
+        /* 5. 修正「內容類別」橫向切換按鈕 (Tabs) */
+        body.dark-mode .cd-type-tabs { 
+            background: #0a0f14 !important; 
+        }
+        body.dark-mode .cd-tab { 
+            color: #666 !important; 
+        }
+        body.dark-mode .cd-tab.active { 
+            background: #1e2b38 !important; 
+            color: var(--ly-gold) !important; 
+        }
+
+        /* 6. 修正「解鎖視窗」與「檢視視窗」的配色 */
+        body.dark-mode #viewConfidentialModal .modal-body {
+            background-color: #121b24 !important;
+            color: #e0e0e0 !important;
+        }
+        
+        /* 覆蓋檢視模式下，帳號密碼卡片的寫死樣式 */
+        body.dark-mode #viewConfidentialModal .modal-body div[style*="background:#f8f9fa"] {
+            background-color: #1e2b38 !important;
+            border-color: #33475b !important;
+        }
+        body.dark-mode #viewConfidentialModal .modal-body h4 {
+            color: #e0e0e0 !important;
+        }
+
+        /* 7. 假密碼公文特例 (保留紙張顏色，但文字加深以提高對比) */
+        body.dark-mode .fake-content-paper { 
+            background: #e0e0e0 !important; 
+            color: #222 !important; 
+            padding: 15px;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
@@ -766,7 +1114,7 @@
                     <span id="myName" class="user-name">載入中...</span>
                 </div>
                 <div class="header-actions">
-                    <button title="新增對話" onclick="startNewChat()"><i class="fas fa-plus"></i></button>
+                    <button id="topNavActionBtn" class="guide-calling-btn" title="系統操作說明" onclick="handleTopNavAction()" style="background: rgba(85, 164, 214, 0.35); border-color: rgba(85, 164, 214, 0.5);"><i class="fas fa-book-open"></i></button>
                     <button title="建立群組" onclick="createGroup()"><i class="fas fa-users"></i></button>
                 </div>
             </div>
@@ -818,6 +1166,10 @@
                 <div class="expand-menu-item" onclick="openGroupBuyListModal()">
                     <div class="icon-circle"><i class="fas fa-shopping-basket"></i></div>
                     <span>團購功能</span>
+                </div>
+                <!--機密文件圖標顏色 style="color: #003153;"-->
+                <div class="expand-menu-item" onclick="openConfidentialListModal()"> <div class="icon-circle" style="color: #003153;"><i class="fas fa-user-secret"></i></div>
+                    <span>機密文件</span>
                 </div>
             </div>
             
@@ -1149,6 +1501,100 @@
         </div>
     </div>
 
+    <div id="confidentialListModal" class="modal-overlay" style="z-index: 4000;">
+        <div class="modal-card" style="max-width: 650px; max-height: 85dvh; display: flex; flex-direction: column; background: #1a1a1a; border: 1px solid #333;">
+            <div class="modal-header" style="background: #000; border-bottom: 2px solid #d93025;">
+                <h3 style="color: white;"><i class="fas fa-folder-open"></i> 機密文件庫</h3>
+                <span style="cursor:pointer; color: white;" onclick="closeModal('confidentialListModal')">&times;</span>
+            </div>
+            <div id="confidentialListContainer" style="flex: 1; overflow-y: auto; padding: 0;"></div>
+            <div class="modal-footer" style="background: #000; border-top: 1px solid #333; justify-content: space-between;">
+                <button class="btn-modal btn-cancel" style="background: #333; color: white; border: none;" onclick="closeModal('confidentialListModal')">關閉</button>
+                <button class="btn-modal btn-confirm" style="background: #d93025; border: none;" onclick="openCreateConfidentialModal()"><i class="fas fa-plus"></i> 新增機密檔案</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="createConfidentialModal" class="modal-overlay" style="z-index: 5000;">
+        <div class="modal-card" style="max-width: 450px; max-height: 85dvh;">
+            <div class="modal-header" style="background: #2b2b2b; border-bottom: 3px solid #d93025;">
+                <h3 style="color: white;"><i class="fas fa-user-secret"></i> 傳送機密文件</h3>
+                <span style="cursor:pointer; color: white;" onclick="closeModal('createConfidentialModal')">&times;</span>
+            </div>
+            <div class="modal-body" style="background: #f8f9fa;">
+                <div class="modal-input-group">
+                    <label>文件標題</label>
+                    <input type="text" id="cd-title" placeholder="請輸入機密標題...">
+                </div>
+                <div class="modal-input-group" style="margin-bottom: 15px;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 8px;">
+                        <label style="margin-bottom: 0;">指定傳遞對象 (勾選可檢視列表的成員)</label>
+                        <div style="display: flex; gap: 8px;">
+                            <button type="button" class="tag-btn" onclick="toggleAllCdMembers(true)" style="border-color: #28a745; color: #28a745; padding: 2px 10px; font-size: 0.8rem;">全選</button>
+                            <button type="button" class="tag-btn" onclick="toggleAllCdMembers(false)" style="border-color: #d93025; color: #d93025; padding: 2px 10px; font-size: 0.8rem;">清除</button>
+                        </div>
+                    </div>
+                    <div id="cd-recipient-list" class="user-select-list" style="background: #fff; border: 1px solid #ccc; border-radius: 8px; max-height: 150px; overflow-y: auto; padding: 8px;"></div>
+                </div>
+                <div class="modal-input-group">
+                    <label>內容類別</label>
+                    <div class="cd-type-tabs" style="display: flex; background: #eee; border-radius: 8px; padding: 4px; gap: 4px;">
+                        <button type="button" class="cd-tab active" data-type="file" onclick="changeConfidentialType('file')">📂 檔案傳送</button>
+                        <button type="button" class="cd-tab" data-type="link" onclick="changeConfidentialType('link')">🔗 外部連結</button>
+                        <button type="button" class="cd-tab" data-type="account" onclick="changeConfidentialType('account')">🔑 帳號密碼</button>
+                    </div>
+                    <input type="hidden" id="cd-type" value="file">
+                </div>
+
+                <div id="cd-dynamic-area"></div>
+
+                <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+
+                <div class="modal-input-group">
+                    <label style="color: #d93025;"><i class="fas fa-lock"></i> 加密密碼 (真密碼)</label>
+                    <div class="cipher-input-group">
+                        <input type="password" id="cd-true-pass" placeholder="設定解鎖密碼...">
+                        <button class="cipher-eye-btn" onmousedown="showCipherPreview('cd-true-pass')" onmouseup="hideCipherPreview('cd-true-pass')" ontouchstart="showCipherPreview('cd-true-pass')" ontouchend="hideCipherPreview('cd-true-pass')"><i class="fas fa-eye"></i></button>
+                    </div>
+                    <span class="cipher-hint">※ 長按眼睛查看密碼時，將以密碼學 +3 偏移顯示</span>
+                </div>
+                <div class="modal-input-group">
+                    <label style="color: #666;"><i class="fas fa-mask"></i> 假密碼 (防護用)</label>
+                    <input type="text" id="cd-fake-pass" placeholder="設定防護用的假密碼...">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-modal btn-cancel" onclick="closeModal('createConfidentialModal')">取消</button>
+                <button class="btn-modal btn-confirm" style="background: #d93025; border: none;" onclick="submitConfidential()"><i class="fas fa-paper-plane"></i> 加密傳送</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="unlockConfidentialModal" class="modal-overlay" style="z-index: 6000;" onclick="if(event.target === this) closeModal('unlockConfidentialModal')">
+        <div class="modal-card" style="max-width: 320px; background: #222; color: white;">
+            <div class="modal-body" style="text-align: center; padding: 30px 20px;">
+                <i class="fas fa-lock" style="font-size: 3rem; color: #d93025; margin-bottom: 15px;"></i>
+                <h3 style="margin: 0 0 20px 0; color: white;">系統存取驗證</h3>
+                <input type="password" id="unlock-pass-input" placeholder="請輸入存取密碼..." style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #555; background: #333; color: white; text-align: center; font-size: 1.1rem; letter-spacing: 2px;">
+            </div>
+            <div class="modal-footer" style="background: #1a1a1a; border-top: 1px solid #333;">
+                <button class="btn-modal btn-cancel" style="background: #333; color: white; border: none;" onclick="closeModal('unlockConfidentialModal')">取消</button>
+                <button class="btn-modal btn-confirm" style="background: #d93025; border: none;" onclick="verifyConfidential()">驗證解鎖</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="viewConfidentialModal" class="modal-overlay" style="z-index: 6000;" onclick="if(event.target === this) closeModal('viewConfidentialModal')">
+        <div class="modal-card" style="max-width: 500px; max-height: 85dvh;">
+            <div class="modal-header" style="background: #2b2b2b; border-bottom: 3px solid #28a745;">
+                <h3 style="color: white;"><i class="fas fa-folder-open"></i> 機密檔案解密成功</h3>
+                <span style="cursor:pointer; color: white;" onclick="closeModal('viewConfidentialModal')">&times;</span>
+            </div>
+            <div class="modal-body" id="cd-view-content" style="background: #fff; line-height: 1.6; font-size: 1.05rem; color: #333; padding: 25px;">
+                </div>
+        </div>
+    </div>
+
     <div id="readReceiptModal" class="modal-overlay" style="z-index: 6000;" onclick="if(event.target === this) closeModal('readReceiptModal')">
         <div class="modal-card" style="max-width: 350px;">
             <div class="modal-header">
@@ -1265,8 +1711,12 @@
                 <button class="btn-modal btn-cancel" style="flex: 1; padding: 10px; border-radius: 8px; font-size: 0.9rem;" onclick="handleChangePassword()"><i class="fas fa-key"></i> 修改密碼</button>
             </div>
 
-            <button class="btn-modal btn-cancel" style="width: 100%; max-width: 300px; padding: 12px; border-radius: 8px; font-size: 1rem; margin-bottom: 30px; color: var(--ly-blue); border: 1px solid var(--ly-blue); font-weight: bold;" onclick="openGuide()">
+            <button class="btn-modal btn-cancel" style="width: 100%; max-width: 300px; padding: 12px; border-radius: 8px; font-size: 1rem; margin-bottom: 10px; color: var(--ly-blue); border: 1px solid var(--ly-blue); font-weight: bold;" onclick="openGuide()">
                 <i class="fas fa-book-open"></i> 系統操作說明
+            </button>
+
+            <button class="btn-modal btn-cancel" style="width: 100%; max-width: 300px; padding: 12px; border-radius: 8px; font-size: 1rem; margin-bottom: 30px; color: var(--ly-gold); border: 1px solid var(--ly-gold); font-weight: bold;" onclick="openReleaseNotes()">
+                <i class="fas fa-history"></i> 版本更新內容
             </button>
 
             <button class="btn-modal btn-confirm" style="width: 100%; max-width: 300px; background: #ff4d4d; font-size: 1.1rem; padding: 15px; border-radius: 30px; box-shadow: 0 4px 15px rgba(255,77,77,0.3);" onclick="handleLogout()">
@@ -1333,6 +1783,139 @@
         </div>
     </div>
 
+    <div id="releaseNotesView" class="app-view" style="z-index: 40; transform: translateX(100%);">
+        <header class="messenger-header">
+            <div class="header-content" style="padding: 15px 20px;">
+                <div class="user-profile">
+                    <button class="back-btn" onclick="closeReleaseNotes()"><i class="fas fa-chevron-left"></i></button>
+                    <span class="user-name">版本更新內容</span>
+                </div>
+            </div>
+        </header>
+        
+        <div style="flex: 1; overflow-y: auto; padding: 25px 20px; background: transparent; -webkit-overflow-scrolling: touch;">
+            <div class="release-timeline">
+                
+                <div class="release-item latest">
+                    <div class="version-title">
+                        <span class="v-badge latest">v 1.0.86</span>
+                        <span class="v-date">最新版本</span>
+                    </div>
+                    <div class="v-content">
+                        <div class="v-content">
+                        <ul>
+                            <li><b>【全新系統】</b>實裝「機密文件庫」，支援檔案、連結、帳號密碼三種類別，並具備專屬「檔案總管」風格介面。</li>
+                            <li><b>【資安防護】</b>導入「真 / 假密碼」雙重解鎖機制，輸入防護用假密碼將自動導向系統偽裝頁面。</li>
+                            <li><b>【資安防護】</b>密碼欄位實裝「密碼學 +3 偏移」視覺預覽，檢視機密時防止旁人窺視。</li>
+                            <li><b>【權限管理】</b>建立機密文件時可「指定檢視對象」，並實裝班長最高管理與滑動刪除權限。</li>
+                            <li><b>【新增】</b>多媒體預覽畫面右上角新增「下載圖片/影片」按鈕，支援直接存入裝置。</li>
+                            <li><b>【優化】</b>成員選取卡片新增「高對比打勾模糊遮罩」動畫，狀態辨識更直覺。</li>
+                            <li><b>【優化】</b>機密系統彈跳視窗採用專屬「銳利化」邊角與深色終端機設計，提升專業感。</li>
+                            <li><b>【優化】</b>長按選單內的「文字」與「表情符號」字體大小全面支援獨立控制。</li>
+                            <li><b>【修正】</b>修復重新進入聊天室時，畫面會異常停留在過往舊訊息位置的問題。</li>
+                        </ul>
+                    </div>
+                    </div>
+                </div>
+
+                <div class="release-item">
+                    <div class="version-title">
+                        <span class="v-badge">v 1.0.85</span> <span class="v-date">系統外觀升級</span>
+                    </div>
+                    <div class="v-content">
+                        <ul>
+                            <li>全面實裝「深色模式 (Dark Mode)」，並特調立法院專屬高對比配色。</li>
+                            <li>個人設定頁加入動態外觀切換開關，具備記憶功能。</li>
+                            <li>修正公文預覽、活動卡片與成員名單在深色模式下的顏色顯示。</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="release-item">
+                    <div class="version-title">
+                        <span class="v-badge">v 1.0.82</span> <span class="v-date">團購系統實裝</span>
+                    </div>
+                    <div class="v-content">
+                        <ul>
+                            <li>新增「團購系統」，支援商品多圖預覽、價格與限量設定。</li>
+                            <li>支援訂單備註功能 (微糖少冰、尺寸等)。</li>
+                            <li>系統自動加總各商品總數量，並提供明細與刪除權限管理。</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="release-item">
+                    <div class="version-title">
+                        <span class="v-badge">v 1.0.75</span> <span class="v-date">活動行程系統</span>
+                    </div>
+                    <div class="v-content">
+                        <ul>
+                            <li>新增「活動行程」建立功能，支援動態欄位與多圖上傳。</li>
+                            <li>加入「私人 / 公開」模式切換，私人活動僅授權成員可見。</li>
+                            <li>實裝班長最高管理權限，並支援成員參與意願(投票)統計。</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="release-item">
+                    <div class="version-title">
+                        <span class="v-badge">v 1.0.60 - 1.0.68</span> <span class="v-date">訊息選單大改版</span>
+                    </div>
+                    <div class="v-content">
+                        <ul>
+                            <li>長按選單改版為橫向介面，大幅節省垂直畫面空間。</li>
+                            <li>新增「釘選訊息」功能，支援覆蓋防呆提示與多媒體自動預覽。</li>
+                            <li>新增「收回訊息」多選模式，支援一次隱藏或收回多筆資料。</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="release-item">
+                    <div class="version-title">
+                        <span class="v-badge">v 1.0.40 - 1.0.55</span> <span class="v-date">互動與狀態追蹤</span>
+                    </div>
+                    <div class="v-content">
+                        <ul>
+                            <li>實裝 Firebase 雲端資料庫與 Auth 登入系統驗證。</li>
+                            <li>新增「表情符號 (Reactions)」功能，長按可查看點擊成員名單。</li>
+                            <li>新增「已讀」人員追蹤，點擊訊息時間旁的已讀文字即可展開名單。</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="release-item">
+                    <div class="version-title">
+                        <span class="v-badge">v 1.0.10 - 1.0.35</span> <span class="v-date">聊天核心建置</span>
+                    </div>
+                    <div class="v-content">
+                        <ul>
+                            <li>首頁對話列表與聊天室氣泡 UI 完工。</li>
+                            <li>導入前台 FFmpeg.wasm 影片極致壓縮與圖片降解析度引擎。</li>
+                            <li>新增群組設定頁面，支援頭像上傳裁切與成員管理。</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="release-item">
+                    <div class="version-title">
+                        <span class="v-badge">v 1.0.1</span> <span class="v-date">專案初始化</span>
+                    </div>
+                    <div class="v-content">
+                        <ul>
+                            <li>法院通訊 (Legislature Communication System) 專案正式建立。</li>
+                            <li>基礎 SPA 架構與左滑右滑防呆物理引擎實裝。</li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+            
+            <div style="text-align: center; color: #aaa; font-size: 0.8rem; margin-top: 30px; margin-bottom: 20px;">
+                © 立法院 Legislature Communication System
+            </div>
+        </div>
+    </div>
+
     <div id="doc-preview-modal" class="doc-modal" onclick="if(event.target === this) closeModal('doc-preview-modal')">
         <article class="doc-paper">
             <button class="doc-close-btn" onclick="closeModal('doc-preview-modal')">&times;</button>
@@ -1345,9 +1928,14 @@
         </article>
     </div>
 
-    <div id="imageModal" class="image-modal" onclick="if(event.target === this) closeModal('imageModal')">
-        <span class="image-modal-close" onclick="closeModal('imageModal')">&times;</span>
-        <img class="image-modal-content" id="expandedImg">
+    <div id="imageModal" class="image-modal" onclick="if(event.target === this) closeMediaModal()">
+        <div style="position: absolute; top: 20px; right: 25px; display: flex; gap: 25px; align-items: center; z-index: 100001;">
+            <button onclick="downloadCurrentMedia()" style="background: none; border: none; color: white; font-size: 22px; cursor: pointer; text-shadow: 0 2px 5px rgba(0,0,0,0.5);" title="下載檔案"><i id="mediaDownloadIcon" class="fas fa-download"></i></button>
+            <button onclick="closeMediaModal()" style="background: none; border: none; color: white; font-size: 35px; cursor: pointer; text-shadow: 0 2px 5px rgba(0,0,0,0.5);" title="關閉">&times;</button>
+        </div>
+        
+        <img class="image-modal-content" id="expandedImg" style="display: none;">
+        <video class="image-modal-content" id="expandedVideo" controls style="display: none; max-width: 95%; max-height: 90%; outline: none;"></video>
     </div>
 
     <div id="image-viewer-modal" onclick="handleViewerClick(event)" style="display: none; position: fixed; z-index: 20000; left: 0; top: 0; width: 100vw; height: 100dvh; background-color: rgba(0, 0, 0, 0.95); flex-direction: column; overflow: hidden;">
@@ -1412,6 +2000,18 @@
     document.addEventListener("DOMContentLoaded", () => {
         if (localStorage.getItem('darkMode') === 'true') {
             document.body.classList.add('dark-mode');
+        }
+        
+        // 【新增】：檢查是否看過操作說明，若看過則切換回「新增對話」按鈕
+        if (localStorage.getItem('hasSeenGuide') === 'true') {
+            const btn = document.getElementById('topNavActionBtn');
+            if (btn) {
+                btn.innerHTML = '<i class="fas fa-plus"></i>';
+                btn.title = '新增對話';
+                btn.style.background = '';
+                btn.style.borderColor = '';
+                btn.classList.remove('guide-calling-btn'); // 【新增】：拔除呼喚動畫
+            }
         }
     });
 
@@ -1630,6 +2230,7 @@
         
         updateMyStatus(false);
         cancelReply();
+        closeContextMenu();
     }
 
     chatViewDOM.addEventListener('touchstart', (e) => {
@@ -2078,6 +2679,20 @@
                                 </div>
                             </div>`;
                     }
+                    // 【新增】：機密文件卡片渲染邏輯
+                    else if (parsed.type === 'confidential') {
+                        isEventCard = true; safeText = `傳送了機密文件：${parsed.title}`;
+                        contentHtml += `
+                            <div onclick="openUnlockModal('${parsed.docId}')" class="msg-event-card confidential-card">
+                                <div class="msg-event-header" style="border-bottom-color: #555;">
+                                    <span style="color:#d93025;"><i class="fas fa-user-secret"></i> 絕對機密</span>
+                                </div>
+                                <div class="msg-event-title" style="color: white;">${parsed.title}</div>
+                                <div class="msg-event-time" style="color:#aaa;">
+                                    <i class="fas fa-lock"></i> 點擊輸入密碼解鎖
+                                </div>
+                            </div>`;
+                    }
                     else safeText = msg.text.replace(/"/g, '&quot;').replace(/'/g, "\\'");
                 } catch (e) { safeText = msg.text.replace(/"/g, '&quot;').replace(/'/g, "\\'"); }
             }
@@ -2086,11 +2701,14 @@
 
             if (msg.fileUrl) {
                 if (msg.fileType === 'video') {
-                    // 【修改】：替換為智慧載入機制 handleImageLoad
-                    contentHtml += `<video src="${msg.fileUrl}" controls class="msg-media" onloadeddata="handleImageLoad(this)"></video>`;
+                    // 【修改】：影片套用點擊預覽外框與播放圖示
+                    contentHtml += `<div style="position: relative; display: inline-block; cursor: pointer;" onclick="if(!skipNextClick) openMediaModal('${msg.fileUrl}', 'video')">
+                                        <video src="${msg.fileUrl}" class="msg-media" onloadeddata="handleImageLoad(this)" style="pointer-events: none;"></video>
+                                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: rgba(255,255,255,0.9); font-size: 40px; text-shadow: 0 2px 10px rgba(0,0,0,0.5);"><i class="fas fa-play-circle"></i></div>
+                                    </div>`;
                 } else {
-                    // 【修改】：替換為智慧載入機制 handleImageLoad
-                    contentHtml += `<img src="${msg.fileUrl}" class="msg-media" onload="handleImageLoad(this)" onclick="if(!skipNextClick) openImageModal(this.src)">`;
+                    // 【修改】：圖片改用 openMediaModal
+                    contentHtml += `<img src="${msg.fileUrl}" class="msg-media" onload="handleImageLoad(this)" onclick="if(!skipNextClick) openMediaModal('${msg.fileUrl}', 'image')">`;
                 }
             }
             
@@ -2354,8 +2972,10 @@
         }
     };
     // --- 監聽訊息清單捲動，控制按鈕與載入歷史紀錄 ---
-    // --- 監聽訊息清單捲動，控制按鈕與載入歷史紀錄 ---
     document.getElementById('messageList').addEventListener('scroll', function() {
+        // 【關鍵修復】：初次載入或已離開聊天室時，忽略捲動事件，避免誤判為往上滑！
+        if (window.isFirstChatLoad || !currentChatId) return; 
+        
         const btn = document.getElementById('scrollBottomBtn');
         btn.style.display = (this.scrollHeight - this.scrollTop - this.clientHeight > 150) ? 'flex' : 'none';
 
@@ -3000,11 +3620,12 @@
         let mediaHtml = "";
         if (pm.fileUrl) {
             if (pm.fileType === 'video') {
-                // 加入 margin: 10px auto 置中
-                mediaHtml = `<video src="${pm.fileUrl}" controls style="max-width: 100%; max-height: 300px; border-radius: 8px; margin: 10px auto; display: block; border: 1px solid #eee; background: #000;"></video>`;
+                mediaHtml = `<div style="position: relative; display: inline-block; cursor: pointer; width: 100%; text-align: center;" onclick="openMediaModal('${pm.fileUrl}', 'video')">
+                                <video src="${pm.fileUrl}" style="max-width: 100%; max-height: 300px; border-radius: 8px; margin: 10px auto; display: block; border: 1px solid #eee; background: #000; pointer-events: none;"></video>
+                                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: rgba(255,255,255,0.9); font-size: 40px; text-shadow: 0 2px 10px rgba(0,0,0,0.5);"><i class="fas fa-play-circle"></i></div>
+                            </div>`;
             } else {
-                // 加入 margin: 10px auto 置中
-                mediaHtml = `<img src="${pm.fileUrl}" style="max-width: 100%; max-height: 300px; border-radius: 8px; margin: 10px auto; display: block; border: 1px solid #eee; cursor: pointer;" onclick="openImageModal(this.src)">`;
+                mediaHtml = `<img src="${pm.fileUrl}" style="max-width: 100%; max-height: 300px; border-radius: 8px; margin: 10px auto; display: block; border: 1px solid #eee; cursor: pointer;" onclick="openMediaModal('${pm.fileUrl}', 'image')">`;
             }
             
             // 防呆：如果文字只是預設的替代文字，就清空它，避免畫面上重複顯示 "這是圖片"
@@ -3099,6 +3720,26 @@
     }
     document.addEventListener('click', (e) => { if (!e.target.closest('.mention-list') && e.target.id !== 'msgInput') document.getElementById('mentionList').style.display = 'none'; });
 
+
+    // ==========================================
+    // 新手指引與首頁按鈕智慧切換邏輯
+    // ==========================================
+    function handleTopNavAction() {
+        if (localStorage.getItem('hasSeenGuide') === 'true') {
+            startNewChat(); // 如果是老手，就執行原本的新增對話功能
+        } else {
+            openGuide(); // 第一次點擊，打開操作說明
+            localStorage.setItem('hasSeenGuide', 'true'); // 在系統深處打上「已看過」的烙印
+            
+            // 瞬間把按鈕蛻變回原本的「新增對話」樣式
+            const btn = document.getElementById('topNavActionBtn');
+            btn.innerHTML = '<i class="fas fa-plus"></i>';
+            btn.title = '新增對話';
+            btn.style.background = '';
+            btn.style.borderColor = '';
+            btn.classList.remove('guide-calling-btn'); // 【新增】：點擊後立即拔除動畫
+        }
+    }
     // ==========================================
     // 6. 對話建立與群組管理
     // ==========================================
@@ -3772,7 +4413,53 @@
     }
 
     // 單圖與幻燈片預覽
-    function openImageModal(src) { document.getElementById('expandedImg').src = src; openModal('imageModal'); }
+    // ==========================================
+    // 多媒體預覽與下載中心 (Media Modal)
+    // ==========================================
+    function openImageModal(src) {
+        openMediaModal(src, 'image');
+    }
+
+    // ==========================================
+    // 多媒體預覽與下載中心 (Media Modal)
+    // ==========================================
+    let currentMediaForDownload = { url: '', type: '' };
+
+    function openMediaModal(src, type = 'image') {
+        currentMediaForDownload = { url: src, type: type };
+        const imgEl = document.getElementById('expandedImg');
+        const vidEl = document.getElementById('expandedVideo');
+        
+        if (type === 'video') {
+            imgEl.style.display = 'none'; imgEl.src = '';
+            vidEl.style.display = 'block'; vidEl.src = src;
+            vidEl.play().catch(()=>{}); // 打開時自動播放
+        } else {
+            vidEl.style.display = 'none'; vidEl.pause(); vidEl.src = '';
+            imgEl.style.display = 'block'; imgEl.src = src;
+        }
+        openModal('imageModal');
+    }
+
+    function closeMediaModal() {
+        closeModal('imageModal');
+        const vidEl = document.getElementById('expandedVideo');
+        if (vidEl) { vidEl.pause(); vidEl.src = ''; } // 關閉時停止播放
+    }
+
+    async function downloadCurrentMedia() {
+        if (!currentMediaForDownload.url) return;
+        const icon = document.getElementById('mediaDownloadIcon');
+        if (icon) icon.className = 'fas fa-spinner fa-spin'; // 轉圈圈效果
+        
+        try {
+            const ext = currentMediaForDownload.type === 'video' ? 'mp4' : 'jpg';
+            const filename = `LCS_Media_${Date.now()}.${ext}`;
+            await forceDownload(currentMediaForDownload.url, filename);
+        } finally {
+            if (icon) icon.className = 'fas fa-download';
+        }
+    }
     
     let currentSlideIndex=0, isSliderDragging=false, sliderStartPos=0, currentTranslate=0, prevTranslate=0, animationID;
     function openImageViewer(startIndex) {
@@ -3913,6 +4600,47 @@
     
     function closeGuide() { 
         guideViewDOM.style.transform = 'translateX(100%)'; 
+    }
+
+    // ==========================================
+    // 版本更新內容：滿版滑動邏輯
+    // ==========================================
+    const releaseNotesViewDOM = document.getElementById('releaseNotesView');
+    let isReleaseNotesSwiping = false, releaseNotesPageStartX = 0, releaseNotesPageCurrentX = 0;
+
+    releaseNotesViewDOM.addEventListener('touchstart', (e) => {
+        if (e.touches[0].clientX < 40) { 
+            isReleaseNotesSwiping = true; 
+            releaseNotesPageStartX = e.touches[0].clientX; 
+            releaseNotesViewDOM.style.transition = 'none'; 
+        }
+    });
+    releaseNotesViewDOM.addEventListener('touchmove', (e) => {
+        if (!isReleaseNotesSwiping) return;
+        releaseNotesPageCurrentX = e.touches[0].clientX - releaseNotesPageStartX;
+        if (releaseNotesPageCurrentX > 0) { 
+            if (e.cancelable) { e.preventDefault(); } 
+            releaseNotesViewDOM.style.transform = `translateX(${releaseNotesPageCurrentX}px)`; 
+        }
+    }, { passive: false });
+    releaseNotesViewDOM.addEventListener('touchend', (e) => {
+        if (!isReleaseNotesSwiping) return;
+        isReleaseNotesSwiping = false;
+        releaseNotesViewDOM.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
+        if (releaseNotesPageCurrentX > window.innerWidth / 3 || releaseNotesPageCurrentX > 30) {
+            closeReleaseNotes();
+        } else {
+            releaseNotesViewDOM.style.transform = 'translateX(0%)';
+        }
+        releaseNotesPageCurrentX = 0;
+    });
+
+    function openReleaseNotes() { 
+        releaseNotesViewDOM.style.transform = 'translateX(0%)'; 
+    }
+    
+    function closeReleaseNotes() { 
+        releaseNotesViewDOM.style.transform = 'translateX(100%)'; 
     }
 
     // 【新增】：修改信箱功能
@@ -4512,51 +5240,54 @@
 
             snap.forEach(doc => {
                 const data = doc.data();
-                const deadlineStr = data.deadline ? data.deadline.replace('T', ' ') : '無期限';
-                const safeTitle = (data.title || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                const safeInitiator = (data.initiatorName || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                const sharedWith = data.sharedWith || [];
                 
-                // 判斷當前使用者是否為該訂單的發起人
-                const isInitiator = data.initiatorId === auth.currentUser.uid;
-                
-                // 【新增】：判斷是否有刪除權限 (發起者本人 或 班長)
-                const canDelete = isInitiator || isMonitor;
-                
-                const innerContent = `
-                    <h4 class="event-mini-title">${data.title}</h4>
-                    <div class="event-mini-meta">
-                        <span style="color:var(--ly-blue); font-weight:bold;">[ 代購: ${data.initiatorName} ]</span>
-                    </div>
-                    <div class="event-mini-meta" style="margin-top: 4px; color: #d93025;">
-                        <i class="far fa-clock" style="color: #d93025;"></i> 截止: ${deadlineStr}
-                    </div>
-                `;
+                // 【新增】：取得建立者名稱
+                const creatorUid = data.creator;
+                let creatorName = "未知";
+                if (creatorUid === uid) {
+                    creatorName = myName;
+                } else if (window.chatMembersCache && window.chatMembersCache[creatorUid]) {
+                    creatorName = window.chatMembersCache[creatorUid].displayName || "未知";
+                }
 
-                // 【修改】：判斷條件從 isInitiator 改為 canDelete
-                // 【修改】：加入雙按鈕 (編輯/刪除) 結構
+                // 【權限過濾】：只有建立者、名單內被分享的成員、或是班長可以看見這個檔案
+                if (data.creator !== uid && !sharedWith.includes(uid) && !isMonitor) return;
+
+                const canDelete = (data.creator === uid) || isMonitor;
+                // 日期格式精簡，讓畫面更清爽
+                const dateStr = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleString('zh-TW', {month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '未知時間';
+                
+                let typeName = '檔案傳送', iconClass = 'fas fa-folder';
+                if (data.type === 'link') { typeName = '外部連結'; iconClass = 'fas fa-link'; }
+                if (data.type === 'account') { typeName = '帳號密碼'; iconClass = 'fas fa-key'; }
+
+                // 處理對象成員名單，如果太長就加上點點點防溢出
+                let recipients = data.recipientNames && data.recipientNames.length > 0 ? data.recipientNames.join(', ') : '未指定';
+                if (recipients.length > 15) recipients = recipients.substring(0, 15) + '...';
+
+                // 【修改】：使用支援折行的雙層排版，並加上小圖示增加識別度
+                // 【新增】：安全防呆機制！只有「檔案」才需要把網址傳遞給刪除引擎，其他類別直接傳空字串，避免 JSON 破壞 HTML 結構
+                const safeContent = data.type === 'file' ? data.content : '';
+
+                // 補回點擊呼叫 openUnlockModal 與滑動刪除的功能
                 if (canDelete) {
                     html += `
-                    <div class="swipe-container">
-                        <div class="swipe-actions-dual">
-                            <button class="swipe-edit-btn" onclick="editGroupBuy('${doc.id}')"><i class="fas fa-edit"></i></button>
-                            <button class="swipe-delete-btn-half" onclick="deleteGroupBuy('${doc.id}')"><i class="fas fa-trash-alt"></i></button>
+                    <div class="swipe-container" style="background: #1a1a1a; cursor: pointer;">
+                        <div class="swipe-actions" style="width: 80px;">
+                            <button class="swipe-delete-btn" onclick="deleteConfidential('${doc.id}', '${data.type}', '${safeContent}')"><i class="fas fa-trash-alt"></i></button>
                         </div>
-                        <div class="swipe-content event-mini-item" style="border-left-color: #28a745; margin-bottom: 0;"
-                             onmousedown="gbSwipeStart(event, this)" 
-                             onmousemove="gbSwipeMove(event, this)" 
-                             onmouseup="gbSwipeEnd(event, this, '${doc.id}', '${safeTitle}', '${safeInitiator}', '${data.deadline}')" 
-                             onmouseleave="gbSwipeEnd(event, this, '${doc.id}', '${safeTitle}', '${safeInitiator}', '${data.deadline}')" 
-                             ontouchstart="gbSwipeStart(event, this)" 
-                             ontouchmove="gbSwipeMove(event, this)" 
-                             ontouchend="gbSwipeEnd(event, this, '${doc.id}', '${safeTitle}', '${safeInitiator}', '${data.deadline}')">
-                            ${innerContent}
+                        <div class="swipe-content cd-swipe-content" 
+                             onmousedown="cdSwipeStart(event, this)" onmousemove="cdSwipeMove(event, this)" 
+                             onmouseup="cdSwipeEnd(event, this, '${doc.id}')" onmouseleave="cdSwipeEnd(event, this, '${doc.id}')" 
+                             ontouchstart="cdSwipeStart(event, this)" ontouchmove="cdSwipeMove(event, this)" 
+                             ontouchend="cdSwipeEnd(event, this, '${doc.id}')">
+                            ${innerHtml}
                         </div>
                     </div>`;
                 } else {
-                    html += `
-                    <div class="event-mini-item" style="border-left-color: #28a745;" onclick="sendGroupBuyCard('${doc.id}', '${safeTitle}', '${safeInitiator}', '${data.deadline}')">
-                        ${innerContent}
-                    </div>`;
+                    // 如果沒有刪除權限，單純套用點擊解鎖功能
+                    html += `<div style="cursor: pointer;" onclick="openUnlockModal('${doc.id}')">${innerHtml}</div>`;
                 }
             });
             listEl.innerHTML = html;
@@ -5312,6 +6043,518 @@
                 await msgRef.update({ [`reactions.${uid}`]: emoji });
             }
         } catch(e) {}
+    }
+
+    // ==========================================
+    // 機密文件系統 (凱撒密碼 + 真假密碼防護)
+    // ==========================================
+
+    // 密碼學引擎：英數字 +3 偏移
+    function cipherPlus3(str) {
+        if (!str) return '';
+        return str.split('').map(char => {
+            let code = char.charCodeAt(0);
+            if (code >= 65 && code <= 90) return String.fromCharCode(((code - 65 + 3) % 26) + 65); // A-Z
+            if (code >= 97 && code <= 122) return String.fromCharCode(((code - 97 + 3) % 26) + 97); // a-z
+            if (code >= 48 && code <= 57) return String.fromCharCode(((code - 48 + 3) % 10) + 48); // 0-9
+            return char; // 符號與中文不變
+        }).join('');
+    }
+
+    // 眼鏡按鈕預覽功能 (顯示 +3 結果)
+    // 眼鏡按鈕預覽功能 (強制顯示 +3 結果)
+    function showCipherPreview(inputId) {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+        
+        // 紀錄最真實的輸入值，藏進 data-real-val 屬性
+        const realVal = input.value;
+        if (!realVal) {
+            input.type = 'text'; 
+            return; 
+        }
+        
+        input.setAttribute('data-real-val', realVal);
+        input.type = 'text'; // 解除密碼遮蔽
+        input.value = cipherPlus3(realVal); // 暴力替換為 +3 加密字串
+    }
+
+    function hideCipherPreview(inputId) {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+        
+        input.type = 'password'; // 恢復星號遮蔽
+        
+        // 從 data-real-val 拿回真實的密碼
+        if (input.hasAttribute('data-real-val')) {
+            input.value = input.getAttribute('data-real-val');
+            input.removeAttribute('data-real-val');
+        }
+    }
+    
+    // 帳號輸入時，自動將視覺轉換為 +3 (但保留原始 value)
+    function handleAccountCipherInput(el) {
+        const raw = el.value;
+        const ciphered = cipherPlus3(raw);
+        const hintEl = document.getElementById(`hint-${el.id}`);
+        if (hintEl) hintEl.innerText = `加密視覺: ${ciphered}`;
+    }
+
+    // 切換類別 UI
+    let accRowCount = 0;
+    function openCreateConfidentialModal() {
+        document.getElementById('expandMenuPanel').style.display = 'none';
+        document.querySelector('.expand-menu-btn').style.transform = 'rotate(0deg)';
+        document.getElementById('cd-title').value = '';
+        document.getElementById('cd-true-pass').value = '';
+        document.getElementById('cd-fake-pass').value = '';
+        
+        // 【修改】：預設強制切換為 file 模式
+        changeConfidentialType('file');
+        openModal('createConfidentialModal');
+    }
+
+    function changeConfidentialType(targetType) {
+        const type = targetType || document.getElementById('cd-type').value;
+        document.getElementById('cd-type').value = type;
+        
+        document.querySelectorAll('.cd-tab').forEach(btn => {
+            if (btn.getAttribute('data-type') === type) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
+
+        const area = document.getElementById('cd-dynamic-area');
+        area.innerHTML = '';
+        accRowCount = 0;
+
+        if (type === 'file') {
+            area.innerHTML = `
+                <div class="modal-input-group" style="margin-top:15px;">
+                    <label>上傳機密檔案</label>
+                    <input type="file" id="cd-file-input" style="background: white; padding: 8px;">
+                </div>`;
+        } else if (type === 'link') {
+            area.innerHTML = `
+                <div class="modal-input-group" style="margin-top:15px;">
+                    <label>機密網址連結</label>
+                    <input type="text" id="cd-link-input" placeholder="https://...">
+                </div>`;
+        } else if (type === 'account') {
+            // 【修復】：把新增按鈕與帳號列包在一個共同的容器內，這樣清空時就會一起消失
+            area.innerHTML = `
+                <div id="acc-rows-container"></div>
+                <button type="button" onclick="addAccountRow()" style="width:100%; background:rgba(0,49,83,0.1); color:var(--ly-blue); border:none; padding:10px; border-radius:8px; font-weight:bold; cursor:pointer; margin-bottom:15px;"><i class="fas fa-plus"></i> 新增一組帳號密碼</button>
+            `;
+            addAccountRow();
+        }
+    }
+
+    // 【新增】：單純的密碼隱藏與顯示 (用於建立時的帳號欄位)
+    function showNormalPreview(inputId) {
+        const input = document.getElementById(inputId);
+        if (input) input.type = 'text';
+    }
+    function hideNormalPreview(inputId) {
+        const input = document.getElementById(inputId);
+        if (input) input.type = 'password';
+    }
+
+    function addAccountRow() {
+        const container = document.getElementById('acc-rows-container');
+        if (!container) return;
+        
+        const rId = accRowCount++;
+        const html = `
+            <div class="acc-pass-row" id="acc-row-${rId}">
+                ${rId > 0 ? `<button type="button" onclick="document.getElementById('acc-row-${rId}').remove()" style="position:absolute; top:5px; right:5px; background:none; border:none; color:#d93025; cursor:pointer;"><i class="fas fa-times"></i></button>` : ''}
+                <div class="modal-input-group" style="margin-bottom: 10px;">
+                    <label>系統標題</label>
+                    <input type="text" class="cd-acc-title" placeholder="例如：狗疾病系統登入">
+                </div>
+                <div class="modal-input-group" style="margin-bottom: 10px;">
+                    <label>帳號 (輸入時隱藏，長按眼睛檢視)</label>
+                    <div class="cipher-input-group">
+                        <input type="password" class="cd-acc-user" id="acc-u-${rId}" placeholder="輸入帳號...">
+                        <button type="button" class="cipher-eye-btn" onmousedown="showNormalPreview('acc-u-${rId}')" onmouseup="hideNormalPreview('acc-u-${rId}')" ontouchstart="showNormalPreview('acc-u-${rId}')" ontouchend="hideNormalPreview('acc-u-${rId}')"><i class="fas fa-eye"></i></button>
+                    </div>
+                </div>
+                <div class="modal-input-group" style="margin-bottom: 0;">
+                    <label>密碼</label>
+                    <div class="cipher-input-group">
+                        <input type="password" class="cd-acc-pass" id="acc-p-${rId}" placeholder="輸入密碼...">
+                        <button type="button" class="cipher-eye-btn" onmousedown="showCipherPreview('acc-p-${rId}')" onmouseup="hideCipherPreview('acc-p-${rId}')" ontouchstart="showCipherPreview('acc-p-${rId}')" ontouchend="hideCipherPreview('acc-p-${rId}')"><i class="fas fa-eye"></i></button>
+                    </div>
+                    <span class="cipher-hint" style="color:var(--ly-blue);">※ 密碼將以密碼學 +3 偏移顯示</span>
+                </div>
+            </div>`;
+        container.insertAdjacentHTML('beforeend', html);
+    }
+
+    // 【新增】：用於檢視模式下，將預設文字切換回真實文字的邏輯
+    function showViewAccount(id) {
+        const el = document.getElementById(id);
+        if (el) el.value = el.getAttribute('data-real-val');
+    }
+    function hideViewAccount(id) {
+        const el = document.getElementById(id);
+        if (el) el.value = el.getAttribute('data-cipher-val');
+    }
+
+    function renderConfidentialContent(data) {
+        const viewBody = document.getElementById('cd-view-content');
+        let html = `<h2 style="color:var(--ly-blue); margin-top:0;">${data.title}</h2><hr style="border:0; border-top:1px dashed #ccc; margin: 15px 0;">`;
+
+        if (data.type === 'file') {
+            html += `<p>附檔已成功解密：</p><a href="${data.content}" target="_blank" style="display:inline-block; background:var(--ly-blue); color:white; padding:10px 20px; border-radius:8px; text-decoration:none; font-weight:bold;"><i class="fas fa-download"></i> 點擊下載檔案</a>`;
+        } else if (data.type === 'link') {
+            html += `<p>機密連結已解密：</p><a href="${data.content}" target="_blank" style="word-break:break-all; color:#d93025; font-weight:bold; font-size:1.1rem; text-decoration:underline;">${data.content}</a>`;
+        } else if (data.type === 'account') {
+            const accounts = JSON.parse(data.content);
+            accounts.forEach((acc, idx) => {
+                const cUser = cipherPlus3(acc.user); 
+                html += `
+                <div style="background:#f8f9fa; border:1px solid #ddd; border-left:4px solid var(--ly-gold); padding:15px; margin-bottom:15px; border-radius:8px;">
+                    <h4 style="margin:0 0 10px 0; color:#333;">${acc.sysTitle}</h4>
+                    <div style="margin-bottom:8px;">
+                        <strong>帳號：</strong>
+                        <div class="cipher-input-group" style="display:inline-flex; width: 200px;">
+                            <input type="text" id="v-acc-${idx}" value="${cUser}" data-real-val="${acc.user}" data-cipher-val="${cUser}" readonly style="background:transparent; border:none; outline:none; font-size:1.1rem; color:var(--ly-blue); font-weight:bold; font-family:monospace;">
+                            <button class="cipher-eye-btn" onmousedown="showViewAccount('v-acc-${idx}')" onmouseup="hideViewAccount('v-acc-${idx}')" ontouchstart="showViewAccount('v-acc-${idx}')" ontouchend="hideViewAccount('v-acc-${idx}')"><i class="fas fa-eye"></i></button>
+                        </div>
+                    </div>
+                    <div>
+                        <strong>密碼：</strong>
+                        <div class="cipher-input-group" style="display:inline-flex; width: 200px;">
+                            <input type="password" id="v-pass-${idx}" value="${acc.pass}" readonly style="background:transparent; border:none; outline:none; font-size:1.1rem; color:#d93025; font-weight:bold; font-family:monospace;">
+                            <button class="cipher-eye-btn" onmousedown="showCipherPreview('v-pass-${idx}')" onmouseup="hideCipherPreview('v-pass-${idx}')" ontouchstart="showCipherPreview('v-pass-${idx}')" ontouchend="hideCipherPreview('v-pass-${idx}')"><i class="fas fa-eye"></i></button>
+                        </div>
+                    </div>
+                </div>`;
+            });
+        }
+        viewBody.innerHTML = html;
+        openModal('viewConfidentialModal');
+    }
+
+    // 送出機密資料
+    async function submitConfidential() {
+        const title = document.getElementById('cd-title').value.trim();
+        const truePass = document.getElementById('cd-true-pass').value;
+        const fakePass = document.getElementById('cd-fake-pass').value;
+        const type = document.getElementById('cd-type').value;
+        
+        if (!title || !truePass) return alert("「文件標題」與「加密密碼」為必填項目！");
+
+        const btn = document.querySelector('#createConfidentialModal .btn-confirm');
+        btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 處理中...';
+
+        try {
+            let payloadContent = "";
+            let fileUrl = null;
+
+            if (type === 'file') {
+                const file = document.getElementById('cd-file-input').files[0];
+                if (!file) throw new Error("請選擇檔案");
+                // 照規定儲存於 chat/confidential_documents/[title]/[filename]
+                const path = `chat/confidential_documents/${title}/${Date.now()}_${file.name}`;
+                const snap = await storage.ref(path).put(file);
+                fileUrl = await snap.ref.getDownloadURL();
+                payloadContent = fileUrl;
+            } else if (type === 'link') {
+                const link = document.getElementById('cd-link-input').value.trim();
+                if (!link) throw new Error("請輸入連結");
+                payloadContent = link;
+            } else if (type === 'account') {
+                const rows = document.querySelectorAll('.acc-pass-row');
+                const accData = [];
+                rows.forEach(r => {
+                    const uInput = r.querySelector('.cd-acc-user');
+                    const pInput = r.querySelector('.cd-acc-pass');
+                    // 如果送出時剛好眼睛是按下的狀態，優先取回真實值
+                    const uVal = uInput.hasAttribute('data-real-val') ? uInput.getAttribute('data-real-val') : uInput.value;
+                    const pVal = pInput.hasAttribute('data-real-val') ? pInput.getAttribute('data-real-val') : pInput.value;
+                    
+                    accData.push({
+                        sysTitle: r.querySelector('.cd-acc-title').value.trim(),
+                        user: uVal.trim(),
+                        pass: pVal
+                    });
+                });
+                payloadContent = JSON.stringify(accData);
+            }
+
+            // 將資料寫入獨立的 confidential-docs 集合
+            // 【新增】：抓取畫面上所有被勾選的傳遞對象
+            const checkedBoxes = document.querySelectorAll('.cd-recipient-cb:checked');
+            const sharedWithUids = Array.from(checkedBoxes).map(cb => cb.value); // 存 UID 作為權限判斷
+            const sharedWithNames = Array.from(checkedBoxes).map(cb => cb.getAttribute('data-name')); // 存名字作為畫面顯示
+
+            // 將資料寫入獨立的 confidential-docs 集合
+            const docRef = await db.collection("confidential-docs").add({
+                title: title,
+                type: type,
+                truePass: truePass,
+                fakePass: fakePass,
+                content: payloadContent,
+                creator: auth.currentUser.uid,
+                sharedWith: sharedWithUids,          // 【寫入】：權限 UID 陣列
+                recipientNames: sharedWithNames,     // 【寫入】：顯示用名字陣列
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            // 送出卡片到聊天室
+            const batch = db.batch();
+            const chatRef = db.collection("chats").doc(currentChatId);
+            const msgRef = chatRef.collection("messages").doc();
+            
+            const msgPayload = { type: 'confidential', docId: docRef.id, title: title };
+            batch.set(msgRef, { text: JSON.stringify(msgPayload), senderId: auth.currentUser.uid, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+            batch.update(chatRef, { lastMessage: `傳送了機密文件：${title}`, lastSenderId: auth.currentUser.uid, updatedAt: firebase.firestore.FieldValue.serverTimestamp(), [`lastReadAt.${auth.currentUser.uid}`]: firebase.firestore.FieldValue.serverTimestamp() });
+            
+            await batch.commit();
+            closeModal('createConfidentialModal');
+            scrollToBottom(true);
+
+        } catch (e) {
+            alert(e.message || "處理失敗");
+        } finally {
+            btn.disabled = false; btn.innerHTML = '<i class="fas fa-paper-plane"></i> 加密傳送';
+        }
+    }
+
+    // 解鎖視窗與邏輯
+    let currentUnlockDocId = null;
+    function openUnlockModal(docId) {
+        currentUnlockDocId = docId;
+        document.getElementById('unlock-pass-input').value = '';
+        openModal('unlockConfidentialModal');
+        // 稍微延遲讓游標自動對焦
+        setTimeout(() => document.getElementById('unlock-pass-input').focus(), 100);
+    }
+
+    async function verifyConfidential() {
+        const inputPass = document.getElementById('unlock-pass-input').value;
+        if (!inputPass) return alert("請輸入密碼！");
+
+        const btn = document.querySelector('#unlockConfidentialModal .btn-confirm');
+        btn.disabled = true; btn.innerText = '驗證中...';
+
+        try {
+            const docSnap = await db.collection("confidential-docs").doc(currentUnlockDocId).get();
+            if (!docSnap.exists) throw new Error("機密檔案已銷毀或不存在");
+            const data = docSnap.data();
+
+            if (inputPass === data.truePass) {
+                // 【真密碼】：顯示真實資料
+                closeModal('unlockConfidentialModal');
+                renderConfidentialContent(data);
+            } else if (data.fakePass && inputPass === data.fakePass) {
+                // 【假密碼】：顯示立法院英文介紹防護內容
+                closeModal('unlockConfidentialModal');
+                showFakeContent();
+            } else {
+                alert("密碼錯誤，拒絕存取！");
+            }
+        } catch (e) {
+            alert(e.message);
+        } finally {
+            btn.disabled = false; btn.innerText = '驗證解鎖';
+        }
+    }
+
+    // 渲染真實機密資料
+    
+
+    // 假密碼導向的立法院介紹
+    function showFakeContent() {
+        const viewBody = document.getElementById('cd-view-content');
+        viewBody.innerHTML = `
+            <div class="fake-content-paper" style="font-family: 'Times New Roman', serif; text-align: justify;">
+                <h2 style="text-align:center; color:#003153; border-bottom:2px solid #cfa900; padding-bottom:10px;">The Legislature Family</h2>
+                <p>Welcome to the Legislature Communication System. We are more than just a legislative body; we are a family dedicated to serving the public and shaping the future of our nation.</p>
+                <p>Our members work tirelessly across various committees, engaging in profound debates and crafting policies that ensure every voice is heard. This system embodies our core values: professionalism, transparency, and a warm, collaborative environment.</p>
+                <p>Behind these walls, decades of history merge with modern innovation, driving our mission forward. Thank you for your continued dedication to our shared cause.</p>
+                <div style="text-align:right; margin-top:20px; font-style:italic; color:#666;">- System Administrator</div>
+            </div>
+        `;
+        openModal('viewConfidentialModal');
+    }
+
+    // ==========================================
+    // 機密文件：列表載入、新增與左滑刪除引擎
+    // ==========================================
+    
+    async function openConfidentialListModal() {
+        document.getElementById('expandMenuPanel').style.display = 'none';
+        document.querySelector('.expand-menu-btn').style.transform = 'rotate(0deg)';
+        openModal('confidentialListModal');
+
+        const listEl = document.getElementById('confidentialListContainer');
+        listEl.innerHTML = '<div style="text-align:center; padding:30px; color:#999;"><i class="fas fa-spinner fa-spin fa-2x"></i></div>';
+
+        try {
+            const myName = document.getElementById('myName').innerText.trim();
+            const isMonitor = (myName === '班長');
+            const uid = auth.currentUser.uid;
+
+            const snap = await db.collection("confidential-docs").orderBy("createdAt", "desc").get();
+            let html = '';
+
+            snap.forEach(doc => {
+                const data = doc.data();
+                const sharedWith = data.sharedWith || [];
+                
+                // 取得建立者名稱
+                const creatorUid = data.creator;
+                let creatorName = "未知";
+                if (creatorUid === uid) {
+                    creatorName = myName;
+                } else if (window.chatMembersCache && window.chatMembersCache[creatorUid]) {
+                    creatorName = window.chatMembersCache[creatorUid].displayName || "未知";
+                }
+
+                // 權限過濾：只有建立者、名單內被分享的成員、或是班長可以看見這個檔案
+                if (data.creator !== uid && !sharedWith.includes(uid) && !isMonitor) return;
+
+                const canDelete = (data.creator === uid) || isMonitor;
+                const dateStr = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleString('zh-TW', {month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '未知時間';
+                
+                let typeName = '檔案傳送', iconClass = 'fas fa-folder';
+                if (data.type === 'link') { typeName = '外部連結'; iconClass = 'fas fa-link'; }
+                if (data.type === 'account') { typeName = '帳號密碼'; iconClass = 'fas fa-key'; }
+
+                let recipients = data.recipientNames && data.recipientNames.length > 0 ? data.recipientNames.join(', ') : '未指定';
+                if (recipients.length > 15) recipients = recipients.substring(0, 15) + '...';
+
+                // 雙層排版介面
+                const innerHtml = `
+                    <div class="cd-list-item">
+                        <div class="cd-icon"><i class="${iconClass}"></i></div>
+                        <div class="cd-list-info">
+                            <div class="cd-list-title">${data.title}</div>
+                            <div class="cd-list-meta">
+                                <span><i class="fas fa-user"></i> ${creatorName}</span>
+                                <span><i class="far fa-clock"></i> ${dateStr}</span>
+                                <span><i class="fas fa-tag"></i> ${typeName}</span>
+                                <span class="cd-meta-highlight"><i class="fas fa-eye"></i> ${recipients}</span>
+                            </div>
+                        </div>
+                    </div>`;
+
+                // 【修復關鍵】：補回點擊呼叫 openUnlockModal 與滑動刪除的功能
+                if (canDelete) {
+                    html += `
+                    <div class="swipe-container" style="background: #1a1a1a; cursor: pointer;">
+                        <div class="swipe-actions" style="width: 80px;">
+                            <button class="swipe-delete-btn" onclick="deleteConfidential('${doc.id}')"><i class="fas fa-trash-alt"></i></button>
+                        </div>
+                        <div class="swipe-content cd-swipe-content" 
+                             onmousedown="cdSwipeStart(event, this)" onmousemove="cdSwipeMove(event, this)" 
+                             onmouseup="cdSwipeEnd(event, this, '${doc.id}')" onmouseleave="cdSwipeEnd(event, this, '${doc.id}')" 
+                             ontouchstart="cdSwipeStart(event, this)" ontouchmove="cdSwipeMove(event, this)" 
+                             ontouchend="cdSwipeEnd(event, this, '${doc.id}')">
+                            ${innerHtml}
+                        </div>
+                    </div>`;
+                } else {
+                    // 如果沒有刪除權限，單純套用點擊解鎖功能
+                    html += `<div style="cursor: pointer;" onclick="openUnlockModal('${doc.id}')">${innerHtml}</div>`;
+                }
+            });
+
+            listEl.innerHTML = html || '<div style="text-align:center; padding:30px; color:#777;">暫無機密檔案</div>';
+        } catch(e) {
+            listEl.innerHTML = '<div style="text-align:center; padding:20px; color:red;">載入失敗</div>';
+        }
+    }
+
+    // 【新增】：機密文件傳遞對象的全選/清除功能
+    function toggleAllCdMembers(isSelect) {
+        document.querySelectorAll('.cd-recipient-cb').forEach(cb => {
+            cb.checked = isSelect;
+        });
+    }
+
+    // 替換原本的 openCreateConfidentialModal 以載入成員列表
+    function openCreateConfidentialModal() {
+        closeModal('confidentialListModal');
+        document.getElementById('cd-title').value = '';
+        document.getElementById('cd-true-pass').value = '';
+        document.getElementById('cd-fake-pass').value = '';
+        
+        // 載入當前聊天室的成員供勾選
+        const recList = document.getElementById('cd-recipient-list');
+        let recHtml = '';
+        window.currentGroupMembers.forEach(uid => {
+            if (uid === auth.currentUser.uid) return;
+            const name = window.chatMembersCache[uid]?.displayName || "未知";
+            const avatar = window.chatMembersCache[uid]?.photoURL || "https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true";
+            
+            // 【新增】：判斷是否為單人對話 (非群組)，若是則自動加上 checked 屬性
+            const isAutoChecked = !window.isCurrentChatGroup ? 'checked' : '';
+
+            recHtml += `
+            <label class="user-select-item" style="display:inline-block; margin:4px;">
+                <input type="checkbox" value="${uid}" data-name="${name}" class="cd-recipient-cb" ${isAutoChecked}>
+                <div class="user-select-card" style="padding: 5px; width: 65px;">
+                    <img src="${avatar}" style="width:30px;height:30px;">
+                    <span style="font-size:11px;">${name}</span>
+                </div>
+            </label>`;
+        });
+        recList.innerHTML = recHtml || '<div style="padding:10px; color:#999; text-align:center;">無其他成員可選</div>';
+        
+        changeConfidentialType('file');
+        openModal('createConfidentialModal');
+    }
+
+    // 修改 submitConfidential() 以抓取傳遞對象 (請放在 submitConfidential 函式中寫入 DB 的地方)
+    // 提示：你需要在 submitConfidential 寫入 docRef.add() 的資料中，加入：
+    // sharedWith: Array.from(document.querySelectorAll('.cd-recipient-cb:checked')).map(cb => cb.value),
+    // recipientNames: Array.from(document.querySelectorAll('.cd-recipient-cb:checked')).map(cb => cb.getAttribute('data-name'))
+
+    // 左滑引擎與刪除功能
+    let cdStartX = 0, cdCurrentX = 0, isCdSwiping = false, cdSwipedOpen = null;
+    function cdSwipeStart(e, el) {
+        if (cdSwipedOpen && cdSwipedOpen !== el) { cdSwipedOpen.style.transform = 'translateX(0px)'; cdSwipedOpen = null; }
+        cdStartX = e.type.includes('mouse') ? e.pageX : e.touches[0].clientX;
+        cdCurrentX = 0; isCdSwiping = true; el.style.transition = 'none';
+    }
+    function cdSwipeMove(e, el) {
+        if (!isCdSwiping) return;
+        const x = e.type.includes('mouse') ? e.pageX : e.touches[0].clientX;
+        cdCurrentX = x - cdStartX;
+        if (cdCurrentX < 0 && cdCurrentX > -90) el.style.transform = `translateX(${cdCurrentX}px)`;
+    }
+    function cdSwipeEnd(e, el, docId) {
+        if (!isCdSwiping) return;
+        isCdSwiping = false; el.style.transition = 'transform 0.3s ease';
+        if (cdCurrentX < -45) {
+            el.style.transform = 'translateX(-80px)'; cdSwipedOpen = el;
+        } else {
+            el.style.transform = 'translateX(0px)'; if (cdSwipedOpen === el) cdSwipedOpen = null;
+            if (Math.abs(cdCurrentX) < 10) openUnlockModal(docId); // 如果沒滑動視為點擊，開啟解鎖
+        }
+        cdCurrentX = 0;
+    }
+
+    async function deleteConfidential(docId) {
+        if (!confirm("確定要徹底刪除此機密檔案嗎？")) return;
+        try {
+            // 【新增】：先去資料庫把檔案資料抓出來，確認是不是實體檔案類型
+            const docSnap = await db.collection("confidential-docs").doc(docId).get();
+            if (docSnap.exists) {
+                const data = docSnap.data();
+                // 如果是實體檔案，就把雲端硬碟裡的檔案清掉
+                if (data.type === 'file' && data.content) { 
+                    try { await storage.refFromURL(data.content).delete(); } catch(e){} 
+                }
+            }
+            
+            // 刪除資料庫紀錄
+            await db.collection("confidential-docs").doc(docId).delete();
+            openConfidentialListModal(); // 刷新列表
+        } catch(e) { alert("刪除失敗"); }
     }
     </script>
 </body>
