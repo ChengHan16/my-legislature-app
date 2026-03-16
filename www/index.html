@@ -6,8 +6,23 @@
     <title>立法院 - 系統登入</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        /* --- 基礎設定 --- */
-        * { box-sizing: border-box; }
+        /* --- 基礎設定與阻擋全域選取 --- */
+        * { 
+            box-sizing: border-box; 
+            /* 阻擋 iOS 長按跳出選單 */
+            -webkit-touch-callout: none !important; 
+            /* 阻擋全域文字選取 */
+            -webkit-user-select: none !important; 
+            user-select: none !important; 
+            /* 移除點擊時的藍色半透明高光 */
+            -webkit-tap-highlight-color: transparent; 
+        }
+
+        /* 👑 特例：只允許 input 欄位可以輸入與複製文字 */
+        input { 
+            -webkit-user-select: auto !important; 
+            user-select: auto !important; 
+        }
         
         body { 
             font-family: 'Segoe UI', "Microsoft JhengHei", sans-serif; 
@@ -20,7 +35,7 @@
         }
 
         /* --- 關鍵修改：將隱藏效果移到登入框上 --- */
-        .login-wrapper { 
+        .login-wrapper, .reset-wrapper { 
             max-width: 450px; 
             width: 100%; 
             background-color: #fff; 
@@ -28,11 +43,13 @@
             border-radius: 2px; 
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
             text-align: center;
-            
+        }
+
+        .login-wrapper {
             /* 預設隱藏表單，等待 Firebase 驗證 */
             opacity: 0;
             visibility: hidden;
-            transform: translateY(15px); /* 加入微微上浮的動畫讓視覺更平滑 */
+            transform: translateY(15px);
             transition: all 0.4s ease;
         }
 
@@ -117,7 +134,7 @@
                 background-color: #fff; 
                 align-items: flex-start; 
             }
-            .login-wrapper { 
+            .login-wrapper, .reset-wrapper { 
                 max-width: none; 
                 width: 100%; 
                 height: 100vh; 
@@ -153,6 +170,7 @@
             0% { transform: scale(0.9); opacity: 0.7; }
             100% { transform: scale(1.1); opacity: 1; }
         }
+        
     </style>
 </head>
 <body>
@@ -165,7 +183,6 @@
     <span style="color: #003153; font-size: 1.1rem; font-weight: bold; letter-spacing: 1px;">安全連線中，準備進入系統...</span>
 </div>
     
-
 <div class="login-wrapper">
     <div class="brand-logo"><i class="fas fa-landmark"></i> 立法院</div>
     <div class="accent-line"></div>
@@ -192,10 +209,40 @@
 
     <button id="loginBtn" class="login-btn">進入管理系統</button>
     
+    <div style="margin-top: 15px; text-align: center;">
+        <a href="#" id="showResetBtn" style="color: #666; font-size: 14px; text-decoration: none; font-weight: 500; transition: color 0.2s;" onmouseover="this.style.color='#003153'" onmouseout="this.style.color='#666'">忘記密碼？</a>
+    </div>
+    
     <p id="msg"></p>
 
     <div style="margin-top: 40px; font-size: 12px; color: #aaa; text-align: center;">
         © 2026 立法院 Legislature. All rights reserved.
+    </div>
+</div>
+
+<div class="reset-wrapper" style="display: none;">
+    <div class="brand-logo"><i class="fas fa-key"></i> 重設密碼</div>
+    <div class="accent-line"></div>
+    
+    <div style="color:#666; margin-bottom: 25px; font-size: 14px; letter-spacing: 1px;">
+        請輸入您的公務信箱以接收重設連結
+    </div>
+
+    <div class="form-group">
+        <label>帳號 (Email)</label>
+        <div class="input-container">
+            <i class="fas fa-envelope"></i>
+            <input type="email" id="resetEmail" placeholder="請輸入公務帳號">
+        </div>
+    </div>
+
+    <button id="sendResetBtn" class="login-btn">發送重設信件</button>
+    <button id="backToLoginBtn" class="login-btn" style="background-color: #f0f2f5; color: #444; border: 1px solid #ddd; margin-top: 10px; box-shadow: none;">返回登入</button>
+    
+    <p id="resetMsg" style="height: 20px; margin-top: 15px; font-size: 14px; font-weight: 500;"></p>
+
+    <div style="margin-top: 20px; font-size: 13px; color: #d93025; text-align: left; background: #fce8e6; padding: 12px; border-radius: 6px; line-height: 1.6; border: 1px solid #fad2cf;">
+        <i class="fas fa-exclamation-triangle"></i> <strong>請注意：</strong><br>重新設定密碼郵件為全英文，有可能會在信箱的「垃圾郵件」當中，請注意尋找。
     </div>
 </div>
 
@@ -228,12 +275,10 @@
         document.getElementById('loadingOverlay').style.display = 'flex';
         
         setTimeout(() => { 
-            // 【關鍵修正】：加上 ./ 讓 iOS 確實知道檔案在同一個資料夾
             window.location.replace("./Messenger.html"); 
         }, 300);
     }
 
-    // 建立一個顯示登入表單並隱藏載入動畫的函式
     function showLoginForm() {
         const splash = document.getElementById('splashScreen');
         splash.style.opacity = '0';
@@ -246,11 +291,9 @@
     auth.onAuthStateChanged((user) => {
         clearTimeout(fallbackTimer); 
         if (user) { 
-            // 如果已登入，直接跳轉，載入動畫會一直維持到網頁跳轉
             navigateToApp(); 
         } 
         else { 
-            // 如果未登入，隱藏載入動畫，顯示登入框
             showLoginForm(); 
         }
     });
@@ -269,31 +312,17 @@
         btn.disabled = true;
         btn.style.opacity = "0.7";
 
-        // 第一步：確認按鈕有反應
         msgEl.innerText = "[1/3] 準備連線 (03.07-C)...";
         msgEl.style.color = "#003153";
 
-        // 直接執行登入，看看是不是 setPersistence 在搞鬼
-        // 直接執行登入，看看是不是 setPersistence 在搞鬼
         auth.signInWithEmailAndPassword(email, password)
             .then(async (userCredential) => {
-                // 1. 從登入成功的憑證中取出 user 物件
                 const user = userCredential.user;
-                
-                // 2. 取得 Token (強烈建議使用 Firebase 官方標準的 getIdToken)
                 const token = await user.getIdToken(); 
-                
-                // 3. 寫入 localStorage
                 localStorage.setItem("token", token);
-                
-                // (選項) 如果你堅持使用你原本寫的 user.accessToken，可以改寫成這樣：
-                // localStorage.setItem("token", user.accessToken || user.stsTokenManager.accessToken);
-                
-                // 4. Token 存好之後，才執行跳轉
                 navigateToApp();
             })
             .catch((error) => {
-                // ... 下方的 catch 錯誤處理維持原樣 ...
                 msgEl.style.color = "#a94442";
                 msgEl.innerText = "失敗: " + error.code; 
                 btn.disabled = false;
@@ -301,13 +330,88 @@
                 isNavigating = false; 
             });
 
-        // 第二步：這行字如果有出來，代表請求已經發給 Google 了
-        // 如果畫面卡在這行字，100% 是被 iOS CORS (網域安全政策) 擋下！
         setTimeout(() => {
             if (!isNavigating && msgEl.innerText.includes("[1/3]")) {
                 msgEl.innerText = "[2/3] 請求已送出，等待 Google...";
             }
         }, 500);
+    });
+
+    // ==========================================
+    // 忘記密碼系統邏輯
+    // ==========================================
+    const showResetBtn = document.getElementById('showResetBtn');
+    const backToLoginBtn = document.getElementById('backToLoginBtn');
+    const resetWrapper = document.querySelector('.reset-wrapper');
+    const sendResetBtn = document.getElementById('sendResetBtn');
+    const resetMsg = document.getElementById('resetMsg');
+
+    showResetBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        loginWrapper.style.display = 'none'; 
+        resetWrapper.style.display = 'block'; 
+        document.getElementById('resetEmail').value = document.getElementById('email').value;
+        resetMsg.innerText = '';
+    });
+
+    backToLoginBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        resetWrapper.style.display = 'none';
+        loginWrapper.style.display = 'block';
+    });
+
+    sendResetBtn.addEventListener('click', () => {
+        const resetEmail = document.getElementById('resetEmail').value.trim();
+        
+        if (!resetEmail) {
+            resetMsg.innerText = "請輸入信箱";
+            resetMsg.style.color = "#a94442";
+            return;
+        }
+
+        if (!confirm(`確認是否重新設定密碼？\n\n系統將發送重設信件至：\n${resetEmail}`)) {
+            return; 
+        }
+
+        sendResetBtn.disabled = true;
+        sendResetBtn.style.opacity = "0.7";
+        resetMsg.innerText = "正在檢查帳號資料...";
+        resetMsg.style.color = "#003153";
+
+        // 【新增】：先檢查 Authentication 是否有該帳號
+        auth.fetchSignInMethodsForEmail(resetEmail)
+            .then((signInMethods) => {
+                // 如果回傳的陣列是空的，代表該信箱尚未在 Authentication 註冊
+                if (signInMethods.length === 0) {
+                    resetMsg.innerText = "找不到此帳號，請確認信箱是否輸入正確。";
+                    resetMsg.style.color = "#a94442";
+                    sendResetBtn.disabled = false;
+                    sendResetBtn.style.opacity = "1";
+                    return;
+                }
+
+                // 帳號存在，更新提示並進行寄送
+                resetMsg.innerText = "帳號確認無誤，信件發送中...";
+                
+                return auth.sendPasswordResetEmail(resetEmail).then(() => {
+                    resetMsg.innerText = "發送成功！請前往信箱收信。";
+                    resetMsg.style.color = "#28a745";
+                    sendResetBtn.disabled = false;
+                    sendResetBtn.style.opacity = "1";
+                    document.getElementById('resetEmail').value = ''; 
+                });
+            })
+            .catch((error) => {
+                let errorText = error.message;
+                // 相容舊版 Firebase 錯誤碼
+                if (error.code === 'auth/user-not-found') errorText = "找不到此帳號，請確認輸入是否正確。";
+                if (error.code === 'auth/invalid-email') errorText = "信箱格式不正確。";
+                
+                resetMsg.innerText = "操作失敗：" + errorText;
+                resetMsg.style.color = "#a94442";
+                sendResetBtn.disabled = false;
+                sendResetBtn.style.opacity = "1";
+            });
     });
 </script>
 </body>

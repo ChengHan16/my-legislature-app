@@ -60,7 +60,7 @@
         
         @media (max-width: 750px) { 
             .header-content { 
-                height: 62px; /* 【微調】：提高 3px */
+                height: 60px; /* 【微調】：提高 3px */
                 padding: 0 20px 0 41px !important; 
             }
             .header-content .user-avatar { 
@@ -70,7 +70,7 @@
         }
         
         /* 聊天室內部的標題列 (與首頁統一高度，解決切換畫面時的高低落差) */
-        #chatView .header-content { height: 62px; padding: 0 15px !important; } /* 【微調】：提高 3px */
+        #chatView .header-content { height: 60px; padding: 0 15px !important; } /* 【微調】：提高 3px */
         /* 【關鍵修正】：加上 .header-content */
         #chatView .header-content .user-avatar { width: 50px !important; height: 50px !important; }
 
@@ -189,7 +189,7 @@
             max-width: var(--container-width); width: 100%; display: flex; align-items: center; 
             gap: 10px; 
             padding: 8px 12px; /* 【微調】：降低 2px */
-            padding-bottom: calc(4px + env(safe-area-inset-bottom)); box-sizing: border-box; 
+            padding-bottom: calc(4.5px + env(safe-area-inset-bottom)); box-sizing: border-box; 
         }
 
         #msgInput { 
@@ -546,6 +546,17 @@
             0%, 80%, 100% { transform: scale(0.6); opacity: 0.6; }
             40% { transform: scale(1); opacity: 1; }
         }
+
+        /* ==========================================
+           表情符號回應專用樣式
+           ========================================== */
+        .reaction-bar { display: flex; gap: 8px; padding: 10px; border-bottom: 1px solid #eee; justify-content: center; background: #f8f9fa; border-radius: 12px 12px 0 0; }
+        .reaction-btn { font-size: 1.5rem; background: none; border: none; cursor: pointer; transition: 0.2s; padding: 4px; display: flex; align-items: center; justify-content: center;}
+        .reaction-btn:active { transform: scale(1.3); }
+        .msg-reactions { display: flex; flex-wrap: wrap; gap: 4px; margin-top: -10px; margin-bottom: 8px; z-index: 2; position: relative; padding: 0 10px; }
+        .reaction-badge { background: white; border: 1px solid #ddd; border-radius: 12px; font-size: 0.85rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 4px; cursor: pointer; transition: 0.2s;}
+        .reaction-badge:active { transform: scale(1.1); }
+        .reaction-badge.my-reaction { background: #fffdf5; border-color: var(--ly-gold); }
     </style>
 </head>
 <body>
@@ -978,11 +989,20 @@
         </div>
     </div>
 
-    <div id="contextMenu" class="context-menu">
-        <button id="pinMenuBtn" onclick="pinMessage()"><i class="fas fa-thumbtack"></i> 釘選</button>
-        <button id="replyMenuBtn" onclick="triggerMenuReply()"><i class="fas fa-reply"></i> 回覆</button>
-        <button id="copyMenuBtn" onclick="copyMessage()"><i class="fas fa-copy"></i> 複製</button>
-        <button id="multiSelectMenuBtn" onclick="enterSelectMode()"><i class="fas fa-trash-alt"></i> 收回</button>
+    <div id="contextMenu" class="context-menu" style="flex-direction: column; padding: 0; overflow: hidden;">
+        <div class="reaction-bar">
+            <button class="reaction-btn" onclick="sendReaction('👍')">👍</button>
+            <button class="reaction-btn" onclick="sendReaction('❤️')">❤️</button>
+            <button class="reaction-btn" onclick="sendReaction('😂')">😂</button>
+            <button class="reaction-btn" onclick="sendReaction('🙏')">🙏</button>
+            <button class="reaction-btn" onclick="sendReaction('👀')">👀</button>
+        </div>
+        <div style="display: flex; flex-direction: column; padding: 6px;">
+            <button id="pinMenuBtn" onclick="pinMessage()"><i class="fas fa-thumbtack"></i> 釘選</button>
+            <button id="replyMenuBtn" onclick="triggerMenuReply()"><i class="fas fa-reply"></i> 回覆</button>
+            <button id="copyMenuBtn" onclick="copyMessage()"><i class="fas fa-copy"></i> 複製</button>
+            <button id="multiSelectMenuBtn" onclick="enterSelectMode()"><i class="fas fa-trash-alt"></i> 收回</button>
+        </div>
     </div>
 
     <div id="settingsView" class="app-view" style="z-index: 30; transform: translateX(100%);">
@@ -1129,7 +1149,19 @@
 
     // 工具函式
     function escapeHtml(str) { return str ? str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;") : ""; }
-    function linkify(text) { return text ? text.replace(/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig, '<a href="$1" target="_blank" style="color: inherit; text-decoration: underline; word-break: break-all;">$1</a>') : ""; }
+    // 工具函式：網址轉換與圖片/GIF預覽
+    function linkifyAndPreview(text) {
+        if (!text) return "";
+        const urlRegex = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+        return text.replace(urlRegex, function(url) {
+            const cleanUrl = url.replace(/&amp;/g, '&'); 
+            // 偵測是否為圖片或 GIF 結尾
+            if (cleanUrl.match(/\.(jpeg|jpg|gif|png|webp)(\?.*)?$/i)) {
+                return `<a href="${cleanUrl}" target="_blank" style="color: inherit; text-decoration: underline; word-break: break-all;">${url}</a><br><img src="${cleanUrl}" class="msg-media" style="margin-top: 5px; max-height: 200px; border-radius: 8px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" onclick="if(!skipNextClick) openImageModal(this.src)" onload="scrollToBottom()">`;
+            }
+            return `<a href="${cleanUrl}" target="_blank" style="color: inherit; text-decoration: underline; word-break: break-all;">${url}</a>`;
+        });
+    }
     function highlightMentions(text) { return text ? text.replace(/@([^\s]+)/g, '<span class="mention-highlight">@$1</span>') : ""; }
     function formatChatDate(timestamp) {
         if (!timestamp) return "";
@@ -1723,36 +1755,76 @@
                 }
             }
             
-            if (msg.text && !isEventCard) contentHtml += (msg.fileUrl ? '<br>' : '') + highlightMentions(linkify(escapeHtml(msg.text)));
-            else if (msg.fileUrl && !msg.replyToId && !isEventCard) isMediaOnly = true;
+            if (msg.text && !isEventCard) contentHtml += (msg.fileUrl ? '<br>' : '') + highlightMentions(linkifyAndPreview(escapeHtml(msg.text)));
+            
+            // 【修復溢出 bug】：活動卡片與純圖片都套用 media-only，徹底去除原生氣泡的白底與內距
+            if (isEventCard || (msg.fileUrl && !msg.replyToId && !msg.text)) {
+                isMediaOnly = true;
+            }
 
             const mediaClass = isMediaOnly ? 'media-only' : '';
             
-            // 【移除左右滑動回覆，僅保留長按呼叫選單功能】
-            // 【移除左右滑動回覆，僅保留長按呼叫選單功能】
-            // 【修改】：統一綁定智慧互動引擎 (長按 + 左右滑動)
             let interactEvents = `ontouchstart="msgInteractionStart(event, '${msgId}', '${isMine}', '${safeText}', this)" ontouchmove="msgInteractionMove(event, this)" ontouchend="msgInteractionEnd(event, this)" onmousedown="msgInteractionStart(event, '${msgId}', '${isMine}', '${safeText}', this)" onmousemove="msgInteractionMove(event, this)" onmouseup="msgInteractionEnd(event, this)" onmouseleave="msgInteractionEnd(event, this)" oncontextmenu="event.preventDefault(); activeMsgId='${msgId}'; activeMsgTextForMenu='${safeText}'; showContextMenu(event, ${isMine});"`;
-            // 產生時間與已讀的排版 HTML
-            // 產生時間的字串
             const timeStr = msgTime.toLocaleTimeString('zh-TW', {hour: '2-digit', minute:'2-digit', hour12: false});
             
-            // 【修改】：判斷是否為群組對話，給予不同的排版結構
-            // 【修改】：完美還原群組對話「上下堆疊」的排版
-            if (window.isCurrentChatGroup) {
-                const alignStyle = isMine ? 'align-items: flex-end;' : 'align-items: flex-start;';
-                html += `<div style="display: flex; flex-direction: column; max-width: 75%; ${alignStyle}">`;
-                // 訊息氣泡本體：將 margin-bottom 加大到 8px 增加一點點間隔
-                html += `<div id="msg-${msgId}" class="msg ${isMine ? 'mine' : 'theirs'} ${mediaClass}" style="max-width: 100%; margin-bottom: 8px;" ${interactEvents}>${contentHtml}</div>`;
+            // 【新增】：統計與渲染表情符號 (Reactions)，含頭像疊加
+            let reactionsHtml = '';
+            if (msg.reactions && Object.keys(msg.reactions).length > 0) {
+                const reactionGroups = {};
+                const myReaction = msg.reactions[currentUid];
                 
-                // 下方區塊存放時間與已讀
+                for (const [uid, emoji] of Object.entries(msg.reactions)) {
+                    if (!reactionGroups[emoji]) reactionGroups[emoji] = [];
+                    reactionGroups[emoji].push(uid);
+                }
+                
+                reactionsHtml += `<div class="msg-reactions" style="justify-content: ${isMine ? 'flex-end' : 'flex-start'};">`;
+                for (const [emoji, uids] of Object.entries(reactionGroups)) {
+                    const hasMe = uids.includes(currentUid);
+                    const badgeClass = hasMe ? 'reaction-badge my-reaction' : 'reaction-badge';
+                    
+                    let avatarsHtml = '';
+                    uids.slice(0, 3).forEach((uid, index) => {
+                        const senderCache = window.chatMembersCache[uid] || {};
+                        const avatarUrl = senderCache.photoURL || "https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true";
+                        const zIndex = 3 - index;
+                        avatarsHtml += `<img src="${avatarUrl}" style="width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid ${hasMe ? '#fffdf5' : '#fff'}; margin-left: -6px; object-fit: cover; position: relative; z-index: ${zIndex};">`;
+                    });
+
+                    const countText = uids.length > 1 ? `<span style="margin-left: 4px; font-weight: bold; color: #555;">${uids.length}</span>` : '';
+                    
+                    reactionsHtml += `
+                    <div class="${badgeClass}" onclick="toggleReaction('${msgId}', '${emoji}')" style="padding: 2px 8px 2px 8px;">
+                        <span>${emoji}</span>
+                        <div style="display: flex; margin-left: 6px; padding-left: 6px; border-left: 1px solid rgba(0,0,0,0.1); align-items: center;">
+                            <div style="display: flex; padding-left: 6px;">${avatarsHtml}</div>
+                            ${countText}
+                        </div>
+                    </div>`;
+                }
+                reactionsHtml += `</div>`;
+            }
+
+            // 【排版修復】：使用 width: fit-content 與 min-width: 0 確保文字不被 flexbox 強制垂直換行
+            const alignStyle = isMine ? 'align-items: flex-end;' : 'align-items: flex-start;';
+            const wrapperStyle = `display: flex; flex-direction: column; width: fit-content; min-width: 0; max-width: 75%; ${alignStyle}`;
+            
+            // 【微調】：將沒有表情時的 margin-bottom 從 '0' 增加為 '4px'，拉開已讀與氣泡的距離
+            const msgStyle = `width: fit-content; max-width: 100%; margin-bottom: ${reactionsHtml ? '10px' : '4px'};`;
+
+            if (window.isCurrentChatGroup) {
+                html += `<div style="${wrapperStyle}">`;
+                html += `<div id="msg-${msgId}" class="msg ${isMine ? 'mine' : 'theirs'} ${mediaClass}" style="${msgStyle}" ${interactEvents}>${contentHtml}</div>`;
+                html += reactionsHtml; 
                 html += `<div class="msg-meta ${isMine ? 'mine' : 'theirs'}" id="meta-${msgId}" style="margin: 0 4px; display: flex; flex-direction: column; ${alignStyle}">`;
-                html += `<div class="msg-time">${timeStr}</div>`;
-                html += `</div></div>`;
+                html += `<div class="msg-time">${timeStr}</div></div></div>`;
             } else {
-                // 單人對話：維持原本時間在泡泡兩側的排版
                 const metaHtml = `<div class="msg-meta ${isMine ? 'mine' : 'theirs'}" id="meta-${msgId}"><div class="msg-time">${timeStr}</div></div>`;
                 if (isMine) html += metaHtml;
-                html += `<div id="msg-${msgId}" class="msg ${isMine ? 'mine' : 'theirs'} ${mediaClass}" ${interactEvents}>${contentHtml}</div>`;
+                html += `<div style="${wrapperStyle}">`;
+                html += `<div id="msg-${msgId}" class="msg ${isMine ? 'mine' : 'theirs'} ${mediaClass}" style="${msgStyle}" ${interactEvents}>${contentHtml}</div>`;
+                html += reactionsHtml; 
+                html += `</div>`;
                 if (!isMine) html += metaHtml;
             }
 
@@ -2429,7 +2501,7 @@
         
         // 【修改】：不論是誰的訊息，永遠顯示「收回/隱藏」按鈕
         document.getElementById('multiSelectMenuBtn').style.display = 'flex';
-        menu.style.display = 'flex'; menu.style.flexDirection = 'row'; menu.style.gap = '2px';
+        menu.style.display = 'flex'; menu.style.flexDirection = 'column'; menu.style.gap = '0';
         
         const msgEl = document.getElementById('msg-' + activeMsgId); if (!msgEl) return;
         const rect = msgEl.getBoundingClientRect();
@@ -4689,6 +4761,44 @@
             btn.innerHTML = '<i class="fas fa-trash-alt"></i> 收回';
             btn.disabled = false;
         }
+    }
+
+    // ==========================================
+    // 表情符號回應引擎 (Emoji Reactions)
+    // ==========================================
+    async function sendReaction(emoji) {
+        if (!activeMsgId || !currentChatId) return;
+        const uid = auth.currentUser.uid;
+        try {
+            const msgRef = db.collection("chats").doc(currentChatId).collection("messages").doc(activeMsgId);
+            const msgDoc = await msgRef.get();
+            const currentReactions = msgDoc.data().reactions || {};
+            
+            if (currentReactions[uid] === emoji) {
+                // 如果已經按過一樣的表情，就收回刪除
+                await msgRef.update({ [`reactions.${uid}`]: firebase.firestore.FieldValue.delete() });
+            } else {
+                // 否則新增或切換成新的表情
+                await msgRef.update({ [`reactions.${uid}`]: emoji });
+            }
+        } catch(e) { console.error("Reaction Error:", e); }
+        closeContextMenu();
+    }
+
+    async function toggleReaction(msgId, emoji) {
+        if (!currentChatId || !auth.currentUser) return;
+        const uid = auth.currentUser.uid;
+        try {
+            const msgRef = db.collection("chats").doc(currentChatId).collection("messages").doc(msgId);
+            const msgDoc = await msgRef.get();
+            const currentReactions = msgDoc.data().reactions || {};
+            
+            if (currentReactions[uid] === emoji) {
+                await msgRef.update({ [`reactions.${uid}`]: firebase.firestore.FieldValue.delete() });
+            } else {
+                await msgRef.update({ [`reactions.${uid}`]: emoji });
+            }
+        } catch(e) {}
     }
     </script>
 </body>
