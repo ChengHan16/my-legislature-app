@@ -248,6 +248,16 @@
         .attach-btn:hover, .expand-menu-btn:hover { color: var(--ly-blue); }
         .msg-media { max-width: 100%; max-height: 250px; border-radius: 12px; margin-top: 5px; display: block; cursor: pointer; }
         
+        /* 【新增】：聊天室內貼圖專屬樣式 */
+        .msg-sticker { 
+            max-width: 160px; /* 限制貼圖大小，避免像照片一樣巨大 */
+            max-height: 160px; 
+            display: block; 
+            margin-top: 2px;
+            pointer-events: none; /* 貼圖不需要點擊放大 */
+            filter: drop-shadow(0 3px 6px rgba(0,0,0,0.15)); /* 加上柔和的實體陰影，完美融合背景 */
+        }
+        
         .msg.mine .mention-highlight { color: var(--ly-gold); font-weight: 800; background: rgba(255, 255, 255, 0.2); padding: 1px 6px; border-radius: 10px; }
         .msg.theirs .mention-highlight { color: var(--ly-blue); font-weight: 800; background: rgba(0, 49, 83, 0.1); padding: 1px 6px; border-radius: 10px; }
         
@@ -1116,6 +1126,50 @@
         body.dark-mode .cd-file-input { background-color: #2a2a2a !important; color: #e0e0e0 !important; border: 1px solid #444 !important; border-radius: 6px; }
         body.dark-mode #cd-loading-overlay { background: rgba(18, 27, 36, 0.85) !important; }
         body.dark-mode #cd-loading-text { color: var(--ly-gold) !important; }
+
+        /* ==========================================
+           【新增】：貼圖面板樣式
+           ========================================== */
+        .sticker-btn { background: none; border: none; color: #888; font-size: 1.5rem; cursor: pointer; padding: 0 4px; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
+        .sticker-btn:hover { color: var(--ly-gold); }
+        
+        /* 【修改】：移除 absolute 絕對定位，讓它在彈出時能真實撐開高度，自然將訊息往上推 */
+        .sticker-panel { 
+            display: none; width: 100%; background: var(--bg-gray); 
+            border-bottom: 1px solid #dee2e6; 
+            z-index: 10; flex-direction: column; 
+            animation: slideUp 0.2s ease-out; box-sizing: border-box; height: 280px; 
+        }
+        /* 貼圖標籤與貼圖本體優化 */
+        /* 貼圖標籤與貼圖本體優化 */
+        /* 【新增】：補上外層容器的橫向 Flex 排版與滑動設定 */
+        .sticker-tabs { 
+            display: flex; 
+            flex-direction: row; 
+            overflow-x: auto; 
+            background: white; 
+            border-bottom: 1px solid #eee; 
+            scrollbar-width: none; 
+            -webkit-overflow-scrolling: touch; 
+            flex-shrink: 0; 
+        }
+        .sticker-tabs::-webkit-scrollbar { display: none; } /* 隱藏底下的捲動條 */
+
+        .sticker-tab { padding: 10px 15px; border: none; background: transparent; color: #888; font-weight: bold; cursor: pointer; border-bottom: 3px solid transparent; transition: 0.2s; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .sticker-tab.active { border-bottom-color: var(--ly-blue); background: rgba(0,49,83,0.05); }
+        .sticker-tab img { width: 28px; height: 28px; object-fit: cover; border-radius: 4px; pointer-events: none; opacity: 0.5; transition: 0.2s; }
+        .sticker-tab.active img { opacity: 1; transform: scale(1.1); }
+        
+        .sticker-grid { flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 15px; align-content: start; background: var(--bg-gray); }
+        .sticker-item { width: 100%; aspect-ratio: 1; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; padding: 5px; }
+        .sticker-item:hover { transform: scale(1.1); }
+        .sticker-item img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)); }
+
+        /* 深色模式適配 */
+        body.dark-mode .sticker-panel, body.dark-mode .sticker-grid { background: var(--bg-gray); border-color: var(--border-color); }
+        body.dark-mode .sticker-tabs { background: #1a1a1a; border-color: var(--border-color); }
+        body.dark-mode .sticker-tab.active { background: #2a2a2a; border-bottom-color: var(--ly-gold); }
+        body.dark-mode .sticker-item img { filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
     </style>
 </head>
 <body>
@@ -1176,6 +1230,11 @@
         </button>
 
         <div class="input-area">
+            <div id="stickerPanel" class="sticker-panel">
+                <div class="sticker-tabs" id="stickerTabs"></div>
+                <div class="sticker-grid" id="stickerGrid"></div>
+            </div>
+
             <div id="expandMenuPanel" class="expand-menu-panel">
                 <div class="expand-menu-item" onclick="resetScheduleHeader(); handleActivitySchedule()">
                     <div class="icon-circle" style="color: #003153;"><i class="fas fa-calendar-alt"></i></div>
@@ -1203,6 +1262,9 @@
                 <input type="file" id="fileInput" accept="image/*,video/*" style="display: none;">
                 <button class="attach-btn" onclick="document.getElementById('fileInput').click()"><i class="fas fa-paperclip"></i></button>
                 <textarea id="msgInput" placeholder="請輸入訊息..." autocomplete="off" rows="1"></textarea>
+                
+                <button class="sticker-btn" onclick="toggleStickerPanel(event)"><i class="far fa-smile"></i></button>
+                
                 <button class="send-btn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
             </div>
         </div>
@@ -1832,11 +1894,27 @@
             <div class="release-timeline">
 
                 <div class="release-item latest">
-                    <div class="version-title">
-                        <span class="v-badge latest">v 1.0.90</span>
+                    <div class="version-title" style="cursor: pointer; user-select: none;" onclick="toggleReleaseContent(this)">
+                        <span class="v-badge latest">v 1.0.91</span>
                         <span class="v-date">最新版本</span>
                     </div>
-                    <div class="v-content">
+                    <div class="v-content" style="display: block;">
+                        <ul>
+                            <li><b>【全新系統】</b>實裝「聊天貼圖庫」，支援專屬貼圖上傳與管理，為通訊增添互動樂趣。</li>
+                            <li><b>【體驗升級】</b>聊天室輸入框旁新增貼圖面板，支援橫向分類切換與自動置底，發送貼圖享有無氣泡「專屬去背與立體陰影」樣式。</li>
+                            <li><b>【系統防呆】</b>上傳與刪除貼圖包時，實裝「滿版霧化進度遮罩」，徹底杜絕連點誤觸，確保資料庫與雲端硬碟同步安全。</li>
+                            <li><b>【權限管理】</b>貼圖庫導入智慧權限，建立者本人與班長擁有該貼圖包之編輯與徹底刪除最高管理權限。</li>
+                            <li><b>【介面優化】</b>升級主控台 (Dashboard) 介面，完美整合官方文件、影像紀錄與貼圖庫快捷入口，並修復卡片擠壓跑版問題。</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="release-item">
+                    <div class="version-title" style="cursor: pointer; user-select: none;" onclick="toggleReleaseContent(this)">
+                        <span class="v-badge">v 1.0.90</span>
+                        <span class="v-date">資安與細節修復</span>
+                    </div>
+                    <div class="v-content" style="display: none;">
                         <ul>
                             <li><b>【資安優化】</b>機密文件解密後，於密碼下方新增「已加密顯示」防呆安全提示。</li>
                             <li><b>【資安優化】</b>新增「查看加密邏輯」展開選單，詳細列出 +3 偏移密碼本與轉換範例 (Terry → Whuub)。</li>
@@ -1847,11 +1925,11 @@
                 </div>
 
                 <div class="release-item">
-                    <div class="version-title">
+                    <div class="version-title" style="cursor: pointer; user-select: none;" onclick="toggleReleaseContent(this)">
                         <span class="v-badge">v 1.0.89</span>
                         <span class="v-date">系統細節與防呆優化</span>
                     </div>
-                    <div class="v-content">
+                    <div class="v-content" style="display: none;">
                         <ul>
                             <li><b>【iOS 適配】</b>精準微調頂部導覽列，完美貼齊 iPhone 動態島與瀏海設計。</li>
                             <li><b>【iOS 適配】</b>解除預覽圖片長按限制，全面支援 iOS 原生「長按儲存至相簿」功能。</li>
@@ -1865,11 +1943,11 @@
                 </div>
 
                 <div class="release-item">
-                    <div class="version-title">
+                    <div class="version-title" style="cursor: pointer; user-select: none;" onclick="toggleReleaseContent(this)">
                         <span class="v-badge">v 1.0.87</span>
                         <span class="v-date">體驗與適配優化</span>
                     </div>
-                    <div class="v-content">
+                    <div class="v-content" style="display: none;">
                         <ul>
                             <li><b>【iOS 適配】</b>實裝 Apple 原生「分享/儲存」選單，完美支援 iPhone/iPad 點擊直接下載圖片與影片至相簿。</li>
                             <li><b>【iOS 適配】</b>導入安全區域 (Safe Area) 偵測，解決多媒體預覽按鈕遭動態島或瀏海遮擋的問題。</li>
@@ -1881,12 +1959,11 @@
                 </div>
                 
                 <div class="release-item">
-                    <div class="version-title">
+                    <div class="version-title" style="cursor: pointer; user-select: none;" onclick="toggleReleaseContent(this)">
                         <span class="v-badge">v 1.0.86</span>
                         <span class="v-date">機密文件系統</span>
                     </div>
-                    <div class="v-content">
-                        <div class="v-content">
+                    <div class="v-content" style="display: none;">
                         <ul>
                             <li><b>【全新系統】</b>實裝「機密文件庫」，支援檔案、連結、帳號密碼三種類別，並具備專屬「檔案總管」風格介面。</li>
                             <li><b>【資安防護】</b>導入「真 / 假密碼」雙重解鎖機制，輸入防護用假密碼將自動導向系統偽裝頁面。</li>
@@ -1899,14 +1976,13 @@
                             <li><b>【修正】</b>修復重新進入聊天室時，畫面會異常停留在過往舊訊息位置的問題。</li>
                         </ul>
                     </div>
-                    </div>
                 </div>
 
                 <div class="release-item">
-                    <div class="version-title">
+                    <div class="version-title" style="cursor: pointer; user-select: none;" onclick="toggleReleaseContent(this)">
                         <span class="v-badge">v 1.0.85</span> <span class="v-date">系統外觀升級</span>
                     </div>
-                    <div class="v-content">
+                    <div class="v-content" style="display: none;">
                         <ul>
                             <li>全面實裝「深色模式 (Dark Mode)」，並特調立法院專屬高對比配色。</li>
                             <li>個人設定頁加入動態外觀切換開關，具備記憶功能。</li>
@@ -1916,10 +1992,10 @@
                 </div>
 
                 <div class="release-item">
-                    <div class="version-title">
+                    <div class="version-title" style="cursor: pointer; user-select: none;" onclick="toggleReleaseContent(this)">
                         <span class="v-badge">v 1.0.82</span> <span class="v-date">團購系統實裝</span>
                     </div>
-                    <div class="v-content">
+                    <div class="v-content" style="display: none;">
                         <ul>
                             <li>新增「團購系統」，支援商品多圖預覽、價格與限量設定。</li>
                             <li>支援訂單備註功能 (微糖少冰、尺寸等)。</li>
@@ -1929,10 +2005,10 @@
                 </div>
 
                 <div class="release-item">
-                    <div class="version-title">
+                    <div class="version-title" style="cursor: pointer; user-select: none;" onclick="toggleReleaseContent(this)">
                         <span class="v-badge">v 1.0.75</span> <span class="v-date">活動行程系統</span>
                     </div>
-                    <div class="v-content">
+                    <div class="v-content" style="display: none;">
                         <ul>
                             <li>新增「活動行程」建立功能，支援動態欄位與多圖上傳。</li>
                             <li>加入「私人 / 公開」模式切換，私人活動僅授權成員可見。</li>
@@ -1942,10 +2018,10 @@
                 </div>
 
                 <div class="release-item">
-                    <div class="version-title">
+                    <div class="version-title" style="cursor: pointer; user-select: none;" onclick="toggleReleaseContent(this)">
                         <span class="v-badge">v 1.0.60 - 1.0.68</span> <span class="v-date">訊息選單大改版</span>
                     </div>
-                    <div class="v-content">
+                    <div class="v-content" style="display: none;">
                         <ul>
                             <li>長按選單改版為橫向介面，大幅節省垂直畫面空間。</li>
                             <li>新增「釘選訊息」功能，支援覆蓋防呆提示與多媒體自動預覽。</li>
@@ -1955,10 +2031,10 @@
                 </div>
 
                 <div class="release-item">
-                    <div class="version-title">
+                    <div class="version-title" style="cursor: pointer; user-select: none;" onclick="toggleReleaseContent(this)">
                         <span class="v-badge">v 1.0.40 - 1.0.55</span> <span class="v-date">互動與狀態追蹤</span>
                     </div>
-                    <div class="v-content">
+                    <div class="v-content" style="display: none;">
                         <ul>
                             <li>實裝 Firebase 雲端資料庫與 Auth 登入系統驗證。</li>
                             <li>新增「表情符號 (Reactions)」功能，長按可查看點擊成員名單。</li>
@@ -1968,10 +2044,10 @@
                 </div>
 
                 <div class="release-item">
-                    <div class="version-title">
+                    <div class="version-title" style="cursor: pointer; user-select: none;" onclick="toggleReleaseContent(this)">
                         <span class="v-badge">v 1.0.10 - 1.0.35</span> <span class="v-date">聊天核心建置</span>
                     </div>
-                    <div class="v-content">
+                    <div class="v-content" style="display: none;">
                         <ul>
                             <li>首頁對話列表與聊天室氣泡 UI 完工。</li>
                             <li>導入前台 FFmpeg.wasm 影片極致壓縮與圖片降解析度引擎。</li>
@@ -1981,10 +2057,10 @@
                 </div>
 
                 <div class="release-item">
-                    <div class="version-title">
+                    <div class="version-title" style="cursor: pointer; user-select: none;" onclick="toggleReleaseContent(this)">
                         <span class="v-badge">v 1.0.1</span> <span class="v-date">專案初始化</span>
                     </div>
-                    <div class="v-content">
+                    <div class="v-content" style="display: none;">
                         <ul>
                             <li>法院通訊 (Legislature Communication System) 專案正式建立。</li>
                             <li>基礎 SPA 架構與左滑右滑防呆物理引擎實裝。</li>
@@ -2334,6 +2410,15 @@
             msgInput.style.height = '36px'; // 恢復預設高度
             msgInput.blur(); // 強制失去焦點，收起鍵盤
         }
+
+        // 【終極修復】：在畫面完全滑出後 (300ms)，徹底清空聊天畫面並強制重置捲軸，確保下次進入時絕不亂跳
+        setTimeout(() => {
+            const list = document.getElementById('messageList');
+            if (list) {
+                list.innerHTML = "";
+                list.scrollTo({ top: list.scrollHeight, behavior: 'auto' });
+            }
+        }, 300);
     }
 
     chatViewDOM.addEventListener('touchstart', (e) => {
@@ -2804,13 +2889,15 @@
 
             if (msg.fileUrl) {
                 if (msg.fileType === 'video') {
-                    // 【修改】：影片套用點擊預覽外框與播放圖示
                     contentHtml += `<div style="position: relative; display: inline-block; cursor: pointer;" onclick="if(!skipNextClick) openMediaModal('${msg.fileUrl}', 'video')">
                                         <video src="${msg.fileUrl}" class="msg-media" onloadeddata="handleImageLoad(this)" style="pointer-events: none;"></video>
                                         <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: rgba(255,255,255,0.9); font-size: 40px; text-shadow: 0 2px 10px rgba(0,0,0,0.5);"><i class="fas fa-play-circle"></i></div>
                                     </div>`;
+                } else if (msg.fileType === 'sticker') {
+                    // 【新增】：貼圖專屬渲染，不用加上 onclick 預覽，且套用 msg-sticker 樣式
+                    contentHtml += `<img src="${msg.fileUrl}" class="msg-sticker" onload="handleImageLoad(this)">`;
                 } else {
-                    // 【修改】：圖片改用 openMediaModal
+                    // 一般圖片
                     contentHtml += `<img src="${msg.fileUrl}" class="msg-media" onload="handleImageLoad(this)" onclick="if(!skipNextClick) openMediaModal('${msg.fileUrl}', 'image')">`;
                 }
             }
@@ -2919,13 +3006,21 @@
         // 否則如果是初次載入、滑動在最底部、或是最新訊息是自己發的，就強制置底
         // 【修改】：如果是初次載入、滑動在最底部、或是最新訊息是自己發的，就強制置底
         // 【修正】：移除 isLastMessageMine，避免在回看歷史紀錄時，點擊表情符號被強制拉到最底
+        // 否則如果是初次載入、滑動在最底部，就強制置底
         else if (window.isFirstChatLoad || isAtBottom) {
             const shouldSmooth = !window.isFirstChatLoad; 
             
-            setTimeout(() => {
-                scrollToBottom(shouldSmooth); 
-                window.isFirstChatLoad = false; 
-            }, 150);
+            // 【終極修復】：初次載入時「立刻」同步置底，拔除 150ms 延遲，徹底消滅畫面亂跳的狀況！
+            if (window.isFirstChatLoad) {
+                scrollToBottom(false);
+                window.isFirstChatLoad = false;
+                // 針對 iOS 渲染較慢的防呆機制：50 毫秒後再無感補強一次
+                setTimeout(() => scrollToBottom(false), 50);
+            } else {
+                setTimeout(() => {
+                    scrollToBottom(shouldSmooth); 
+                }, 150);
+            }
         }
     }
 
@@ -3187,6 +3282,13 @@
     });
 
     document.getElementById('messageList').addEventListener('click', () => { document.getElementById('msgInput').blur(); });
+
+    // 【新增】：當使用者點擊輸入框準備打字時，自動收起貼圖面板與附加選單，讓出畫面空間給手機虛擬鍵盤
+    document.getElementById('msgInput').addEventListener('focus', () => {
+        document.getElementById('stickerPanel').style.display = 'none';
+        document.getElementById('expandMenuPanel').style.display = 'none';
+        document.querySelector('.expand-menu-btn').style.transform = 'rotate(0deg)';
+    });
 
     // ==========================================
     // 前端影片壓縮引擎 (FFmpeg.wasm)
@@ -4110,8 +4212,149 @@
     }
     document.addEventListener('click', (e) => {
         const p = document.getElementById('expandMenuPanel'), b = document.querySelector('.expand-menu-btn');
-        if(p && p.style.display==='flex' && !p.contains(e.target) && !b.contains(e.target)) { p.style.display='none'; b.style.transform='rotate(0deg)'; }
+        const sp = document.getElementById('stickerPanel'), sb = document.querySelector('.sticker-btn');
+        
+        if(p && p.style.display==='flex' && !p.contains(e.target) && !b.contains(e.target)) { 
+            p.style.display='none'; b.style.transform='rotate(0deg)'; 
+        }
+        // 如果點擊在貼圖面板與按鈕以外的地方，就關閉貼圖面板
+        if(sp && sp.style.display==='flex' && !sp.contains(e.target) && !sb.contains(e.target)) {
+            sp.style.display='none';
+        }
     }, true);
+
+    // ==========================================
+    // 貼圖系統 (Sticker System) - 雲端串接版
+    // ==========================================
+    let chatStickersCache = null; // 儲存從資料庫抓下來的貼圖包
+
+    async function fetchStickersFromDB() {
+        if (chatStickersCache !== null) return; // 已經抓過就不再抓
+        try {
+            // 從我們剛剛建立的資料表抓取貼圖 (依照建立時間排序)
+            const snap = await db.collection("chat_stickers").orderBy("createdAt", "asc").get();
+            chatStickersCache = [];
+            snap.forEach(doc => {
+                chatStickersCache.push({ id: doc.id, ...doc.data() });
+            });
+        } catch (error) {
+            console.error("貼圖載入失敗", error);
+            chatStickersCache = []; // 避免無限重試
+        }
+    }
+
+    async function toggleStickerPanel(e) {
+        const panel = document.getElementById('stickerPanel');
+        const expandPanel = document.getElementById('expandMenuPanel');
+        const expandBtn = document.querySelector('.expand-menu-btn');
+        
+        if (expandPanel.style.display === 'flex') {
+            expandPanel.style.display = 'none';
+            expandBtn.style.transform = 'rotate(0deg)';
+        }
+
+        if (panel.style.display === 'flex') {
+            panel.style.display = 'none';
+        } else {
+            panel.style.display = 'flex';
+            const tabsContainer = document.getElementById('stickerTabs');
+            
+            // 如果還沒載入過，先顯示轉圈圈並抓資料
+            if (tabsContainer.innerHTML.trim() === '') {
+                tabsContainer.innerHTML = '<div style="padding:12px 20px; color:#999; font-size:0.9rem;"><i class="fas fa-spinner fa-spin"></i> 載入貼圖中...</div>';
+                await fetchStickersFromDB();
+                renderStickerTabs();
+            }
+            
+            setTimeout(() => { scrollToBottom(true); }, 50);
+        }
+    }
+
+    function renderStickerTabs() {
+        const tabsContainer = document.getElementById('stickerTabs');
+        const grid = document.getElementById('stickerGrid');
+        
+        if (!chatStickersCache || chatStickersCache.length === 0) {
+            tabsContainer.innerHTML = '<div style="padding:12px 20px; color:#999; font-size:0.9rem;">尚無貼圖包</div>';
+            grid.innerHTML = '';
+            return;
+        }
+        
+        let tabsHtml = '';
+        chatStickersCache.forEach((pack, index) => {
+            const isActive = index === 0 ? 'active' : '';
+            // 【關鍵】：把文字換成了代表圖示 (iconUrl)
+            tabsHtml += `
+                <button class="sticker-tab ${isActive}" onclick="switchStickerTab('${pack.id}', this)" title="${pack.title}">
+                    <img src="${pack.iconUrl}" alt="${pack.title}">
+                </button>`;
+        });
+        tabsContainer.innerHTML = tabsHtml;
+        
+        // 預設渲染第一組貼圖包的內容
+        renderStickers(chatStickersCache[0].id);
+    }
+
+    function switchStickerTab(packId, btnEl) {
+        document.querySelectorAll('.sticker-tab').forEach(b => b.classList.remove('active'));
+        btnEl.classList.add('active');
+        renderStickers(packId);
+    }
+
+    function renderStickers(packId) {
+        const grid = document.getElementById('stickerGrid');
+        const pack = chatStickersCache.find(p => p.id === packId);
+        
+        if (!pack || !pack.stickers || pack.stickers.length === 0) {
+            grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: #999; padding: 20px;">此貼圖包為空</div>';
+            return;
+        }
+        
+        let html = '';
+        // 將貼圖陣列渲染到網格中 (自動略過沒上傳的空缺)
+        pack.stickers.forEach(url => {
+            html += `
+                <div class="sticker-item" onclick="sendRealSticker('${url}')">
+                    <img src="${url}" loading="lazy">
+                </div>`;
+        });
+        grid.innerHTML = html;
+    }
+
+    // 發送真實貼圖的引擎
+    async function sendRealSticker(stickerUrl) {
+        document.getElementById('stickerPanel').style.display = 'none'; // 點擊後收起面板
+        if (!currentChatId || !auth.currentUser) return;
+        
+        try {
+            const batch = db.batch();
+            const chatRef = db.collection("chats").doc(currentChatId);
+            const msgRef = chatRef.collection("messages").doc();
+            
+            // 貼圖其實就是一張圖片，所以我們以 fileType: 'image' 發送，text 留空
+            // 這樣在聊天室渲染時，它會自動被判定為 isMediaOnly，完美去掉氣泡框！
+            batch.set(msgRef, { 
+                text: "", 
+                fileUrl: stickerUrl, 
+                fileType: "sticker",
+                senderId: auth.currentUser.uid, 
+                timestamp: firebase.firestore.FieldValue.serverTimestamp() 
+            });
+            
+            batch.update(chatRef, { 
+                lastMessage: "[貼圖]", 
+                lastSenderId: auth.currentUser.uid, 
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp(), 
+                [`lastReadAt.${auth.currentUser.uid}`]: firebase.firestore.FieldValue.serverTimestamp() 
+            });
+            
+            await batch.commit();
+            scrollToBottom(true);
+        } catch (error) {
+            console.error("貼圖發送失敗", error);
+            alert("貼圖發送失敗，請檢查網路連線。");
+        }
+    }
 
     // ==========================================
     // 活動總覽：公開/私人切換與載入邏輯
@@ -6802,6 +7045,21 @@
             await db.collection("confidential-docs").doc(docId).delete();
             openConfidentialListModal(); // 刷新列表
         } catch(e) { alert("刪除失敗"); }
+    }
+
+    // ==========================================
+    // 版本更新內容：摺疊與展開控制
+    // ==========================================
+    function toggleReleaseContent(titleEl) {
+        const content = titleEl.nextElementSibling;
+        if (!content || !content.classList.contains('v-content')) return;
+
+        // 切換顯示狀態
+        if (content.style.display === 'none') {
+            content.style.display = 'block';
+        } else {
+            content.style.display = 'none';
+        }
     }
     </script>
 </body>
