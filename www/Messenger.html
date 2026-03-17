@@ -208,12 +208,56 @@
         .read-status.group-read:hover { opacity: 0.7; text-decoration: underline; }
         
         .input-area { flex-shrink: 0; background: var(--white); padding: 0; display: flex; flex-direction: column; align-items: center; border-top: 1px solid #e9ecef; box-shadow: 0 -2px 10px rgba(0,0,0,0.03); width: 100%; position: relative;}
+        
+        /* ==========================================
+           【動畫版】輸入框與收縮選單過渡效果
+           ========================================== */
+        /* 1. 讓輸入框本身具備平滑伸縮與長高的能力 */
+        #msgInput {
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+        }
+
+        /* 2. 左側按鈕群組容器 */
+        .left-action-group {
+            display: flex; gap: 10px; align-items: center;
+            overflow: hidden; 
+            max-width: 150px; /* 足夠放下三個按鈕的寬度 */
+            opacity: 1;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        /* 3. 預設狀態 (無文字)：隱藏箭頭 (寬度 0，並完美抵銷 gap 空白) */
+        .show-on-typing {
+            display: flex; max-width: 0; opacity: 0;
+            padding: 0 !important;
+            margin-right: -10px !important; /* 抵銷 flex gap 的 10px */
+            overflow: hidden; pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        /* 4. 打字狀態：隱藏三圖示群組 (寬度縮為 0，畫面平滑向左推) */
+        .typing-mode .hide-on-typing {
+            max-width: 0; opacity: 0;
+            margin-right: -10px !important; 
+            pointer-events: none;
+        }
+
+        /* 5. 打字狀態：顯示箭頭 */
+        .typing-mode .show-on-typing {
+            max-width: 30px; opacity: 1;
+            padding: 0 4px !important;
+            margin-right: 0 !important;
+            pointer-events: auto;
+        }
+        
         .input-container { 
             max-width: var(--container-width); width: 100%; display: flex; align-items: center; 
             gap: 10px; 
             padding: 8px 12px; /* 【微調】：降低 2px */
             padding-bottom: calc(4.1px + env(safe-area-inset-bottom)); box-sizing: border-box; 
         }
+
+        
 
         #msgInput { 
             flex: 1; 
@@ -246,7 +290,7 @@
         }
         
         .attach-btn:hover, .expand-menu-btn:hover { color: var(--ly-blue); }
-        .msg-media { max-width: 100%; max-height: 250px; border-radius: 12px; margin-top: 5px; display: block; cursor: pointer; }
+        .msg-media { max-width: 100%; max-height: 250px; border-radius: 5px; margin-top: 5px; display: block; cursor: pointer; }
         
         /* 【新增】：聊天室內貼圖專屬樣式 */
         .msg-sticker { 
@@ -1133,14 +1177,16 @@
         .sticker-btn { background: none; border: none; color: #888; font-size: 1.5rem; cursor: pointer; padding: 0 4px; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
         .sticker-btn:hover { color: var(--ly-gold); }
         
-        /* 【修改】：移除 absolute 絕對定位，讓它在彈出時能真實撐開高度，自然將訊息往上推 */
+        /* 【修改】：加入 touch-action 與 overscroll-behavior 徹底封印整個面板的橡皮筋效應 */
         .sticker-panel { 
             display: none; width: 100%; background: var(--bg-gray); 
             border-bottom: 1px solid #dee2e6; 
             z-index: 10; flex-direction: column; 
             animation: slideUp 0.2s ease-out; box-sizing: border-box; height: 280px; 
+            touch-action: none; /* 封殺整個面板被拖曳的可能 */
+            overscroll-behavior: none; /* 阻止 iOS 彈性邊界 */
         }
-        /* 貼圖標籤與貼圖本體優化 */
+        
         /* 貼圖標籤與貼圖本體優化 */
         /* 【新增】：補上外層容器的橫向 Flex 排版與滑動設定 */
         .sticker-tabs { 
@@ -1152,6 +1198,8 @@
             scrollbar-width: none; 
             -webkit-overflow-scrolling: touch; 
             flex-shrink: 0; 
+            touch-action: pan-x; /* 【新增】：只允許橫向滑動標籤 */
+            overscroll-behavior-x: contain; 
         }
         .sticker-tabs::-webkit-scrollbar { display: none; } /* 隱藏底下的捲動條 */
 
@@ -1160,7 +1208,14 @@
         .sticker-tab img { width: 28px; height: 28px; object-fit: cover; border-radius: 4px; pointer-events: none; opacity: 0.5; transition: 0.2s; }
         .sticker-tab.active img { opacity: 1; transform: scale(1.1); }
         
-        .sticker-grid { flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 15px; align-content: start; background: var(--bg-gray); }
+        /* 【修改】：解除內部網格的 touch-action，讓它在內容過多時能順利上下滑動 */
+        .sticker-grid { 
+            flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(4, 1fr); 
+            gap: 12px; padding: 15px; align-content: start; background: var(--bg-gray); 
+            -webkit-overflow-scrolling: touch; /* 確保 iOS 滑動順暢 */
+            touch-action: pan-y; /* 只允許上下滑動 */
+            overscroll-behavior-y: contain; /* 滑到底不影響外層 */
+        }
         .sticker-item { width: 100%; aspect-ratio: 1; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; padding: 5px; }
         .sticker-item:hover { transform: scale(1.1); }
         .sticker-item img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)); }
@@ -1257,14 +1312,22 @@
                 <i class="fas fa-times close-reply" onclick="cancelReply()"></i>
             </div>
             
-            <div class="input-container">
-                <button class="expand-menu-btn" onclick="toggleExpandMenu(event)"><i class="fas fa-plus"></i></button>
-                <input type="file" id="fileInput" accept="image/*,video/*" style="display: none;">
-                <button class="attach-btn" onclick="document.getElementById('fileInput').click()"><i class="fas fa-paperclip"></i></button>
+            <div class="input-container" id="chatInputContainer">
+                <button class="attach-btn show-on-typing" onclick="restoreLeftMenu()"><i class="fas fa-chevron-right"></i></button>
+
+                <div class="left-action-group hide-on-typing">
+                    <button class="expand-menu-btn" onclick="toggleExpandMenu(event)"><i class="fas fa-plus"></i></button>
+                    
+                    <input type="file" id="fileInput" accept="image/*,video/*" style="display: none;">
+                    <button class="attach-btn" onclick="document.getElementById('fileInput').click()"><i class="fas fa-image"></i></button>
+                    
+                    <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display: none;">
+                    <button class="attach-btn" onclick="document.getElementById('cameraInput').click()"><i class="fas fa-camera"></i></button>
+                </div>
+                
                 <textarea id="msgInput" placeholder="請輸入訊息..." autocomplete="off" rows="1"></textarea>
                 
                 <button class="sticker-btn" onclick="toggleStickerPanel(event)"><i class="far fa-smile"></i></button>
-                
                 <button class="send-btn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
             </div>
         </div>
@@ -1895,10 +1958,24 @@
 
                 <div class="release-item latest">
                     <div class="version-title" style="cursor: pointer; user-select: none;" onclick="toggleReleaseContent(this)">
-                        <span class="v-badge latest">v 1.0.91</span>
+                        <span class="v-badge latest">v 1.0.92</span>
                         <span class="v-date">最新版本</span>
                     </div>
                     <div class="v-content" style="display: block;">
+                        <ul>
+                            <li><b>【全新功能】</b>聊天室輸入框新增「相機」快捷按鈕，支援一鍵喚醒 iOS 後置相機，拍照後無縫套用極致壓縮並直接傳送。</li>
+                            <li><b>【體驗升級】</b>重構輸入框附加功能列，實裝「無字全展、有字收縮」的智慧動態摺疊設計，並附帶平滑柔順的過渡動畫，最大化打字視窗空間。</li>
+                            <li><b>【iOS 適配】</b>突破 iOS 系統存檔潔癖限制，強制校正下載檔案的身分證 (MIME Type)，完美解鎖系統分享選單中的「儲存影像」按鈕，一鍵直存相簿。</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="release-item">
+                    <div class="version-title" style="cursor: pointer; user-select: none;" onclick="toggleReleaseContent(this)">
+                        <span class="v-badge">v 1.0.91</span>
+                        <span class="v-date">貼圖系統實裝</span>
+                    </div>
+                    <div class="v-content" style="display: none;">
                         <ul>
                             <li><b>【全新系統】</b>實裝「聊天貼圖庫」，支援專屬貼圖上傳與管理，為通訊增添互動樂趣。</li>
                             <li><b>【體驗升級】</b>聊天室輸入框旁新增貼圖面板，支援橫向分類切換與自動置底，發送貼圖享有無氣泡「專屬去背與立體陰影」樣式。</li>
@@ -2410,6 +2487,11 @@
             msgInput.style.height = '36px'; // 恢復預設高度
             msgInput.blur(); // 強制失去焦點，收起鍵盤
         }
+        
+        // 【新增】：離開聊天室時，重置左側收縮選單
+        window.isLeftMenuForcedOpen = false;
+        const container = document.getElementById('chatInputContainer');
+        if (container) container.classList.remove('typing-mode');
 
         // 【終極修復】：在畫面完全滑出後 (300ms)，徹底清空聊天畫面並強制重置捲軸，確保下次進入時絕不亂跳
         setTimeout(() => {
@@ -3207,6 +3289,11 @@
         input.value = "";
         input.style.height = '38px'; // 【新增】：送出後將高度歸位
         scrollToBottom(true);
+        
+        // 【新增】：送出訊息後，重置左側收縮選單
+        window.isLeftMenuForcedOpen = false;
+        const container = document.getElementById('chatInputContainer');
+        if (container) container.classList.remove('typing-mode');
 
         try {
             const batch = db.batch(), chatRef = db.collection("chats").doc(currentChatId), msgRef = chatRef.collection("messages").doc();
@@ -3238,8 +3325,19 @@
     // ==========================================
     // 正在輸入狀態偵測引擎
     // ==========================================
+    // ==========================================
+    // 正在輸入狀態偵測引擎
+    // ==========================================
     let typingTimer = null;
     let isTyping = false;
+    
+    // 【新增】：控制左側選單狀態
+    window.isLeftMenuForcedOpen = false;
+    function restoreLeftMenu() {
+        window.isLeftMenuForcedOpen = true;
+        document.getElementById('chatInputContainer').classList.remove('typing-mode');
+        document.getElementById('msgInput').focus();
+    }
     
     function clearTypingState() {
         if (!currentChatId || !auth.currentUser) return;
@@ -3253,6 +3351,15 @@
         this.style.height = '36px'; 
         const newHeight = Math.min(this.scrollHeight, 100); 
         this.style.height = newHeight + 'px';
+
+        // 【新增】：收縮左側功能列邏輯
+        const container = document.getElementById('chatInputContainer');
+        if (this.value.length > 0) { 
+            if (!window.isLeftMenuForcedOpen && container) container.classList.add('typing-mode');
+        } else {
+            if (container) container.classList.remove('typing-mode');
+            window.isLeftMenuForcedOpen = false; // 清空時重置
+        }
 
         if (!currentChatId || !auth.currentUser) return;
         const text = this.value.trim();
@@ -3432,12 +3539,9 @@
     }
 
     // ==========================================
-    // 檔案上傳與前端極致壓縮邏輯
-    // ==========================================
-    // ==========================================
     // 檔案上傳與前端極致壓縮邏輯 (聊天室內顯示虛擬氣泡)
     // ==========================================
-    document.getElementById('fileInput').addEventListener('change', async (e) => {
+    async function handleChatMediaUpload(e) {
         let file = e.target.files[0]; 
         if (!file || !currentChatId) return;
 
@@ -3475,11 +3579,8 @@
             }
             
             // --- 處理大影片壓縮 (FFmpeg.wasm) ---
-            // --- 處理影片壓縮 (加入 iOS/Safari 安全封鎖防呆機制) ---
             else if (fileType === 'video') {
-                // 【核心修復】：檢查瀏覽器是否封鎖了 SharedArrayBuffer
                 if (typeof SharedArrayBuffer === 'undefined') {
-                    // 裝置不支援前端壓縮 (iOS 常見) -> 改用限制檔案大小直接上傳
                     if (file.size > 15 * 1024 * 1024) { 
                         alert("⚠️ 您的裝置因系統安全限制，無法啟動影片壓縮引擎。\n請選擇 15MB 以下的影片直接上傳。");
                         throw new Error("FILE_TOO_LARGE");
@@ -3488,16 +3589,13 @@
                         console.warn("SharedArrayBuffer 不存在，已切換為原檔直傳模式。");
                     }
                 } else {
-                    // 裝置支援壓縮引擎 (電腦版 Chrome/Edge 常見) -> 執行原本的極致壓縮
                     if (file.size > 5 * 1024 * 1024) { 
                         if (!confirm("此影片較長/較大，為節省空間將進行極致壓縮 (目標 5MB 以下)，處理可能需要 10~30 秒，確定要處理嗎？")) {
                             throw new Error("USER_CANCEL");
                         }
                     }
-                    
                     if (file.size > 2 * 1024 * 1024) {
                         file = await compressVideoClientSide(file, dummyTextEl);
-                        
                         if (file.size > 5 * 1024 * 1024) {
                             alert("影片時間過長，極致壓縮後檔案仍大於 5MB，請剪輯縮短後再上傳。");
                             throw new Error("FILE_TOO_LARGE");
@@ -3550,7 +3648,13 @@
             e.target.value = '';
             scrollToBottom(true);
         }
-    });
+    }
+
+    // 【新增】：綁定相簿上傳與相機拍照按鈕 (兩者共用同一套引擎)
+    document.getElementById('fileInput').addEventListener('change', handleChatMediaUpload);
+    document.getElementById('cameraInput').addEventListener('change', handleChatMediaUpload);
+
+    // 長按選單邏輯
 
     // 長按選單邏輯
     // ==========================================
@@ -4850,16 +4954,25 @@
     async function downloadCurrentImage() { forceDownload(currentGalleryImages[currentSlideIndex], `photo_${Date.now()}.jpg`); }
     async function downloadAllImages() { if(!confirm("確定下載全部？")) return; for(let i=0; i<currentGalleryImages.length; i++){ await forceDownload(currentGalleryImages[i], `batch_${i}.jpg`); await new Promise(r=>setTimeout(r,800)); } alert("已送出"); }
     // 【終極修復】：適配 iOS 相簿存取機制與 Firebase CORS 防呆
+    // 【終極修復】：適配 iOS 相簿存取機制與 Firebase CORS 防呆
     async function forceDownload(url, filename) { 
         try { 
             const r = await fetch(url, { mode: 'cors' }); 
             if (!r.ok) throw new Error('CORS or Network Error');
-            const b = await r.blob(); 
+            let b = await r.blob(); 
             
+            // 【關鍵修復】：強制校正檔案類型 (MIME Type)！
+            // 如果 Firebase 吐回來的類型是空值或二進位碼，iOS 就不會認得它是圖片，進而隱藏「儲存影像」按鈕。
+            let actualType = b.type;
+            if (!actualType || actualType === 'application/octet-stream' || actualType === '') {
+                actualType = filename.endsWith('.mp4') ? 'video/mp4' : 'image/jpeg';
+                b = new Blob([b], { type: actualType }); // 重新包裝，給予正確的身份證
+            }
+
             // 1. iOS 優先解法：呼叫系統「分享選單」讓使用者點擊「儲存影像」
             if (navigator.canShare && navigator.share) {
                 try {
-                    const file = new File([b], filename, { type: b.type });
+                    const file = new File([b], filename, { type: actualType });
                     if (navigator.canShare({ files: [file] })) {
                         await navigator.share({
                             files: [file],
@@ -4869,7 +4982,7 @@
                     }
                 } catch (shareErr) {
                     console.log("使用者手動關閉了分享選單");
-                    return; // 【關鍵修復】：如果使用者按了取消，就直接停住！不再偷偷下載到「檔案」App
+                    return; // 如果使用者按了取消，就直接停住！不再偷偷下載到「檔案」App
                 }
             }
 
