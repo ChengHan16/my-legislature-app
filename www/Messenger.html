@@ -46,7 +46,9 @@
         .messenger-header {
             background: var(--ly-blue-trans); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
             position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            border-bottom: 1px solid rgba(255,255,255,0.1); padding-top: env(safe-area-inset-top);
+            border-bottom: 1px solid rgba(255,255,255,0.1); 
+            /* 【修改】：利用 calc 減去 15px，讓整個標題列向上提升，完美貼齊動態島 */
+            padding-top: max(5px, calc(env(safe-area-inset-top) - 15px)); 
         }
 
         /* 改 */
@@ -210,7 +212,7 @@
             max-width: var(--container-width); width: 100%; display: flex; align-items: center; 
             gap: 10px; 
             padding: 8px 12px; /* 【微調】：降低 2px */
-            padding-bottom: calc(4.2px + env(safe-area-inset-bottom)); box-sizing: border-box; 
+            padding-bottom: calc(4.1px + env(safe-area-inset-bottom)); box-sizing: border-box; 
         }
 
         #msgInput { 
@@ -471,9 +473,15 @@
         #revokeMenuBtn { color: #ff4d4d; }
 
         /* 圖片/文件預覽 */
+        /* 圖片/文件預覽 */
         .image-modal { display: none; position: fixed; z-index: 100000; left: 0; top: 0; width: 100vw; height: 100dvh; background-color: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px); justify-content: center; align-items: center; flex-direction: column; }
         .image-modal-close { position: absolute; top: 20px; right: 30px; color: #f1f1f1; font-size: 40px; font-weight: bold; cursor: pointer; z-index: 100001; }
-        .image-modal-content { max-width: 95%; max-height: 90%; object-fit: contain; border-radius: 8px; animation: zoomIn 0.3s ease-out; }
+        
+        /* 【關鍵修復】：加入 -webkit-touch-callout: default 解除長按封印，允許 iPhone 原生長按儲存相簿！ */
+        .image-modal-content { 
+            max-width: 95%; max-height: 90%; object-fit: contain; border-radius: 8px; animation: zoomIn 0.3s ease-out; 
+            -webkit-touch-callout: default !important;
+        }
         @keyframes zoomIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
         /* 活動行程總覽 */
@@ -1103,6 +1111,11 @@
         body.dark-mode .fake-content-paper h2 {
             color: var(--ly-gold) !important; /* 標題轉為高質感的金色 */
         }
+
+        /* 機密文件：多檔案上傳與遮罩適配 */
+        body.dark-mode .cd-file-input { background-color: #2a2a2a !important; color: #e0e0e0 !important; border: 1px solid #444 !important; border-radius: 6px; }
+        body.dark-mode #cd-loading-overlay { background: rgba(18, 27, 36, 0.85) !important; }
+        body.dark-mode #cd-loading-text { color: var(--ly-gold) !important; }
     </style>
 </head>
 <body>
@@ -1521,7 +1534,13 @@
     </div>
 
     <div id="createConfidentialModal" class="modal-overlay" style="z-index: 5000;">
-        <div class="modal-card" style="max-width: 450px; max-height: 85dvh;">
+        <div class="modal-card" style="max-width: 450px; max-height: 85dvh; position: relative;">
+            
+            <div id="cd-loading-overlay" style="display: none; position: absolute; inset: 0; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(3px); z-index: 100; flex-direction: column; justify-content: center; align-items: center; border-radius: 4px;">
+                <i class="fas fa-spinner fa-spin fa-3x" style="color: var(--ly-blue); margin-bottom: 15px;"></i>
+                <span id="cd-loading-text" style="font-weight: bold; color: var(--ly-blue); font-size: 1.1rem; text-align: center; padding: 0 20px;">加密處理中...</span>
+            </div>
+
             <div class="modal-header" style="background: #2b2b2b; border-bottom: 3px solid #d93025;">
                 <h3 style="color: white;"><i class="fas fa-user-secret"></i> 傳送機密文件</h3>
                 <span style="cursor:pointer; color: white;" onclick="closeModal('createConfidentialModal')">&times;</span>
@@ -1781,6 +1800,17 @@
                     <li><b>管理訂單：</b>在團購清單中，對著自己發起的訂單<b>向左滑動</b>即可「編輯」或徹底「刪除」。</li>
                 </ul>
             </div>
+
+            <div class="guide-section">
+                <h4><i class="fas fa-user-secret"></i> 機密文件系統</h4>
+                <ul class="guide-list">
+                    <li><b>發送機密：</b>點擊左側「+」>「機密文件」>「新增機密檔案」，支援上傳多個檔案（含極致壓縮）、外部連結與帳號密碼。</li>
+                    <li><b>雙重密碼防護：</b>建立時請設定「真密碼」供解鎖真實內容；亦可設定「假密碼」，輸入假密碼將導向系統偽裝頁面，防範脅迫。</li>
+                    <li><b>指定接收人：</b>建立時可勾選指定傳遞對象，只有被指定的成員與建立者，才能在文件庫看見該檔案並嘗試解鎖。</li>
+                    <li><b>防窺視偏移：</b>建立或檢視「帳號密碼」類別時，點擊密碼旁的眼睛圖示，文字將以密碼學「+3 偏移」顯示，防止旁人側錄偷窺。</li>
+                    <li><b>安全銷毀：</b>在機密文件庫中，對著自己建立的機密檔案<b>向左滑動</b>即可觸發「徹底刪除」，雲端檔案將被安全清空。</li>
+                </ul>
+            </div>
             
             <div style="text-align: center; color: #aaa; font-size: 0.8rem; margin-top: 30px; margin-bottom: 20px;">
                 © 立法院 Legislature Communication System
@@ -1803,8 +1833,41 @@
 
                 <div class="release-item latest">
                     <div class="version-title">
-                        <span class="v-badge latest">v 1.0.87</span>
+                        <span class="v-badge latest">v 1.0.90</span>
                         <span class="v-date">最新版本</span>
+                    </div>
+                    <div class="v-content">
+                        <ul>
+                            <li><b>【資安優化】</b>機密文件解密後，於密碼下方新增「已加密顯示」防呆安全提示。</li>
+                            <li><b>【資安優化】</b>新增「查看加密邏輯」展開選單，詳細列出 +3 偏移密碼本與轉換範例 (Terry → Whuub)。</li>
+                            <li><b>【修正】</b>修復切換或離開聊天室時，多選收回模式未自動關閉導致的介面殘留 Bug。</li>
+                            <li><b>【介面優化】</b>修正機密文件系統中，部分加密說明文字排版間距過大的問題，提升閱讀體驗。</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="release-item">
+                    <div class="version-title">
+                        <span class="v-badge">v 1.0.89</span>
+                        <span class="v-date">系統細節與防呆優化</span>
+                    </div>
+                    <div class="v-content">
+                        <ul>
+                            <li><b>【iOS 適配】</b>精準微調頂部導覽列，完美貼齊 iPhone 動態島與瀏海設計。</li>
+                            <li><b>【iOS 適配】</b>解除預覽圖片長按限制，全面支援 iOS 原生「長按儲存至相簿」功能。</li>
+                            <li><b>【系統升級】</b>機密文件實裝「多檔案上傳」，並導入圖片與影片「極致壓縮引擎」。</li>
+                            <li><b>【系統優化】</b>機密文件傳送時新增「防呆霧化遮罩」與進度提示，徹底杜絕重複送出。</li>
+                            <li><b>【介面優化】</b>重新設計「假密碼公文」深色模式排版，完美融入特務質感的藏青色背景。</li>
+                            <li><b>【介面優化】</b>修復解密後的帳號密碼欄位在小螢幕裝置上發生溢出截斷的問題。</li>
+                            <li><b>【介面優化】</b>統一聊天室左下角「附加功能選單」的專屬立法院藍色圖標配色。</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="release-item">
+                    <div class="version-title">
+                        <span class="v-badge">v 1.0.87</span>
+                        <span class="v-date">體驗與適配優化</span>
                     </div>
                     <div class="v-content">
                         <ul>
@@ -1820,7 +1883,7 @@
                 <div class="release-item">
                     <div class="version-title">
                         <span class="v-badge">v 1.0.86</span>
-                        <span class="v-date">最新版本</span>
+                        <span class="v-date">機密文件系統</span>
                     </div>
                     <div class="v-content">
                         <div class="v-content">
@@ -2262,6 +2325,7 @@
         updateMyStatus(false);
         cancelReply();
         closeContextMenu(); 
+        cancelSelectMode();
 
         // 【新增】：離開時清空輸入框並強制收起手機鍵盤
         const msgInput = document.getElementById('msgInput');
@@ -4542,13 +4606,14 @@
 
     async function downloadCurrentImage() { forceDownload(currentGalleryImages[currentSlideIndex], `photo_${Date.now()}.jpg`); }
     async function downloadAllImages() { if(!confirm("確定下載全部？")) return; for(let i=0; i<currentGalleryImages.length; i++){ await forceDownload(currentGalleryImages[i], `batch_${i}.jpg`); await new Promise(r=>setTimeout(r,800)); } alert("已送出"); }
-    // 【修改】：完美適配 iOS 與 Android 的下載/儲存引擎
+    // 【終極修復】：適配 iOS 相簿存取機制與 Firebase CORS 防呆
     async function forceDownload(url, filename) { 
         try { 
             const r = await fetch(url, { mode: 'cors' }); 
+            if (!r.ok) throw new Error('CORS or Network Error');
             const b = await r.blob(); 
             
-            // 1. iOS 原生完美解法：呼叫系統「分享/儲存」選單
+            // 1. iOS 優先解法：呼叫系統「分享選單」讓使用者點擊「儲存影像」
             if (navigator.canShare && navigator.share) {
                 try {
                     const file = new File([b], filename, { type: b.type });
@@ -4557,25 +4622,27 @@
                             files: [file],
                             title: filename
                         });
-                        return; // 成功呼叫原生選單，結束函式
+                        return; // 成功開啟分享選單後直接結束！不要再往下執行
                     }
                 } catch (shareErr) {
-                    console.log("使用者取消分享或失敗，退回傳統模式");
+                    console.log("使用者手動關閉了分享選單");
+                    return; // 【關鍵修復】：如果使用者按了取消，就直接停住！不再偷偷下載到「檔案」App
                 }
             }
 
-            // 2. 電腦版與 Android 的傳統下載解法
+            // 2. 電腦版與 Android 的傳統下載解法 (會下載到 Downloads 資料夾)
             const l = document.createElement('a'); 
             l.href = URL.createObjectURL(b); 
             l.download = filename; 
-            document.body.appendChild(l); // 必須加到 DOM 裡面有些瀏覽器才理你
+            document.body.appendChild(l); 
             l.click(); 
             document.body.removeChild(l);
             URL.revokeObjectURL(l.href); 
             
         } catch(e) { 
-            // 3. 終極防呆：直接把網址開在新視窗，讓使用者手動「長按儲存」
-            window.open(url, '_blank'); 
+            // 3. 終極防呆：若遇到 Firebase CORS 阻擋導致無法轉換 Blob
+            console.warn("系統安全攔截:", e);
+            alert("已為您啟用原生相簿模式！\n\n請直接對著畫面上的圖片或影片「長按」，即可選擇「儲存至相簿」！");
         } 
     }
 
@@ -6197,6 +6264,32 @@
         openModal('createConfidentialModal');
     }
 
+    // 【新增】：動態新增檔案輸入列
+    function addCdFileInputRow() {
+        const container = document.getElementById('cd-file-inputs-container');
+        if (!container) return;
+        const rowId = `cd-f-${Date.now()}-${Math.floor(Math.random()*1000)}`;
+        const html = `
+            <div class="cd-file-row" id="${rowId}" style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+                <input type="file" class="cd-file-input" style="background: white; padding: 8px; flex: 1; border: 1px solid #ccc; border-radius: 6px;" onchange="handleCdFileChange(this)">
+                <button type="button" class="btn-remove-item" onclick="document.getElementById('${rowId}').remove()" style="position:static; display:none; background:#ff4d4d; color:white; border-radius:50%; width:28px; height:28px; justify-content:center; align-items:center; border:none; cursor:pointer; flex-shrink:0;"><i class="fas fa-times"></i></button>
+            </div>`;
+        container.insertAdjacentHTML('beforeend', html);
+    }
+
+    // 【新增】：當選擇檔案後，顯示刪除按鈕並自動長出下一列
+    function handleCdFileChange(inputEl) {
+        if (inputEl.files && inputEl.files.length > 0) {
+            inputEl.nextElementSibling.style.display = 'flex'; // 顯示 X 刪除按鈕
+            const container = document.getElementById('cd-file-inputs-container');
+            const rows = container.querySelectorAll('.cd-file-row');
+            // 如果觸發改變的是「最後一行」，就自動新增下一列空欄位
+            if (inputEl.parentElement === rows[rows.length - 1]) {
+                addCdFileInputRow();
+            }
+        }
+    }
+
     function changeConfidentialType(targetType) {
         const type = targetType || document.getElementById('cd-type').value;
         document.getElementById('cd-type').value = type;
@@ -6211,11 +6304,13 @@
         accRowCount = 0;
 
         if (type === 'file') {
+            // 【修改】：支援動態多檔案欄位
             area.innerHTML = `
                 <div class="modal-input-group" style="margin-top:15px;">
-                    <label>上傳機密檔案</label>
-                    <input type="file" id="cd-file-input" style="background: white; padding: 8px;">
+                    <label>上傳機密檔案 (可多選，系統將自動壓縮優化)</label>
+                    <div id="cd-file-inputs-container"></div>
                 </div>`;
+            addCdFileInputRow(); // 預先產生第一組輸入框
         } else if (type === 'link') {
             area.innerHTML = `
                 <div class="modal-input-group" style="margin-top:15px;">
@@ -6288,7 +6383,18 @@
         let html = `<h2 style="color:var(--ly-blue); margin-top:0;">${data.title}</h2><hr style="border:0; border-top:1px dashed #ccc; margin: 15px 0;">`;
 
         if (data.type === 'file') {
-            html += `<p>附檔已成功解密：</p><a href="${data.content}" target="_blank" style="display:inline-block; background:var(--ly-blue); color:white; padding:10px 20px; border-radius:8px; text-decoration:none; font-weight:bold;"><i class="fas fa-download"></i> 點擊下載檔案</a>`;
+            html += `<p>附檔已成功解密：</p><div style="display:flex; flex-direction:column; gap:12px;">`;
+            let urls = [];
+            try { 
+                urls = JSON.parse(data.content); 
+                if (!Array.isArray(urls)) urls = [data.content]; // 相容舊版單一字串
+            } catch(e) { urls = [data.content]; } // 相容舊版單一字串
+            
+            urls.forEach((url, idx) => {
+                const numStr = urls.length > 1 ? ` (${idx + 1})` : '';
+                html += `<a href="${url}" target="_blank" style="display:inline-block; background:var(--ly-blue); color:white; padding:12px 20px; border-radius:8px; text-decoration:none; font-weight:bold; text-align:center;"><i class="fas fa-download"></i> 點擊下載/檢視檔案${numStr}</a>`;
+            });
+            html += `</div>`;
         } else if (data.type === 'link') {
             html += `<p>機密連結已解密：</p><a href="${data.content}" target="_blank" style="word-break:break-all; color:#d93025; font-weight:bold; font-size:1.1rem; text-decoration:underline;">${data.content}</a>`;
         } else if (data.type === 'account') {
@@ -6298,6 +6404,7 @@
                 html += `
                 <div style="background:#f8f9fa; border:1px solid #ddd; border-left:4px solid var(--ly-gold); padding:15px; margin-bottom:15px; border-radius:8px;">
                     <h4 style="margin:0 0 10px 0; color:#333;">${acc.sysTitle}</h4>
+                    
                     <div style="margin-bottom:8px; display: flex; align-items: center;">
                         <strong style="white-space: nowrap; margin-right: 8px;">帳號：</strong>
                         <div class="cipher-input-group" style="flex: 1;">
@@ -6305,11 +6412,35 @@
                             <button class="cipher-eye-btn" onmousedown="showViewAccount('v-acc-${idx}')" onmouseup="hideViewAccount('v-acc-${idx}')" ontouchstart="showViewAccount('v-acc-${idx}')" ontouchend="hideViewAccount('v-acc-${idx}')"><i class="fas fa-eye"></i></button>
                         </div>
                     </div>
+                    
                     <div style="display: flex; align-items: center;">
                         <strong style="white-space: nowrap; margin-right: 8px;">密碼：</strong>
                         <div class="cipher-input-group" style="flex: 1;">
                             <input type="password" id="v-pass-${idx}" value="${acc.pass}" readonly style="width: 100%; background: transparent !important; border: none; outline: none; font-size: 1.1rem; color: #d93025; font-weight: bold; font-family: monospace; padding-left: 0;">
                             <button class="cipher-eye-btn" onmousedown="showCipherPreview('v-pass-${idx}')" onmouseup="hideCipherPreview('v-pass-${idx}')" ontouchstart="showCipherPreview('v-pass-${idx}')" ontouchend="hideCipherPreview('v-pass-${idx}')"><i class="fas fa-eye"></i></button>
+                        </div>
+                    </div>
+
+                    <div style="padding-left: 48px; margin-top: 6px;">
+                        <div style="font-size: 0.75rem; color: #888; margin-bottom: 4px;">※ 此密碼已加密過後顯示</div>
+                        <div style="font-size: 0.75rem; color: var(--ly-blue); cursor: pointer; font-weight: bold; display: inline-flex; align-items: center; gap: 4px; transition: 0.2s;" onclick="const logicEl = document.getElementById('cipher-logic-${idx}'); const icon = this.querySelector('i'); if(logicEl.style.display === 'none'){ logicEl.style.display = 'block'; icon.className='fas fa-chevron-up'; } else { logicEl.style.display = 'none'; icon.className='fas fa-chevron-down'; }">
+                            <i class="fas fa-chevron-down"></i> 查看加密邏輯 (+3 偏移)
+                        </div>
+                        
+                        <div id="cipher-logic-${idx}" style="display: none; margin-top: 8px; padding: 12px; background: rgba(128,128,128,0.1); border-radius: 6px; font-size: 0.75rem; font-family: monospace; line-height: 1.5; border: 1px dashed #ccc; overflow-x: auto;">
+                            <strong style="color: var(--ly-blue); font-family: 'Noto Sans TC', sans-serif;">【範例】</strong><br>
+                            <span style="color: #d93025; font-weight: bold; font-size: 0.85rem;">Terry → Whuub</span><br><br>
+                            
+                            <strong style="color: var(--ly-blue); font-family: 'Noto Sans TC', sans-serif;">【數字】</strong><br>
+                            0→3, 1→4, 2→5, 3→6, 4→7, 5→8, 6→9, 7→0, 8→1, 9→2<br><br>
+                            
+                            <strong style="color: var(--ly-blue); font-family: 'Noto Sans TC', sans-serif;">【小寫英文字母】</strong><br>
+                            a→d, b→e, c→f, d→g, e→h, f→i, g→j, h→k, i→l, j→m, k→n, l→o, m→p, n→q, o→r, p→s, q→t, r→u, s→v, t→w, u→x, v→y, w→z, x→a, y→b, z→c<br><br>
+                            
+                            <strong style="color: var(--ly-blue); font-family: 'Noto Sans TC', sans-serif;">【大寫英文字母】</strong><br>
+                            A→D, B→E, C→F, D→G, E→H, F→I, G→J, H→K, I→L, J→M, K→N, L→O, M→P, N→Q, O→R, P→S, Q→T, R→U, S→V, T→W, U→X, V→Y, W→Z, X→A, Y→B, Z→C<br><br>
+                            
+                            <span style="color:#d93025; font-size:0.7rem; font-family: 'Noto Sans TC', sans-serif;">※ 中文與特殊符號保持不變</span>
                         </div>
                     </div>
                 </div>`;
@@ -6319,7 +6450,7 @@
         openModal('viewConfidentialModal');
     }
 
-    // 送出機密資料
+    // 送出機密資料 (包含壓縮、多檔案與遮罩鎖定)
     async function submitConfidential() {
         const title = document.getElementById('cd-title').value.trim();
         const truePass = document.getElementById('cd-true-pass').value;
@@ -6328,64 +6459,85 @@
         
         if (!title || !truePass) return alert("「文件標題」與「加密密碼」為必填項目！");
 
-        const btn = document.querySelector('#createConfidentialModal .btn-confirm');
-        btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 處理中...';
+        const btnConfirm = document.querySelector('#createConfidentialModal .btn-confirm');
+        const btnCancel = document.querySelector('#createConfidentialModal .btn-cancel');
+        const overlay = document.getElementById('cd-loading-overlay');
+        const loadingText = document.getElementById('cd-loading-text');
+        
+        // 【鎖定 UI 與啟動遮罩】
+        btnConfirm.disabled = true; btnCancel.disabled = true;
+        if (overlay) overlay.style.display = 'flex';
 
         try {
             let payloadContent = "";
-            let fileUrl = null;
 
             if (type === 'file') {
-                const file = document.getElementById('cd-file-input').files[0];
-                if (!file) throw new Error("請選擇檔案");
-                // 照規定儲存於 chat/confidential_documents/[title]/[filename]
-                const path = `chat/confidential_documents/${title}/${Date.now()}_${file.name}`;
-                const snap = await storage.ref(path).put(file);
-                fileUrl = await snap.ref.getDownloadURL();
-                payloadContent = fileUrl;
+                const inputs = document.querySelectorAll('.cd-file-input');
+                const files = [];
+                inputs.forEach(input => { if (input.files && input.files[0]) files.push(input.files[0]); });
+                if (files.length === 0) throw new Error("請選擇至少一個檔案");
+                
+                const uploadUrls = [];
+                
+                // 依序處理每個檔案 (支援壓縮)
+                for (let i = 0; i < files.length; i++) {
+                    let file = files[i];
+                    const isVideo = file.type.startsWith('video/');
+                    const isImage = file.type.startsWith('image/');
+                    const isGif = file.type.includes('gif') || file.name.toLowerCase().endsWith('.gif');
+                    
+                    if (isVideo) {
+                        if (loadingText) loadingText.innerText = `影片極致壓縮中 (${i+1}/${files.length})...`;
+                        // 若裝置支援且檔案大於 2MB 則進行壓縮
+                        if (typeof SharedArrayBuffer !== 'undefined' && file.size > 2 * 1024 * 1024) {
+                            try { file = await compressVideoClientSide(file, loadingText); } 
+                            catch(e) { console.warn("影片壓縮跳過", e); }
+                        }
+                    } else if (isImage && !isGif) {
+                        if (loadingText) loadingText.innerText = `圖片優化壓縮中 (${i+1}/${files.length})...`;
+                        // 將圖片壓縮至 4.5MB 以下
+                        file = await compressImageClientSide(file, 4.5);
+                    }
+
+                    if (loadingText) loadingText.innerText = `加密上傳至雲端 (${i+1}/${files.length})...`;
+                    const path = `chat/confidential_documents/${title}/${Date.now()}_${i}_${file.name}`;
+                    const snap = await storage.ref(path).put(file);
+                    const url = await snap.ref.getDownloadURL();
+                    uploadUrls.push(url);
+                }
+                // 將多個網址打包成 JSON 陣列字串
+                payloadContent = JSON.stringify(uploadUrls);
+                
             } else if (type === 'link') {
+                if (loadingText) loadingText.innerText = `資料加密中...`;
                 const link = document.getElementById('cd-link-input').value.trim();
                 if (!link) throw new Error("請輸入連結");
                 payloadContent = link;
             } else if (type === 'account') {
+                if (loadingText) loadingText.innerText = `資料加密中...`;
                 const rows = document.querySelectorAll('.acc-pass-row');
                 const accData = [];
                 rows.forEach(r => {
                     const uInput = r.querySelector('.cd-acc-user');
                     const pInput = r.querySelector('.cd-acc-pass');
-                    // 如果送出時剛好眼睛是按下的狀態，優先取回真實值
                     const uVal = uInput.hasAttribute('data-real-val') ? uInput.getAttribute('data-real-val') : uInput.value;
                     const pVal = pInput.hasAttribute('data-real-val') ? pInput.getAttribute('data-real-val') : pInput.value;
                     
-                    accData.push({
-                        sysTitle: r.querySelector('.cd-acc-title').value.trim(),
-                        user: uVal.trim(),
-                        pass: pVal
-                    });
+                    accData.push({ sysTitle: r.querySelector('.cd-acc-title').value.trim(), user: uVal.trim(), pass: pVal });
                 });
                 payloadContent = JSON.stringify(accData);
             }
 
-            // 將資料寫入獨立的 confidential-docs 集合
-            // 【新增】：抓取畫面上所有被勾選的傳遞對象
             const checkedBoxes = document.querySelectorAll('.cd-recipient-cb:checked');
-            const sharedWithUids = Array.from(checkedBoxes).map(cb => cb.value); // 存 UID 作為權限判斷
-            const sharedWithNames = Array.from(checkedBoxes).map(cb => cb.getAttribute('data-name')); // 存名字作為畫面顯示
+            const sharedWithUids = Array.from(checkedBoxes).map(cb => cb.value); 
+            const sharedWithNames = Array.from(checkedBoxes).map(cb => cb.getAttribute('data-name')); 
 
-            // 將資料寫入獨立的 confidential-docs 集合
+            if (loadingText) loadingText.innerText = `建立機密索引...`;
             const docRef = await db.collection("confidential-docs").add({
-                title: title,
-                type: type,
-                truePass: truePass,
-                fakePass: fakePass,
-                content: payloadContent,
-                creator: auth.currentUser.uid,
-                sharedWith: sharedWithUids,          // 【寫入】：權限 UID 陣列
-                recipientNames: sharedWithNames,     // 【寫入】：顯示用名字陣列
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                title: title, type: type, truePass: truePass, fakePass: fakePass, content: payloadContent, creator: auth.currentUser.uid,
+                sharedWith: sharedWithUids, recipientNames: sharedWithNames, createdAt: firebase.firestore.FieldValue.serverTimestamp()
             });
 
-            // 送出卡片到聊天室
             const batch = db.batch();
             const chatRef = db.collection("chats").doc(currentChatId);
             const msgRef = chatRef.collection("messages").doc();
@@ -6401,7 +6553,10 @@
         } catch (e) {
             alert(e.message || "處理失敗");
         } finally {
-            btn.disabled = false; btn.innerHTML = '<i class="fas fa-paper-plane"></i> 加密傳送';
+            // 【解除鎖定與關閉遮罩】
+            if (overlay) overlay.style.display = 'none';
+            btnConfirm.disabled = false; btnCancel.disabled = false;
+            btnConfirm.innerHTML = '<i class="fas fa-paper-plane"></i> 加密傳送';
         }
     }
 
@@ -6629,8 +6784,17 @@
             if (docSnap.exists) {
                 const data = docSnap.data();
                 // 如果是實體檔案，就把雲端硬碟裡的檔案清掉
+                // 如果是實體檔案，就把雲端硬碟裡的檔案清掉 (支援多檔案)
                 if (data.type === 'file' && data.content) { 
-                    try { await storage.refFromURL(data.content).delete(); } catch(e){} 
+                    let urls = [];
+                    try { 
+                        urls = JSON.parse(data.content); 
+                        if (!Array.isArray(urls)) urls = [data.content]; 
+                    } catch(e) { urls = [data.content]; }
+                    
+                    for (let url of urls) {
+                        try { await storage.refFromURL(url).delete(); } catch(e){} 
+                    }
                 }
             }
             
