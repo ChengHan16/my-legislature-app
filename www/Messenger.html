@@ -710,6 +710,7 @@
         }
         /* Settings 專用背景 */
         body.dark-mode #settingsView > div { background: #121212 !important; color: #e0e0e0; }
+        body.dark-mode #changeEmailView > div, body.dark-mode #changePasswordView > div { background: #121212 !important; color: #e0e0e0; }
         
         /* 對話氣泡 */
         body.dark-mode .msg.theirs { background: #2a2a2a; border-color: #444; color: #e0e0e0; }
@@ -1208,13 +1209,20 @@
         .sticker-tab img { width: 28px; height: 28px; object-fit: cover; border-radius: 4px; pointer-events: none; opacity: 0.5; transition: 0.2s; }
         .sticker-tab.active img { opacity: 1; transform: scale(1.1); }
         
-        /* 【修改】：解除內部網格的 touch-action，讓它在內容過多時能順利上下滑動 */
+        /* 【修改】：優化內部網格排版，徹底封殺橫向溢出捲軸，並增加底部安全間距 */
         .sticker-grid { 
-            flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(4, 1fr); 
-            gap: 12px; padding: 15px; align-content: start; background: var(--bg-gray); 
-            -webkit-overflow-scrolling: touch; /* 確保 iOS 滑動順暢 */
-            touch-action: pan-y; /* 只允許上下滑動 */
-            overscroll-behavior-y: contain; /* 滑到底不影響外層 */
+            flex: 1; 
+            overflow-y: auto; 
+            overflow-x: hidden; /* 【關鍵修復 1】：強制隱藏橫向溢出的捲軸 */
+            display: grid; 
+            grid-template-columns: repeat(4, minmax(0, 1fr)); /* 【關鍵修復 2】：限制最大寬度，防止圖片撐破網格 */
+            gap: 12px; 
+            padding: 15px 15px 25px 15px; /* 【關鍵修復 3】：底部多留一點 padding，防止貼圖視覺上被裁切 */
+            align-content: start; 
+            background: var(--bg-gray); 
+            -webkit-overflow-scrolling: touch; 
+            touch-action: pan-y; 
+            overscroll-behavior-y: contain; 
         }
         .sticker-item { width: 100%; aspect-ratio: 1; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; padding: 5px; }
         .sticker-item:hover { transform: scale(1.1); }
@@ -1958,10 +1966,24 @@
 
                 <div class="release-item latest">
                     <div class="version-title" style="cursor: pointer; user-select: none;" onclick="toggleReleaseContent(this)">
-                        <span class="v-badge latest">v 1.0.92</span>
+                        <span class="v-badge latest">v 1.0.93</span>
                         <span class="v-date">最新版本</span>
                     </div>
                     <div class="v-content" style="display: block;">
+                        <ul>
+                            <li><b>【資安升級】</b>「修改密碼」全面導入高安全驗證機制，必須輸入「舊密碼」驗證身分後方可變更，徹底防範帳號遭惡意盜用。</li>
+                            <li><b>【體驗升級】</b>淘汰傳統彈跳視窗，將「修改信箱」與「修改密碼」重構為符合 iOS 原生手感的「滿版滑動頁面」，操作更具沉浸感。</li>
+                            <li><b>【防呆優化】</b>帳號設定全面新增「雙重確認欄位」以防輸入錯誤；密碼欄位亦完美支援「長按眼睛圖示預覽」原生功能。</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="release-item">
+                    <div class="version-title" style="cursor: pointer; user-select: none;" onclick="toggleReleaseContent(this)">
+                        <span class="v-badge">v 1.0.92</span>
+                        <span class="v-date">原生體驗突破</span>
+                    </div>
+                    <div class="v-content" style="display: none;">
                         <ul>
                             <li><b>【全新功能】</b>聊天室輸入框新增「相機」快捷按鈕，支援一鍵喚醒 iOS 後置相機，拍照後無縫套用極致壓縮並直接傳送。</li>
                             <li><b>【體驗升級】</b>重構輸入框附加功能列，實裝「無字全展、有字收縮」的智慧動態摺疊設計，並附帶平滑柔順的過渡動畫，最大化打字視窗空間。</li>
@@ -2150,6 +2172,75 @@
             <div style="text-align: center; color: #aaa; font-size: 0.8rem; margin-top: 30px; margin-bottom: 20px;">
                 © 立法院 Legislature Communication System
             </div>
+        </div>
+    </div>
+
+    <div id="changeEmailView" class="app-view" style="z-index: 50; transform: translateX(100%);">
+        <header class="messenger-header">
+            <div class="header-content" style="padding: 15px 20px;">
+                <div class="user-profile">
+                    <button class="back-btn" onclick="closeChangeEmail()"><i class="fas fa-chevron-left"></i></button>
+                    <span class="user-name">修改信箱</span>
+                </div>
+            </div>
+        </header>
+        <div style="flex: 1; overflow-y: auto; padding: 25px 20px; background: white; -webkit-overflow-scrolling: touch;">
+            <div class="guide-section" style="border-left-color: var(--ly-gold); margin-bottom: 30px;">
+                <h4 style="color: var(--ly-gold);"><i class="fas fa-exclamation-triangle"></i> 注意事項</h4>
+                <p style="font-size: 0.9rem; color: #666; margin: 0; line-height: 1.5;">修改信箱後，下次請使用新的信箱地址進行登入。若您長時間未重新登入，系統基於安全考量可能會要求您先登出再重新驗證。</p>
+            </div>
+            
+            <div class="modal-input-group" style="margin-bottom: 20px;">
+                <label>新信箱地址</label>
+                <input type="email" id="newEmailInput" placeholder="請輸入新信箱...">
+            </div>
+            <div class="modal-input-group" style="margin-bottom: 30px;">
+                <label>確認新信箱</label>
+                <input type="email" id="confirmEmailInput" placeholder="請再次輸入新信箱...">
+            </div>
+            
+            <button class="btn-modal btn-confirm" style="width: 100%; padding: 14px; font-size: 1.1rem; border-radius: 8px; box-shadow: 0 4px 15px rgba(0, 49, 83, 0.2);" onclick="submitEmailChange()">確認修改</button>
+        </div>
+    </div>
+
+    <div id="changePasswordView" class="app-view" style="z-index: 50; transform: translateX(100%);">
+        <header class="messenger-header">
+            <div class="header-content" style="padding: 15px 20px;">
+                <div class="user-profile">
+                    <button class="back-btn" onclick="closeChangePassword()"><i class="fas fa-chevron-left"></i></button>
+                    <span class="user-name">修改密碼</span>
+                </div>
+            </div>
+        </header>
+        <div style="flex: 1; overflow-y: auto; padding: 25px 20px; background: white; -webkit-overflow-scrolling: touch;">
+            <div class="guide-section" style="border-left-color: var(--ly-gold); margin-bottom: 30px;">
+                <h4 style="color: var(--ly-gold);"><i class="fas fa-shield-alt"></i> 安全提示</h4>
+                <p style="font-size: 0.9rem; color: #666; margin: 0; line-height: 1.5;">密碼長度至少需包含 6 個字元。長按右側的「眼睛圖示」可預覽您輸入的密碼。</p>
+            </div>
+
+            <div class="modal-input-group" style="margin-bottom: 20px;">
+                <label>目前的舊密碼</label>
+                <div class="cipher-input-group">
+                    <input type="password" id="oldPasswordInput" placeholder="請輸入您目前的密碼...">
+                    <button type="button" class="cipher-eye-btn" onmousedown="showNormalPreview('oldPasswordInput')" onmouseup="hideNormalPreview('oldPasswordInput')" ontouchstart="showNormalPreview('oldPasswordInput')" ontouchend="hideNormalPreview('oldPasswordInput')"><i class="fas fa-eye"></i></button>
+                </div>
+            </div>
+            <div class="modal-input-group" style="margin-bottom: 20px;">
+                <label>新密碼</label>
+                <div class="cipher-input-group">
+                    <input type="password" id="newPasswordInput" placeholder="請輸入新密碼...">
+                    <button type="button" class="cipher-eye-btn" onmousedown="showNormalPreview('newPasswordInput')" onmouseup="hideNormalPreview('newPasswordInput')" ontouchstart="showNormalPreview('newPasswordInput')" ontouchend="hideNormalPreview('newPasswordInput')"><i class="fas fa-eye"></i></button>
+                </div>
+            </div>
+            <div class="modal-input-group" style="margin-bottom: 30px;">
+                <label>確認新密碼</label>
+                <div class="cipher-input-group">
+                    <input type="password" id="confirmPasswordInput" placeholder="請再次輸入新密碼...">
+                    <button type="button" class="cipher-eye-btn" onmousedown="showNormalPreview('confirmPasswordInput')" onmouseup="hideNormalPreview('confirmPasswordInput')" ontouchstart="showNormalPreview('confirmPasswordInput')" ontouchend="hideNormalPreview('confirmPasswordInput')"><i class="fas fa-eye"></i></button>
+                </div>
+            </div>
+            
+            <button class="btn-modal btn-confirm" style="width: 100%; padding: 14px; font-size: 1.1rem; border-radius: 8px; box-shadow: 0 4px 15px rgba(0, 49, 83, 0.2);" onclick="submitPasswordChange()">確認修改</button>
         </div>
     </div>
 
@@ -5150,45 +5241,139 @@
     }
 
     // 【新增】：修改信箱功能
-    async function handleChangeEmail() {
+    // ==========================================
+    // 修改信箱：滿版滑動邏輯與驗證
+    // ==========================================
+    const changeEmailViewDOM = document.getElementById('changeEmailView');
+    let isEmailSwiping = false, emailPageStartX = 0, emailPageCurrentX = 0;
+
+    changeEmailViewDOM.addEventListener('touchstart', (e) => {
+        if (e.touches[0].clientX < 40) { isEmailSwiping = true; emailPageStartX = e.touches[0].clientX; changeEmailViewDOM.style.transition = 'none'; }
+    });
+    changeEmailViewDOM.addEventListener('touchmove', (e) => {
+        if (!isEmailSwiping) return;
+        emailPageCurrentX = e.touches[0].clientX - emailPageStartX;
+        if (emailPageCurrentX > 0) { if (e.cancelable) e.preventDefault(); changeEmailViewDOM.style.transform = `translateX(${emailPageCurrentX}px)`; }
+    }, { passive: false });
+    changeEmailViewDOM.addEventListener('touchend', () => {
+        if (!isEmailSwiping) return;
+        isEmailSwiping = false;
+        changeEmailViewDOM.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
+        if (emailPageCurrentX > window.innerWidth / 3 || emailPageCurrentX > 30) closeChangeEmail();
+        else changeEmailViewDOM.style.transform = 'translateX(0%)';
+        emailPageCurrentX = 0;
+    });
+
+    function handleChangeEmail() { 
+        document.getElementById('newEmailInput').value = '';
+        document.getElementById('confirmEmailInput').value = '';
+        changeEmailViewDOM.style.transform = 'translateX(0%)'; 
+    }
+    function closeChangeEmail() { changeEmailViewDOM.style.transform = 'translateX(100%)'; }
+
+    async function submitEmailChange() {
         const user = auth.currentUser;
         if (!user) return;
-        const newEmail = prompt("請輸入新的信箱地址：", user.email);
-        if (!newEmail || newEmail === user.email) return;
+        const newEmail = document.getElementById('newEmailInput').value.trim();
+        const confirmEmail = document.getElementById('confirmEmailInput').value.trim();
+
+        if (!newEmail || !confirmEmail) return alert("請完整填寫兩個欄位！");
+        if (newEmail !== confirmEmail) return alert("兩次輸入的信箱不一致，請重新確認！");
+        if (newEmail === user.email) return alert("新信箱不能與目前信箱相同！");
+
+        const btn = document.querySelector('#changeEmailView .btn-confirm');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 處理中...'; btn.disabled = true;
         
         try {
-            await user.updateEmail(newEmail);
-            // 同步更新 act 集合裡的資料
-            await db.collection("act").doc(user.uid).update({ email: newEmail });
-            document.getElementById('settingsEmail').innerText = newEmail;
-            alert("信箱修改成功！");
+            // 【關鍵修改】：改用 Firebase 最新的安全驗證寄信函數
+            await user.verifyBeforeUpdateEmail(newEmail);
+            
+            alert("✅ 系統已寄送一封「驗證信」至您的新信箱！\n\n請前往信箱點擊確認連結，信箱才會正式完成修改喔！");
+            
+            // 由於信箱要等點擊連結後才會更改，這邊就不立刻更新畫面與資料庫了
+            closeChangeEmail();
         } catch(e) {
-            // 如果超過一段時間未登入，Firebase 會要求重新驗證
-            if (e.code === 'auth/requires-recent-login') {
-                alert("為了安全起見，修改信箱需要您重新登入。請登出後再試一次。");
-            } else {
-                alert("修改失敗：" + e.message);
-            }
+            if (e.code === 'auth/requires-recent-login') alert("為了安全起見，修改信箱需要您重新登入。請登出後再試一次。");
+            else alert("修改失敗：" + e.message);
+        } finally {
+            btn.innerHTML = '確認修改'; btn.disabled = false;
         }
     }
 
-    // 【新增】：修改密碼功能
-    async function handleChangePassword() {
+    // ==========================================
+    // 修改密碼：滿版滑動邏輯與驗證
+    // ==========================================
+    const changePasswordViewDOM = document.getElementById('changePasswordView');
+    let isPasswordSwiping = false, passwordPageStartX = 0, passwordPageCurrentX = 0;
+
+    changePasswordViewDOM.addEventListener('touchstart', (e) => {
+        if (e.touches[0].clientX < 40) { isPasswordSwiping = true; passwordPageStartX = e.touches[0].clientX; changePasswordViewDOM.style.transition = 'none'; }
+    });
+    changePasswordViewDOM.addEventListener('touchmove', (e) => {
+        if (!isPasswordSwiping) return;
+        passwordPageCurrentX = e.touches[0].clientX - passwordPageStartX;
+        if (passwordPageCurrentX > 0) { if (e.cancelable) e.preventDefault(); changePasswordViewDOM.style.transform = `translateX(${passwordPageCurrentX}px)`; }
+    }, { passive: false });
+    changePasswordViewDOM.addEventListener('touchend', () => {
+        if (!isPasswordSwiping) return;
+        isPasswordSwiping = false;
+        changePasswordViewDOM.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
+        if (passwordPageCurrentX > window.innerWidth / 3 || passwordPageCurrentX > 30) closeChangePassword();
+        else changePasswordViewDOM.style.transform = 'translateX(0%)';
+        passwordPageCurrentX = 0;
+    });
+
+    function handleChangePassword() { 
+        // 進入畫面時，清空所有三個欄位
+        document.getElementById('oldPasswordInput').value = '';
+        document.getElementById('newPasswordInput').value = '';
+        document.getElementById('confirmPasswordInput').value = '';
+        changePasswordViewDOM.style.transform = 'translateX(0%)'; 
+    }
+    function closeChangePassword() { changePasswordViewDOM.style.transform = 'translateX(100%)'; }
+
+    async function submitPasswordChange() {
         const user = auth.currentUser;
         if (!user) return;
-        const newPassword = prompt("請輸入新的密碼 (至少 6 個字元)：");
-        if (!newPassword) return;
-        if (newPassword.length < 6) return alert("密碼長度至少需要 6 個字元！");
+        
+        const oldPassword = document.getElementById('oldPasswordInput').value;
+        const newPassword = document.getElementById('newPasswordInput').value;
+        const confirmPassword = document.getElementById('confirmPasswordInput').value;
+
+        // 1. 基礎前端防呆檢查
+        if (!oldPassword || !newPassword || !confirmPassword) return alert("請完整填寫三個密碼欄位！");
+        if (newPassword !== confirmPassword) return alert("兩次輸入的新密碼不一致，請重新確認！");
+        if (newPassword.length < 6) return alert("新密碼長度至少需要 6 個字元！");
+        if (oldPassword === newPassword) return alert("新密碼不能與舊密碼相同！");
+
+        const btn = document.querySelector('#changePasswordView .btn-confirm');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 驗證與處理中...'; 
+        btn.disabled = true;
         
         try {
+            // 2. 向 Firebase 申請重新驗證 (拿使用者的 Email 與輸入的舊密碼去撞庫)
+            const credential = firebase.auth.EmailAuthProvider.credential(user.email, oldPassword);
+            await user.reauthenticateWithCredential(credential);
+
+            // 3. 驗證通過後，正式更新為新密碼
             await user.updatePassword(newPassword);
-            alert("密碼修改成功！下次請使用新密碼登入。");
+            
+            alert("✅ 密碼修改成功！下次請使用新密碼登入。");
+            closeChangePassword();
+            
         } catch(e) {
-            if (e.code === 'auth/requires-recent-login') {
-                alert("為了安全起見，修改密碼需要您重新登入。請登出後再試一次。");
+            console.error("修改密碼錯誤:", e);
+            // 4. 針對 Firebase 回傳的錯誤代碼進行精準的中文化提示
+            if (e.code === 'auth/wrong-password') {
+                alert("❌ 您輸入的「舊密碼」錯誤，請重新確認！");
+            } else if (e.code === 'auth/too-many-requests') {
+                alert("⚠️ 密碼錯誤嘗試次數過多，為保護帳號安全，請稍後再試。");
             } else {
                 alert("修改失敗：" + e.message);
             }
+        } finally {
+            btn.innerHTML = '確認修改'; 
+            btn.disabled = false;
         }
     }
 
