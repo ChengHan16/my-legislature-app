@@ -570,9 +570,10 @@
 
         .slider-container { flex-grow: 1; width: 100%; overflow: hidden; display: flex; align-items: center; position: relative; cursor: grab; }
         .slider-container:active { cursor: grabbing; }
-        .slider-track { display: flex; height: 80vh; transition: transform 0.3s ease-out; will-change: transform; }
-        .slider-slide { min-width: 100vw; height: 100%; display: flex; justify-content: center; align-items: center; padding: 0 10px; box-sizing: border-box; }
-        .slider-slide img { max-width: 100%; max-height: 100%; object-fit: contain; pointer-events: auto; user-select: none; -webkit-user-drag: none; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        /* 【修復 iOS 滑動殘影】：強制啟用 3D 硬體加速與隱藏背面渲染 */
+        .slider-track { display: flex; height: 80vh; transition: transform 0.3s ease-out; will-change: transform; transform: translateZ(0); }
+        .slider-slide { min-width: 100vw; height: 100%; display: flex; justify-content: center; align-items: center; padding: 0 10px; box-sizing: border-box; transform: translateZ(0); -webkit-backface-visibility: hidden; backface-visibility: hidden; }
+        .slider-slide img { max-width: 100%; max-height: 100%; object-fit: contain; pointer-events: auto; user-select: none; -webkit-user-drag: none; box-shadow: 0 0 20px rgba(0,0,0,0.5); transform: translateZ(0); }
         .viewer-header { position: absolute; top: 0; left: 0; width: 100%; height: 80px; display: flex; justify-content: space-between; align-items: flex-start; padding: env(safe-area-inset-top, 20px) 20px 20px; z-index: 20010; box-sizing: border-box; pointer-events: none; transition: opacity 1.5s ease-in-out; opacity: 1; }
         .viewer-controls-group { display: flex; align-items: center; gap: 12px; pointer-events: auto; }
         .viewer-btn-text { background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.3); color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; white-space: nowrap; }
@@ -1966,10 +1967,25 @@
 
                 <div class="release-item latest">
                     <div class="version-title" style="cursor: pointer; user-select: none;" onclick="toggleReleaseContent(this)">
-                        <span class="v-badge latest">v 1.0.93</span>
+                        <span class="v-badge latest">v 1.0.94</span>
                         <span class="v-date">最新版本</span>
                     </div>
                     <div class="v-content" style="display: block;">
+                        <ul>
+                            <li><b>【效能突破】</b>貼圖面板導入「記憶體快取引擎 (Memory Cache)」，解除圖片延遲載入限制，實裝零延遲「秒開」貼圖體驗。</li>
+                            <li><b>【視覺升級】</b>多媒體幻燈片全面啟用 CSS 3D 硬體加速 (GPU Acceleration)，徹底解決 iOS 系統下高速滑動產生的畫面撕裂與殘影現象。</li>
+                            <li><b>【體驗優化】</b>重構聊天室渲染邏輯，導入「毫秒級強制置底引擎」，完美解決因圖片非同步載入導致畫面異常停留在舊訊息的狀況。</li>
+                            <li><b>【邏輯修復】</b>修復「隱藏」訊息後，首頁對話清單仍殘留舊訊息預覽的 Bug；並解決隱藏對方最後一則訊息時，導致頭像異常消失的排版問題。</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="release-item">
+                    <div class="version-title" style="cursor: pointer; user-select: none;" onclick="toggleReleaseContent(this)">
+                        <span class="v-badge">v 1.0.93</span>
+                        <span class="v-date">滿版滑動與資安</span>
+                    </div>
+                    <div class="v-content" style="display: none;">
                         <ul>
                             <li><b>【資安升級】</b>「修改密碼」全面導入高安全驗證機制，必須輸入「舊密碼」驗證身分後方可變更，徹底防範帳號遭惡意盜用。</li>
                             <li><b>【體驗升級】</b>淘汰傳統彈跳視窗，將「修改信箱」與「修改密碼」重構為符合 iOS 原生手感的「滿版滑動頁面」，操作更具沉浸感。</li>
@@ -2326,17 +2342,16 @@
     // 0. 系統初始化與深色模式
     // ==========================================
     document.addEventListener("DOMContentLoaded", () => {
-        // 【強化】：檢查 localStorage 的深色模式設定
         const savedDarkMode = localStorage.getItem('darkMode');
+        // 【新增】：偵測 iOS 系統目前是否為深色模式
+        const systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
         
-        if (savedDarkMode === 'true') {
-            // 如果使用者曾手動切換為深色，就維持深色
+        // 判斷邏輯：如果使用者曾手動開啟，或（第一次使用 且 系統是深色）
+        if (savedDarkMode === 'true' || (savedDarkMode === null && systemPrefersDark)) {
             document.body.classList.add('dark-mode');
+            if (savedDarkMode === null) localStorage.setItem('darkMode', 'true');
         } else {
-            // 【關鍵防呆】：如果是 null (第一次用) 或 false，強制清除深色 class
-            // 這樣就算手機系統是深色模式，也不會干擾到我們 App 的預設淺色外觀
             document.body.classList.remove('dark-mode');
-            // 如果是第一次用，主動幫他記下「現在是淺色」
             if (savedDarkMode === null) localStorage.setItem('darkMode', 'false');
         }
         
@@ -2349,6 +2364,32 @@
                 btn.style.background = '';
                 btn.style.borderColor = '';
                 btn.classList.remove('guide-calling-btn'); // 拔除呼喚動畫
+            }
+        }
+    });
+
+    // ==========================================
+    // 【新增】：即時監聽 iOS 系統深色模式切換
+    // ==========================================
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+        const isSystemDark = event.matches;
+        const icon = document.getElementById('darkModeToggleIcon');
+        
+        if (isSystemDark) {
+            document.body.classList.add('dark-mode');
+            localStorage.setItem('darkMode', 'true');
+            if (icon) { 
+                icon.className = 'fas fa-moon'; 
+                icon.style.color = '#f1c40f'; 
+                icon.style.transform = 'scale(1) rotate(0deg)';
+            }
+        } else {
+            document.body.classList.remove('dark-mode');
+            localStorage.setItem('darkMode', 'false');
+            if (icon) { 
+                icon.className = 'fas fa-sun'; 
+                icon.style.color = '#e67e22'; 
+                icon.style.transform = 'scale(1) rotate(0deg)';
             }
         }
     });
@@ -2542,6 +2583,9 @@
 
     function openChatRoom(chatId) {
         currentChatId = chatId;
+        
+        // 【新增】：精準記錄進入聊天室的時間戳記，用來對抗 iOS 延遲渲染
+        window.chatOpenTime = Date.now();
         
         // 【新增】：在動畫開始前，立刻清空舊的變數與畫面，避免殘留
         messagesDocsData = []; 
@@ -2790,26 +2834,53 @@
                 avatarStyle = "width: 60px; height: 60px; margin-right: 10px;"; 
             }
 
-            const updatedAt = chat.updatedAt ? chat.updatedAt.toDate() : new Date();
+            // 【終極修復】：動態抓取「對我而言可見」的最後一則訊息，避免隱藏的訊息殘留在列表
+            let displayLastMsg = '尚無訊息';
+            let msgTime = chat.updatedAt ? chat.updatedAt.toDate() : new Date();
+            let latestVisibleSenderId = chat.lastSenderId;
+
+            try {
+                // 潛入訊息庫，抓取此聊天室最新的 20 則訊息來過濾
+                const lastMsgsSnap = await db.collection("chats").doc(chatId).collection("messages")
+                    .orderBy("timestamp", "desc").limit(20).get();
+                
+                for (let mDoc of lastMsgsSnap.docs) {
+                    const mData = mDoc.data();
+                    // 找到第一則「沒有被我隱藏」的真實訊息
+                    if (!mData.hiddenBy || !mData.hiddenBy.includes(currentUser.uid)) {
+                        let rawText = mData.text || (mData.fileType === 'video' ? '[影片]' : '[圖片]');
+                        if (mData.fileType === 'sticker') rawText = '[貼圖]';
+                        
+                        if (rawText.includes('"type":"event_share"')) {
+                            try { const parsed = JSON.parse(rawText); rawText = `分享了活動：${parsed.title}`; } catch(e) {}
+                        } else if (rawText.includes('"type":"group_buy"')) {
+                            try { const parsed = JSON.parse(rawText); rawText = `發起了團購：${parsed.title}`; } catch(e) {}
+                        } else if (rawText.includes('"type":"confidential"')) {
+                            try { const parsed = JSON.parse(rawText); rawText = `傳送了機密文件：${parsed.title}`; } catch(e) {}
+                        }
+                        
+                        displayLastMsg = rawText;
+                        if (mData.timestamp) msgTime = mData.timestamp.toDate();
+                        latestVisibleSenderId = mData.senderId;
+                        break;
+                    }
+                }
+            } catch (e) {
+                displayLastMsg = chat.lastMessage || '尚無訊息';
+            }
+
             const myLastRead = chat.lastReadAt?.[currentUser.uid] ? chat.lastReadAt[currentUser.uid].toDate() : new Date(0);
-            const isUnread = chat.lastSenderId !== currentUser.uid && updatedAt > myLastRead;
+            const isUnread = latestVisibleSenderId !== currentUser.uid && msgTime > myLastRead;
             const unreadClass = isUnread ? "unread" : "";
-            // 1. 修改 pinIcon：加入絕對定位 (position: absolute)，釘在卡片左上角
+            
+            // 1. 修改 pinIcon：加入絕對定位，釘在卡片左上角
             const pinIcon = (chat.isGroup && chat.groupName === "立法院 Legislature") ? '<i class="fas fa-thumbtack" style="color:var(--ly-gold); position:absolute; top:10px; left:12px; transform:rotate(-45deg); font-size:14px;"></i>' : '';
 
             let timeStr = "";
-            if (chat.updatedAt) {
+            if (msgTime) {
                 const now = new Date();
-                if (updatedAt.toDateString() === now.toDateString()) timeStr = updatedAt.toLocaleTimeString('zh-TW', {hour: '2-digit', minute:'2-digit', hour12: false});
-                else timeStr = `${updatedAt.getFullYear()}/${(updatedAt.getMonth() + 1).toString().padStart(2,'0')}/${updatedAt.getDate().toString().padStart(2,'0')}`;
-            }
-
-            let displayLastMsg = chat.lastMessage || '尚無訊息';
-            if (displayLastMsg.includes('"type":"event_share"')) {
-                try { const parsedMsg = JSON.parse(displayLastMsg); displayLastMsg = `分享了活動：${parsedMsg.title}`; } catch(e) {}
-            } 
-            else if (displayLastMsg.includes('"type":"group_buy"')) {
-                try { const parsedMsg = JSON.parse(displayLastMsg); displayLastMsg = `發起了團購：${parsedMsg.title}`; } catch(e) {}
+                if (msgTime.toDateString() === now.toDateString()) timeStr = msgTime.toLocaleTimeString('zh-TW', {hour: '2-digit', minute:'2-digit', hour12: false});
+                else timeStr = `${msgTime.getFullYear()}/${(msgTime.getMonth() + 1).toString().padStart(2,'0')}/${msgTime.getDate().toString().padStart(2,'0')}`;
             }
 
             // 2. 重構 HTML：將 pinIcon 獨立拉出來，並確保 h4 標題乾淨
@@ -2963,11 +3034,17 @@
         list.innerHTML = "";
         let lastTime = null;
 
-        messagesDocsData.forEach((msgDoc, i) => {
+        // 【關鍵修復】：預先過濾掉被隱藏的訊息，避免隱藏的訊息干擾到「連續發言 (頭像顯示)」的判斷！
+        const visibleMessages = messagesDocsData.filter(msgDoc => {
+            const msg = msgDoc.data();
+            return !(msg.hiddenBy && msg.hiddenBy.includes(currentUid));
+        });
+
+        // 【修改】：使用過濾後的 visibleMessages 陣列來進行渲染
+        visibleMessages.forEach((msgDoc, i) => {
             const msg = msgDoc.data(), msgId = msgDoc.id;
             const isMine = msg.senderId === currentUid;
             const msgTime = msg.timestamp ? msg.timestamp.toDate() : new Date();
-            if (msg.hiddenBy && msg.hiddenBy.includes(currentUid)) return;
 
             if (!lastTime || (msgTime - lastTime > 30 * 60 * 1000)) {
                 const timeDiv = document.createElement('div');
@@ -2976,7 +3053,8 @@
             }
             lastTime = msgTime;
 
-            const nextMsg = messagesDocsData[i + 1] ? messagesDocsData[i + 1].data() : null;
+            // 【修改】：使用 visibleMessages 來抓取下一則「畫面上真正看得到」的訊息
+            const nextMsg = visibleMessages[i + 1] ? visibleMessages[i + 1].data() : null;
             const isLastInSequence = !nextMsg || nextMsg.senderId !== msg.senderId;
 
             const wrapper = document.createElement('div');
@@ -3184,11 +3262,17 @@
             const shouldSmooth = !window.isFirstChatLoad; 
             
             // 【終極修復】：初次載入時「立刻」同步置底，拔除 150ms 延遲，徹底消滅畫面亂跳的狀況！
+            // 【終極修復】：初次載入時「立刻」同步置底，拔除 150ms 延遲，徹底消滅畫面亂跳的狀況！
             if (window.isFirstChatLoad) {
                 scrollToBottom(false);
                 window.isFirstChatLoad = false;
-                // 針對 iOS 渲染較慢的防呆機制：50 毫秒後再無感補強一次
+                
+                // 【關鍵防呆】：針對 iOS Safari 渲染較慢的狀況，展開「密集轟炸式」的無感補強
+                // 確保 0ms, 50ms, 200ms, 500ms 四個時間點都死死釘在底部，不讓畫面有機會往上彈
+                requestAnimationFrame(() => scrollToBottom(false));
                 setTimeout(() => scrollToBottom(false), 50);
+                setTimeout(() => scrollToBottom(false), 200);
+                setTimeout(() => scrollToBottom(false), 500);
             } else {
                 setTimeout(() => {
                     scrollToBottom(shouldSmooth); 
@@ -3337,8 +3421,13 @@
         media.dataset.loaded = 'true';
         
         const list = document.getElementById('messageList');
+        
+        // 【關鍵修復】：如果是在剛進入聊天室的 1 秒內，無論如何都「強制無感置底」，對抗圖片突然撐開畫面的 Bug
+        if (window.chatOpenTime && (Date.now() - window.chatOpenTime < 1000)) {
+            scrollToBottom(false);
+        }
         // 只有在畫面「已經接近最底部」時，圖片撐開才自動往下滾；在往上回顧舊訊息時絕對不動
-        if (list.scrollHeight - list.scrollTop - list.clientHeight < 300) {
+        else if (list.scrollHeight - list.scrollTop - list.clientHeight < 300) {
             scrollToBottom(false);
         }
     };
@@ -4496,8 +4585,18 @@
         renderStickers(packId);
     }
 
+    // 【新增】：貼圖 HTML 畫面與圖片記憶體快取字典
+    let stickerHtmlCache = {};
+
     function renderStickers(packId) {
         const grid = document.getElementById('stickerGrid');
+        
+        // 1. 如果記憶體中已經有這組貼圖的快取，直接從手機暫存秒速渲染，絕對零延遲
+        if (stickerHtmlCache[packId]) {
+            grid.innerHTML = stickerHtmlCache[packId];
+            return;
+        }
+
         const pack = chatStickersCache.find(p => p.id === packId);
         
         if (!pack || !pack.stickers || pack.stickers.length === 0) {
@@ -4506,13 +4605,17 @@
         }
         
         let html = '';
-        // 將貼圖陣列渲染到網格中 (自動略過沒上傳的空缺)
+        // 2. 初次點擊：產生 HTML。
+        // 【關鍵優化】：移除原本的 loading="lazy"，強制 iOS Safari 在這瞬間將整個貼圖集的圖片下載到系統快取中！
         pack.stickers.forEach(url => {
             html += `
                 <div class="sticker-item" onclick="sendRealSticker('${url}')">
-                    <img src="${url}" loading="lazy">
+                    <img src="${url}">
                 </div>`;
         });
+
+        // 3. 存入快取字典中，並顯示到畫面上
+        stickerHtmlCache[packId] = html;
         grid.innerHTML = html;
     }
 
@@ -5030,7 +5133,9 @@
     function updateSliderPos(instant=false) {
         const target = -currentSlideIndex * window.innerWidth; prevTranslate = target; currentTranslate = target;
         const track = document.getElementById('slider-track');
-        track.style.transition = instant ? 'none' : 'transform 0.3s ease-out'; track.style.transform = `translateX(${target}px)`;
+        // 【修復】：改用 translate3d 強制啟動硬體加速
+        track.style.transition = instant ? 'none' : 'transform 0.3s ease-out'; 
+        track.style.transform = `translate3d(${target}px, 0, 0)`;
         document.getElementById('viewer-counter').innerText = `${currentSlideIndex + 1} / ${currentGalleryImages.length}`;
         document.querySelectorAll('.thumbnail-item').forEach((t, i) => i===currentSlideIndex ? t.classList.add('active') : t.classList.remove('active'));
     }
@@ -5038,7 +5143,9 @@
     function touchSliderStart(e) { isSliderDragging=true; sliderStartPos = e.type.includes('mouse')?e.pageX:e.touches[0].clientX; prevTranslate = -currentSlideIndex*window.innerWidth; document.getElementById('slider-track').style.transition='none'; animationID=requestAnimationFrame(sliderAnim); }
     function touchSliderMove(e) { if(isSliderDragging){ const pos = e.type.includes('mouse')?e.pageX:e.touches[0].clientX; currentTranslate = prevTranslate + (pos - sliderStartPos); } }
     function touchSliderEnd() { isSliderDragging=false; cancelAnimationFrame(animationID); const moved = currentTranslate - prevTranslate; if(moved < -100 && currentSlideIndex < currentGalleryImages.length-1) currentSlideIndex++; else if(moved > 100 && currentSlideIndex > 0) currentSlideIndex--; updateSliderPos(); }
-    function sliderAnim() { document.getElementById('slider-track').style.transform = `translateX(${currentTranslate}px)`; if(isSliderDragging) requestAnimationFrame(sliderAnim); }
+    
+    // 【修復】：改用 translate3d 強制啟動硬體加速
+    function sliderAnim() { document.getElementById('slider-track').style.transform = `translate3d(${currentTranslate}px, 0, 0)`; if(isSliderDragging) requestAnimationFrame(sliderAnim); }
     function attachSliderEvents() { const c = document.getElementById('slider-container'); c.addEventListener('touchstart', touchSliderStart); c.addEventListener('touchmove', touchSliderMove, {passive:false}); c.addEventListener('touchend', touchSliderEnd); c.addEventListener('mousedown', touchSliderStart); c.addEventListener('mousemove', touchSliderMove); c.addEventListener('mouseup', touchSliderEnd); c.addEventListener('mouseleave', touchSliderEnd); }
     function detachSliderEvents() { const c = document.getElementById('slider-container'); c.removeEventListener('touchstart', touchSliderStart); c.removeEventListener('touchmove', touchSliderMove); c.removeEventListener('touchend', touchSliderEnd); c.removeEventListener('mousedown', touchSliderStart); c.removeEventListener('mousemove', touchSliderMove); c.removeEventListener('mouseup', touchSliderEnd); }
 
@@ -6618,6 +6725,12 @@
                 } else {
                     batch.update(chatRef, { lastMessage: "尚無訊息", lastSenderId: "" });
                 }
+            }
+            
+            // 【終極修復】：如果我們只是「隱藏」了別人的訊息 (deletedCount === 0)，
+            // 為了讓首頁能立刻更新，給一個無關緊要的 trigger 欄位更新，純粹為了觸發首頁重新渲染
+            if (deletedCount === 0) {
+                batch.update(chatRef, { [`hideTrigger_${currentUid}`]: firebase.firestore.FieldValue.serverTimestamp() });
             }
 
             await batch.commit();
