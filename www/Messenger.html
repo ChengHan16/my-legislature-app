@@ -305,7 +305,33 @@
         .msg.mine .mention-highlight { color: var(--ly-gold); font-weight: 800; background: rgba(255, 255, 255, 0.2); padding: 1px 6px; border-radius: 10px; }
         .msg.theirs .mention-highlight { color: var(--ly-blue); font-weight: 800; background: rgba(0, 49, 83, 0.1); padding: 1px 6px; border-radius: 10px; }
         
-        .pinned-bar { display: none; align-items: center; background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 10px 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.04); border-bottom: 1px solid rgba(0,0,0,0.05); position: relative; z-index: 90; max-width: var(--container-width); margin: 0 auto; width: 100%; flex-shrink: 0; }
+        /* ==========================================
+           【優化】：釘選訊息列 (雙模式毛玻璃半透明效果 + 完美間距)
+           ========================================== */
+        /* 1. 淺色模式：帶有高斯模糊的半透明白 */
+        .pinned-bar {
+            display: none; align-items: center; 
+            height: 50px; /* 【恢復】：原本的完美固定高度 */
+            padding: 10px 15px 10px 18px; /* 【恢復】：原本完美的圖示與文字間距 */
+            box-sizing: border-box; 
+            background: rgba(255, 255, 255, 0.55) !important; 
+            backdrop-filter: blur(3px) !important;
+            -webkit-backdrop-filter: blur(12px) !important;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+            position: relative; z-index: 90; 
+            max-width: var(--container-width); 
+            margin: 0 auto -60px auto; /* 【魔法】：底部負邊距 -60px，讓底下的對話列表向上吸附穿透 */
+            width: 100%; flex-shrink: 0;
+        }
+        
+        /* 2. 深色模式：帶有高斯模糊的半透明黑 */
+        body.dark-mode .pinned-bar {
+            background: rgba(26, 26, 26, 0.8) !important; 
+            backdrop-filter: blur(12px) !important;
+            -webkit-backdrop-filter: blur(12px) !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+        }
+        
         .pinned-icon { color: var(--ly-gold); font-size: 1.1rem; margin-right: 12px; transform: rotate(-45deg); }
         .pinned-content { flex: 1; font-size: 0.95rem; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; cursor: pointer; }
         .unpin-btn { background: none; border: none; color: #999; cursor: pointer; font-size: 1rem; padding: 5px; transition: 0.3s; }
@@ -374,7 +400,8 @@
         .msg-event-time { font-size: 0.85rem; color: #555; display: flex; align-items: center; gap: 5px; }
 
         /* --- 其他 Modal 與組件 (完美適配 iOS dVH) --- */
-        .modal-overlay { position: fixed; inset: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; z-index: 3000; padding: env(safe-area-inset-top, 20px) 20px 20px 20px; box-sizing: border-box; overflow: hidden;}        .modal-card { background: white; width: 100%; max-width: 450px; max-height: 85dvh; display: flex; flex-direction: column; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.3); border: 1px solid var(--border-color); animation: modalFadeIn 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); margin: 0;}
+        .modal-overlay { position: fixed; inset: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; z-index: 3000; padding: env(safe-area-inset-top, 20px) 20px 20px 20px; box-sizing: border-box; overflow: hidden;}        
+        .modal-card { background: white; width: 100%; max-width: 450px; max-height: 85dvh; display: flex; flex-direction: column; border-radius: 8px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.3); border: 1px solid var(--border-color); animation: modalFadeIn 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); margin: 0;}
         @keyframes modalFadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
         .modal-header { flex-shrink: 0; background: var(--ly-blue-trans); padding: 15px 20px; color: white; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--ly-gold); }
         .modal-header h3 { margin: 0; font-size: 1.1rem; }
@@ -697,7 +724,7 @@
             /* 針對深色底，將文字藍色調亮以便閱讀，但保留沉穩感 */
             --ly-blue: #5ba4d6; 
             /* 頂部導覽列保持原汁原味的深藍色 */
-            --ly-blue-trans: rgba(0, 30, 50, 0.95); 
+            --ly-blue-trans: rgba(0, 12, 25, 0.95); 
             --ly-gold: #d4b424; 
             color: #e0e0e0;
         }
@@ -876,6 +903,9 @@
         body.dark-mode .guide-section { background: #1e2b38; border-left-color: var(--ly-gold); border-color: #2a3642; }
         body.dark-mode .guide-section h4 { color: var(--ly-gold); border-bottom-color: #33475b; }
         body.dark-mode .guide-list { color: #ccc; }
+
+        body.dark-mode .gs-header-card, body.dark-mode .gs-members-section { background: #1e2b38 !important; border-color: #33475b !important; }
+        body.dark-mode #groupNameEdit { color: var(--ly-gold) !important; border-bottom-color: #33475b !important; }
 
         /* 8. 公文預覽 (doc-paper) 專屬深色模式修正 */
         body.dark-mode .doc-paper {
@@ -1211,20 +1241,14 @@
         .sticker-tab.active img { opacity: 1; transform: scale(1.1); }
         
         /* 【修改】：優化內部網格排版，徹底封殺橫向溢出捲軸，並增加底部安全間距 */
-        .sticker-grid { 
-            flex: 1; 
-            overflow-y: auto; 
-            overflow-x: hidden; /* 【關鍵修復 1】：強制隱藏橫向溢出的捲軸 */
-            display: grid; 
-            grid-template-columns: repeat(4, minmax(0, 1fr)); /* 【關鍵修復 2】：限制最大寬度，防止圖片撐破網格 */
-            gap: 12px; 
-            padding: 15px 15px 25px 15px; /* 【關鍵修復 3】：底部多留一點 padding，防止貼圖視覺上被裁切 */
-            align-content: start; 
-            background: var(--bg-gray); 
-            -webkit-overflow-scrolling: touch; 
-            touch-action: pan-y; 
-            overscroll-behavior-y: contain; 
-        }
+        /* ==========================================
+           貼圖滑動軌道系統 (Slider)
+           ========================================== */
+        .sticker-slider-wrapper { flex: 1; width: 100%; overflow: hidden; position: relative; }
+        .sticker-slider-track { display: flex; width: 100%; height: 100%; transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); transform: translate3d(0, 0, 0); will-change: transform; }
+        .sticker-grid-slide { min-width: 100%; width: 100%; height: 100%; overflow-y: auto; overflow-x: hidden; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; padding: 15px 15px 25px 15px; align-content: start; background: var(--bg-gray); -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain; touch-action: pan-y; }
+        
+        body.dark-mode .sticker-grid-slide { background: var(--bg-gray); border-color: var(--border-color); }
         .sticker-item { width: 100%; aspect-ratio: 1; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; padding: 5px; }
         .sticker-item:hover { transform: scale(1.1); }
         .sticker-item img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)); }
@@ -1234,6 +1258,26 @@
         body.dark-mode .sticker-tabs { background: #1a1a1a; border-color: var(--border-color); }
         body.dark-mode .sticker-tab.active { background: #2a2a2a; border-bottom-color: var(--ly-gold); }
         body.dark-mode .sticker-item img { filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
+
+        /* ==========================================
+           搜尋對話專用樣式
+           ========================================== */
+        .search-result-item { background: white; padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid var(--border-color); box-shadow: 0 2px 5px rgba(0,0,0,0.02); cursor: pointer; transition: 0.2s; }
+        .search-result-item:active { transform: scale(0.98); background: #f8f9fa; }
+        .search-result-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 0.85rem; color: #888; }
+        .search-result-name { font-weight: 800; color: var(--ly-blue); }
+        .search-result-text { font-size: 1rem; color: #333; line-height: 1.5; word-break: break-all; }
+        .search-highlight { color: #d93025; font-weight: 900; background: rgba(217, 48, 37, 0.1); padding: 0 2px; border-radius: 4px; }
+
+        body.dark-mode #srModalContent { background: #1e2b38 !important; border-color: #33475b !important; color: #e0e0e0; }
+        
+        /* 深色模式適配 */
+        body.dark-mode .ps-search-header { background: #1e2b38 !important; border-color: #33475b !important; }
+        body.dark-mode .ps-member-card { background: #1e2b38 !important; border-color: #33475b !important; }
+        body.dark-mode .ps-close-btn { background: #1e2b38 !important; border-color: #33475b !important; color: #e0e0e0 !important; }
+        body.dark-mode .search-result-item { background: #1e2b38; border-color: #33475b; }
+        body.dark-mode .search-result-text { color: #e0e0e0; }
+        body.dark-mode .search-highlight { color: var(--ly-gold); background: rgba(207, 169, 0, 0.2); }
     </style>
 </head>
 <body>
@@ -1273,9 +1317,9 @@
                     <img id="targetAvatar" class="user-avatar" src="https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true">
                     <span id="chatTitle" class="user-name">載入中...</span>
                 </div>
-                <div class="header-actions" id="groupSettingsContainer" style="display: none;">
-                    <button onclick="openGroupSettings()" title="群組設定">
-                        <i class="fas fa-cog"></i>
+                <div class="header-actions" id="chatSettingsContainer" style="display: none;">
+                    <button onclick="handleChatSettingsClick()" title="聊天室設定/搜尋">
+                        <i class="fas fa-cog" id="chatSettingsIcon"></i>
                     </button>
                 </div>
             </div>
@@ -1296,7 +1340,9 @@
         <div class="input-area">
             <div id="stickerPanel" class="sticker-panel">
                 <div class="sticker-tabs" id="stickerTabs"></div>
-                <div class="sticker-grid" id="stickerGrid"></div>
+                <div id="stickerSliderWrapper" class="sticker-slider-wrapper">
+                    <div id="stickerSliderTrack" class="sticker-slider-track"></div>
+                </div>
             </div>
 
             <div id="expandMenuPanel" class="expand-menu-panel">
@@ -1399,42 +1445,61 @@
         </div>
     </div>
 
-    <div id="groupSettingsModal" class="modal-overlay" onclick="if(event.target === this && window.innerWidth <= 750) closeModal('groupSettingsModal')">
-        <div class="modal-card">
-            <div class="modal-header">
-                <h3><i class="fas fa-cog"></i> 群組設定</h3>
-                <span style="cursor:pointer;" onclick="closeModal('groupSettingsModal')">&times;</span>
+    <div id="groupSettingsView" class="app-view" style="z-index: 50; transform: translateX(100%);">
+        <header class="messenger-header">
+            <div class="header-content" style="padding: 15px 20px;">
+                <div class="user-profile">
+                    <button class="back-btn" onclick="closeGroupSettings()"><i class="fas fa-chevron-left"></i></button>
+                    <span class="user-name">群組設定</span>
+                </div>
             </div>
-            <div class="modal-body" style="text-align: center;">
-                <div class="modal-input-group" style="text-align: center;">
+        </header>
+        <div style="flex: 1; display: block; height: 100%; background: var(--bg-gray); -webkit-overflow-scrolling: touch; overflow-y: auto; padding-bottom: 30px;">
+            
+            <div class="gs-header-card" style="padding: 30px 20px; background: white; display: flex; flex-direction: column; align-items: center; border-bottom: 1px solid var(--border-color); flex-shrink: 0;">
+                <div style="position: relative; margin-bottom: 15px;">
                     <input type="file" id="editGroupAvatarInput" accept="image/*" style="display: none;" onchange="openCropper(event, 'editGroupAvatarPreview')">
                     <div class="avatar-edit-wrapper" onclick="document.getElementById('editGroupAvatarInput').click()">
-                        <img id="editGroupAvatarPreview" class="group-avatar-preview" src="https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true">
-                        <div class="avatar-edit-icon"><i class="fas fa-pencil-alt"></i></div>
+                        <img id="editGroupAvatarPreview" class="group-avatar-preview" src="" style="width: 85px; height: 85px; border-radius: 50%; object-fit: cover; border: 3px solid var(--ly-gold); box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                        <div class="avatar-edit-icon" style="position: absolute; bottom: 0; right: 0; background: var(--ly-blue); color: white; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border: 2px solid white; font-size: 12px; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.2);"><i class="fas fa-pencil-alt"></i></div>
                     </div>
                 </div>
-                <div class="modal-input-group" style="text-align: left;">
-                    <label>群組名稱</label>
-                    <input type="text" id="groupNameEdit" oninput="markAsUnsaved()">
-                </div>
-                <div class="modal-input-group" style="text-align: left; margin-bottom: 0;">
-                    <label id="groupMembersLabel">群組成員</label>
-                    <div id="groupMembersList" class="group-members-list"></div>
-                    <button id="editMembersBtn" class="btn-modal btn-cancel" style="width: 100%; margin-top: 10px; display: none;" onclick="openEditMembersModal()">
-                        <i class="fas fa-user-edit"></i> 編輯群組成員
-                    </button>
+                <div style="width: 100%; max-width: 350px;">
+                    <input type="text" id="groupNameEdit" oninput="markAsUnsaved()" placeholder="輸入群組名稱" style="width: 100%; text-align: center; font-size: 1.2rem; font-weight: 800; border: 1px solid transparent; border-bottom: 2px solid #eee; padding: 8px; background: transparent; color: var(--ly-blue); outline: none; transition: 0.3s;">
                 </div>
             </div>
-            <div class="modal-footer" style="flex-direction: column; align-items: center; gap: 15px; padding-top: 20px;">
-                <button id="saveGroupBtn" class="btn-modal btn-confirm" style="display: none; width: 100%;" onclick="saveGroupSettings()">儲存</button>
-                <div id="moreOptionsToggle" style="color: #999; font-size: 12px; cursor: pointer; padding: 5px;" onclick="toggleGroupOptions()">
-                    <i class="fas fa-chevron-down"></i> 更多選項
+
+            <div class="gs-members-section" style="padding: 20px; background: white; border-bottom: 1px solid var(--border-color); margin-top: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <label id="groupMembersLabel" style="font-weight: bold; color: var(--ly-blue); margin: 0; font-size: 1rem;"><i class="fas fa-users"></i> 群組成員</label>
+                    <button id="editMembersBtn" style="background: none; border: none; color: var(--ly-gold); font-weight: bold; font-size: 0.9rem; cursor: pointer; padding: 5px;" onclick="openEditMembersModal()"><i class="fas fa-user-edit"></i> 編輯名單</button>
                 </div>
-                <div id="moreOptionsContainer" style="display: none; width: 100%; flex-direction: column; gap: 10px;">
-                    <button class="btn-modal btn-cancel" style="width: 100%;" onclick="closeModal('groupSettingsModal')">取消</button>
-                    <button id="deleteGroupBtn" class="btn-modal btn-danger" style="width: 100%;" onclick="deleteGroup()">刪除群組</button>
+                <div id="groupMembersList" class="group-members-list" style="max-height: none; overflow-y: visible; background: transparent; border: none; padding: 0;"></div>
+            </div>
+
+            <div class="ps-search-header" style="padding: 15px 20px; background: white; border-bottom: 1px solid var(--border-color); flex-shrink: 0; margin-top: 10px;">
+                <label style="display: block; font-size: 0.9rem; color: var(--ly-blue); font-weight: bold; margin-bottom: 10px;"><i class="fas fa-search"></i> 群組對話搜尋</label>
+                <div class="picker-search-wrapper">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="groupChatSearchInput" placeholder="輸入關鍵字搜尋對話..." oninput="debounceSearchChat()" style="background: #f8f9fa;">
                 </div>
             </div>
+            <div id="groupChatSearchResults" style="padding: 15px 20px; min-height: 100px;">
+                <div style="text-align: center; color: #999; margin-top: 10px;">輸入關鍵字開始搜尋</div>
+            </div>
+
+            <div style="padding: 20px; display: flex; flex-direction: column; gap: 15px;">
+                <button id="saveGroupBtn" class="btn-modal btn-confirm" style="display: none; width: 100%; padding: 14px; font-size: 1.1rem; border-radius: 8px; box-shadow: 0 4px 15px rgba(0, 49, 83, 0.2);" onclick="saveGroupSettings()">儲存修改</button>
+                
+                <div id="moreOptionsToggle" style="color: #999; font-size: 0.95rem; cursor: pointer; text-align: center; padding: 10px; font-weight: bold;" onclick="toggleGroupOptions()">
+                    <i class="fas fa-chevron-down"></i> 進階選項
+                </div>
+                
+                <div id="moreOptionsContainer" style="display: none; flex-direction: column; gap: 10px;">
+                    <button id="deleteGroupBtn" class="btn-modal btn-danger" style="width: 100%; padding: 12px; border-radius: 8px; font-weight: bold;" onclick="deleteGroup()"><i class="fas fa-trash-alt"></i> 解散/刪除群組</button>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -1817,6 +1882,93 @@
         </div>
     </div>
 
+    <div id="multiRevokeConfirmModal" class="modal-overlay" style="z-index: 6000;" onclick="if(event.target === this) closeModal('multiRevokeConfirmModal')">
+        <div class="modal-card" style="max-width: 320px;">
+            <div class="modal-header" style="background: #d93025; border-bottom: 3px solid #b3241c;">
+                <h3 style="color: white;"><i class="fas fa-exclamation-triangle" style="color: white;"></i> 確認處理訊息</h3>
+                <span style="cursor:pointer; color: white;" onclick="closeModal('multiRevokeConfirmModal')">&times;</span>
+            </div>
+            <div class="modal-body" style="padding: 25px 20px; font-size: 1.05rem; line-height: 1.6;">
+                確定要處理這 <span id="multiRevokeCount" style="color: #d93025; font-weight: 900; font-size: 1.4rem;">0</span> 則訊息？<br><br>
+                <ul style="padding-left: 20px; margin: 0; font-size: 0.95rem;">
+                    <li style="margin-bottom: 10px;"><b>您發送的訊息：</b><br>將從資料庫永久刪除。</li>
+                    <li><b>對方發送的：</b><br>將從您的畫面中單方面隱藏。</li>
+                </ul>
+            </div>
+            <div class="modal-footer" style="justify-content: center; gap: 15px;">
+                <button class="btn-modal btn-cancel" style="flex: 1;" onclick="closeModal('multiRevokeConfirmModal')">取消</button>
+                <button class="btn-modal btn-confirm" id="btnExecuteMultiRevoke" style="flex: 1; background: #d93025; border: none; box-shadow: 0 4px 10px rgba(217, 48, 37, 0.2);" onclick="executeMultiRevoke()">確定</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="logoutConfirmModal" class="modal-overlay" style="z-index: 6000;" onclick="if(event.target === this) closeModal('logoutConfirmModal')">
+        <div class="modal-card" style="max-width: 320px;">
+            <div class="modal-header" style="background: #ff4d4d; border-bottom: 3px solid #cc0000;">
+                <h3 style="color: white;"><i class="fas fa-sign-out-alt" style="color: white;"></i> 確定登出系統</h3>
+                <span style="cursor:pointer; color: white;" onclick="closeModal('logoutConfirmModal')">&times;</span>
+            </div>
+            <div class="modal-body" style="padding: 25px 20px; text-align: center; font-size: 1.1rem; font-weight: bold; color: inherit;">
+                您確定要登出目前帳號嗎？
+            </div>
+            <div class="modal-footer" style="justify-content: center; gap: 15px;">
+                <button class="btn-modal btn-cancel" style="flex: 1;" onclick="closeModal('logoutConfirmModal')">取消</button>
+                <button class="btn-modal btn-confirm" id="btnExecuteLogout" style="flex: 1; background: #ff4d4d; border: none; box-shadow: 0 4px 10px rgba(255, 77, 77, 0.2);" onclick="executeLogout()">確定登出</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="deleteGroupConfirmModal1" class="modal-overlay" style="z-index: 6000;" onclick="if(event.target === this) closeModal('deleteGroupConfirmModal1')">
+        <div class="modal-card" style="max-width: 320px;">
+            <div class="modal-header" style="background: #ff4d4d; border-bottom: 3px solid #cc0000;">
+                <h3 style="color: white;"><i class="fas fa-exclamation-triangle" style="color: white;"></i> 警告：解散群組</h3>
+                <span style="cursor:pointer; color: white;" onclick="closeModal('deleteGroupConfirmModal1')">&times;</span>
+            </div>
+            <div class="modal-body" style="padding: 25px 20px; font-size: 1.05rem; line-height: 1.6; text-align: center;">
+                您確定要解散並刪除此群組嗎？<br><br>
+                <span style="color: #666; font-size: 0.95rem;">此操作將會清除群組內所有的聊天紀錄與共用檔案。</span>
+            </div>
+            <div class="modal-footer" style="justify-content: center; gap: 15px;">
+                <button class="btn-modal btn-cancel" style="flex: 1;" onclick="closeModal('deleteGroupConfirmModal1')">取消</button>
+                <button class="btn-modal btn-danger" style="flex: 1; border: none; box-shadow: 0 4px 10px rgba(255, 77, 77, 0.2);" onclick="confirmDeleteGroupStep1()">確定刪除</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="deleteGroupConfirmModal2" class="modal-overlay" style="z-index: 6050;" onclick="if(event.target === this) closeModal('deleteGroupConfirmModal2')">
+        <div class="modal-card" style="max-width: 320px;">
+            <div class="modal-header" style="background: #cc0000; border-bottom: 3px solid #990000;">
+                <h3 style="color: white;"><i class="fas fa-skull-crossbones" style="color: white;"></i> 最終防呆確認</h3>
+                <span style="cursor:pointer; color: white;" onclick="closeModal('deleteGroupConfirmModal2')">&times;</span>
+            </div>
+            <div class="modal-body" style="padding: 25px 20px; font-size: 1.05rem; line-height: 1.6; text-align: center;">
+                <b style="color: #cc0000; font-size: 1.2rem;">這項操作絕對無法還原！</b><br><br>
+                <span style="color: inherit; font-weight: bold;">群組內的所有成員與對話紀錄將「永久消失」！</span><br><br>
+                您真的確定要執行嗎？
+            </div>
+            <div class="modal-footer" style="justify-content: center; gap: 15px;">
+                <button class="btn-modal btn-cancel" style="flex: 1;" onclick="closeModal('deleteGroupConfirmModal2')">取消</button>
+                <button class="btn-modal btn-danger" id="btnExecuteDeleteGroup" style="flex: 1; background: #cc0000; border: none; box-shadow: 0 4px 10px rgba(204, 0, 0, 0.3);" onclick="executeDeleteGroup()">永久刪除</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="searchResultModal" class="modal-overlay" style="z-index: 6000;" onclick="if(event.target === this) closeModal('searchResultModal')">
+        <div class="modal-card" style="max-width: 350px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-search"></i> 歷史對話內容</h3>
+                <span style="cursor:pointer;" onclick="closeModal('searchResultModal')">&times;</span>
+            </div>
+            <div class="modal-body" style="padding: 20px; line-height: 1.6; font-size: 1.05rem;">
+                <div style="font-weight: 900; color: var(--ly-blue); margin-bottom: 10px; border-bottom: 2px solid var(--ly-gold); padding-bottom: 5px; display: inline-block;" id="srModalSender"></div>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #eee; word-break: break-all; min-height: 80px;" id="srModalContent"></div>
+            </div>
+            <div class="modal-footer" style="justify-content: center;">
+                <button class="btn-modal btn-cancel" style="width: 100%;" onclick="closeModal('searchResultModal')">關閉</button>
+            </div>
+        </div>
+    </div>
+
     <div id="contextMenu" class="context-menu" style="flex-direction: column; padding: 0; overflow: hidden; width: 320px;">
         <div class="reaction-bar">
             <button class="reaction-btn" onclick="sendReaction('👍')">👍</button>
@@ -1967,10 +2119,39 @@
 
                 <div class="release-item latest">
                     <div class="version-title" style="cursor: pointer; user-select: none;" onclick="toggleReleaseContent(this)">
-                        <span class="v-badge latest">v 1.0.94</span>
+                        <span class="v-badge latest">v 1.0.960</span>
                         <span class="v-date">最新版本</span>
                     </div>
                     <div class="v-content" style="display: block;">
+                        <ul>
+                            <li><b>【全新功能】</b>實裝「歷史對話搜尋引擎」，支援群組與個人聊天室。搜尋結果具備關鍵字高亮，並採用彈跳視窗檢視詳細對話，無需耗時讀取跳轉。</li>
+                            <li><b>【視覺升級】</b>重構「群組設定」與「個人設定」介面為滿版滑動頁面 (SPA)，並將群組成員列表進化為帶有連線視覺的「組織地圖 (Connectivity Map)」，質感大幅提升。</li>
+                            <li><b>【防呆優化】</b>針對「解散群組」等高危險操作，全面淘汰系統原生提示框，獨家導入「雙重自訂警告視窗 (Double Confirmation Modal)」，徹底杜絕手滑誤刪。</li>
+                            <li><b>【體驗優化】</b>解決 iOS 系統在複雜巢狀結構下的滑動失效 Bug，確保大量搜尋結果與設定頁面皆能順暢無限捲動。</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="release-item">
+                    <div class="version-title" style="cursor: pointer; user-select: none;" onclick="toggleReleaseContent(this)">
+                        <span class="v-badge">v 1.0.95</span>
+                        <span class="v-date">沉浸體驗與修復</span>
+                    </div>
+                    <div class="v-content" style="display: none;">
+                        <ul>
+                            <li><b>【體驗升級】</b>全面淘汰瀏覽器原生提示框，實裝高質感的自訂「多選收回確認」與「登出確認」視窗，完美融合深色模式與沉浸式操作手感。</li>
+                            <li><b>【重大修復】</b>解除貼圖訊息的「連動刪除」危機；修復收回貼圖時會誤刪 Firebase 雲端原始檔的嚴重 Bug，確保貼圖庫永久安全。</li>
+                            <li><b>【防呆優化】</b>貼圖面板導入「智慧破圖隱藏 (onerror)」與無效網址過濾引擎，遭遇網路異常或圖檔遺失時自動重構網格，維持介面絕對整潔。</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="release-item">
+                    <div class="version-title" style="cursor: pointer; user-select: none;" onclick="toggleReleaseContent(this)">
+                        <span class="v-badge">v 1.0.94</span>
+                        <span class="v-date">底層效能突破</span>
+                    </div>
+                    <div class="v-content" style="display: none;">
                         <ul>
                             <li><b>【效能突破】</b>貼圖面板導入「記憶體快取引擎 (Memory Cache)」，解除圖片延遲載入限制，實裝零延遲「秒開」貼圖體驗。</li>
                             <li><b>【視覺升級】</b>多媒體幻燈片全面啟用 CSS 3D 硬體加速 (GPU Acceleration)，徹底解決 iOS 系統下高速滑動產生的畫面撕裂與殘影現象。</li>
@@ -2257,6 +2438,56 @@
             </div>
             
             <button class="btn-modal btn-confirm" style="width: 100%; padding: 14px; font-size: 1.1rem; border-radius: 8px; box-shadow: 0 4px 15px rgba(0, 49, 83, 0.2);" onclick="submitPasswordChange()">確認修改</button>
+        </div>
+    </div>
+
+    <div id="personalChatSettingsView" class="app-view" style="z-index: 50; transform: translateX(100%);">
+        <header class="messenger-header">
+            <div class="header-content" style="padding: 15px 20px;">
+                <div class="user-profile">
+                    <button class="back-btn" onclick="closePersonalSettings()"><i class="fas fa-chevron-left"></i></button>
+                    <span class="user-name" id="personalSettingsTitle">聊天室設定</span>
+                </div>
+            </div>
+        </header>
+        <div style="flex: 1; display: block; height: 100%; background: var(--bg-gray); -webkit-overflow-scrolling: touch; overflow-y: auto; padding-bottom: 30px;">
+            
+            <div class="ps-member-card" style="padding: 30px 20px; background: white; display: flex; flex-direction: column; align-items: center; border-bottom: 1px solid var(--border-color); flex-shrink: 0;">
+                <div style="display: flex; flex-direction: column; align-items: center;">
+                    <img id="psMyAvatar" src="" style="width: 65px; height: 65px; border-radius: 50%; object-fit: cover; border: 2px solid var(--ly-gold); box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                    <span id="psMyName" style="font-weight: 800; font-size: 1.1rem; margin-top: 10px; color: var(--ly-blue);">自己</span>
+                </div>
+                
+                <div style="display: flex; flex-direction: column; align-items: center; margin: 10px 0;">
+                    <div style="width: 2px; height: 15px; background: #ddd;"></div>
+                    <i class="fas fa-link" style="color: #ccc; font-size: 1rem; margin: 5px 0;"></i>
+                    <div style="width: 2px; height: 15px; background: #ddd;"></div>
+                </div>
+                
+                <div style="display: flex; flex-direction: column; align-items: center;">
+                    <img id="psTargetAvatar" src="" style="width: 65px; height: 65px; border-radius: 50%; object-fit: cover; border: 2px solid var(--ly-blue); box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                    <span id="psTargetName" style="font-weight: 800; font-size: 1.1rem; margin-top: 10px; color: var(--ly-blue);">對方</span>
+                </div>
+            </div>
+
+            <div class="ps-search-header" style="padding: 15px 20px; background: white; border-bottom: 1px solid var(--border-color); flex-shrink: 0; margin-top: 10px;">
+                <label style="display: block; font-size: 0.9rem; color: var(--ly-blue); font-weight: bold; margin-bottom: 10px;"><i class="fas fa-search"></i> 歷史對話搜尋</label>
+                <div class="picker-search-wrapper">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="chatSearchInput" placeholder="輸入關鍵字搜尋對話..." oninput="debounceSearchChat()" style="background: #f8f9fa;">
+                </div>
+            </div>
+            
+            <div id="chatSearchResults" style="flex: 1; padding: 15px 20px; min-height: 150px;">
+                <div style="text-align: center; color: #999; margin-top: 20px;">輸入關鍵字開始搜尋</div>
+            </div>
+
+            <div style="padding: 20px; background: transparent; flex-shrink: 0;">
+                <button class="btn-modal btn-cancel ps-close-btn" style="width: 100%; padding: 12px; border-radius: 8px; font-weight: bold; color: #666; background: white; border: 1px solid #ddd; box-shadow: 0 2px 8px rgba(0,0,0,0.05);" onclick="closePersonalSettings()">
+                    <i class="fas fa-times"></i> 關閉設定頁面
+                </button>
+            </div>
+            
         </div>
     </div>
 
@@ -2931,20 +3162,24 @@
             const data = doc.data();
             
             // 釘選列處理
-            // 釘選列處理
             const pinnedBar = document.getElementById('pinnedMessageBar'), pinnedText = document.getElementById('pinnedText'), unpinBtn = document.getElementById('unpinBtn');
+            const msgList = document.getElementById('messageList');
+
             if (data.pinnedMessage?.text) {
-                // 【新增】：把釘選的完整資料存到全域變數，供彈窗讀取
                 window.currentPinnedMessage = data.pinnedMessage;
                 pinnedBar.style.display = 'flex'; 
                 pinnedText.innerText = data.pinnedMessage.text;
-                
-                // 【修改】：點擊時不再往上滑，改為開啟彈窗
                 pinnedText.onclick = openPinnedModal; 
                 unpinBtn.disabled = false;
+                
+                // 【關鍵修復】：當有釘選訊息時，訊息列表最上方要增加 60px 的內距，避免舊訊息被永遠蓋住
+                if(msgList) msgList.style.paddingTop = '80px';
             } else { 
                 window.currentPinnedMessage = null;
                 pinnedBar.style.display = 'none'; 
+                
+                // 【關鍵修復】：沒有釘選訊息時，恢復預設內距
+                if(msgList) msgList.style.paddingTop = '20px';
             }
             
             window.isCurrentChatGroup = !!data.isGroup;
@@ -2966,20 +3201,25 @@
             if (data.isGroup) {
                 const rawGroupName = data.groupName || "未命名群組";
                 window.currentRawGroupName = rawGroupName; 
-                // 【修復】：移除強制縮寫，交給 CSS 判斷是否擠壓
                 document.getElementById('chatTitle').innerText = rawGroupName;
                 document.getElementById('targetAvatar').src = data.groupAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.groupName)}&background=003153&color=fff`;
-                document.getElementById('groupSettingsContainer').style.display = 'block';
+                
+                // 【修改】：群組顯示齒輪設定按鈕
+                document.getElementById('chatSettingsContainer').style.display = 'block';
+                document.getElementById('chatSettingsIcon').className = 'fas fa-cog';
+                
                 updateReadStatusUI();
             } else {
-                document.getElementById('groupSettingsContainer').style.display = 'none';
+                // 【修改】：個人對話顯示齒輪設定按鈕
+                document.getElementById('chatSettingsContainer').style.display = 'block';
+                document.getElementById('chatSettingsIcon').className = 'fas fa-cog';
+                
                 const targetUid = data.members.find(uid => uid !== user.uid);
                 opponentInChat = data.presence ? data.presence[targetUid] : false;
                 if (data.lastReadAt && data.lastReadAt[targetUid]) opponentReadTime = data.lastReadAt[targetUid].toDate();
                 db.collection("act").doc(targetUid).get().then(uDoc => {
                     if (uDoc.exists) {
                         const rawUserName = uDoc.data().displayName || "未知成員";
-                        // 【修復】：移除強制縮寫，交給 CSS 判斷是否擠壓
                         document.getElementById('chatTitle').innerText = rawUserName;
                         document.getElementById('targetAvatar').src = uDoc.data().photoURL || 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true';
                     }
@@ -4349,15 +4589,47 @@
     // ==========================================
     // 群組設定與成員展開邏輯
     // ==========================================
+    // ==========================================
+    // 群組設定頁面：滿版滑動邏輯
+    // ==========================================
+    const groupSettingsViewDOM = document.getElementById('groupSettingsView');
+    let isGSwiping = false, gStartX = 0, gCurrentX = 0;
+
+    groupSettingsViewDOM.addEventListener('touchstart', (e) => {
+        if (e.touches[0].clientX < 40) { isGSwiping = true; gStartX = e.touches[0].clientX; groupSettingsViewDOM.style.transition = 'none'; }
+    }, {passive: true});
+    groupSettingsViewDOM.addEventListener('touchmove', (e) => {
+        if (!isGSwiping) return;
+        gCurrentX = e.touches[0].clientX - gStartX;
+        if (gCurrentX > 0) { if (e.cancelable) e.preventDefault(); groupSettingsViewDOM.style.transform = `translateX(${gCurrentX}px)`; }
+    }, { passive: false });
+    groupSettingsViewDOM.addEventListener('touchend', () => {
+        if (!isGSwiping) return;
+        isGSwiping = false;
+        groupSettingsViewDOM.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
+        if (gCurrentX > window.innerWidth / 3 || gCurrentX > 30) closeGroupSettings();
+        else groupSettingsViewDOM.style.transform = 'translateX(0%)';
+        gCurrentX = 0;
+    });
+
+    function closeGroupSettings() {
+        groupSettingsViewDOM.style.transform = 'translateX(100%)';
+        document.getElementById('groupChatSearchInput').blur(); 
+    }
+
     async function openGroupSettings() {
-        openModal('groupSettingsModal'); 
+        // 【修改】：改為滑動開啟
+        groupSettingsViewDOM.style.transform = 'translateX(0%)'; 
         document.getElementById('moreOptionsContainer').style.display='none'; 
-        document.getElementById('moreOptionsToggle').innerHTML='<i class="fas fa-chevron-down"></i> 更多選項';
+        document.getElementById('moreOptionsToggle').innerHTML='<i class="fas fa-chevron-down"></i> 進階選項';
         
+        // 【新增】：重置搜尋框
+        document.getElementById('groupChatSearchInput').value = '';
+        document.getElementById('groupChatSearchResults').innerHTML = '<div style="text-align: center; color: #999; margin-top: 20px;">輸入關鍵字開始搜尋</div>';
+
         const nameInput = document.getElementById('groupNameEdit');
         const editMembersBtn = document.getElementById('editMembersBtn');
         
-        // 【修改】：優先使用儲存的原始群組名稱，不使用被縮減的文字
         nameInput.value = window.currentRawGroupName || document.getElementById('chatTitle').innerText;
         document.getElementById('editGroupAvatarPreview').src = document.getElementById('targetAvatar').src;
         window.croppedAvatarBlob = null; 
@@ -4379,12 +4651,9 @@
 
         const listEl = document.getElementById('groupMembersList'); 
         listEl.innerHTML = '<div style="font-size: 13px; color: #999; text-align: center;">載入成員中... <i class="fas fa-spinner fa-spin"></i></div>';
-        
-        // 【新增】：動態顯示群組成員總人數
-        document.getElementById('groupMembersLabel').innerText = `群組成員 (${window.currentGroupMembers.length})`;
+        document.getElementById('groupMembersLabel').innerHTML = `<i class="fas fa-users"></i> 群組成員 (${window.currentGroupMembers.length})`;
         
         try {
-            // 【修改】：先將抓到的成員資料存進全域快取陣列中
             const memberPromises = (window.currentGroupMembers || []).map(async uid => {
                 const doc = await db.collection("act").doc(uid).get();
                 if (doc.exists) return { uid, ...doc.data() };
@@ -4392,12 +4661,63 @@
             });
 
             window.groupMembersDataCache = await Promise.all(memberPromises);
-            
-            // 預設為收合狀態 (false)，最多顯示 3 人
             renderGroupMembers(false);
-            
         } catch(e) { 
             listEl.innerHTML = '<div style="font-size: 13px; color: red; text-align: center;">載入失敗</div>'; 
+        }
+    }
+
+    async function saveGroupSettings() {
+        const newName = document.getElementById('groupNameEdit').value.trim(); if (!newName) return alert('不能為空');
+        if (window.croppedAvatarBlob && !confirm("確認更改圖片？")) { window.croppedAvatarBlob=null; document.getElementById('editGroupAvatarPreview').src = document.getElementById('targetAvatar').src; return; }
+        
+        const b = document.getElementById('saveGroupBtn'); b.innerText="儲存中..."; b.disabled=true;
+        try {
+            const updateData = { groupName: newName };
+            if (window.croppedAvatarBlob) {
+                const snap = await storage.ref(`groupAvatars/${currentChatId}/${Date.now()}_avatar.jpg`).put(window.croppedAvatarBlob);
+                updateData.groupAvatar = await snap.ref.getDownloadURL();
+            }
+            await db.collection("chats").doc(currentChatId).update(updateData); 
+            closeGroupSettings(); // 【修改】：改為呼叫關閉滑動頁面
+            window.croppedAvatarBlob=null;
+        } catch(e){ alert("失敗"); } finally { b.innerText="儲存修改"; b.disabled=false; }
+    }
+    
+    // 1. 點擊進階選項的「解散群組」按鈕：開啟第一道防線
+    function deleteGroup() {
+        openModal('deleteGroupConfirmModal1');
+    }
+
+    // 2. 第一道防線確認：關閉第一道，並開啟最終防呆視窗
+    function confirmDeleteGroupStep1() {
+        closeModal('deleteGroupConfirmModal1');
+        
+        // 為了視覺效果，稍微延遲 150ms 再彈出第二個視窗，讓使用者大腦有時間意識到這是「新的一層警告」
+        setTimeout(() => {
+            openModal('deleteGroupConfirmModal2');
+        }, 150);
+    }
+
+    // 3. 最終防呆確認：正式向資料庫發送刪除指令
+    async function executeDeleteGroup() {
+        const btn = document.getElementById('btnExecuteDeleteGroup');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 刪除中...';
+        btn.disabled = true;
+
+        try { 
+            // 執行 Firebase 文件刪除
+            await db.collection("chats").doc(currentChatId).delete(); 
+            
+            // 刪除成功後，依序關閉視窗與回到首頁
+            closeModal('deleteGroupConfirmModal2');
+            closeGroupSettings(); 
+            closeChatRoom(); 
+            
+        } catch(e) { 
+            alert("刪除失敗：" + e.message); 
+            btn.innerHTML = '永久刪除';
+            btn.disabled = false;
         }
     }
 
@@ -4455,10 +4775,7 @@
         } catch(e){ alert("失敗"); } finally { b.innerText="儲存"; b.disabled=false; }
     }
     
-    async function deleteGroup() {
-        if (!confirm("確定刪除此群組？無法還原！")) return;
-        try { await db.collection("chats").doc(currentChatId).delete(); closeModal('groupSettingsModal'); closeChatRoom(); } catch(e){ alert("失敗"); }
-    }
+    
 
     async function openEditMembersModal() {
         openModal('editMembersModal'); const listEl = document.getElementById('editMembersList'); listEl.innerHTML='載入中...';
@@ -4513,17 +4830,43 @@
     let chatStickersCache = null; // 儲存從資料庫抓下來的貼圖包
 
     async function fetchStickersFromDB() {
-        if (chatStickersCache !== null) return; // 已經抓過就不再抓
+        if (chatStickersCache !== null) return; // 記憶體已有，直接秒開
+
+        // 1. 先去手機硬碟 (localStorage) 找找看有沒有存過的貼圖包資料
+        const offlineData = localStorage.getItem('lcs_stickers_cache');
+        if (offlineData) {
+            try {
+                chatStickersCache = JSON.parse(offlineData);
+                // 已經有快取了，啟動背景靜默更新就好，不阻擋畫面渲染
+                updateStickersInBackground();
+                return; // 提早結束，讓畫面瞬間無延遲畫出來！
+            } catch(e) {}
+        }
+
+        // 2. 如果手機硬碟完全沒資料 (例如剛安裝或第一次點開)，才乖乖等資料庫下載
+        await updateStickersInBackground();
+    }
+
+    // 【新增】：背景靜默同步引擎，負責把最新資料抓下來存進手機硬碟
+    async function updateStickersInBackground() {
         try {
-            // 從我們剛剛建立的資料表抓取貼圖 (依照建立時間排序)
             const snap = await db.collection("chat_stickers").orderBy("createdAt", "asc").get();
-            chatStickersCache = [];
+            let freshData = [];
             snap.forEach(doc => {
-                chatStickersCache.push({ id: doc.id, ...doc.data() });
+                freshData.push({ id: doc.id, ...doc.data() });
             });
+            
+            // 更新記憶體
+            chatStickersCache = freshData;
+            
+            // 【關鍵】：把這包資料死死存進手機硬碟裡！
+            localStorage.setItem('lcs_stickers_cache', JSON.stringify(freshData));
+            
+            // 清空 HTML 快取，確保下次切換標籤時能畫出可能新增的貼圖
+            stickerHtmlCache = {}; 
         } catch (error) {
-            console.error("貼圖載入失敗", error);
-            chatStickersCache = []; // 避免無限重試
+            console.error("貼圖背景同步失敗", error);
+            if (chatStickersCache === null) chatStickersCache = [];
         }
     }
 
@@ -4605,18 +4948,92 @@
         }
         
         let html = '';
-        // 2. 初次點擊：產生 HTML。
-        // 【關鍵優化】：移除原本的 loading="lazy"，強制 iOS Safari 在這瞬間將整個貼圖集的圖片下載到系統快取中！
         pack.stickers.forEach(url => {
+            if (!url || url.trim() === '') return;
+            
+            // 【抓蟲測試】：在網址後面加上目前時間戳記，強迫 iPhone 重新去雲端下載，無視快取！
+            const testUrl = url.includes('?') ? `${url}&_nocache=${Date.now()}` : `${url}?_nocache=${Date.now()}`;
+            
             html += `
                 <div class="sticker-item" onclick="sendRealSticker('${url}')">
-                    <img src="${url}">
+                    <img src="${testUrl}" onerror="this.parentElement.style.display='none'">
                 </div>`;
         });
 
         // 3. 存入快取字典中，並顯示到畫面上
         stickerHtmlCache[packId] = html;
         grid.innerHTML = html;
+    }
+
+    let currentStickerIndex = 0;
+    let stickerCurrentTranslate = 0;
+
+    function renderStickerTabs() {
+        const tabsContainer = document.getElementById('stickerTabs');
+        const track = document.getElementById('stickerSliderTrack');
+        
+        if (!chatStickersCache || chatStickersCache.length === 0) {
+            tabsContainer.innerHTML = '<div style="padding:12px 20px; color:#999; font-size:0.9rem;">尚無貼圖包</div>';
+            track.innerHTML = '';
+            return;
+        }
+        
+        let tabsHtml = '';
+        let trackHtml = '';
+        
+        // 預先將所有貼圖包渲染為橫向排列的「幻燈片」
+        chatStickersCache.forEach((pack, index) => {
+            const isActive = index === 0 ? 'active' : '';
+            tabsHtml += `
+                <button class="sticker-tab ${isActive}" onclick="switchStickerTab(${index})" title="${pack.title}">
+                    <img src="${pack.iconUrl}" alt="${pack.title}">
+                </button>`;
+            
+            let gridHtml = '';
+            if(pack.stickers) {
+                pack.stickers.forEach(url => {
+                    if (!url || url.trim() === '') return;
+                    const testUrl = url.includes('?') ? `${url}&_nocache=${Date.now()}` : `${url}?_nocache=${Date.now()}`;
+                    gridHtml += `
+                        <div class="sticker-item" onclick="sendRealSticker('${url}')">
+                            <img src="${testUrl}" onerror="this.parentElement.style.display='none'">
+                        </div>`;
+                });
+            }
+            trackHtml += `<div class="sticker-grid-slide">${gridHtml || '<div style="grid-column: 1 / -1; text-align: center; color: #999; padding: 20px;">此貼圖包為空</div>'}</div>`;
+        });
+        
+        tabsContainer.innerHTML = tabsHtml;
+        track.innerHTML = trackHtml;
+        
+        currentStickerIndex = 0;
+        updateStickerSliderPos(true);
+    }
+
+    function switchStickerTab(index) {
+        document.querySelectorAll('.sticker-tab').forEach((b, i) => {
+            if (i === index) b.classList.add('active');
+            else b.classList.remove('active');
+        });
+        currentStickerIndex = index;
+        updateStickerSliderPos();
+    }
+
+    function updateStickerSliderPos(instant = false) {
+        const wrapper = document.getElementById('stickerSliderWrapper');
+        const track = document.getElementById('stickerSliderTrack');
+        if (!wrapper || !track) return;
+        
+        const targetX = -currentStickerIndex * wrapper.offsetWidth;
+        stickerCurrentTranslate = targetX;
+        track.style.transition = instant ? 'none' : 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
+        track.style.transform = `translate3d(${targetX}px, 0, 0)`;
+        
+        // 同步讓上方的標籤跟著捲動置中
+        const tabs = document.querySelectorAll('.sticker-tab');
+        if(tabs[currentStickerIndex]) {
+            tabs[currentStickerIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        }
     }
 
     // 發送真實貼圖的引擎
@@ -5263,7 +5680,50 @@
     }
     
     function closeSettings() { settingsViewDOM.style.transform = 'translateX(100%)'; }
-    function handleLogout() { if(confirm("確定登出？")) auth.signOut().then(()=>window.location.href="index.html"); }
+    
+    // 1. 點擊設定頁面的登出按鈕：開啟自訂視窗
+    function handleLogout() { 
+        openModal('logoutConfirmModal'); 
+    }
+
+    // 2. 點擊視窗內的「確定登出」：執行 Firebase 登出並跳轉
+    function executeLogout() {
+        const btn = document.getElementById('btnExecuteLogout');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 登出中...';
+        btn.disabled = true;
+
+        auth.signOut().then(() => {
+            window.location.href = "index.html"; // 登出成功，跳轉回登入頁
+        }).catch((error) => {
+            console.error("登出失敗:", error);
+            alert("登出失敗，請檢查網路狀態。");
+            closeModal('logoutConfirmModal');
+            btn.innerHTML = '確定登出';
+            btn.disabled = false;
+        });
+    }function closeSettings() { settingsViewDOM.style.transform = 'translateX(100%)'; }
+    
+    // 1. 點擊設定頁面的登出按鈕：開啟自訂視窗
+    function handleLogout() { 
+        openModal('logoutConfirmModal'); 
+    }
+
+    // 2. 點擊視窗內的「確定登出」：執行 Firebase 登出並跳轉
+    function executeLogout() {
+        const btn = document.getElementById('btnExecuteLogout');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 登出中...';
+        btn.disabled = true;
+
+        auth.signOut().then(() => {
+            window.location.href = "index.html"; // 登出成功，跳轉回登入頁
+        }).catch((error) => {
+            console.error("登出失敗:", error);
+            alert("登出失敗，請檢查網路狀態。");
+            closeModal('logoutConfirmModal');
+            btn.innerHTML = '確定登出';
+            btn.disabled = false;
+        });
+    }
 
     // ==========================================
     // 系統操作說明頁面：滿版滑動邏輯
@@ -6667,13 +7127,18 @@
         document.getElementById('selectCountText').innerText = `已選擇 ${window.selectedMsgIds.size} 項`;
     }
 
-    async function confirmMultiRevoke() {
+    // 1. 點擊「收回」時：觸發自訂 Modal
+    function confirmMultiRevoke() {
         if (!window.selectedMsgIds || window.selectedMsgIds.size === 0) return alert("請先選擇要處理的訊息");
         
-        // 【修改提示文字】
-        if (!confirm(`確定要處理這 ${window.selectedMsgIds.size} 則訊息？\n\n・您發送的訊息：將從資料庫永久刪除。\n・對方發送的：將從您的畫面中隱藏。`)) return;
+        // 將選取的數量填入 Modal，並開啟自訂視窗
+        document.getElementById('multiRevokeCount').innerText = window.selectedMsgIds.size;
+        openModal('multiRevokeConfirmModal');
+    }
 
-        const btn = document.querySelector('#selectActionBar button:last-child');
+    // 2. 在 Modal 內點擊「確定處理」時：執行真實的刪除與隱藏邏輯
+    async function executeMultiRevoke() {
+        const btn = document.getElementById('btnExecuteMultiRevoke');
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 處理中...';
         btn.disabled = true;
 
@@ -6694,7 +7159,10 @@
                 if (doc.exists) {
                     if (doc.data().senderId === currentUid) {
                         // 【自己的訊息】：永久刪除並清除 Storage
-                        if (doc.data().fileUrl) storage.refFromURL(doc.data().fileUrl).delete().catch(()=>{});
+                        // 【終極防呆】：絕對不可以刪除「貼圖」的原始檔案，否則貼圖庫會破圖！
+                        if (doc.data().fileUrl && doc.data().fileType !== 'sticker') {
+                            storage.refFromURL(doc.data().fileUrl).delete().catch(() => console.warn("檔案可能已不存在"));
+                        }
                         batch.delete(doc.ref);
                         deletedCount++;
                     } else {
@@ -6704,7 +7172,7 @@
                 }
             });
 
-            // 只有當「真正刪除」了訊息時，才需要重新計算最後一則訊息 (避免隱藏別人訊息影響到其他人的列表顯示)
+            // 只有當「真正刪除」了訊息時，才需要重新計算最後一則訊息
             if (deletedCount > 0) {
                 const limitCount = window.selectedMsgIds.size + 1;
                 const lastMsgSnap = await chatRef.collection("messages").orderBy("timestamp", "desc").limit(limitCount).get();
@@ -6727,18 +7195,21 @@
                 }
             }
             
-            // 【終極修復】：如果我們只是「隱藏」了別人的訊息 (deletedCount === 0)，
-            // 為了讓首頁能立刻更新，給一個無關緊要的 trigger 欄位更新，純粹為了觸發首頁重新渲染
+            // 如果只是「隱藏」別人的訊息，給一個無關緊要的 trigger 觸發首頁重新渲染
             if (deletedCount === 0) {
                 batch.update(chatRef, { [`hideTrigger_${currentUid}`]: firebase.firestore.FieldValue.serverTimestamp() });
             }
 
             await batch.commit();
+            
+            // 成功後關閉自訂視窗並取消多選模式
+            closeModal('multiRevokeConfirmModal');
             cancelSelectMode();
+            
         } catch (e) {
             alert("操作失敗: " + e.message);
         } finally {
-            btn.innerHTML = '<i class="fas fa-trash-alt"></i> 收回';
+            btn.innerHTML = '確定處理';
             btn.disabled = false;
         }
     }
@@ -7459,6 +7930,74 @@
     }
 
     // ==========================================
+    // 貼圖面板：全物理滑動幻燈片引擎
+    // ==========================================
+    const stickerWrapperDOM = document.getElementById('stickerSliderWrapper');
+    let isStickerDragging = false;
+    let stickerStartX = 0;
+    let stickerStartY = 0;
+    let stickerStartTranslate = 0;
+    let isStickerVerticalScroll = false;
+
+    if (stickerWrapperDOM) {
+        stickerWrapperDOM.addEventListener('touchstart', (e) => {
+            isStickerDragging = true;
+            isStickerVerticalScroll = false;
+            stickerStartX = e.touches[0].clientX;
+            stickerStartY = e.touches[0].clientY;
+            stickerStartTranslate = stickerCurrentTranslate;
+            document.getElementById('stickerSliderTrack').style.transition = 'none';
+        }, { passive: true });
+
+        stickerWrapperDOM.addEventListener('touchmove', (e) => {
+            if (!isStickerDragging || !chatStickersCache) return;
+            
+            const diffX = e.touches[0].clientX - stickerStartX;
+            const diffY = e.touches[0].clientY - stickerStartY;
+
+            // 如果上下滑動大於左右滑動，判定為正在往下看貼圖，直接放棄橫向控制權
+            if (!isStickerVerticalScroll && Math.abs(diffY) > Math.abs(diffX)) {
+                isStickerVerticalScroll = true;
+                isStickerDragging = false;
+                updateStickerSliderPos(); // 瞬間彈回原位
+                return;
+            }
+
+            if (!isStickerVerticalScroll) {
+                if (e.cancelable) e.preventDefault(); // 阻止系統原生橫滑(如返回上頁)
+                
+                let newTranslate = stickerStartTranslate + diffX;
+                const maxTranslate = 0;
+                const minTranslate = -(chatStickersCache.length - 1) * stickerWrapperDOM.offsetWidth;
+                
+                // 第一頁往左 或 最後一頁往右的橡皮筋邊界阻力
+                if (newTranslate > maxTranslate) newTranslate = maxTranslate + (diffX * 0.3);
+                if (newTranslate < minTranslate) newTranslate = minTranslate + ((newTranslate - minTranslate) * 0.3);
+                
+                stickerCurrentTranslate = newTranslate;
+                document.getElementById('stickerSliderTrack').style.transform = `translate3d(${newTranslate}px, 0, 0)`;
+            }
+        }, { passive: false });
+
+        stickerWrapperDOM.addEventListener('touchend', (e) => {
+            if (!isStickerDragging || isStickerVerticalScroll) return;
+            isStickerDragging = false;
+            
+            const diffX = e.changedTouches[0].clientX - stickerStartX;
+            
+            // 手指放開時，判斷位移是否超過 50px 來決定切換上一頁或下一頁
+            if (diffX < -50 && currentStickerIndex < chatStickersCache.length - 1) {
+                currentStickerIndex++;
+            } else if (diffX > 50 && currentStickerIndex > 0) {
+                currentStickerIndex--;
+            }
+            
+            // 呼叫函式執行平滑歸位與上方標籤同步
+            switchStickerTab(currentStickerIndex);
+        });
+    }
+
+    // ==========================================
     // 版本更新內容：摺疊與展開控制
     // ==========================================
     function toggleReleaseContent(titleEl) {
@@ -7472,7 +8011,172 @@
             content.style.display = 'none';
         }
     }
-    </script>
-</body>
+
+    // ==========================================
+    // 個人聊天室設定與搜尋引擎
+    // ==========================================
+    const personalSettingsViewDOM = document.getElementById('personalChatSettingsView');
+    let isPSwiping = false, pStartX = 0, pCurrentX = 0;
+
+    // 滑動返回物理引擎
+    personalSettingsViewDOM.addEventListener('touchstart', (e) => {
+        if (e.touches[0].clientX < 40) { isPSwiping = true; pStartX = e.touches[0].clientX; personalSettingsViewDOM.style.transition = 'none'; }
+    }, {passive: true});
+    personalSettingsViewDOM.addEventListener('touchmove', (e) => {
+        if (!isPSwiping) return;
+        pCurrentX = e.touches[0].clientX - pStartX;
+        if (pCurrentX > 0) { if (e.cancelable) e.preventDefault(); personalSettingsViewDOM.style.transform = `translateX(${pCurrentX}px)`; }
+    }, { passive: false });
+    personalSettingsViewDOM.addEventListener('touchend', () => {
+        if (!isPSwiping) return;
+        isPSwiping = false;
+        personalSettingsViewDOM.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
+        if (pCurrentX > window.innerWidth / 3 || pCurrentX > 30) closePersonalSettings();
+        else personalSettingsViewDOM.style.transform = 'translateX(0%)';
+        pCurrentX = 0;
+    });
+
+    // 按鈕分流：點擊右上角按鈕時，判斷要開群組設定還是搜尋頁面
+    function handleChatSettingsClick() {
+        if (window.isCurrentChatGroup) {
+            openGroupSettings();
+        } else {
+            openPersonalSettings();
+        }
+    }
+
+    function openPersonalSettings() {
+        // 抓取畫面上已經載入的頭像與名稱
+        const targetName = document.getElementById('chatTitle').innerText;
+        const targetAvatar = document.getElementById('targetAvatar').src;
+        const myName = document.getElementById('myName').innerText;
+        const myAvatar = document.getElementById('myAvatar').src;
+
+        document.getElementById('personalSettingsTitle').innerText = `聊天室設定`;
         
+        // 填入關係視覺化卡片
+        document.getElementById('psMyName').innerText = myName;
+        document.getElementById('psMyAvatar').src = myAvatar;
+        document.getElementById('psTargetName').innerText = targetName;
+        document.getElementById('psTargetAvatar').src = targetAvatar;
+
+        // 初始化搜尋列
+        document.getElementById('chatSearchInput').value = '';
+        document.getElementById('chatSearchResults').innerHTML = '<div style="text-align: center; color: #999; margin-top: 20px;">輸入關鍵字開始搜尋</div>';
+        personalSettingsViewDOM.style.transform = 'translateX(0%)';
+    }
+
+    function closePersonalSettings() {
+        personalSettingsViewDOM.style.transform = 'translateX(100%)';
+        document.getElementById('chatSearchInput').blur(); // 收起鍵盤
+    }
+
+    // 搜尋防抖 (Debounce)：避免打字太快一直發送請求
+    let chatSearchTimeout;
+    function debounceSearchChat() {
+        clearTimeout(chatSearchTimeout);
+        chatSearchTimeout = setTimeout(executeChatSearch, 500);
+    }
+
+    // 【新增】：全域變數，用來暫存當次搜尋出來的所有對話詳細資料
+    window.tempSearchResults = {}; 
+
+    // 搜尋防抖 (Debounce)：避免打字太快一直發送請求
+    function debounceSearchChat() {
+        clearTimeout(chatSearchTimeout);
+        chatSearchTimeout = setTimeout(executeChatSearch, 500);
+    }
+
+    async function executeChatSearch() {
+        // 【新增】：自動判斷當前是群組還是個人，以抓取正確的輸入框
+        const isGroup = window.isCurrentChatGroup;
+        const inputDOM = document.getElementById(isGroup ? 'groupChatSearchInput' : 'chatSearchInput');
+        const resContainer = document.getElementById(isGroup ? 'groupChatSearchResults' : 'chatSearchResults');
+        
+        const kw = inputDOM.value.trim();
+        
+        if (!kw) {
+            resContainer.innerHTML = '<div style="text-align: center; color: #999; margin-top: 20px;">輸入關鍵字開始搜尋</div>';
+            return;
+        }
+
+        resContainer.innerHTML = '<div style="text-align: center; color: #999; margin-top: 20px;"><i class="fas fa-spinner fa-spin"></i> 搜尋歷史紀錄中...</div>';
+
+        try {
+            // 從 Firestore 抓取該聊天室的所有對話 (由新到舊排列)
+            const snap = await db.collection("chats").doc(currentChatId).collection("messages").orderBy("timestamp", "desc").get();
+            let html = '';
+            let count = 0;
+            
+            // 每次搜尋前，清空暫存記憶體
+            window.tempSearchResults = {}; 
+
+            snap.forEach(doc => {
+                const msg = doc.data();
+                // 排除系統訊息或純圖片 (如果有隱藏標記，也可以在這裡排除)
+                if (msg.text && msg.text.includes(kw) && !msg.text.includes('"type":"')) {
+                    count++;
+                    
+                    // 關鍵字高亮處理 (先跳脫 HTML 防止 XSS，再進行高亮取代)
+                    const safeText = escapeHtml(msg.text);
+                    const escapedKw = escapeHtml(kw);
+                    const regex = new RegExp(`(${escapedKw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+                    const highlightedText = safeText.replace(regex, '<span class="search-highlight">$1</span>');
+
+                    const isMine = msg.senderId === auth.currentUser.uid;
+                    let senderName = isMine ? document.getElementById('myName').innerText : (window.chatMembersCache[msg.senderId]?.displayName || "對方");
+                    
+                    let timeStr = "";
+                    if (msg.timestamp) {
+                        const d = msg.timestamp.toDate();
+                        timeStr = `${d.getFullYear()}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getDate().toString().padStart(2,'0')} ${d.toLocaleTimeString('zh-TW', {hour: '2-digit', minute:'2-digit', hour12: false})}`;
+                    }
+
+                    // 【關鍵】：把這筆搜尋結果的詳細資料塞進記憶體中，方便點擊時讀取
+                    window.tempSearchResults[doc.id] = {
+                        senderName: senderName,
+                        highlightedText: highlightedText // 保留有黃色/紅色高亮的文字
+                    };
+
+                    // 渲染卡片 (點擊改為呼叫 openSearchResultModal)
+                    html += `
+                        <div class="search-result-item" onclick="openSearchResultModal('${doc.id}')">
+                            <div class="search-result-header">
+                                <span class="search-result-name">${senderName}</span>
+                                <span>${timeStr}</span>
+                            </div>
+                            <div class="search-result-text">${highlightedText}</div>
+                        </div>
+                    `;
+                }
+            });
+
+            if (count === 0) {
+                resContainer.innerHTML = '<div style="text-align: center; color: #999; margin-top: 20px;">找不到符合的對話紀錄</div>';
+            } else {
+                resContainer.innerHTML = `<div style="margin-bottom: 12px; font-size: 0.85rem; color: #888; font-weight: bold;">共找到 ${count} 筆結果 (由新到舊排列)</div>` + html;
+            }
+        } catch (e) {
+            console.error(e);
+            resContainer.innerHTML = '<div style="text-align: center; color: #d93025; margin-top: 20px;">搜尋失敗，請檢查網路狀態</div>';
+        }
+    }
+
+    // 【新增】：點擊搜尋結果，不再跳轉，而是直接打開詳細視窗
+    function openSearchResultModal(msgId) {
+        const data = window.tempSearchResults[msgId];
+        if (!data) return; // 防呆
+        
+        // 填入發送者與內容 (內容需將 \n 換行符號轉成 HTML 的 <br>)
+        document.getElementById('srModalSender').innerText = data.senderName + "：";
+        document.getElementById('srModalContent').innerHTML = data.highlightedText.replace(/\n/g, '<br>');
+        
+        // 為了讓使用者體驗更好，點開視窗時自動收起手機小鍵盤
+        document.getElementById('chatSearchInput').blur();
+        
+        openModal('searchResultModal');
+    }
+</script>
+</body>
+    
 </html>
