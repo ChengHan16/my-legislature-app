@@ -188,7 +188,7 @@
         .msg-row { display: flex; align-items: flex-end; gap: 5px; width: 100%; }
         .msg-row.mine { justify-content: flex-end; }
         .msg-row.theirs { justify-content: flex-start; }
-        .msg-avatar { width: 35px; height: 35px; border-radius: 50%; flex-shrink: 0; border: 1px solid #ddd; object-fit: cover; background: #fff; margin:0;}
+        .msg-avatar { width: 35px; height: 35px; border-radius: 50%; flex-shrink: 0; border: 1px solid #dddddd00; object-fit: cover; background: #ffffff00; margin:0;}
         .msg-avatar-container { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; width: 42px; flex-shrink: 0; gap: 4px; }
         .msg-avatar-name { font-size: 10px; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 45px; text-align: center; line-height: 1; }
         .msg { max-width: 75%; padding: 12px 16px; font-size: 15px; line-height: 1.5; word-wrap: break-word; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-radius: 18px; -webkit-user-select: none !important; user-select: none !important; cursor: default; }
@@ -331,6 +331,10 @@
             -webkit-backdrop-filter: blur(12px) !important;
             border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
         }
+
+        /* 行事曆新增視窗深色模式適配 */
+        body.dark-mode #createCalEventModal .modal-body { background: #121b24 !important; }
+        body.dark-mode #createCalEventModal div[style*="background: #f8f9fa"] { background: #1e2b38 !important; border: 1px solid #33475b !important; }
         
         .pinned-icon { color: var(--ly-gold); font-size: 1.1rem; margin-right: 12px; transform: rotate(-45deg); }
         .pinned-content { flex: 1; font-size: 0.95rem; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; cursor: pointer; }
@@ -907,6 +911,36 @@
         body.dark-mode .gs-header-card, body.dark-mode .gs-members-section { background: #1e2b38 !important; border-color: #33475b !important; }
         body.dark-mode #groupNameEdit { color: var(--ly-gold) !important; border-bottom-color: #33475b !important; }
 
+        /* ==========================================
+           深色模式：釘選訊息視窗適配
+           ========================================== */
+        body.dark-mode #pinnedMessageModal .modal-body {
+            background: #1e2b38 !important; 
+        }
+        body.dark-mode #pinnedMsgSenderTime {
+            border-bottom-color: #33475b !important; 
+            color: #aaa !important; 
+        }
+        body.dark-mode #pinnedMsgContent {
+            color: #e0e0e0 !important;
+        }
+
+        /* ==========================================
+           深色模式：首頁右下角懸浮按鈕 (FAB) 優化
+           ========================================== */
+        body.dark-mode .fab {
+            background: #1e2b38 !important; /* 改用沉穩的深藍灰底色，融入背景 */
+            color: var(--ly-gold) !important; /* 圖示改為高質感的暗金色 */
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6) !important; /* 陰影改為純黑色系，消除突兀的黃色光暈 */
+            border: 1px solid #33475b !important; /* 加上淡淡的邊框勾勒立體感 */
+            transition: 0.2s !important;
+        }
+        
+        body.dark-mode .fab:active {
+            background: #121b24 !important; /* 點擊時稍微變暗的回饋感 */
+            transform: scale(0.95);
+        }
+
         /* 8. 公文預覽 (doc-paper) 專屬深色模式修正 */
         body.dark-mode .doc-paper {
             background-color: #1e2b38 !important;
@@ -1278,6 +1312,198 @@
         body.dark-mode .search-result-item { background: #1e2b38; border-color: #33475b; }
         body.dark-mode .search-result-text { color: #e0e0e0; }
         body.dark-mode .search-highlight { color: var(--ly-gold); background: rgba(207, 169, 0, 0.2); }
+
+        /* ==========================================
+           群組成員階層連線地圖 (Tree Map)
+           ========================================== */
+        .tree-layout-wrapper { display: flex; flex-direction: column; align-items: center; position: relative; width: 100%; padding: 10px 0; }
+        
+        .map-node { display: flex; flex-direction: column; align-items: center; position: relative; z-index: 5; transition: 0.2s; }
+        .map-node:active { transform: scale(0.95); }
+        
+        /* 一般成員：55px 藍色邊框 */
+        .map-node img { width: 55px; height: 55px; border-radius: 50%; object-fit: cover; border: 2px solid #5ba4d6; box-shadow: 0 3px 8px rgba(0,0,0,0.1); background: white; flex-shrink: 0; }
+        /* 頂端發起人：60px 霸氣金框 */
+        .map-node.top-node img { border-color: var(--ly-gold); width: 60px; height: 60px; }
+        
+        .map-node .node-name { font-size: 0.9rem; font-weight: 900; color: var(--ly-blue); margin-top: 8px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 75px; user-select: text; -webkit-user-select: text; }
+        .map-node.top-node .node-name { font-size: 1rem; margin-top: 10px; }
+
+        /* 連線核心與圖示 */
+        .tree-map-line { position: absolute; background: #ddd; z-index: 1; display: flex; align-items: center; justify-content: center; }
+        .tree-map-line.h-line { height: 2px; transform: translateY(-50%); }
+        .tree-map-line.v-line { width: 2px; transform: translateX(-50%); }
+        .map-link-icon { background: white; color: #ccc; font-size: 12px; padding: 4px; border-radius: 50%; }
+
+        /* 深色模式適配 */
+        body.dark-mode .map-node img { box-shadow: 0 4px 10px rgba(0,0,0,0.3); background: #1e2b38; }
+        body.dark-mode .map-node .node-name { color: #e0e0e0; }
+        body.dark-mode .tree-map-line { background: #33475b; }
+        body.dark-mode .map-link-icon { background: #1e2b38; color: #555; }
+
+        /* ==========================================
+           【極致升級】：OLED 純黑深色模式 (完美還原 iPhone 原生視覺)
+           ========================================== */
+        /* 1. 核心變數重置為純黑 */
+        body.dark-mode {
+            --bg-gray: #000000 !important; 
+            --white: #000000 !important; 
+            --border-color: #1c1c1e !important; 
+            /* 頂部標題列的 --ly-blue-trans 保持原樣不變 */
+        }
+
+        /* 2. 徹底覆蓋所有先前特調的「深藍灰」與「淺灰」背景為純黑 (#000000) */
+        body.dark-mode .modal-footer, 
+        body.dark-mode .group-members-list,
+        body.dark-mode .member-item,
+        body.dark-mode #activityScheduleModal .modal-card,
+        body.dark-mode #groupBuyListModal .modal-card,
+        body.dark-mode #createEventModal .modal-body,
+        body.dark-mode #createGroupBuyModal .modal-body,
+        body.dark-mode #viewGroupBuyModal .modal-body,
+        body.dark-mode #eventMemberPickerModal .modal-body,
+        body.dark-mode #editMembersModal .modal-body,
+        body.dark-mode #createConfidentialModal .modal-body,
+        body.dark-mode #viewConfidentialModal .modal-body,
+        body.dark-mode #pinnedMessageModal .modal-body,
+        body.dark-mode .ps-search-header,
+        body.dark-mode .ps-member-card,
+        body.dark-mode .ps-close-btn,
+        body.dark-mode .search-result-item,
+        body.dark-mode .gs-header-card, 
+        body.dark-mode .gs-members-section,
+        body.dark-mode .guide-section,
+        body.dark-mode .v-content,
+        body.dark-mode .cd-recipient-list,
+        body.dark-mode .acc-pass-row,
+        body.dark-mode .doc-paper,
+        body.dark-mode .vote-panel,
+        body.dark-mode .fab,
+        body.dark-mode .cd-swipe-content,
+        body.dark-mode #cd-recipient-list,
+        body.dark-mode .reaction-bar, 
+        body.dark-mode .time-divider,
+        body.dark-mode .msg-event-card,
+        body.dark-mode .sticker-panel, 
+        body.dark-mode .sticker-grid-slide,
+        body.dark-mode .sticker-tabs,
+        body.dark-mode div[style*="background: #fffdf5"],
+        body.dark-mode div[style*="background:#f8f9fa"],
+        body.dark-mode div[style*="background-color: #121b24"],
+        body.dark-mode div[style*="background-color: #1e2b38"] {
+            background: #000000 !important;
+            background-color: #000000 !important;
+            border-color: #1c1c1e !important;
+        }
+
+        /* 3. 為了保持 UI 操作可視性 (避免全黑黏在一起)，對話氣泡、輸入框、選取卡片採用 Apple 原生深灰 #1c1c1e */
+        body.dark-mode .msg.theirs,
+        body.dark-mode input, 
+        body.dark-mode textarea, 
+        body.dark-mode .ev-dynamic-input, 
+        body.dark-mode .gb-item-row input, 
+        body.dark-mode .gb-my-note-input,
+        body.dark-mode .cd-file-input,
+        body.dark-mode .user-select-card,
+        body.dark-mode .gb-item-row,
+        body.dark-mode .field-adder-bar,
+        body.dark-mode .member-preview-list,
+        body.dark-mode .reaction-badge,
+        body.dark-mode .btn-cancel,
+        body.dark-mode .sticker-tab.active {
+            background-color: #1c1c1e !important;
+            border-color: #2c2c2e !important;
+        }
+
+        /* 4. 特殊元件與樹狀圖的純黑適配 */
+        body.dark-mode .msg-event-countdown { background: #1c1c1e !important; }
+        body.dark-mode .tree-map-line { background: #1c1c1e !important; }
+        body.dark-mode .map-link-icon { background: #000 !important; color: #555 !important; }
+        body.dark-mode .map-node img { background: #000 !important; border-color: #2c2c2e !important; }
+        body.dark-mode .map-node.top-node img { border-color: var(--ly-gold) !important; }
+        body.dark-mode .cd-type-tabs { background: #000000 !important; border: 1px solid #1c1c1e !important; }
+
+        /* ==========================================
+           【修復】：深色模式純黑覆蓋 (標題列與個人設定)
+           ========================================== */
+        /* 1. 將頂部導覽列改為純黑，並微調底線顏色融入背景 */
+        body.dark-mode .messenger-header {
+            background: #000000 !important;
+            border-bottom-color: #1c1c1e !important;
+        }
+        
+        /* 2. 將個人設定、聊天室設定的底色改為純黑 */
+        body.dark-mode #settingsView > div,
+        body.dark-mode #personalChatSettingsView > div {
+            background: #000000 !important;
+            background-color: #000000 !important;
+        }
+
+        /* 3. 確保設定頁裡面的「外觀切換按鈕」維持深灰，以免隱形在純黑背景中 */
+        body.dark-mode #darkModeContainer {
+            background: #1c1c1e !important; 
+            border-color: #2c2c2e !important;
+        }
+
+        /* 5. 貼圖與純圖片的透明赦免令 (徹底消滅深色模式下的不自然外框) */
+        body.dark-mode .msg.media-only {
+            background: transparent !important;
+            background-color: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+
+        /* ==========================================
+           行事曆 - 年份與月份選擇器 (Month/Year Picker)
+           ========================================== */
+        .cal-selector-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; padding: 30px 20px; width: 100%; box-sizing: border-box; }
+        .cal-selector-item { background: transparent; color: #333; font-size: 1.1rem; font-weight: bold; border-radius: 50%; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; box-sizing: border-box;}
+        .cal-selector-item:active { transform: scale(0.9); }
+        
+        /* 選中狀態 (明亮模式) */
+        .cal-selector-item.current { background: var(--ly-blue); color: white; box-shadow: 0 4px 10px rgba(0,49,83,0.3); }
+
+        /* 深色模式適配 */
+        body.dark-mode .cal-selector-item { color: #e0e0e0; }
+        /* 選中狀態 (深色模式)：完美還原圖片中的天藍色 (#5ba4d6) */
+        body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e; box-shadow: 0 4px 10px rgba(91,164,214,0.3); font-weight: 900;}
+
+        /* ==========================================
+           行事曆 (Calendar) 專用樣式
+           ========================================== */
+        .calendar-weekdays {
+            display: grid; grid-template-columns: repeat(7, 1fr);
+            background: white; padding: 10px 0; text-align: center;
+            font-weight: bold; color: var(--ly-blue); border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.02); z-index: 2;
+        }
+        .calendar-body {
+            display: grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: minmax(80px, 1fr);
+            background: var(--bg-gray); padding: 8px; gap: 8px;
+            touch-action: pan-y; /* 鎖定橫向瀏覽器原生滑動，由我們 JS 接管 */
+            overflow-y: auto; align-content: start; flex: 1;
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.3s ease;
+        }
+        .calendar-day {
+            background: white; border-radius: 8px; padding: 5px;
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+            font-size: 1.05rem; font-weight: 800; color: #333;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04); border: 1px solid var(--border-color);
+            cursor: pointer; /* 【新增】：讓游標變成點擊手勢 */
+        }
+        .calendar-day.today { background: #fffdf5; border-color: var(--ly-gold); color: var(--ly-gold); }
+        .calendar-day.other-month { opacity: 0.3; background: #fafafa; }
+        
+        /* 支援 OLED 純黑深色模式適配 */
+        body.dark-mode .calendar-weekdays { background: #1c1c1e !important; border-color: #2c2c2e !important; color: var(--ly-gold) !important; }
+        body.dark-mode .calendar-body { background: #000000 !important; }
+        body.dark-mode .calendar-day { background: #1c1c1e !important; border-color: #2c2c2e !important; color: #e0e0e0 !important; }
+        body.dark-mode .calendar-day.today { background: rgba(207, 169, 0, 0.15) !important; border-color: var(--ly-gold) !important; color: var(--ly-gold) !important; }
+        body.dark-mode .calendar-day.other-month { opacity: 0.2; background: #121212 !important; }
+
+        body.dark-mode #dayScheduleView > div {
+            background: #000000 !important;
+        }
     </style>
 </head>
 <body>
@@ -2021,6 +2247,10 @@
                 <button class="btn-modal btn-cancel" style="flex: 1; padding: 10px; border-radius: 8px; font-size: 0.9rem;" onclick="handleChangePassword()"><i class="fas fa-key"></i> 修改密碼</button>
             </div>
 
+            <button class="btn-modal btn-cancel" style="width: 100%; max-width: 300px; padding: 12px; border-radius: 8px; font-size: 1rem; margin-bottom: 10px; color: var(--ly-blue); border: 1px solid var(--ly-blue); font-weight: bold;" onclick="openCalendarView()">
+                <i class="fas fa-calendar-alt"></i> 個人行事曆
+            </button>
+
             <button class="btn-modal btn-cancel" style="width: 100%; max-width: 300px; padding: 12px; border-radius: 8px; font-size: 1rem; margin-bottom: 10px; color: var(--ly-blue); border: 1px solid var(--ly-blue); font-weight: bold;" onclick="openGuide()">
                 <i class="fas fa-book-open"></i> 系統操作說明
             </button>
@@ -2104,6 +2334,76 @@
         </div>
     </div>
 
+    <div id="calendarView" class="app-view" style="z-index: 60; transform: translateX(100%);">
+        <header class="messenger-header">
+            <div class="header-content" style="padding: 15px 20px;">
+                <div class="user-profile">
+                    <button class="back-btn" onclick="closeCalendarView()"><i class="fas fa-chevron-left"></i></button>
+                    <span class="user-name" id="calendarTitle" onclick="toggleCalendarMode()" style="cursor:pointer; display:flex; align-items:center; gap:5px;">載入中...</span>
+                </div>
+            </div>
+        </header>
+        <div style="flex: 1; background: var(--bg-gray); display: flex; flex-direction: column; overflow: hidden;">
+            <div class="calendar-weekdays">
+                <div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>
+            </div>
+            <div id="calendarBody" class="calendar-body"></div>
+        </div>
+    </div>
+
+    <div id="dayScheduleView" class="app-view" style="z-index: 70; transform: translateX(100%);">
+        <header class="messenger-header">
+            <div class="header-content" style="position: relative; justify-content: center; align-items: center;">
+                <button class="back-btn" onclick="closeDaySchedule()" style="position: absolute; left: 15px; margin: 0;"><i class="fas fa-chevron-left"></i></button>
+                
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.3;">
+                    <span class="user-name" id="dayScheduleTitle" style="font-size: 1.05rem; margin: 0; color: white;">載入中...</span>
+                    <span id="dayScheduleLunar" style="color: rgba(255,255,255,0.7); font-size: 0.75rem; font-weight: normal;">農曆載入中...</span>
+                </div>
+
+                <button title="新增個人行程" onclick="openCreateCalEventModal()" style="position: absolute; right: 15px; background: none; border: none; color: var(--ly-gold); font-size: 1.4rem; cursor: pointer; padding: 5px; margin: 0;"><i class="fas fa-plus"></i></button>
+            </div>
+        </header>
+        <div id="dayScheduleBody" style="flex: 1; background: var(--bg-gray); overflow-y: auto; padding: 20px; -webkit-overflow-scrolling: touch;">
+            <div style="text-align: center; color: #999; margin-top: 50px; font-size: 1.1rem;">尚未有預定行程</div>
+        </div>
+    </div>
+
+    <div id="createCalEventModal" class="modal-overlay" style="z-index: 6000;">
+        <div class="modal-card" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-calendar-plus"></i> 新增預定行程</h3>
+                <span style="cursor:pointer;" onclick="closeModal('createCalEventModal')">&times;</span>
+            </div>
+            <div class="modal-body" style="background: white;">
+                <div class="modal-input-group">
+                    <label>行程標題</label>
+                    <input type="text" id="calEvTitle" placeholder="請輸入標題...">
+                </div>
+                
+                <div style="display: flex; align-items: center; margin-bottom: 15px; gap: 8px; background: #f8f9fa; padding: 10px; border-radius: 8px;">
+                    <input type="checkbox" id="calEvAllDay" onchange="toggleCalEvTimeType()" style="width: 18px; height: 18px; accent-color: var(--ly-blue); cursor: pointer;">
+                    <label for="calEvAllDay" style="margin: 0; font-weight: bold; color: var(--ly-blue); cursor: pointer;">設為全天行程</label>
+                </div>
+
+                <div class="modal-input-group">
+                    <label>開始時間</label>
+                    <input type="datetime-local" id="calEvStart">
+                    <input type="date" id="calEvStartDate" style="display:none;">
+                </div>
+                <div class="modal-input-group" style="margin-bottom: 20px;">
+                    <label>結束時間</label>
+                    <input type="datetime-local" id="calEvEnd">
+                    <input type="date" id="calEvEndDate" style="display:none;">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-modal btn-cancel" onclick="closeModal('createCalEventModal')">取消</button>
+                <button class="btn-modal btn-confirm" onclick="saveCalEvent()">確認新增</button>
+            </div>
+        </div>
+    </div>
+
     <div id="releaseNotesView" class="app-view" style="z-index: 40; transform: translateX(100%);">
         <header class="messenger-header">
             <div class="header-content" style="padding: 15px 20px;">
@@ -2119,10 +2419,25 @@
 
                 <div class="release-item latest">
                     <div class="version-title" style="cursor: pointer; user-select: none;" onclick="toggleReleaseContent(this)">
-                        <span class="v-badge latest">v 1.0.960</span>
+                        <span class="v-badge latest">v 1.0.970</span>
                         <span class="v-date">最新版本</span>
                     </div>
                     <div class="v-content" style="display: block;">
+                        <ul>
+                            <li><b>【全新功能】</b>專屬「個人行事曆」實裝，支援滿版物理滑動 (左右切換月份) 與年月階層快速選擇，操作更直覺。</li>
+                            <li><b>【體驗升級】</b>單日行程介面完美融合，支援農曆顯示。新增專屬輕量化「新增行程」表單，可與群組活動同步檢視。</li>
+                            <li><b>【防呆優化】</b>單日行程導入「左滑刪除」防呆物理引擎；並優化群組大頭貼在明亮/深色模式下的智慧預覽切換。</li>
+                            <li><b>【資安升級】</b>Firestore 安全規則重構 (Calendar_page 階層管理)，開放行程共享讀取，但嚴格限制僅建立者可修改與刪除，為未來共用協作打下基礎。</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="release-item">
+                    <div class="version-title" style="cursor: pointer; user-select: none;" onclick="toggleReleaseContent(this)">
+                        <span class="v-badge">v 1.0.960</span>
+                        <span class="v-date">搜尋引擎與滿版設定</span>
+                    </div>
+                    <div class="v-content" style="display: none;">
                         <ul>
                             <li><b>【全新功能】</b>實裝「歷史對話搜尋引擎」，支援群組與個人聊天室。搜尋結果具備關鍵字高亮，並採用彈跳視窗檢視詳細對話，無需耗時讀取跳轉。</li>
                             <li><b>【視覺升級】</b>重構「群組設定」與「個人設定」介面為滿版滑動頁面 (SPA)，並將群組成員列表進化為帶有連線視覺的「組織地圖 (Connectivity Map)」，質感大幅提升。</li>
@@ -2532,6 +2847,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-storage-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lunar-javascript/lunar.min.js"></script>
 
     <script>
     // ==========================================
@@ -2909,7 +3225,12 @@
     // ==========================================
     // 3. Auth, 推播與 Messenger 列表載入
     // ==========================================
+    let isPushInitialized = false; // 【新增】：推播單例防護鎖
+
     async function initPushNotifications(userId) {
+        if (isPushInitialized) return; // 【防呆】：如果已經註冊過，絕對不允許註冊第二次
+        isPushInitialized = true; 
+
         if (typeof Capacitor === 'undefined' || !Capacitor.isNativePlatform()) return;
 
         try {
@@ -3300,10 +3621,8 @@
             const wrapper = document.createElement('div');
             wrapper.className = `msg-wrapper ${isMine ? 'mine' : 'theirs'} ${isLastInSequence ? 'last-in-group' : ''}`;
 
-            // 【修改】：加入動態 style。如果是在群組且是別人的訊息，就切換為頂部對齊 (flex-start)
-            let rowStyle = (!isMine && window.isCurrentChatGroup) ? 'align-items: flex-start;' : '';
-            // 【修改】：解鎖 onclick 限制，讓雙方訊息都能被選取
-            let html = `<div class="msg-row ${isMine ? 'mine' : 'theirs'}" onclick="toggleMsgSelect('${msgId}')" style="${rowStyle}">`;
+            // 【修復】：移除強制的頂部對齊，統一使用底部對齊 (flex-end)，讓大頭貼完美切齊貼圖與氣泡底端
+            let html = `<div class="msg-row ${isMine ? 'mine' : 'theirs'}" onclick="toggleMsgSelect('${msgId}')" style="align-items: flex-end;">`;
             
             // 【修改】：不論是誰的訊息，在多選模式下都顯示勾選框
             const isChecked = window.selectedMsgIds && window.selectedMsgIds.has(msgId);
@@ -4541,8 +4860,17 @@
     }
 
     async function createGroup() {
-        openModal('createGroupModal'); document.getElementById('createGroupAvatarPreview').src='https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true'; window.croppedAvatarBlob = null;
-        const listEl = document.getElementById('groupUserList'); listEl.innerHTML = '<div style="text-align:center;">載入中...</div>';
+        openModal('createGroupModal'); 
+        
+        // 【新增】：根據明亮/深色模式自動切換預設群組圖示
+        const isDark = document.body.classList.contains('dark-mode');
+        document.getElementById('createGroupAvatarPreview').src = isDark 
+            ? 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/chat/group-chat-light.png?raw=true' 
+            : 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/chat/group-chat-dark.png?raw=true';
+        
+        window.croppedAvatarBlob = null;
+        const listEl = document.getElementById('groupUserList'); 
+        listEl.innerHTML = '<div style="text-align:center;">載入中...</div>';
         try {
             const snap = await db.collection("act").get(); 
             let users = [];
@@ -4722,42 +5050,142 @@
     }
 
     // 【修改】：九宮格版的成員列表渲染邏輯
+    // ==========================================
+    // 群組成員階層樹狀圖渲染引擎 (Tree Map)
+    // ==========================================
     function renderGroupMembers(isExpanded) {
         const listEl = document.getElementById('groupMembersList');
         const membersData = window.groupMembersDataCache || [];
         
-        // 【套用排序】：對群組設定裡的成員進行排序
+        // 【套用排序】：確保發起人 (班長) 永遠排在第一位
         membersData.sort((a, b) => getMemberSortIndex(a.displayName) - getMemberSortIndex(b.displayName));
 
-        let html = '';
-        // 【修改】：決定要顯示幾個人，從原本的 3 改為 9 (因為變成 3 欄排版，顯示 3 行剛剛好)
-        const displayCount = isExpanded ? membersData.length : Math.min(9, membersData.length);
-
-        for (let i = 0; i < displayCount; i++) {
-            const user = membersData[i];
-            const avatar = user.photoURL || 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true';
-            const name = user.displayName || '未命名成員';
-            html += `
-                <div class="member-item">
-                    <img src="${avatar}" alt="avatar">
-                    <span>${name}</span>
-                </div>
-            `;
+        if (membersData.length === 0) {
+            listEl.innerHTML = '<div style="font-size: 13px; color: #999; text-align: center;">尚無成員</div>';
+            return;
         }
 
-        // 判斷是否需要顯示「展開 / 收起」按鈕 (數字同步改為 9)
-        if (!isExpanded && membersData.length > 9) {
-            const hiddenCount = membersData.length - 9;
-            html += `<button class="more-members-btn" onclick="renderGroupMembers(true)">
+        // 移除原本 grid 容器的限制，讓 wrapper 完全接管排版
+        listEl.className = ''; 
+        listEl.innerHTML = '';
+
+        // 取出第一順位作為頂端發起人 (Top Node)
+        const topUser = membersData[0];
+        const topAvatar = topUser.photoURL || 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true';
+        const topName = topUser.displayName || '未命名成員';
+        const isTopMe = topUser.uid === auth.currentUser.uid;
+
+        let html = `
+        <div class="tree-layout-wrapper">
+            <div class="map-node top-node">
+                <img src="${topAvatar}" alt="avatar">
+                <div class="node-name">${isTopMe ? "您" : escapeHtml(topName)}</div>
+            </div>
+        `;
+
+        // 如果還有其他成員，才繪製連線與下方網格
+        if (membersData.length > 1) {
+            html += `
+            <div class="tree-map-line v-line" style="position: relative; height: 35px; width: 2px; margin: 0; left: 0; transform: none;">
+                <i class="fas fa-link map-link-icon"></i>
+            </div>
+            
+            <div class="tree-grid" id="treeGrid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px 15px; width: 100%; position: relative; justify-items: center; padding-top: 5px;">
+            `;
+            
+            // 決定要顯示幾個人 (1位發起人 + 9位網格 = 10)
+            const displayCount = isExpanded ? membersData.length : Math.min(10, membersData.length); 
+            
+            for (let i = 1; i < displayCount; i++) {
+                const user = membersData[i];
+                const avatar = user.photoURL || 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true';
+                const name = user.displayName || '未命名成員';
+                const isMe = user.uid === auth.currentUser.uid;
+                
+                html += `
+                    <div class="map-node grid-node">
+                        <img src="${avatar}" alt="avatar">
+                        <div class="node-name">${isMe ? "您" : escapeHtml(name)}</div>
+                    </div>
+                `;
+            }
+            html += `</div>`;
+        }
+
+        html += `</div>`; // 結束 tree-layout-wrapper
+
+        // 展開/收起按鈕 (同步改為以 10 為基準)
+        if (!isExpanded && membersData.length > 10) {
+            const hiddenCount = membersData.length - 10;
+            html += `<button class="more-members-btn" onclick="renderGroupMembers(true)" style="margin-top: 15px;">
                         <i class="fas fa-ellipsis-h"></i> 展開其餘 ${hiddenCount} 位成員
                      </button>`;
-        } else if (isExpanded && membersData.length > 9) {
-            html += `<button class="more-members-btn" onclick="renderGroupMembers(false)">
+        } else if (isExpanded && membersData.length > 10) {
+            html += `<button class="more-members-btn" onclick="renderGroupMembers(false)" style="margin-top: 15px;">
                         <i class="fas fa-chevron-up"></i> 收起成員列表
                      </button>`;
         }
 
         listEl.innerHTML = html;
+
+        // 等待 HTML 渲染完畢後，啟動絕對座標計算來畫出精準連線
+        if (membersData.length > 1) {
+            requestAnimationFrame(() => {
+                drawTreeGridLines(document.getElementById('treeGrid'));
+            });
+        }
+    }
+
+    // 【新增】：網格內部的精準連線繪製引擎
+    function drawTreeGridLines(grid) {
+        if (!grid) return;
+        const nodes = Array.from(grid.querySelectorAll('.grid-node'));
+        if (nodes.length === 0) return;
+
+        // 1. 繪製水平連線 (H-Lines)
+        for (let i = 0; i < nodes.length - 1; i++) {
+            if ((i + 1) % 3 !== 0) { // 只要不是該列的最後一個，就往右畫線
+                const nodeA = nodes[i];
+                const nodeB = nodes[i + 1];
+                if (nodeB) {
+                    const hLine = document.createElement('div');
+                    hLine.className = 'tree-map-line h-line';
+                    hLine.innerHTML = '<i class="fas fa-link map-link-icon"></i>';
+                    
+                    // 從 A 點中心到 B 點中心
+                    const left = nodeA.offsetLeft + (nodeA.offsetWidth / 2);
+                    const width = nodeB.offsetLeft - nodeA.offsetLeft;
+                    const top = nodeA.offsetTop + 27.5; // 55px 頭像的一半
+
+                    hLine.style.left = `${left}px`;
+                    hLine.style.width = `${width}px`;
+                    hLine.style.top = `${top}px`;
+                    
+                    grid.appendChild(hLine);
+                }
+            }
+        }
+
+        // 2. 繪製垂直連線 (V-Lines)
+        for (let i = 0; i < nodes.length - 3; i++) {
+            const nodeA = nodes[i];
+            const nodeB = nodes[i + 3]; // 跨越 3 個也就是正下方的節點
+            if (nodeB) {
+                const vLine = document.createElement('div');
+                vLine.className = 'tree-map-line v-line';
+                vLine.innerHTML = '<i class="fas fa-link map-link-icon"></i>';
+                
+                const left = nodeA.offsetLeft + (nodeA.offsetWidth / 2);
+                const top = nodeA.offsetTop + 27.5;
+                const height = nodeB.offsetTop - nodeA.offsetTop;
+
+                vLine.style.left = `${left}px`;
+                vLine.style.top = `${top}px`;
+                vLine.style.height = `${height}px`;
+                
+                grid.appendChild(vLine);
+            }
+        }
     }
 
     async function saveGroupSettings() {
@@ -8175,6 +8603,479 @@
         document.getElementById('chatSearchInput').blur();
         
         openModal('searchResultModal');
+    }
+
+    // ==========================================
+    // 個人行事曆系統：年月階層切換與手勢滑動引擎
+    // ==========================================
+    const calendarViewDOM = document.getElementById('calendarView');
+    let currentCalDate = new Date(); 
+    let calMode = 'days'; // 狀態機： 'days' (看日期), 'months' (看月份), 'years' (看年份)
+    let selectorYear = new Date().getFullYear();
+
+    // 1. 返回鍵滿版滑動退出 (左側邊緣滑動)
+    let isCalPageSwiping = false, calPageStartX = 0, calPageCurrentX = 0;
+    calendarViewDOM.addEventListener('touchstart', (e) => {
+        if (e.touches[0].clientX < 40) { isCalPageSwiping = true; calPageStartX = e.touches[0].clientX; calendarViewDOM.style.transition = 'none'; }
+    }, {passive: true});
+    calendarViewDOM.addEventListener('touchmove', (e) => {
+        if (!isCalPageSwiping) return;
+        calPageCurrentX = e.touches[0].clientX - calPageStartX;
+        if (calPageCurrentX > 0) { if (e.cancelable) e.preventDefault(); calendarViewDOM.style.transform = `translateX(${calPageCurrentX}px)`; }
+    }, { passive: false });
+    calendarViewDOM.addEventListener('touchend', () => {
+        if (!isCalPageSwiping) return;
+        isCalPageSwiping = false;
+        calendarViewDOM.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
+        if (calPageCurrentX > window.innerWidth / 3 || calPageCurrentX > 30) closeCalendarView();
+        else calendarViewDOM.style.transform = 'translateX(0%)';
+        calPageCurrentX = 0;
+    });
+
+    // 2. 視窗控制與點擊標題切換層級
+    function openCalendarView() {
+        currentCalDate = new Date(); 
+        calMode = 'days';
+        document.querySelector('.calendar-weekdays').style.display = 'grid'; // 確保星期標題顯示
+        renderCalendar(currentCalDate);
+        calendarViewDOM.style.transform = 'translateX(0%)';
+    }
+    
+    function closeCalendarView() {
+        calendarViewDOM.style.transform = 'translateX(100%)';
+    }
+
+    function toggleCalendarMode() {
+        if (calMode === 'days') {
+            calMode = 'months';
+            selectorYear = currentCalDate.getFullYear();
+            renderMonthSelector();
+        } else if (calMode === 'months') {
+            calMode = 'years';
+            renderYearSelector();
+        }
+    }
+
+    // 3. 渲染層級：日期網格 (Days)
+    function renderCalendar(date) {
+        const year = date.getFullYear();
+        const month = date.getMonth();
+        document.getElementById('calendarTitle').innerHTML = `${year}年 ${month + 1}月 <i class="fas fa-caret-down" style="font-size:0.8em; margin-left:2px; color:#aaa;"></i>`;
+        
+        const firstDayIndex = new Date(year, month, 1).getDay(); 
+        const daysInMonth = new Date(year, month + 1, 0).getDate(); 
+        const prevMonthDays = new Date(year, month, 0).getDate(); 
+        
+        const today = new Date();
+        const isCurrentMonth = (year === today.getFullYear() && month === today.getMonth());
+        const todayDate = today.getDate();
+
+        const calBody = document.getElementById('calendarBody');
+        calBody.className = 'calendar-body'; // 確保套用網格樣式
+        let html = '';
+
+        // 填補上個月的剩餘天數 (點擊會自動切換並打開該日)
+        for (let i = firstDayIndex; i > 0; i--) {
+            const prevDay = prevMonthDays - i + 1;
+            html += `<div class="calendar-day other-month" onclick="openDaySchedule(${year}, ${month - 1}, ${prevDay})">${prevDay}</div>`;
+        }
+
+        // 填補本月天數
+        for (let i = 1; i <= daysInMonth; i++) {
+            const isTodayClass = (isCurrentMonth && i === todayDate) ? 'today' : '';
+            html += `<div class="calendar-day ${isTodayClass}" onclick="openDaySchedule(${year}, ${month}, ${i})">${i}</div>`;
+        }
+
+        // 填補下個月的天數
+        const totalCellsFilled = firstDayIndex + daysInMonth;
+        const remainingCells = totalCellsFilled <= 35 ? 35 - totalCellsFilled : 42 - totalCellsFilled;
+        for (let i = 1; i <= remainingCells; i++) {
+            html += `<div class="calendar-day other-month" onclick="openDaySchedule(${year}, ${month + 1}, ${i})">${i}</div>`;
+        }
+
+        calBody.innerHTML = html;
+    }
+
+    // 4. 渲染層級：月份選擇器 (Months)
+    function renderMonthSelector() {
+        document.getElementById('calendarTitle').innerHTML = `${selectorYear}年 <i class="fas fa-caret-down" style="font-size:0.8em; margin-left:2px; color:#aaa;"></i>`;
+        document.querySelector('.calendar-weekdays').style.display = 'none'; // 隱藏星期
+        
+        const calBody = document.getElementById('calendarBody');
+        calBody.className = ''; // 解除日期網格限制
+
+        let html = '<div class="cal-selector-grid">';
+        for (let i = 0; i < 12; i++) {
+            const isCurrent = (i === currentCalDate.getMonth() && selectorYear === currentCalDate.getFullYear()) ? 'current' : '';
+            html += `<div class="cal-selector-item ${isCurrent}" onclick="selectCalMonth(${i})">${i+1}月</div>`;
+        }
+        html += '</div>';
+        calBody.innerHTML = html;
+    }
+
+    function selectCalMonth(m) {
+        currentCalDate.setFullYear(selectorYear);
+        currentCalDate.setMonth(m);
+        calMode = 'days';
+        document.querySelector('.calendar-weekdays').style.display = 'grid';
+        renderCalendar(currentCalDate);
+    }
+
+    // 5. 渲染層級：年份選擇器 (Years)
+    function renderYearSelector() {
+        // 顯示 12 個年份區間
+        document.getElementById('calendarTitle').innerHTML = `${selectorYear - 4} - ${selectorYear + 7} <i class="fas fa-caret-down" style="font-size:0.8em; margin-left:2px; color:#aaa;"></i>`;
+        const calBody = document.getElementById('calendarBody');
+        calBody.className = ''; 
+
+        let html = '<div class="cal-selector-grid">';
+        for (let i = selectorYear - 4; i <= selectorYear + 7; i++) {
+            const isCurrent = (i === currentCalDate.getFullYear()) ? 'current' : '';
+            html += `<div class="cal-selector-item ${isCurrent}" onclick="selectCalYear(${i})">${i}</div>`;
+        }
+        html += '</div>';
+        calBody.innerHTML = html;
+    }
+
+    function selectCalYear(y) {
+        selectorYear = y;
+        calMode = 'months';
+        renderMonthSelector();
+    }
+
+    // 6. 整合式滑動物理引擎 (支援 日/月/年 三種模式切換)
+    const calBodyDOM = document.getElementById('calendarBody');
+    let calStartX = 0, calCurrentX = 0, isCalSwiping = false, calStartY = 0, isCalScrolling = false;
+
+    calBodyDOM.addEventListener('touchstart', (e) => {
+        if (e.touches[0].clientX < 40) return;
+        calStartX = e.touches[0].clientX;
+        calStartY = e.touches[0].clientY;
+        isCalSwiping = true;
+        isCalScrolling = false;
+        calBodyDOM.style.transition = 'none';
+    }, { passive: true });
+
+    calBodyDOM.addEventListener('touchmove', (e) => {
+        if (!isCalSwiping) return;
+        const diffX = e.touches[0].clientX - calStartX;
+        const diffY = e.touches[0].clientY - calStartY;
+
+        if (!isCalScrolling && Math.abs(diffY) > Math.abs(diffX)) {
+            isCalScrolling = true;
+            isCalSwiping = false;
+            calBodyDOM.style.transform = `translateX(0px)`;
+            return;
+        }
+
+        if (!isCalScrolling) {
+            if (e.cancelable) e.preventDefault();
+            calCurrentX = diffX;
+            calBodyDOM.style.transform = `translateX(${calCurrentX * 0.4}px)`;
+        }
+    }, { passive: false });
+
+    calBodyDOM.addEventListener('touchend', (e) => {
+        if (!isCalSwiping || isCalScrolling) return;
+        isCalSwiping = false;
+        
+        calBodyDOM.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.2s ease';
+        
+        // 【方向修正】：右滑 (X > 50) 是往前一頁；左滑 (X < -50) 是往後一頁
+        if (calCurrentX > 50) {
+            changeCalPage(-1); 
+        } else if (calCurrentX < -50) {
+            changeCalPage(1);  
+        } else {
+            calBodyDOM.style.transform = `translateX(0px)`;
+        }
+        calCurrentX = 0;
+    });
+
+    function changeCalPage(delta) {
+        // 先將畫面順著手勢推離螢幕並淡出 (右滑推到右邊 100%，左滑推到左邊 -100%)
+        calBodyDOM.style.transform = `translateX(${delta > 0 ? -100 : 100}%)`;
+        calBodyDOM.style.opacity = '0';
+        
+        setTimeout(() => {
+            // 背景更換資料 (自動適應當前處於 年/月/日 哪種模式)
+            if (calMode === 'days') {
+                currentCalDate.setMonth(currentCalDate.getMonth() + delta);
+                renderCalendar(currentCalDate);
+            } else if (calMode === 'months') {
+                selectorYear += delta;
+                renderMonthSelector();
+            } else if (calMode === 'years') {
+                selectorYear += (delta * 12); // 一次換 12 年
+                renderYearSelector();
+            }
+            
+            // 瞬間把畫面拉到另一邊準備滑入
+            calBodyDOM.style.transition = 'none';
+            calBodyDOM.style.transform = `translateX(${delta > 0 ? 100 : -100}%)`;
+            
+            // 觸發滑入動畫
+            setTimeout(() => {
+                calBodyDOM.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.3s ease';
+                calBodyDOM.style.transform = `translateX(0px)`;
+                calBodyDOM.style.opacity = '1';
+            }, 50);
+        }, 200);
+    }
+
+    // ==========================================
+    // 單日行程檢視系統與滑動引擎
+    // ==========================================
+    const dayScheduleViewDOM = document.getElementById('dayScheduleView');
+    let isDaySwiping = false, dayStartX = 0, dayCurrentX = 0;
+    let currentViewedDate = null; // 全域變數：紀錄目前正在看哪一天
+
+    dayScheduleViewDOM.addEventListener('touchstart', (e) => {
+        if (e.touches[0].clientX < 40) { isDaySwiping = true; dayStartX = e.touches[0].clientX; dayScheduleViewDOM.style.transition = 'none'; }
+    }, {passive: true});
+    dayScheduleViewDOM.addEventListener('touchmove', (e) => {
+        if (!isDaySwiping) return;
+        dayCurrentX = e.touches[0].clientX - dayStartX;
+        if (dayCurrentX > 0) { if (e.cancelable) e.preventDefault(); dayScheduleViewDOM.style.transform = `translateX(${dayCurrentX}px)`; }
+    }, { passive: false });
+    dayScheduleViewDOM.addEventListener('touchend', () => {
+        if (!isDaySwiping) return;
+        isDaySwiping = false;
+        dayScheduleViewDOM.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
+        if (dayCurrentX > window.innerWidth / 3 || dayCurrentX > 30) closeDaySchedule();
+        else dayScheduleViewDOM.style.transform = 'translateX(0%)';
+        dayCurrentX = 0;
+    });
+
+    function closeDaySchedule() {
+        dayScheduleViewDOM.style.transform = 'translateX(100%)';
+    }
+
+    async function openDaySchedule(year, month, day) {
+        const targetDate = new Date(year, month, day);
+        currentViewedDate = targetDate;
+        const y = targetDate.getFullYear();
+        const m = targetDate.getMonth();
+        const d = targetDate.getDate();
+
+        const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+        document.getElementById('dayScheduleTitle').innerText = `${m + 1}月 ${d}日 星期${weekdays[targetDate.getDay()]}`;
+
+        if (typeof Lunar !== 'undefined') {
+            const lunar = Lunar.fromDate(targetDate);
+            document.getElementById('dayScheduleLunar').innerText = `農曆${lunar.getMonthInChinese()}月${lunar.getDayInChinese()}`;
+        }
+
+        const bodyEl = document.getElementById('dayScheduleBody');
+        bodyEl.innerHTML = '<div style="text-align: center; color: #999; margin-top: 50px; font-size: 1.1rem;"><i class="fas fa-spinner fa-spin"></i> 載入行程中...</div>';
+        dayScheduleViewDOM.style.transform = 'translateX(0%)';
+
+        try {
+            const startOfDay = new Date(y, m, d, 0, 0, 0).getTime();
+            const endOfDay = new Date(y, m, d, 23, 59, 59).getTime();
+            
+            if (!auth.currentUser) throw new Error("使用者未登入");
+            const uid = auth.currentUser.uid;
+            let dayEvents = [];
+
+            // 【防呆救援 1】：如果抓不到名稱，自動拿帳號內建的 displayName 頂替
+            let myName = document.getElementById('myName').innerText.trim();
+            if (!myName || myName === "載入中...") {
+                myName = auth.currentUser.displayName || "未命名成員";
+            }
+
+            // A. 獲取簡單版個人行事曆 (Calendar_page/calendar/你的名字)
+            const calSnap = await db.collection("Calendar_page")
+                                    .doc("calendar")
+                                    .collection(myName)
+                                    .where("creatorUid", "==", uid)
+                                    .get();
+            
+            calSnap.forEach(doc => {
+                const ev = doc.data();
+                const evStart = new Date(ev.start).getTime();
+                const evEnd = new Date(ev.end).getTime();
+                
+                if (evStart <= endOfDay && evEnd >= startOfDay) {
+                    dayEvents.push({ 
+                        id: doc.id, title: ev.title, isAllDay: ev.isAllDay, 
+                        startStr: ev.start, endStr: ev.end, sortDate: new Date(evStart), type: 'simple' 
+                    });
+                }
+            });
+
+            // B. 獲取群組發起的大型活動 (events)
+            const snap = await db.collection("events").get();
+            const isMonitor = (myName === '班長');
+            
+            snap.forEach(doc => {
+                const ev = doc.data();
+                let sortDateMs = 0;
+                const timeField = ev.fields?.find(f => f.type === 'time');
+                if (timeField && timeField.content) {
+                    sortDateMs = new Date(timeField.content).getTime();
+                } else if (ev.createdAt && typeof ev.createdAt.toDate === 'function') {
+                    sortDateMs = ev.createdAt.toDate().getTime();
+                }
+
+                if (sortDateMs >= startOfDay && sortDateMs <= endOfDay) {
+                    const isCreator = (ev.creatorUid === uid) || (ev.creator === auth.currentUser.email);
+                    if (ev.isPrivate) {
+                        const authMembers = ev.authorizedMembers || [];
+                        if (!isCreator && !isMonitor && !authMembers.includes(uid)) return;
+                    }
+                    dayEvents.push({ id: doc.id, title: ev.title, sortDate: new Date(sortDateMs), type: 'complex', isPrivate: ev.isPrivate });
+                }
+            });
+
+            if (dayEvents.length === 0) {
+                bodyEl.innerHTML = '<div style="text-align: center; color: #999; margin-top: 50px; font-size: 1.1rem; font-weight: bold;">尚未有預定行程</div>';
+                return;
+            }
+
+            dayEvents.sort((a, b) => a.sortDate - b.sortDate);
+            let html = '<div class="event-mini-list" style="padding: 0;">';
+            
+            dayEvents.forEach(ev => {
+                if (ev.type === 'simple') {
+                    let timeDisplay = '';
+                    if (ev.isAllDay) {
+                        timeDisplay = '全天行程';
+                    } else {
+                        const s = new Date(ev.startStr);
+                        const e = new Date(ev.endStr);
+                        timeDisplay = `${s.getHours().toString().padStart(2,'0')}:${s.getMinutes().toString().padStart(2,'0')} - ${e.getHours().toString().padStart(2,'0')}:${e.getMinutes().toString().padStart(2,'0')}`;
+                    }
+                    
+                    html += `
+                        <div class="swipe-container" style="margin-bottom: 12px; background: #ff4d4d; border-radius: 8px;">
+                            <div class="swipe-actions" style="width: 80px;">
+                                <button class="swipe-delete-btn" onclick="deleteCalEvent(event, '${ev.id}')"><i class="fas fa-trash-alt"></i></button>
+                            </div>
+                            <div class="swipe-content event-mini-item" style="margin-bottom: 0; border-left-color: var(--ly-gold); cursor: pointer;"
+                                 onmousedown="calEvSwipeStart(event, this)" onmousemove="calEvSwipeMove(event, this)" 
+                                 onmouseup="calEvSwipeEnd(event, this)" onmouseleave="calEvSwipeEnd(event, this)" 
+                                 ontouchstart="calEvSwipeStart(event, this)" ontouchmove="calEvSwipeMove(event, this)" 
+                                 ontouchend="calEvSwipeEnd(event, this)">
+                                <div style="flex: 1; overflow: hidden;">
+                                    <h4 class="event-mini-title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${ev.title}</h4>
+                                    <div class="event-mini-meta">
+                                        <span><i class="far fa-clock"></i> ${timeDisplay}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`;
+                } else {
+                    const timeStr = ev.sortDate.toLocaleTimeString('zh-TW', {hour:'2-digit', minute:'2-digit', hour12:false});
+                    const lockIcon = ev.isPrivate ? '<i class="fas fa-lock" style="color:#d93025; margin-right:5px;" title="私人活動"></i>' : '';
+                    html += `
+                        <div class="event-mini-item" onclick="openDocPreview('${ev.id}')" style="margin-bottom: 12px;">
+                            <h4 class="event-mini-title">${lockIcon}${ev.title}</h4>
+                            <div class="event-mini-meta">
+                                <span><i class="far fa-clock"></i> ${timeStr}</span>
+                            </div>
+                        </div>`;
+                }
+            });
+            html += '</div>';
+            bodyEl.innerHTML = html;
+
+        } catch (e) {
+            console.error("行事曆載入錯誤: ", e);
+            // 【除錯面板】：如果失敗，會直接告訴你原因
+            bodyEl.innerHTML = `
+                <div style="text-align: center; color: #d93025; margin-top: 50px;">
+                    <div style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;"><i class="fas fa-exclamation-triangle"></i> 載入失敗</div>
+                    <div style="font-size:0.85rem; color:#888; word-break:break-all; padding: 0 20px;">錯誤代碼：${e.message}</div>
+                    <div style="font-size:0.85rem; color:#888; margin-top:10px;">(若顯示 Missing permissions，請檢查 Firebase Rules)</div>
+                </div>`;
+        }
+    }
+
+    async function saveCalEvent() {
+        const title = document.getElementById('calEvTitle').value.trim();
+        const isAllDay = document.getElementById('calEvAllDay').checked;
+        const startStr = document.getElementById(isAllDay ? 'calEvStartDate' : 'calEvStart').value;
+        const endStr = document.getElementById(isAllDay ? 'calEvEndDate' : 'calEvEnd').value;
+
+        if (!title || !startStr || !endStr) return alert('請填寫完整行程資訊！');
+        if (new Date(startStr) > new Date(endStr)) return alert('結束時間不能早於開始時間！');
+
+        try {
+            // 【防呆救援 2】
+            let myName = document.getElementById('myName').innerText.trim();
+            if (!myName || myName === "載入中...") myName = auth.currentUser.displayName || "未命名成員";
+
+            await db.collection('Calendar_page').doc('calendar').collection(myName).add({
+                title, isAllDay, start: startStr, end: endStr,
+                creatorUid: auth.currentUser.uid,
+                creatorName: myName,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            closeModal('createCalEventModal');
+            openDaySchedule(currentViewedDate.getFullYear(), currentViewedDate.getMonth(), currentViewedDate.getDate());
+        } catch (e) {
+            alert('新增失敗：' + e.message);
+        }
+    }
+
+    async function deleteCalEvent(e, id) {
+        e.stopPropagation();
+        if(!confirm('確定刪除此個人行程嗎？')) return;
+        try {
+            // 【防呆救援 3】
+            let myName = document.getElementById('myName').innerText.trim();
+            if (!myName || myName === "載入中...") myName = auth.currentUser.displayName || "未命名成員";
+
+            await db.collection("Calendar_page").doc("calendar").collection(myName).doc(id).delete();
+            openDaySchedule(currentViewedDate.getFullYear(), currentViewedDate.getMonth(), currentViewedDate.getDate());
+        } catch (err) {
+            alert('刪除失敗: ' + err.message);
+        }
+    }
+
+    // ==========================================
+    // 個人行事曆：單日行程左滑刪除引擎
+    // ==========================================
+    let calEvStartX = 0, calEvCurrentX = 0, isCalEvSwiping = false, calEvSwipedOpen = null;
+
+    function calEvSwipeStart(e, el) {
+        if (calEvSwipedOpen && calEvSwipedOpen !== el) { 
+            calEvSwipedOpen.style.transform = 'translateX(0px)'; 
+            calEvSwipedOpen = null; 
+        }
+        calEvStartX = e.type.includes('mouse') ? e.pageX : e.touches[0].clientX;
+        calEvCurrentX = 0; 
+        isCalEvSwiping = true; 
+        el.style.transition = 'none';
+    }
+
+    function calEvSwipeMove(e, el) {
+        if (!isCalEvSwiping) return;
+        const x = e.type.includes('mouse') ? e.pageX : e.touches[0].clientX;
+        calEvCurrentX = x - calEvStartX;
+        
+        // 限制只能向左滑動，最多滑出 90px 的距離
+        if (calEvCurrentX < 0 && calEvCurrentX > -90) {
+            el.style.transform = `translateX(${calEvCurrentX}px)`;
+        }
+    }
+
+    function calEvSwipeEnd(e, el) {
+        if (!isCalEvSwiping) return;
+        isCalEvSwiping = false; 
+        el.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
+        
+        // 滑超過一半 (45px)，就固定在左側顯示刪除按鈕 (停在 -80px)
+        if (calEvCurrentX < -45) {
+            el.style.transform = 'translateX(-80px)'; 
+            calEvSwipedOpen = el;
+        } else {
+            // 滑動太小，回彈歸位
+            el.style.transform = 'translateX(0px)'; 
+            if (calEvSwipedOpen === el) calEvSwipedOpen = null;
+        }
+        calEvCurrentX = 0;
     }
 </script>
 </body>
