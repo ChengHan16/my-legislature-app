@@ -1456,8 +1456,44 @@
         /* ==========================================
            行事曆 - 年份與月份選擇器 (Month/Year Picker)
            ========================================== */
-        .cal-selector-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; padding: 30px 20px; width: 100%; box-sizing: border-box; }
-        .cal-selector-item { background: transparent; color: #333; font-size: 1.1rem; font-weight: bold; border-radius: 50%; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; box-sizing: border-box;}
+        /* ==========================================
+   行事曆 - 年份與月份選擇器 (Month/Year Picker)
+   ========================================== */
+.cal-selector-grid { 
+    display: grid; 
+    grid-template-columns: repeat(4, 1fr); 
+    gap: 15px; 
+    padding: 30px 20px; 
+    width: 100%; 
+    box-sizing: border-box; 
+}
+
+.cal-selector-item { 
+    background: transparent; 
+    color: #333; 
+    font-size: 1.1rem; 
+    font-weight: bold; 
+    border-radius: 50%; 
+    aspect-ratio: 1; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    cursor: pointer; 
+    transition: 0.2s; 
+    box-sizing: border-box;
+    width: 100%; 
+    max-width: 75px; /* 限制最大尺寸，避免按鈕變形 */
+    margin: 0 auto;  /* 確保圓圈在網格內置中 */
+}
+
+.cal-selector-item:active { transform: scale(0.9); }
+
+/* 選中狀態 (明亮模式) */
+.cal-selector-item.current { background: var(--ly-blue); color: white; box-shadow: 0 4px 10px rgba(0,49,83,0.3); }
+
+/* 深色模式適配 */
+body.dark-mode .cal-selector-item { color: #e0e0e0; }
+body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e; box-shadow: 0 4px 10px rgba(91,164,214,0.3); font-weight: 900;}
         .cal-selector-item:active { transform: scale(0.9); }
         
         /* 選中狀態 (明亮模式) */
@@ -1514,16 +1550,11 @@
            行事曆標籤：連續標籤與 Z 軸動畫
            ========================================== */
         .app-view.bg-shrink { transform: scale(0.94) !important; border-radius: 18px; opacity: 0.5; pointer-events: none; overflow: hidden; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
-        
-        .cal-tag-single { border-radius: 3px; margin-left: 2px; margin-right: 2px; width: calc(100% - 4px); }
-        .cal-tag-start { border-radius: 3px 0 0 3px; margin-left: 2px; margin-right: 0; width: calc(100% - 2px); position: relative; z-index: 2;}
-        .cal-tag-mid { border-radius: 0; margin-left: 0; margin-right: 0; width: 100%; position: relative; z-index: 1;}
-        .cal-tag-end { border-radius: 0 3px 3px 0; margin-left: 0; margin-right: 2px; width: calc(100% - 2px); position: relative; z-index: 2;}
 
         /* 快速標籤選取模式下的日期狀態 */
         .calendar-day.quick-selectable { border: 2px dashed #ccc; }
         .calendar-day.quick-selected { background: #e6f7ff !important; border: 2px solid var(--ly-blue); }
-        .calendar-day.quick-delete-target { transform: translateY(-2px); border-color: #ff4d4d; }
+
         .calendar-day.today { background: #fffdf5; border-color: var(--ly-gold); color: var(--ly-gold); }
         .calendar-day.other-month { opacity: 0.3; background: #fafafa; }
         
@@ -1551,26 +1582,82 @@
             box-shadow: 0 0 20px rgba(0,0,0,0.5);
         }
 
-        
-        
-        /* 跨日連續視覺魔法：利用負邊距與去圓角 */
-        .cal-tag-single { border-radius: 4px; margin-left: 2px; margin-right: 2px; width: calc(100% - 4px); }
-        .cal-tag-start { border-radius: 4px 0 0 4px; margin-left: 2px; margin-right: -8px; width: calc(100% + 6px); position: relative; z-index: 2;}
-        .cal-tag-mid { border-radius: 0; margin-left: -8px; margin-right: -8px; width: calc(100% + 16px); position: relative; z-index: 1;}
-        .cal-tag-end { border-radius: 0 4px 4px 0; margin-left: -8px; margin-right: 2px; width: calc(100% + 6px); position: relative; z-index: 2;}
-
-        /* 快速標籤選取模式下的日期狀態 (視覺強化版) */
+         /* 快速標籤選取模式下的日期狀態 (視覺強化版) */
         .calendar-day.quick-selectable { border: 2px dashed #bbb; transition: all 0.2s; }
         .calendar-day.quick-selected { background: rgba(207, 169, 0, 0.15) !important; border: 3px solid var(--ly-gold) !important; transform: scale(0.92); box-shadow: 0 4px 10px rgba(0,0,0,0.1); font-weight: 900;}
-        .calendar-day.quick-delete-target { transform: translateY(-4px); border-color: #ff4d4d; box-shadow: 0 6px 12px rgba(217,48,37,0.3); }
+
         body.dark-mode .calendar-day.quick-selected { background: rgba(207, 169, 0, 0.3) !important; }
+
+        /* ==========================================
+        升級：快速標籤「可刪除目標」的高強度視覺強調
+        ========================================== */
+        /* 建立專屬的微浮游動畫，增加待選取/待刪除的互動感 */
+        @keyframes floatWiggle {
+            0%, 100% { transform: translateY(-5px) rotate(0deg); }
+            25% { transform: translateY(-5px) rotate(-0.5deg); }
+            75% { transform: translateY(-5px) rotate(0.5deg); }
+        }
+
+        .calendar-day.quick-delete-target { 
+            transform: translateY(-5px); 
+            border: 2px solid #ff4d4d !important; 
+            box-shadow: 0 8px 16px rgba(255, 77, 77, 0.35); 
+            background: #fffafa !important; /* 給予極淡的紅色危險底色 */
+            animation: floatWiggle 2s infinite ease-in-out;
+            z-index: 5; /* 提高層級確保陰影不被旁邊格子蓋住 */
+        }
+
+        /* 深色模式適配 */
+        body.dark-mode .calendar-day.quick-delete-target {
+            background: rgba(255, 77, 77, 0.1) !important;
+            border-color: #ff4d4d !important;
+            box-shadow: 0 8px 16px rgba(255, 77, 77, 0.2); 
+        }
+
+        /* ==========================================
+        修復：快速標籤選取狀態 - 改為滿版半透明黃色 (麥克筆風格)
+        ========================================= */
+        .quick-selectable.quick-selected { 
+            /* 【修改核心】：格子直接變半透明黃色，移除圓圈設計 */
+            background: rgba(255, 230, 0, 0.4) !important; 
+            border: 2px solid rgba(255, 200, 0, 0.6) !important; /* 保護框線，防呆 */
+            transition: 0.15s; 
+            z-index: 2; /* 提高層級，防止陰影被擠壓 */
+        }
+
+        /* 拔除原本的藍色圓圈主體 (不再需要) */
+        .quick-selectable.quick-selected::after {
+            display: none !important;
+            content: ''; 
+        }
+
+        /* 【修改】：將選中時變白的日期文字改回深色，確保高對比度 */
+        .quick-selectable.quick-selected .day-num-text {
+            color: #1a1a1a !important; 
+            font-weight: 900; /* 加粗數字，增加醒目度 */
+        }
+        .quick-selectable.quick-selected .lunar-text {
+            color: #333 !important; 
+        }
+
+        /* 深色模式適配：使用更亮、更飽和的黃色 */
+        body.dark-mode .quick-selectable.quick-selected {
+            background: rgba(255, 255, 0, 0.15) !important; 
+            border-color: rgba(255, 255, 0, 0.6) !important;
+        }
+        body.dark-mode .quick-selectable.quick-selected .day-num-text {
+            color: #ffffff !important; 
+        }
+        body.dark-mode .quick-selectable.quick-selected .lunar-text {
+            color: #cccccc !important; 
+        }
     
         /* 左側滑出按鈕 (向右滑刪除專用) */
         .swipe-actions-left { position: absolute; top: 0; bottom: 0; left: 0; width: 80px; display: flex; justify-content: center; align-items: center; z-index: 1; background: #ff4d4d; border-radius: 8px; }
         
         /* 行程詳細頁面的深色模式適配 */
         body.dark-mode #calEventDetailView > div { background: #000000 !important; }
-        body.dark-mode #calEventDetailBody > div { background: #1c1c1e !important; border-color: #333 !important; color: #e0e0e0 !important; }
+        body.dark-mode #calEventDetailBody > div { background: #000000 !important; border-color: #333 !important; color: #e0e0e0 !important; }
 
         /* ==========================================
            客製化下拉選單與修復滑動樣式
@@ -1685,23 +1772,280 @@
         }
         
         /* ==========================================
-           修復：連續標籤無縫接軌與寬度拉伸 (數學級精準版)
+           修復：防止長標籤撐破網格 & 星期列隨動樣式
            ========================================== */
+        .calendar-day {
+            min-width: 0; /* 【關鍵修復】：防止 flex/grid 子元素被長文字撐破版面 */
+        }
+        
+        /* 2. 防呆滑軌面板：強制佔滿 33.3333%，配合 300% 軌道打破 iOS 白屏 Bug */
+        .calendar-panel {
+            flex: 0 0 33.3333%; width: 33.3333%; min-width: 33.3333%; height: 100%;
+            display: flex; flex-direction: column; 
+            overflow-y: auto; overflow-x: hidden; 
+            transform: translateZ(0); -webkit-transform: translateZ(0);
+        }
+
+        /* 降級原本的 calendar-body，改名為 calendar-grid */
+        .calendar-grid {
+            display: grid; grid-template-columns: repeat(7, 1fr); 
+            grid-auto-rows: minmax(85px, 1fr); 
+            background: white; gap: 0; flex: 1; align-content: start;
+        }
+        body.dark-mode .calendar-grid { background: #000 !important; }
+
+        /* 星期列背景融入網格 */
+        .calendar-weekdays { background: white; border-bottom: 1px solid #f0f0f0; }
+        body.dark-mode .calendar-weekdays { background: #000 !important; border-bottom-color: #1c1c1e !important; }
+        .calendar-weekdays .sunday { color: #ff3b30; }
+        .calendar-weekdays .saturday { color: #007aff; }
+        body.dark-mode .calendar-weekdays .sunday { color: #ff453a; }
+        body.dark-mode .calendar-weekdays .saturday { color: #0a84ff; }
+
+        /* ==========================================
+        行事曆：原生 CSS Scroll Snap 左右滑動引擎
+        ========================================== */
+        .calendar-scroll-container {
+            flex: 1;
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            scrollbar-width: none; /* 隱藏 Firefox 卷軸 */
+            -ms-overflow-style: none; /* 隱藏 IE 卷軸 */
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch; /* 確保 iOS 順暢滾動 */
+        }
+
+        .calendar-scroll-container::-webkit-scrollbar {
+            display: none; /* 隱藏 Chrome/Safari 卷軸 */
+        }
+
+        .calendar-month-panel {
+            flex: 0 0 100%;
+            width: 100%;
+            scroll-snap-align: start;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 確保原有的 calendar-grid 滿版適應 */
+        .calendar-grid {
+            display: grid; 
+            grid-template-columns: repeat(7, 1fr); 
+            grid-auto-rows: minmax(85px, 1fr); 
+            background: white; 
+            gap: 0; 
+            flex: 1; 
+            align-content: start;
+        }
+
+        /* ==========================================
+        修復：連續標籤無縫接軌與寬度拉伸 (最終完美版)
+        ========================================== */
         .cal-tag-bar {
             display: block; 
-            width: 100% !important; /* 確保基本佔滿格子的內容區塊 */
             font-size: 0.75rem; color: white; font-weight: bold;
             padding: 3px 0; margin-top: 2px; text-align: center;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
             box-sizing: border-box;
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            
+            /* 【魔法核心】：使用 stretch 自動填滿，拒絕寫死 width 導致的置中偏移 */
+            align-self: stretch;
+            width: auto !important;
+            min-height: 18px;
+            line-height: 1.2;
+        }
+
+        /* 利用負邊距 (Negative Margin) 精準吃掉父層格子的 2px Padding */
+        .cal-tag-single { 
+            margin-left: 2px !important; 
+            margin-right: 2px !important; 
+            border-radius: 4px; 
+        }
+        .cal-tag-start { 
+            margin-left: 2px !important; 
+            margin-right: -2px !important; 
+            border-radius: 4px 0 0 4px; 
+            position: relative; z-index: 2; 
+        }
+        .cal-tag-mid { 
+            margin-left: -2px !important; 
+            margin-right: -2px !important; 
+            border-radius: 0; 
+            position: relative; z-index: 1; 
+        }
+        .cal-tag-end { 
+            margin-left: -2px !important; 
+            margin-right: 2px !important; 
+            border-radius: 0 4px 4px 0; 
+            position: relative; z-index: 2; 
+        }
+
+        /* ==========================================
+        修復：讓非本月(灰底)的日期也能顯示連續標籤，且標籤不褪色
+        ========================================== */
+        /* 明亮模式 */
+        .calendar-day.other-month { 
+            opacity: 1 !important; /* 讓格子本身保持 100% 不透明，保護彩色標籤 */
+            background: #fafafa; 
+        }
+        .calendar-day.other-month .day-num-text,
+        .calendar-day.other-month .lunar-text {
+            opacity: 0.3; /* 只有日期數字與農曆文字變淡 */
+        }
+
+        /* 深色模式 */
+        body.dark-mode .calendar-day.other-month { 
+            opacity: 1 !important; 
+            background: #121212 !important; 
+        }
+        body.dark-mode .calendar-day.other-month .day-num-text,
+        body.dark-mode .calendar-day.other-month .lunar-text {
+            opacity: 0.3;
+        }
+
+        /* ==========================================
+        更新：修改左滑「編輯按鈕」的色彩層次
+        ========================================== */
+        /* 明亮模式：改為半透明的藍色 */
+        .swipe-edit-btn { 
+            background: var(--ly-blue-trans) !important; 
+        }
+
+        /* 深色模式：改為飽和的藍色 */
+        body.dark-mode .swipe-edit-btn {
+            background: var(--ly-blue) !important;
+        }
+
+        /* ==========================================
+           新增：共享行程對象選擇器 (Shared Calendar List)
+           ========================================== */
+        .sc-list-item {
+            background: white; border-radius: 8px; padding: 12px 15px;
+            display: flex; align-items: center; gap: 15px; cursor: pointer;
+            border: 1px solid var(--border-color); transition: 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        }
+        .sc-list-item:active { transform: scale(0.98); background: #f8f9fa; }
+        .sc-list-item img { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 1px solid #eee; flex-shrink: 0; }
+        .sc-list-item span { font-weight: 800; color: var(--ly-blue); font-size: 1.05rem; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* 深色模式適配 */
+        body.dark-mode .sc-list-item { background: #1c1c1e !important; border-color: #2c2c2e !important; }
+        body.dark-mode .sc-list-item span { color: #e0e0e0 !important; }
+        body.dark-mode .sc-list-item img { border-color: #333 !important; }
+        body.dark-mode .sc-list-item:active { background: #2a2a2a !important; }
+
+        /* ==========================================
+           深色模式適配：批次分享 Modal
+           ========================================== */
+        body.dark-mode #batchShareEventModal .modal-body { background: #121b24 !important; }
+        body.dark-mode #batchShareEventModal .modal-footer { background: #121b24 !important; border-top-color: #2a3642 !important; }
+        body.dark-mode .batch-share-label { background: #1e2b38 !important; border-color: #33475b !important; }
+        body.dark-mode .batch-share-title { color: #e0e0e0 !important; }
+        body.dark-mode .batch-share-time { color: #aaa !important; }
+
+        /* ==========================================
+           新增：共享行事曆觀看時的「覆蓋式動態標題列」
+           ========================================== */
+        .shared-context-overlay {
+            position: absolute;
+            inset: 0; /* 完美填滿父層 header */
+            background: var(--ly-blue);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 15px;
+            padding-top: max(5px, calc(env(safe-area-inset-top) - 15px)); /* 對齊動態島 */
+            transform: translateY(-100%);
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            z-index: 200;
+            box-sizing: border-box;
+        }
+        .shared-context-overlay.active {
+            transform: translateY(0%);
+        }
+        .shared-context-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            margin-top: 2px;
+        }
+        .shared-context-center img {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1.5px solid var(--ly-gold);
+            margin-bottom: 2px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .shared-context-center span {
+            font-size: 0.75rem;
+            color: white;
+            font-weight: 500;
+            line-height: 1.2;
+            white-space: nowrap;
+        }
+        .shared-context-center b {
+            color: var(--ly-gold);
+            font-weight: 900;
         }
         
-        /* 跨日連續視覺魔法：利用精準的 calc 加寬，搭配 translateX 微調 1px 抵銷 Padding */
-        .cal-tag-single { width: 100% !important; border-radius: 4px; }
-        .cal-tag-start { width: calc(100% + 2px) !important; transform: translateX(1px); border-radius: 4px 0 0 4px; position: relative; z-index: 2; }
-        .cal-tag-mid { width: calc(100% + 4px) !important; border-radius: 0; position: relative; z-index: 1; }
-        .cal-tag-end { width: calc(100% + 2px) !important; transform: translateX(-1px); border-radius: 0 4px 4px 0; position: relative; z-index: 2; }
+        /* 確保滑出動畫不會溢出標題列 */
+        #calendarView .messenger-header,
+        #dayScheduleView .messenger-header,
+        #calEventDetailView .messenger-header {
+            overflow: hidden;
+        }
+
+        /* 深色模式適配 */
+        body.dark-mode .shared-context-overlay {
+            background: #000000 !important;
+            border-bottom: 1px solid #1c1c1e;
+        }
+
+        /* ==========================================
+           新增：單日行程卡片上的「分享連結圖示」UI
+           ========================================== */
+        .shared-link-ui {
+            display: flex; align-items: center; gap: 6px; flex-shrink: 0; 
+            background: #f8f9fa; padding: 4px 8px; border-radius: 8px; border: 1px solid #eee;
+        }
+        .shared-link-avatar {
+            width: 26px; height: 26px; border-radius: 50%; object-fit: cover; background: white;
+        }
+        .shared-link-name {
+            font-size: 0.65rem; color: #555; margin-top: 2px; font-weight: bold;
+            max-width: 35px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center;
+        }
+
+        /* 深色模式適配 */
+        body.dark-mode .shared-link-ui { background: #121212; border-color: #2c2c2e; }
+        body.dark-mode .shared-link-name { color: #aaa; }
+        body.dark-mode .shared-link-avatar { border-color: #333 !important; }
+
+        /* ==========================================
+           新增：分享行程多選模式的日期狀態 (藍色系)
+           ========================================== */
+        .calendar-day.share-selected { 
+            background: rgba(0, 123, 255, 0.15) !important; 
+            border: 3px solid #007bff !important; 
+            transform: scale(0.92); 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
+            font-weight: 900; 
+            z-index: 2;
+        }
+        .calendar-day.share-selected .day-num-text { color: #007bff !important; }
+        
+        body.dark-mode .calendar-day.share-selected { 
+            background: rgba(91, 164, 214, 0.3) !important; 
+            border-color: #5ba4d6 !important; 
+        }
+        body.dark-mode .calendar-day.share-selected .day-num-text { color: white !important; }
     </style>
 </head>
 <body>
@@ -1845,7 +2189,7 @@
         <div class="modal-card">
             <div class="modal-header">
                 <h3><i class="fas fa-users"></i> 建立群組聊天</h3>
-                <span style="cursor:pointer;" onclick="closeModal('createGroupModal')">&times;</span>
+                <span style="cursor:pointer;" onclick="attemptCloseCalEventModal()">&times;</span>
             </div>
             <div class="modal-body">
                 <div class="modal-input-group" style="text-align: center;">
@@ -2534,6 +2878,18 @@
 
     <div id="calendarView" class="app-view" style="z-index: 60; transform: translateX(100%); transition: transform 0.4s, scale 0.4s, opacity 0.4s;">
         <header class="messenger-header">
+            
+            <div id="mainCalSharedOverlay" class="shared-context-overlay">
+                <button class="back-btn" onclick="exitSharedCalMode()" style="margin-right: 0; color: white;"><i class="fas fa-chevron-left"></i></button>
+                <div class="shared-context-center" onclick="toggleCalendarMode()" style="cursor: pointer;">
+                    <span id="mainCalSharedMonth" style="font-size: 1.1rem; font-weight: 800; color: white; display: flex; align-items: center; gap: 4px;">載入中 <i class="fas fa-caret-down" style="font-size:0.8em; color:#aaa;"></i></span>
+                    <div style="display: flex; align-items: center; justify-content: center; margin-top: 4px;">
+                        <span id="mainCalSharedText" style="font-size: 0.85rem; color: #ddd; font-weight: 500;"></span>
+                    </div>
+                </div>
+                <button title="新增行程" onclick="openCreateCalEventModal()" style="background: none; border: none; color: var(--ly-gold); font-size: 1.4rem; cursor: pointer;"><i class="fas fa-plus"></i></button>
+            </div>
+
             <div class="header-content" style="padding: 15px 20px; justify-content: space-between;">
                 <div class="user-profile" style="flex: unset; gap: 5px;">
                     <button class="back-btn" onclick="closeCalendarView()" style="margin-right: 0;"><i class="fas fa-chevron-left"></i></button>
@@ -2542,7 +2898,9 @@
                 <div style="display: flex; gap: 15px; align-items: center;">
                     <button id="viewSharedCalBtn" onclick="openSharedCalendarList()" style="background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer; transition: 0.3s;"><i class="fas fa-users"></i></button>
                     <button id="shareMyCalBtn" onclick="openShareMyCalMode()" style="background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer;"><i class="fas fa-share-alt"></i></button>
-                    <button id="quickTagBtn" onclick="toggleQuickTagMode()" style="background: none; border: none; color: var(--ly-gold); font-size: 1.2rem; cursor: pointer;"><i class="fas fa-tags"></i></button>
+                    <button id="quickTagBtn" onclick="toggleQuickTagMode()" style="background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer;">
+                        <i class="fas fa-tags"></i>
+                    </button>
                     <button title="新增行程" onclick="openCreateCalEventModal()" style="background: none; border: none; color: var(--ly-gold); font-size: 1.4rem; cursor: pointer;"><i class="fas fa-plus"></i></button>
                 </div>
             </div>
@@ -2565,16 +2923,22 @@
             <button class="quick-tag-btn" onclick="deleteQuickTags()" style="background: #ff4d4d; margin-left: 10px;">刪除</button>
         </div>
 
-        <div style="flex: 1; background: var(--bg-gray); display: flex; flex-direction: column; overflow: hidden;">
-            <div class="calendar-weekdays" style="z-index: 10;">
-                <div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>
+        <div id="shareSelectActionBar" style="display: none; background: var(--white); padding: 10px 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); position: relative; z-index: 50; align-items: center; justify-content: space-between;">
+            <div style="font-weight: bold; color: var(--ly-blue);"><i class="fas fa-mouse-pointer"></i> 請點選要分享的日期</div>
+            <div style="display: flex; gap: 10px;">
+                <button class="quick-tag-btn" onclick="cancelShareSelection()" style="background: #999;">取消</button>
+                <button class="quick-tag-btn" onclick="confirmShareDates()" style="background: var(--ly-gold);">下一步</button>
             </div>
-            <div style="flex: 1; width: 100%; overflow: hidden; position: relative;">
-                <div id="calendarSliderTrack" style="display: flex; width: 300%; height: 100%; transform: translateX(-33.3333%); will-change: transform;">
-                    <div id="calendarBodyPrev" class="calendar-body" style="flex: 0 0 33.3333%; width: 33.3333%; height: 100%; overflow-y: auto; overflow-x: hidden; transform: translateZ(0); -webkit-transform: translateZ(0);"></div>
-                    <div id="calendarBody" class="calendar-body" style="flex: 0 0 33.3333%; width: 33.3333%; height: 100%; overflow-y: auto; overflow-x: hidden; transform: translateZ(0); -webkit-transform: translateZ(0);"></div>
-                    <div id="calendarBodyNext" class="calendar-body" style="flex: 0 0 33.3333%; width: 33.3333%; height: 100%; overflow-y: auto; overflow-x: hidden; transform: translateZ(0); -webkit-transform: translateZ(0);"></div>
+        </div>
+
+        <div style="flex: 1; background: var(--bg-gray); display: flex; flex-direction: column; overflow: hidden;">
+            <div style="flex: 1; background: var(--bg-gray); display: flex; flex-direction: column; overflow: hidden;">
+                <div class="calendar-weekdays" id="calendarWeekdays" style="z-index: 10;">
+                    <div class="sunday">日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div class="saturday">六</div>
                 </div>
+                
+                <div class="calendar-scroll-container" id="calendarScrollContainer">
+                    </div>
             </div>
         </div>
     </div>
@@ -2582,15 +2946,25 @@
     
     <div id="dayScheduleView" class="app-view" style="z-index: 70; transform: translateX(100%);">
         <header class="messenger-header">
+            
+            <div id="daySharedOverlay" class="shared-context-overlay">
+                <button class="back-btn" onclick="closeDaySchedule()" style="margin-right: 0; color: white;"><i class="fas fa-chevron-left"></i></button>
+                <div class="shared-context-center">
+                    <span id="daySharedText" style="font-size: 0.95rem; color: white; font-weight: bold;"></span>
+                </div>
+                <div style="width: 30px;"></div> </div>
+
             <div class="header-content" style="justify-content: space-between; align-items: center;">
                 <div class="user-profile" style="flex: unset; gap: 5px;">
                     <button class="back-btn" onclick="closeDaySchedule()" style="margin-right: 0;"><i class="fas fa-chevron-left"></i></button>
-                    <div style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; line-height: 1.3;">
-                        <span class="user-name" id="dayScheduleTitle" style="font-size: 1.1rem; margin: 0; color: white;">載入中...</span>
-                        <span id="dayScheduleLunar" style="color: rgba(255,255,255,0.7); font-size: 0.75rem; font-weight: normal;">農曆載入中...</span>
+                    <div style="display: flex; flex-direction: column;">
+                        <span class="user-name" id="dayScheduleTitle" style="font-size: 1.2rem; margin-right: 0;">載入中...</span>
+                        <span id="dayScheduleLunar" style="font-size: 0.75rem; color: #aaa; margin-top: 2px;"></span>
                     </div>
                 </div>
-                <button title="新增個人行程" onclick="openCreateCalEventModal()" style="background: none; border: none; color: var(--ly-gold); font-size: 1.4rem; cursor: pointer; padding: 5px; margin: 0;"><i class="fas fa-plus"></i></button>
+                <div class="header-actions">
+                    <button title="新增行程" onclick="openCreateCalEventModal()" style="background: none; border: none; color: var(--ly-gold); font-size: 1.4rem; cursor: pointer;"><i class="fas fa-plus"></i></button>
+                </div>
             </div>
         </header>
         <div id="dayScheduleBody" style="flex: 1; background: var(--bg-gray); overflow-y: auto; padding: 20px; -webkit-overflow-scrolling: touch;"></div>
@@ -2598,15 +2972,24 @@
 
     <div id="calEventDetailView" class="app-view" style="z-index: 80; transform: translateX(100%);">
         <header class="messenger-header">
-            <div class="header-content" style="padding: 15px 20px;">
-                <div class="user-profile" style="flex: unset;">
-                    <button class="back-btn" onclick="closeCalEventDetail()"><i class="fas fa-chevron-left"></i></button>
-                    <span class="user-name">行程詳細內容</span>
+            
+            <div id="detailSharedOverlay" class="shared-context-overlay">
+                <button class="back-btn" onclick="closeCalEventDetail()" style="margin-right: 0; color: white;"><i class="fas fa-chevron-left"></i></button>
+                <div class="shared-context-center">
+                    <span id="detailSharedText" style="font-size: 0.95rem; color: white; font-weight: bold;"></span>
+                </div>
+                <div style="width: 30px;"></div> </div>
+
+            <div class="header-content" style="padding: 15px 20px; justify-content: space-between; align-items: center;">
+                <div class="user-profile" style="flex: unset; gap: 5px;">
+                    <button class="back-btn" onclick="closeCalEventDetail()" style="margin-right: 0;"><i class="fas fa-chevron-left"></i></button>
+                    <span class="user-name" style="font-size: 1.2rem; margin-right: 0;">行程詳細內容</span>
                 </div>
             </div>
+            
         </header>
         <div id="calEventDetailBody" style="flex: 1; background: var(--bg-gray); overflow-y: auto; padding: 20px; -webkit-overflow-scrolling: touch;">
-            </div>
+        </div>
     </div>
 
     <div id="createCalEventModal" class="modal-overlay" style="z-index: 7500;">
@@ -2704,7 +3087,7 @@
 
             </div>
             <div class="modal-footer">
-                <button class="btn-modal btn-cancel" onclick="closeModal('createCalEventModal')">取消</button>
+                <button class="btn-modal btn-cancel" onclick="attemptCloseCalEventModal()">取消</button>
                 <button class="btn-modal btn-confirm" onclick="saveCalEvent()">確認儲存</button>
             </div>
         </div>
@@ -3161,6 +3544,57 @@
         <div class="slider-container" id="slider-container"><div class="slider-track" id="slider-track"></div></div>
         <div class="viewer-thumbnails" id="viewer-thumbnails" onclick="event.stopPropagation()"></div>
         <div class="viewer-hint"><i class="fas fa-hand-pointer"></i> 左右拖曳切換</div>
+    </div>
+
+    <div id="sharedCalListView" class="app-view" style="z-index: 65; transform: translateX(100%);">
+        <header class="messenger-header">
+            <div class="header-content" style="padding: 15px 20px;">
+                <div class="user-profile">
+                    <button class="back-btn" onclick="closeSharedCalList()"><i class="fas fa-chevron-left"></i></button>
+                    <span class="user-name">選擇共享行程對象</span>
+                </div>
+            </div>
+        </header>
+        <div style="flex: 1; display: flex; flex-direction: column; background: var(--bg-gray); overflow: hidden;">
+            
+            <div style="padding: 15px 20px 5px 20px;">
+                <button class="btn-modal btn-confirm" style="width: 100%; background: var(--ly-gold); box-shadow: 0 4px 10px rgba(207, 169, 0, 0.3); border: none;" onclick="enterShareSelection()">
+                    <i class="fas fa-share-square"></i> 分享我的行程給...
+                </button>
+            </div>
+
+            <div class="ps-search-header" style="padding: 10px 20px 15px 20px; background: transparent; border-bottom: 1px solid var(--border-color); flex-shrink: 0;">
+                <div class="picker-search-wrapper">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="sharedCalSearchInput" placeholder="搜尋群組或成員名稱..." oninput="filterSharedCalList()" style="background: white;">
+                </div>
+            </div>
+            
+            <div style="flex: 1; overflow-y: auto; padding: 20px; -webkit-overflow-scrolling: touch;">
+                <h4 style="color: var(--ly-blue); font-size: 0.95rem; margin: 0 0 10px 0; border-bottom: 2px solid var(--ly-gold); display: inline-block; padding-bottom: 4px;"><i class="fas fa-users"></i> 群組聊天</h4>
+                <div id="scGroupList" style="margin-bottom: 30px; display: flex; flex-direction: column; gap: 10px;"></div>
+
+                <h4 style="color: var(--ly-blue); font-size: 0.95rem; margin: 0 0 10px 0; border-bottom: 2px solid var(--ly-gold); display: inline-block; padding-bottom: 4px;"><i class="fas fa-user"></i> 個人聊天</h4>
+                <div id="scPersonalList" style="display: flex; flex-direction: column; gap: 10px; padding-bottom: 40px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="batchShareEventModal" class="modal-overlay" style="z-index: 7000;">
+        <div class="modal-card" style="max-width: 400px; max-height: 80dvh;">
+            <div class="modal-header" style="background: var(--ly-blue); color: white;">
+                <h3 style="margin:0;"><i class="fas fa-share-square"></i> 選擇要分享的行程</h3>
+                <span style="cursor:pointer;" onclick="closeModal('batchShareEventModal')">&times;</span>
+            </div>
+            <div class="modal-body" style="padding: 15px; background: #f8f9fa;">
+                <p style="font-size: 0.9rem; color: #666; margin-top: 0; margin-bottom: 15px;">請勾選您想要分享的行程：</p>
+                <div id="batchShareEventList" style="display: flex; flex-direction: column; gap: 10px;"></div>
+            </div>
+            <div class="modal-footer" style="background: white; border-top: 1px solid #eee;">
+                <button class="btn-modal btn-cancel" onclick="closeModal('batchShareEventModal')">取消</button>
+                <button class="btn-modal btn-confirm" style="background: var(--ly-gold); border: none;" onclick="nextBatchShareEvents()">下一步</button>
+            </div>
+        </div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
@@ -8911,25 +9345,35 @@
         if (!isCalPageSwiping) return;
         isCalPageSwiping = false;
         calendarViewDOM.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
-        if (calPageCurrentX > window.innerWidth / 3 || calPageCurrentX > 30) closeCalendarView();
-        else calendarViewDOM.style.transform = 'translateX(0%)';
+        
+        if (calPageCurrentX > window.innerWidth / 3 || calPageCurrentX > 30) {
+            // 【新增】：滑動返回時也觸發防呆攔截
+            if (!checkCalendarUnsavedEdits()) {
+                calendarViewDOM.style.transform = 'translateX(0%)'; // 放棄返回，彈回原位
+                calPageCurrentX = 0;
+                return;
+            }
+
+            if (isSharedCalMode) {
+                exitSharedCalMode();
+                calendarViewDOM.style.transform = 'translateX(0%)';
+            } else {
+                closeCalendarView();
+            }
+        } else {
+            calendarViewDOM.style.transform = 'translateX(0%)';
+        }
         calPageCurrentX = 0;
     });
 
-    // 2. 視窗控制與點擊標題切換層級
-    function openCalendarView() {
-        currentCalDate = new Date(); 
-        calMode = 'days';
-        document.querySelector('.calendar-weekdays').style.display = 'grid'; // 確保星期標題顯示
-        renderCalendar(currentCalDate);
-        calendarViewDOM.style.transform = 'translateX(0%)';
-    }
+
     
     function closeCalendarView() {
         calendarViewDOM.style.transform = 'translateX(100%)';
     }
 
     function toggleCalendarMode() {
+        if (!checkCalendarUnsavedEdits()) return; // 【新增】：防呆攔截
         if (calMode === 'days') {
             calMode = 'months';
             selectorYear = currentCalDate.getFullYear();
@@ -8940,46 +9384,7 @@
         }
     }
 
-    // 4. 渲染層級：月份選擇器 (Months)
-    function renderMonthSelector() {
-        document.getElementById('calendarTitle').innerHTML = `${selectorYear}年 <i class="fas fa-caret-down" style="font-size:0.8em; margin-left:2px; color:#aaa;"></i>`;
-        document.querySelector('.calendar-weekdays').style.display = 'none'; // 隱藏星期
-        
-        const calBody = document.getElementById('calendarBody');
-        calBody.className = ''; // 解除日期網格限制
-
-        let html = '<div class="cal-selector-grid">';
-        for (let i = 0; i < 12; i++) {
-            const isCurrent = (i === currentCalDate.getMonth() && selectorYear === currentCalDate.getFullYear()) ? 'current' : '';
-            html += `<div class="cal-selector-item ${isCurrent}" onclick="selectCalMonth(${i})">${i+1}月</div>`;
-        }
-        html += '</div>';
-        calBody.innerHTML = html;
-    }
-
-    function selectCalMonth(m) {
-        currentCalDate.setFullYear(selectorYear);
-        currentCalDate.setMonth(m);
-        calMode = 'days';
-        document.querySelector('.calendar-weekdays').style.display = 'grid';
-        renderCalendar(currentCalDate);
-    }
-
-    // 5. 渲染層級：年份選擇器 (Years)
-    function renderYearSelector() {
-        // 顯示 12 個年份區間
-        document.getElementById('calendarTitle').innerHTML = `${selectorYear - 4} - ${selectorYear + 7} <i class="fas fa-caret-down" style="font-size:0.8em; margin-left:2px; color:#aaa;"></i>`;
-        const calBody = document.getElementById('calendarBody');
-        calBody.className = ''; 
-
-        let html = '<div class="cal-selector-grid">';
-        for (let i = selectorYear - 4; i <= selectorYear + 7; i++) {
-            const isCurrent = (i === currentCalDate.getFullYear()) ? 'current' : '';
-            html += `<div class="cal-selector-item ${isCurrent}" onclick="selectCalYear(${i})">${i}</div>`;
-        }
-        html += '</div>';
-        calBody.innerHTML = html;
-    }
+    
 
     function selectCalYear(y) {
         selectorYear = y;
@@ -9004,13 +9409,21 @@
         }
         
         // 封裝產生網格的工具
+        // 封裝產生網格的工具 (自動包含星期列，達成 Apple Calendar 無縫感)
         const generateGrid = (y, m) => {
             const firstDayIndex = new Date(y, m, 1).getDay(); 
             const daysInMonth = new Date(y, m + 1, 0).getDate(); 
             const prevMonthDays = new Date(y, m, 0).getDate(); 
             const today = new Date();
             
-            let html = '';
+            // 【新增】：將星期列包裝進每一個滑動面板中
+            let html = `
+            <div class="calendar-weekdays">
+                <div class="sunday">日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div class="saturday">六</div>
+            </div>
+            <div class="calendar-grid">
+            `;
+            
             const generateDayHtml = (dy, dm, dd, isOtherMonth, isToday) => {
                 const targetDate = new Date(dy, dm - 1, dd);
                 const dayOfWeek = targetDate.getDay();
@@ -9034,15 +9447,20 @@
             for (let i = 1; i <= daysInMonth; i++) html += generateDayHtml(y, m + 1, i, false, (y === today.getFullYear() && m === today.getMonth() && i === today.getDate()));
             const rem = (firstDayIndex + daysInMonth) <= 35 ? 35 - (firstDayIndex + daysInMonth) : 42 - (firstDayIndex + daysInMonth);
             for (let i = 1; i <= rem; i++) html += generateDayHtml(m === 11 ? y + 1 : y, m === 11 ? 1 : m + 2, i, true, false);
+            
+            html += '</div>'; // 關閉 calendar-grid
             return html;
         };
 
-        // 一次畫出上個月、本月、下個月
+        // 確保 className 正確套用
         let prevD = new Date(year, month - 1, 1);
         let nextD = new Date(year, month + 1, 1);
         document.getElementById('calendarBodyPrev').innerHTML = generateGrid(prevD.getFullYear(), prevD.getMonth());
+        document.getElementById('calendarBodyPrev').className = 'calendar-panel'; 
         document.getElementById('calendarBody').innerHTML = generateGrid(year, month);
+        document.getElementById('calendarBody').className = 'calendar-panel'; 
         document.getElementById('calendarBodyNext').innerHTML = generateGrid(nextD.getFullYear(), nextD.getMonth());
+        document.getElementById('calendarBodyNext').className = 'calendar-panel';
 
         try {
             // 一次抓取跨三個月的行程範圍
@@ -9189,10 +9607,21 @@
         } catch(e) { console.error("標籤渲染失敗", e); }
     }
 
-    // 智慧型跨面板連續標籤繪圖引擎
+    // 智慧型跨面板連續標籤繪圖引擎 (單週置中演算法版)
     function drawCalendarTags() {
         document.querySelectorAll('.cal-tag-bar').forEach(e => e.remove());
-        const cellHtmlMap = {};
+        const slotMap = {}; 
+
+        // 1. 排序行程：開始日期早的優先；若同天開始，跨越多天的優先
+        currentMonthEvents.sort((a, b) => {
+            const aStart = new Date(a.start).getTime();
+            const bStart = new Date(b.start).getTime();
+            if (aStart !== bStart) return aStart - bStart;
+            
+            const aDuration = new Date(a.end).getTime() - aStart;
+            const bDuration = new Date(b.end).getTime() - bStart;
+            return bDuration - aDuration;
+        });
 
         currentMonthEvents.forEach(ev => {
             const sDate = new Date(ev.start); 
@@ -9200,39 +9629,89 @@
             
             const start = new Date(sDate.getFullYear(), sDate.getMonth(), sDate.getDate());
             const end = new Date(eDate.getFullYear(), eDate.getMonth(), eDate.getDate());
-
-            const isEncrypted = !!ev.isEncrypted;
-            let displayTitle = isEncrypted ? '<i class="fas fa-lock"></i> 加密行程' : escapeHtml(ev.title || '行程');
-            if (isSharedCalMode && ev._sharedFromName) displayTitle = `${escapeHtml(ev._sharedFromName)}: ${displayTitle}`;
-
+            
             const loopStart = start.getTime();
             const loopEnd = end.getTime();
-            
+
+            const cellDates = [];
             for (let d = new Date(start); d.getTime() <= loopEnd; d.setDate(d.getDate() + 1)) {
-                const y = d.getFullYear(); const m = d.getMonth() + 1; const dateNum = d.getDate();
-                const cellId = `cal-cell-${y}-${m}-${dateNum}`;
+                cellDates.push(new Date(d));
+            }
+
+            // ==========================================
+            // 【新增】：計算每週文字置中的 Index 演算法
+            // ==========================================
+            const textIndices = new Set();
+            let currentSegment = [];
+            
+            for (let i = 0; i < cellDates.length; i++) {
+                currentSegment.push(i);
+                // 如果遇到星期六 (該列的最後一天) 或是行程的最後一天，就進行結算
+                if (cellDates[i].getDay() === 6 || i === cellDates.length - 1) {
+                    // 取該段落陣列的中間值 Index
+                    const midIndex = currentSegment[Math.floor(currentSegment.length / 2)];
+                    textIndices.add(midIndex);
+                    currentSegment = []; // 清空，準備計算下一週
+                }
+            }
+
+            // 2. 尋找這些天中共同的「最小空槽位 (Target Slot)」
+            let targetSlot = 0;
+            while (true) {
+                let isSlotFree = true;
+                for (const d of cellDates) {
+                    const cid = `cal-cell-${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+                    if (slotMap[cid] && slotMap[cid][targetSlot]) {
+                        isSlotFree = false;
+                        break;
+                    }
+                }
+                if (isSlotFree) break;
+                targetSlot++;
+            }
+
+            // 3. 準備標籤內容並填入對應的槽位
+            const isEncrypted = !!ev.isEncrypted;
+            let displayTitle = isEncrypted ? '<i class="fas fa-lock"></i> 加密' : escapeHtml(ev.title || '行程');
+            if (isSharedCalMode && ev._sharedFromName) displayTitle = `${escapeHtml(ev._sharedFromName)}: ${displayTitle}`;
+
+            for (let i = 0; i < cellDates.length; i++) {
+                const d = cellDates[i];
+                const cid = `cal-cell-${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+                if (!slotMap[cid]) slotMap[cid] = [];
                 
                 let positionClass = 'cal-tag-single';
-                if (loopStart !== loopEnd) {
-                    if (d.getTime() === loopStart) positionClass = 'cal-tag-start';
-                    else if (d.getTime() === loopEnd) positionClass = 'cal-tag-end';
+                if (cellDates.length > 1) {
+                    if (i === 0) positionClass = 'cal-tag-start';
+                    else if (i === cellDates.length - 1) positionClass = 'cal-tag-end';
                     else positionClass = 'cal-tag-mid';
                 }
 
-                const showText = (d.getTime() === loopStart || d.getDay() === 0 || dateNum === 1);
+                // 【修改】：使用算好的置中 Index 決定是否顯示文字
+                const showText = textIndices.has(i);
                 const text = showText ? displayTitle : '&nbsp;';
 
-                if (!cellHtmlMap[cellId]) cellHtmlMap[cellId] = [];
-                cellHtmlMap[cellId].push(`<div class="cal-tag-bar ${positionClass} cal-tag-hide" style="background: ${ev.color || '#5ba4d6'};">${text}</div>`);
+                slotMap[cid][targetSlot] = `<div class="cal-tag-bar ${positionClass} cal-tag-hide" style="background: ${ev.color || '#5ba4d6'};">${text}</div>`;
             }
         });
 
-        // 【關鍵修復】：尋找所有面板上相同 ID 的格子，一次全部塞入標籤
-        for (const [cellId, tags] of Object.entries(cellHtmlMap)) {
-            const cells = document.querySelectorAll(`#${cellId}`);
+        // 4. 將計算好的槽位渲染到畫面上
+        for (const [cellId, slots] of Object.entries(slotMap)) {
+            const cells = document.querySelectorAll(`[id="${cellId}"]`);
             cells.forEach(cell => {
-                cell.insertAdjacentHTML('beforeend', tags.join(''));
-                setTimeout(() => { cell.querySelectorAll('.cal-tag-bar').forEach(tag => tag.classList.remove('cal-tag-hide')); }, 50);
+                let html = '';
+                for (let i = 0; i < slots.length; i++) {
+                    if (slots[i]) {
+                        html += slots[i];
+                    } else {
+                        html += `<div class="cal-tag-bar cal-tag-hide" style="background: transparent; color: transparent; pointer-events: none;">&nbsp;</div>`;
+                    }
+                }
+                cell.insertAdjacentHTML('beforeend', html);
+                
+                setTimeout(() => { 
+                    cell.querySelectorAll('.cal-tag-bar').forEach(tag => tag.classList.remove('cal-tag-hide')); 
+                }, 50);
             });
         }
     }
@@ -9240,68 +9719,322 @@
     // ==========================================
     // 橫向滑軌無縫滑動引擎 (Seamless Slider Engine)
     // ==========================================
+    // ==========================================
+    // 橫向滑軌無縫滑動引擎 (Seamless Slider Engine) - 雙棲版
+    // ==========================================
     const sliderTrack = document.getElementById('calendarSliderTrack');
     let calStartX = 0, calCurrentX = 0, isCalSwiping = false, isCalScrolling = false, calStartY = 0;
 
-    sliderTrack.addEventListener('touchstart', (e) => {
-        if (e.touches[0].clientX < 40) return; // 避開邊緣返回手勢
-        calStartX = e.touches[0].clientX;
-        calStartY = e.touches[0].clientY;
-        isCalSwiping = true;
-        isCalScrolling = false;
-        sliderTrack.style.transition = 'none';
-    }, { passive: true });
+    // 統一處理「開始滑動/拖曳」
+    // ==========================================
+    // 無縫滿版滑動行事曆 (Intersection Observer 版)
+    // ==========================================
+    let calObserver = null;
+    const CAL_RANGE = 12; // 一次預載前後 12 個月 (共 25 個月)，確保滑動無縫
 
-    sliderTrack.addEventListener('touchmove', (e) => {
-        if (!isCalSwiping) return;
-        const diffX = e.touches[0].clientX - calStartX;
-        const diffY = e.touches[0].clientY - calStartY;
+    // 1. 初始化進入行事曆 (加入容器復原機制)
+    function openCalendarView() {
+        currentCalDate = new Date(); 
+        calMode = 'days';
+        document.getElementById('calendarWeekdays').style.display = 'grid'; 
+        calendarViewDOM.style.transform = 'translateX(0%)';
+        
+        const container = document.getElementById('calendarScrollContainer');
+        // 確保進入行事曆時，容器是【橫向滑動】狀態
+        container.style.display = 'flex'; 
+        container.style.overflowY = 'hidden'; 
+        container.style.overflowX = 'auto';
+        container.style.scrollSnapType = 'x mandatory';
+        
+        initNativeScrollCalendar(currentCalDate);
+    }
 
-        // 判斷是否為上下捲動意圖
-        if (!isCalScrolling && Math.abs(diffY) > Math.abs(diffX)) {
-            isCalScrolling = true; isCalSwiping = false;
-            sliderTrack.style.transform = `translateX(-33.3333%)`;
-            return;
+    // ==========================================
+    // 全域防呆：未儲存/編輯中 狀態攔截引擎
+    // ==========================================
+    window.selectedShareDates = []; // 全域變數：紀錄選中要分享的日期
+    // ==========================================
+    // 全域防呆：未儲存/編輯中 狀態攔截引擎 (終極防護版)
+    // ==========================================
+    function checkCalendarUnsavedEdits() {
+        // 1. 檢查快速標籤
+        if (typeof isQuickTagMode !== 'undefined' && isQuickTagMode) {
+            // 如果有選取日期，跳出警告
+            if (selectedQuickDates && selectedQuickDates.length > 0) {
+                if (!confirm("⚠️ 您的「快速標籤」尚未新增或刪除！\n\n確定要放棄選取並離開嗎？")) return false;
+            }
+            
+            // 【終極修復】：強制將所有狀態歸零，隱藏底列並拔除網格上的所有虛線/顏色
+            isQuickTagMode = false;
+            selectedQuickDates = [];
+            const qActionBar = document.getElementById('quickTagActionBar');
+            const qBtn = document.getElementById('quickTagBtn');
+            if (qActionBar) qActionBar.style.display = 'none';
+            if (qBtn) qBtn.style.color = 'white';
+            
+            document.querySelectorAll('.calendar-day').forEach(d => {
+                d.classList.remove('quick-selectable', 'quick-selected', 'quick-delete-target');
+            });
         }
-
-        if (!isCalScrolling) {
-            if (e.cancelable) e.preventDefault();
-            calCurrentX = diffX;
-            sliderTrack.style.transform = `translateX(calc(-33.3333% + ${calCurrentX}px))`;
+        
+        // 2. 檢查分享行程選擇
+        if (typeof isShareSelectMode !== 'undefined' && window.isShareSelectMode) {
+            // 如果有選取日期，跳出警告
+            if (window.selectedShareDates && window.selectedShareDates.length > 0) {
+                if (!confirm("⚠️ 您已選取了分享日期，但尚未送出！\n\n確定要放棄並離開嗎？")) return false;
+            }
+            
+            // 【終極修復】：強制將分享選擇狀態歸零
+            window.isShareSelectMode = false;
+            window.selectedShareDates = [];
+            const sActionBar = document.getElementById('shareSelectActionBar');
+            if (sActionBar) sActionBar.style.display = 'none';
+            
+            document.querySelectorAll('.calendar-day').forEach(d => {
+                d.classList.remove('share-selected');
+            });
         }
-    }, { passive: false });
+        
+        return true; // 安全，允許切換功能
+    }
 
-    sliderTrack.addEventListener('touchend', (e) => {
-        if (!isCalSwiping || isCalScrolling) return;
-        isCalSwiping = false;
+    function closeCalendarView() {
+        if (!checkCalendarUnsavedEdits()) return; // 防呆攔截
+        calendarViewDOM.style.transform = 'translateX(100%)';
+    }
+
+    // 2. 渲染月份選擇器
+    function renderMonthSelector() {
+        document.getElementById('calendarTitle').innerHTML = `${selectorYear}年 <i class="fas fa-caret-down" style="font-size:0.8em; margin-left:2px; color:#aaa;"></i>`;
+        document.getElementById('calendarWeekdays').style.display = 'none'; // 隱藏星期
         
-        sliderTrack.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
+        const container = document.getElementById('calendarScrollContainer');
         
-        if (calCurrentX > 60) {
-            // 右滑 -> 看上個月
-            sliderTrack.style.transform = `translateX(0%)`;
-            setTimeout(() => { shiftCalendar(-1); }, 300);
-        } else if (calCurrentX < -60) {
-            // 左滑 -> 看下個月
-            sliderTrack.style.transform = `translateX(-66.6666%)`;
-            setTimeout(() => { shiftCalendar(1); }, 300);
-        } else {
-            // 彈回原位
-            sliderTrack.style.transform = `translateX(-33.3333%)`;
+        // 【關鍵修復】：暫時將容器改為【直向捲動】，解除橫向限制
+        container.style.display = 'block'; 
+        container.style.overflowY = 'auto'; 
+        container.style.overflowX = 'hidden';
+        container.style.scrollSnapType = 'none';
+
+        let html = '<div class="cal-selector-grid">';
+        for (let i = 0; i < 12; i++) {
+            const isCurrent = (i === currentCalDate.getMonth() && selectorYear === currentCalDate.getFullYear()) ? 'current' : '';
+            html += `<div class="cal-selector-item ${isCurrent}" onclick="selectCalMonth(${i})">${i+1}月</div>`;
         }
-        calCurrentX = 0;
-    });
+        html += '</div>';
+        container.innerHTML = html;
+    }
 
-    function shiftCalendar(delta) {
-        currentCalDate.setMonth(currentCalDate.getMonth() + delta);
-        selectorYear = currentCalDate.getFullYear(); // 同步頂部年份選擇器狀態
+    // 3. 渲染年份選擇器 (超大範圍 + 自動對焦)
+    function renderYearSelector() {
+        document.getElementById('calendarTitle').innerHTML = `選擇年份 <i class="fas fa-caret-down" style="font-size:0.8em; margin-left:2px; color:#aaa;"></i>`;
+        const container = document.getElementById('calendarScrollContainer');
+
+        // 切換為【直向捲動】模式
+        container.style.display = 'block'; 
+        container.style.overflowY = 'auto'; 
+        container.style.overflowX = 'hidden';
+        container.style.scrollSnapType = 'none';
+
+        let html = '<div class="cal-selector-grid">';
         
-        // 瞬間把軌道拉回中間
-        sliderTrack.style.transition = 'none';
-        sliderTrack.style.transform = `translateX(-33.3333%)`;
+        // 產生從 1970 到 2050 的大範圍年份
+        for (let i = 1970; i <= 2050; i++) {
+            const isCurrent = (i === selectorYear) ? 'current' : '';
+            html += `<div class="cal-selector-item ${isCurrent}" id="year-item-${i}" onclick="selectCalYear(${i})">${i}</div>`;
+        }
+        html += '</div>';
+        container.innerHTML = html;
         
-        // 重新繪製三個面板
-        renderCalendar(currentCalDate);
+        // 渲染完畢後，瞬間自動捲動到目前的年份位置
+        setTimeout(() => {
+            const target = document.getElementById(`year-item-${selectorYear}`);
+            if (target) {
+                target.scrollIntoView({ behavior: 'auto', block: 'center' });
+            }
+        }, 0);
+    }
+
+    // 4. 點擊月份後，返回網格視圖
+    function selectCalMonth(m) {
+        currentCalDate.setFullYear(selectorYear);
+        currentCalDate.setMonth(m);
+        calMode = 'days';
+        document.getElementById('calendarWeekdays').style.display = 'grid';
+        
+        const container = document.getElementById('calendarScrollContainer');
+        
+        // 【關鍵修復】：恢復【橫向原生滑動】模式
+        container.style.display = 'flex'; 
+        container.style.overflowY = 'hidden'; 
+        container.style.overflowX = 'auto';
+        container.style.scrollSnapType = 'x mandatory';
+
+        initNativeScrollCalendar(currentCalDate); // 重新初始化滑動網格
+    }
+
+    // 2. 建立滑動軌道與監聽器
+    function initNativeScrollCalendar(centerDate) {
+        const container = document.getElementById('calendarScrollContainer');
+        const centerYear = centerDate.getFullYear();
+        const centerMonth = centerDate.getMonth();
+        
+        // 產生 25 個月的 DOM (-12 ~ +12)
+        let html = '';
+        for (let i = -CAL_RANGE; i <= CAL_RANGE; i++) {
+            const d = new Date(centerYear, centerMonth + i, 1);
+            html += generateMonthHTML(d.getFullYear(), d.getMonth());
+        }
+        container.innerHTML = html;
+
+        // 設定 Intersection Observer 監聽「目前哪個月份滑進了畫面中心」
+        if (calObserver) calObserver.disconnect();
+        calObserver = new IntersectionObserver((entries) => {
+            entries.forEach(async entry => {
+                if (entry.isIntersecting) {
+                    const y = parseInt(entry.target.dataset.year);
+                    const m = parseInt(entry.target.dataset.month);
+                    const titleStr = `${y}年 ${m + 1}月 <i class="fas fa-caret-down" style="font-size:0.8em; margin-left:2px; color:#aaa;"></i>`;
+                    
+                    // 更新頂部標題
+                    if (!isSharedCalMode) {
+                        document.getElementById('calendarTitle').innerHTML = titleStr;
+                    } else {
+                        document.getElementById('calendarTitle').innerHTML = `${y}年 ${m + 1}月 <span style="font-size:0.75rem; background:var(--ly-gold); color:white; padding:2px 6px; border-radius:10px; margin-left:6px;">共享</span>`;
+                        
+                        // 【新增】：同步更新覆蓋層上的月份
+                        const overlayMonth = document.getElementById('mainCalSharedMonth');
+                        if (overlayMonth) overlayMonth.innerHTML = titleStr;
+                    }
+                    
+                    currentCalDate = new Date(y, m, 1);
+                    await fetchAndRenderEvents(y, m);
+                }
+            });
+        }, { root: container, threshold: 0.5 }); // 當該月份區塊有 50% 進入畫面時觸發
+
+        // 開始觀察所有月份面板
+        document.querySelectorAll('.calendar-month-panel').forEach(panel => calObserver.observe(panel));
+
+        // 瞬間移動到正中央 (當前月份)
+        container.style.scrollBehavior = 'auto'; 
+        setTimeout(() => {
+            const panelWidth = container.clientWidth;
+            container.scrollLeft = panelWidth * CAL_RANGE;
+            container.style.scrollBehavior = 'smooth'; // 恢復平滑滾動供使用者操作
+        }, 0);
+    }
+
+    // 3. 產生單一月份的 HTML 結構
+    function generateMonthHTML(y, m) {
+        const firstDayIndex = new Date(y, m, 1).getDay(); 
+        const daysInMonth = new Date(y, m + 1, 0).getDate(); 
+        const prevMonthDays = new Date(y, m, 0).getDate(); 
+        const today = new Date();
+        
+        let html = `<div class="calendar-month-panel" data-year="${y}" data-month="${m}"><div class="calendar-grid">`;
+        
+        const generateDayHtml = (dy, dm, dd, isOtherMonth, isToday) => {
+            const targetDate = new Date(dy, dm - 1, dd);
+            const dayOfWeek = targetDate.getDay();
+            let dayClass = 'day-num-text' + (dayOfWeek === 0 ? ' sunday' : '') + (dayOfWeek === 6 ? ' saturday' : '');
+
+            let lunarText = "";
+            if (typeof Lunar !== 'undefined') {
+                const lunar = Lunar.fromDate(targetDate);
+                lunarText = lunar.getDay() === 1 ? `${lunar.getMonthInChinese()}月` : lunar.getDayInChinese();
+            }
+            
+            // 【防呆關鍵】：非本月的灰色日期，給予亂數 ID 避免畫出重複的行程標籤
+            const cellId = `cal-cell-${dy}-${dm}-${dd}`;
+            
+            return `
+            <div class="calendar-day ${isToday ? 'today' : ''} ${isOtherMonth ? 'other-month' : ''}" id="${cellId}" onclick="handleDayClick(${dy}, ${dm}, ${dd}, this)">
+                <div class="${dayClass}">${dd}</div>
+                <div class="lunar-text">${lunarText}</div>
+            </div>`;
+        };
+
+        for (let i = firstDayIndex; i > 0; i--) html += generateDayHtml(m === 0 ? y - 1 : y, m === 0 ? 12 : m, prevMonthDays - i + 1, true, false);
+        for (let i = 1; i <= daysInMonth; i++) html += generateDayHtml(y, m + 1, i, false, (y === today.getFullYear() && m === today.getMonth() && i === today.getDate()));
+        const rem = (firstDayIndex + daysInMonth) <= 35 ? 35 - (firstDayIndex + daysInMonth) : 42 - (firstDayIndex + daysInMonth);
+        for (let i = 1; i <= rem; i++) html += generateDayHtml(m === 11 ? y + 1 : y, m === 11 ? 1 : m + 2, i, true, false);
+        
+        return html + '</div></div>';
+    }
+
+    // 4. 動態抓取資料與畫標籤
+    // 4. 動態抓取資料與畫標籤
+    async function fetchAndRenderEvents(year, month) {
+        const startFetchDate = new Date(year, month - 1, 1);
+        const endFetchDate = new Date(year, month + 2, 0); 
+        
+        const startOfMonthStr = `${startFetchDate.getFullYear()}-${String(startFetchDate.getMonth()+1).padStart(2,'0')}-01T00:00`;
+        const endOfMonthStr = `${endFetchDate.getFullYear()}-${String(endFetchDate.getMonth()+1).padStart(2,'0')}-${String(endFetchDate.getDate()).padStart(2,'0')}T23:59`;
+        
+        currentMonthEvents = [];
+        let myName = document.getElementById('myName').innerText.trim() || auth.currentUser?.displayName || "未知";
+
+        try {
+            if (!isSharedCalMode) {
+                // 【個人模式】：只抓自己的
+                const snap = await db.collection("Calendar_page").doc("calendar").collection(myName).where("creatorUid", "==", auth.currentUser.uid).get();
+                snap.forEach(doc => {
+                    const data = doc.data();
+                    if (data.end >= startOfMonthStr && data.start <= endOfMonthStr) currentMonthEvents.push({ id: doc.id, ...data });
+                });
+            } else {
+                let targetUIDs = [];
+                let isGroupQuery = false;
+                let queryTag = "";
+
+                if (sharedCalTargetData) {
+                    if (sharedCalTargetData.type === 'group') {
+                        targetUIDs = sharedCalTargetData.members;
+                        isGroupQuery = true;
+                        queryTag = "GROUP_" + sharedCalTargetData.id;
+                    } else {
+                        targetUIDs = [sharedCalTargetData.id, auth.currentUser.uid];
+                        queryTag = auth.currentUser.uid;
+                    }
+                } else {
+                    targetUIDs = window.currentGroupMembers || [];
+                    if (window.isCurrentChatGroup) {
+                        isGroupQuery = true;
+                        queryTag = "GROUP_" + currentChatId;
+                    } else {
+                        queryTag = auth.currentUser.uid;
+                    }
+                }
+
+                // 1. 抓取目標名單中，別人分享給我們(或群組)的行程
+                const promises = targetUIDs.map(async uid => {
+                    if (uid === auth.currentUser.uid) return; 
+                    const memberName = window.chatMembersCache[uid]?.displayName;
+                    if (!memberName) return;
+                    // 【關鍵】：改用精準的 queryTag (GROUP_xxx 或 UID) 進行搜尋
+                    const snap = await db.collection("Calendar_page").doc("calendar").collection(memberName).where("sharedWith", "array-contains", queryTag).get();
+                    snap.forEach(doc => {
+                        const data = doc.data();
+                        if (data.end >= startOfMonthStr && data.start <= endOfMonthStr) currentMonthEvents.push({ id: doc.id, ...data, _sharedFromName: memberName });
+                    });
+                });
+                await Promise.all(promises);
+
+                // 2. 抓取「我分享給他們(或群組)的行程」
+                let myQueryTag = isGroupQuery ? queryTag : (sharedCalTargetData ? sharedCalTargetData.id : targetUIDs.find(u => u !== auth.currentUser.uid));
+                if (myQueryTag) {
+                    const mySnap = await db.collection("Calendar_page").doc("calendar").collection(myName).where("sharedWith", "array-contains", myQueryTag).get();
+                    mySnap.forEach(doc => {
+                        const data = doc.data();
+                        if (data.end >= startOfMonthStr && data.start <= endOfMonthStr) {
+                            currentMonthEvents.push({ id: doc.id, ...data, _sharedFromName: "我分享的" });
+                        }
+                    });
+                }
+            }
+            drawCalendarTags();
+        } catch(e) { console.error("載入行程失敗", e); }
     }
 
     // ==========================================
@@ -9317,15 +10050,7 @@
     // ==========================================
     let isSharedCalMode = false;
 
-    
-
-    // 刪除原本的 closeSharedCalendarList() 和 openSharedUserEvents()
-
-    function openShareMyCalMode() {
-        alert("分享行程選擇器即將開放！\n此功能將允許您勾選特定標籤或行程，打包發送至指定群組。");
-    }
-
-    // 2. 快速標籤模式 (Multi-select)
+    // 快速標籤模式 (Multi-select)
     function toggleQuickTagMode() {
         isQuickTagMode = !isQuickTagMode;
         selectedQuickDates = [];
@@ -9336,43 +10061,238 @@
 
         if (isQuickTagMode) {
             actionBar.style.display = 'flex';
-            btn.style.color = '#d93025'; // 變紅色提示正在模式中
+            btn.style.color = 'var(--ly-gold)'; 
+
+            const quickTagDateIds = new Set();
+            currentMonthEvents.forEach(ev => {
+                const isOldQuickTag = ev.isAllDay && !ev.note && !ev.location && !ev.url && !ev.isEncrypted;
+                if (ev.isQuickTag || isOldQuickTag) {
+                    if (ev.start) {
+                        const [y, m, d] = ev.start.substring(0, 10).split('-');
+                        quickTagDateIds.add(`cal-cell-${parseInt(y, 10)}-${parseInt(m, 10)}-${parseInt(d, 10)}`);
+                    }
+                }
+            });
+
             days.forEach(d => {
                 d.classList.add('quick-selectable');
-                // 檢查是否已有標籤，讓它浮起來準備被刪除
-                if (d.querySelector('.cal-tag-bar')) d.classList.add('quick-delete-target');
+                if (quickTagDateIds.has(d.id)) {
+                    d.classList.add('quick-delete-target');
+                }
             });
         } else {
             actionBar.style.display = 'none';
-            btn.style.color = 'var(--ly-gold)';
+            btn.style.color = 'white'; 
             days.forEach(d => {
+                // 【修改】：關閉時，一次移除所有狀態，保持乾淨
                 d.classList.remove('quick-selectable', 'quick-selected', 'quick-delete-target');
             });
         }
     }
+    
+    // ==========================================
+    // 點擊日曆選擇分享行程模式引擎
+    // ==========================================
+    window.isShareSelectMode = false;
+    window.batchSelectedEventIds = [];
 
+    // 進入分享選擇模式 (開啟底部工具列)
+    function enterShareSelection() {
+        closeSharedCalList();
+        window.isShareSelectMode = true;
+        window.selectedShareDates = [];
+        
+        document.getElementById('shareSelectActionBar').style.display = 'flex';
+
+        // 確保處於個人檢視模式，才能選自己的行程
+        if (isSharedCalMode) {
+            exitSharedCalMode();
+        }
+    }
+
+    // 攔截並替換日曆點擊事件 (支援雙模式多選)
     function handleDayClick(year, month, day, el) {
+        const dateStr = `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+        
         if (isQuickTagMode) {
-            // 快速標籤選取邏輯
-            const dateStr = `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
             if (selectedQuickDates.includes(dateStr)) {
                 selectedQuickDates = selectedQuickDates.filter(d => d !== dateStr);
                 el.classList.remove('quick-selected');
             } else {
-                selectedQuickDates.push(dateStr);
-                el.classList.add('quick-selected');
+                selectedQuickDates.push(dateStr); el.classList.add('quick-selected');
+            }
+        } else if (window.isShareSelectMode) {
+            // 【新增】：分享模式的多選邏輯
+            if (window.selectedShareDates.includes(dateStr)) {
+                window.selectedShareDates = window.selectedShareDates.filter(d => d !== dateStr);
+                el.classList.remove('share-selected');
+            } else {
+                window.selectedShareDates.push(dateStr); el.classList.add('share-selected');
             }
         } else {
-            // 原本的單日行程邏輯
             openDaySchedule(year, month, day);
         }
     }
 
+    // 取消分享選擇
+    function cancelShareSelection() {
+        window.isShareSelectMode = false;
+        window.selectedShareDates = [];
+        document.getElementById('shareSelectActionBar').style.display = 'none';
+        document.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('share-selected'));
+    }
+
+    // 確定選取日期，一次撈出「多天」的行程進入勾選 Modal
+    async function confirmShareDates() {
+        if (window.selectedShareDates.length === 0) return alert("請至少點選一天！");
+
+        const listEl = document.getElementById('batchShareEventList');
+        listEl.innerHTML = '<div style="text-align:center;"><i class="fas fa-spinner fa-spin"></i> 讀取多日行程中...</div>';
+        openModal('batchShareEventModal');
+
+        try {
+            let myName = document.getElementById('myName').innerText.trim();
+            if (!myName || myName === "載入中...") myName = auth.currentUser.displayName;
+            const uid = auth.currentUser.uid;
+            
+            // 抓取個人資料庫的所有行程 (這裡簡化為全抓後前端過濾，因為多個日期用 where 查詢較複雜)
+            const snap = await db.collection("Calendar_page").doc("calendar").collection(myName).where("creatorUid", "==", uid).get();
+            
+            let multiDayEvents = [];
+            let uniqueEventIds = new Set(); // 用來防止跨日行程被重複加入
+
+            snap.forEach(doc => {
+                const ev = doc.data();
+                const evStart = new Date(ev.start).getTime();
+                const evEnd = new Date(ev.end).getTime();
+
+                // 檢查這個行程是否跟「我們選取的任何一天」有交集
+                window.selectedShareDates.forEach(dateStr => {
+                    const [y, m, d] = dateStr.split('-');
+                    const startOfDay = new Date(y, m - 1, d, 0, 0, 0).getTime();
+                    const endOfDay = new Date(y, m - 1, d, 23, 59, 59).getTime();
+
+                    if (evStart <= endOfDay && evEnd >= startOfDay) {
+                        if (!uniqueEventIds.has(doc.id)) {
+                            uniqueEventIds.add(doc.id);
+                            multiDayEvents.push({ id: doc.id, ...ev });
+                        }
+                    }
+                });
+            });
+
+            if (multiDayEvents.length === 0) {
+                listEl.innerHTML = '<div style="text-align:center; color:#999; padding: 20px;">您選取的日期範圍內沒有個人行程。</div>';
+                document.querySelector('#batchShareEventModal .btn-confirm').style.display = 'none';
+                return;
+            }
+
+            // 依時間排序
+            multiDayEvents.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+
+            document.querySelector('#batchShareEventModal .btn-confirm').style.display = 'block';
+            let html = '';
+            multiDayEvents.forEach(ev => {
+                const timeDisplay = ev.isAllDay ? '全天' : `${ev.start.substring(5,16).replace('T', ' ')} ~ ${ev.end.substring(11,16)}`;
+                html += `
+                <label class="batch-share-label" style="display:flex; align-items:center; gap:10px; background:white; padding:12px; border-radius:8px; border:1px solid #ddd; cursor:pointer;">
+                    <input type="checkbox" class="batch-share-cb" value="${ev.id}" checked style="width:18px; height:18px; accent-color: var(--ly-gold);">
+                    <div style="flex:1; min-width:0;">
+                        <div class="batch-share-title" style="font-weight:bold; color:var(--ly-blue); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(ev.title || '個人行程')}</div>
+                        <div class="batch-share-time" style="font-size:0.8rem; color:#888;"><i class="far fa-clock"></i> ${timeDisplay}</div>
+                    </div>
+                </label>
+                `;
+            });
+            listEl.innerHTML = html;
+            
+            // 撈取完成後，正式關閉底部的選擇模式
+            cancelShareSelection();
+            
+        } catch(e) {
+            listEl.innerHTML = '讀取失敗';
+        }
+    }
+
+    // 勾選完畢後，切換到選人視窗
+    function nextBatchShareEvents() {
+        const checkedBoxes = document.querySelectorAll('.batch-share-cb:checked');
+        if (checkedBoxes.length === 0) return alert("請至少勾選一個行程！");
+        
+        window.batchSelectedEventIds = Array.from(checkedBoxes).map(cb => cb.value);
+        closeModal('batchShareEventModal');
+        openEventMemberPicker('batch_share');
+    }
+
+    // ==========================================
+    // 攔截並擴充成員選擇器 (支援 batch_share 模式)
+    // ==========================================
+    const originalOpenEventMemberPickerPatch3 = openEventMemberPicker;
+    openEventMemberPicker = async function(mode) {
+        if (mode === 'batch_share') {
+            evPickerMode = 'batch_share';
+            document.getElementById('evPickerTitle').innerHTML = '<i class="fas fa-share-square"></i> 選擇分享對象';
+            evTempSelectedUIDs = [];
+            const grid = document.getElementById('ev-picker-grid');
+            grid.innerHTML = '<div style="text-align:center; padding:20px;"><i class="fas fa-spinner fa-spin"></i></div>';
+            openModal('eventMemberPickerModal');
+            try {
+                const snap = await db.collection("act").get();
+                let users = [];
+                snap.forEach(doc => { if (doc.id !== auth.currentUser.uid) users.push({ id: doc.id, ...doc.data() }); });
+                users.sort((a, b) => getMemberSortIndex(a.displayName) - getMemberSortIndex(b.displayName));
+                let html = '';
+                users.forEach(d => {
+                    html += `<label class="user-select-item"><input type="checkbox" value="${d.id}" class="ev-member-checkbox" onchange="toggleEvTempMember(this)"><div class="user-select-card"><img src="${d.photoURL || 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true'}"><span class="ev-picker-name">${d.displayName || '未知'}</span></div></label>`;
+                });
+                grid.innerHTML = html;
+            } catch(e) {}
+        } else {
+            originalOpenEventMemberPickerPatch3(mode);
+        }
+    };
+
+    const originalSaveEventSelectedMembersPatch3 = saveEventSelectedMembers;
+    saveEventSelectedMembers = async function() {
+        if (evPickerMode === 'batch_share') {
+            const uidsToShare = [...evTempSelectedUIDs];
+            if (uidsToShare.length === 0) return alert("請選擇至少一位成員！");
+            
+            const btn = document.querySelector('#eventMemberPickerModal .btn-confirm');
+            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 分享中...';
+            
+            try {
+                let myName = document.getElementById('myName').innerText.trim();
+                if (myName === '載入中...' || !myName) myName = auth.currentUser.displayName;
+                
+                const colRef = db.collection("Calendar_page").doc("calendar").collection(myName);
+                const batch = db.batch();
+                
+                window.batchSelectedEventIds.forEach(eid => {
+                    batch.update(colRef.doc(eid), { 
+                        sharedWith: firebase.firestore.FieldValue.arrayUnion(...uidsToShare),
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                });
+                await batch.commit();
+                alert("✅ 成功將行程分享給指定成員！");
+                closeModal('eventMemberPickerModal');
+                fetchAndRenderEvents(currentCalDate.getFullYear(), currentCalDate.getMonth());
+            } catch(e) {
+                alert("分享失敗：" + e.message);
+            } finally {
+                btn.disabled = false; btn.innerHTML = '確認勾選';
+            }
+        } else {
+            originalSaveEventSelectedMembersPatch3();
+        }
+    };
+
     async function applyQuickTags() {
         if (selectedQuickDates.length === 0) return alert('請先點擊月曆選取日期！');
         
-        const selector = document.getElementById('quickTagSelector').value;
-        const [title, color] = selector.split(', ');
+        const selectorVal = document.getElementById('quickTagVal').value;
+        const [title, color] = selectorVal.split(', ');
         
         if (!confirm(`確定要將選取的 ${selectedQuickDates.length} 天加入「${title}」標籤嗎？`)) return;
 
@@ -9385,32 +10305,28 @@
             selectedQuickDates.forEach(dateStr => {
                 const newDoc = colRef.doc();
                 batch.set(newDoc, {
-                    title: title,
-                    color: color,
-                    isAllDay: true,
-                    start: `${dateStr}T00:00`,
-                    end: `${dateStr}T23:59`,
-                    creatorUid: auth.currentUser.uid,
-                    creatorName: myName,
+                    title: title, color: color, isAllDay: true,
+                    start: `${dateStr}T00:00`, end: `${dateStr}T23:59`,
+                    creatorUid: auth.currentUser.uid, creatorName: myName,
+                    isQuickTag: true, // 【新增】：加入快速標籤的專屬身分證
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
             });
 
             await batch.commit();
-            toggleQuickTagMode(); // 關閉模式
-            renderCalendar(currentCalDate); // 重新讀取渲染
+            toggleQuickTagMode(); 
+            fetchAndRenderEvents(currentCalDate.getFullYear(), currentCalDate.getMonth());
         } catch (e) { alert('新增失敗：' + e.message); }
     }
 
     async function deleteQuickTags() {
         if (selectedQuickDates.length === 0) return alert('請先選取要刪除標籤的日期！');
-        if (!confirm(`確定要刪除這 ${selectedQuickDates.length} 天的所有標籤與行程嗎？`)) return;
+        if (!confirm(`確定要刪除這 ${selectedQuickDates.length} 天的「快速標籤」嗎？\n(手動建立的詳細行程不會被誤刪)`)) return;
 
         try {
             let myName = document.getElementById('myName').innerText.trim();
             if (!myName || myName === "載入中...") myName = auth.currentUser.displayName || "未命名成員";
             
-            // 一次性把個人行事曆抓下來進行比對過濾
             const snap = await db.collection('Calendar_page').doc('calendar').collection(myName)
                 .where("creatorUid", "==", auth.currentUser.uid).get();
             
@@ -9419,8 +10335,11 @@
 
             snap.forEach(doc => {
                 const data = doc.data();
-                // 檢查該行程的 start 欄位 (前 10 碼 YYYY-MM-DD) 是否在我們選取的日期清單中
-                if (data.start && selectedQuickDates.includes(data.start.substring(0, 10))) {
+                // 【修復防呆】：只刪除帶有 isQuickTag 標記，或是早期沒有備註與地點的舊版純標籤
+                const isOldQuickTag = data.isAllDay && !data.note && !data.location && !data.url && !data.isEncrypted;
+                const isTargetTag = data.isQuickTag || isOldQuickTag;
+
+                if (data.start && selectedQuickDates.includes(data.start.substring(0, 10)) && isTargetTag) {
                     batch.delete(doc.ref);
                     count++;
                 }
@@ -9428,13 +10347,13 @@
 
             if (count > 0) {
                 await batch.commit();
-                alert(`成功刪除 ${count} 筆標籤與行程！`);
+                alert(`成功刪除 ${count} 筆快速標籤！`);
             } else {
-                alert("選取的日期上沒有可刪除的內容。");
+                alert("選取的日期上沒有可刪除的「快速標籤」。");
             }
             
-            toggleQuickTagMode(); // 關閉標籤模式
-            renderCalendar(currentCalDate); // 重新讀取渲染
+            toggleQuickTagMode(); 
+            fetchAndRenderEvents(currentCalDate.getFullYear(), currentCalDate.getMonth()); 
         } catch (e) { alert('刪除失敗：' + e.message); }
     }
 
@@ -9448,6 +10367,7 @@
     }
 
     function openCreateCalEventModal() {
+        if (!checkCalendarUnsavedEdits()) return; // 【新增】：防呆攔截
         document.getElementById('calEvTitle').value = '';
         document.getElementById('calEvColor').value = '#5ba4d6';
         document.getElementById('calEvLocation').value = '';
@@ -9516,7 +10436,7 @@
             if (dayScheduleViewDOM.style.transform === 'translateX(0%)') {
                 openDaySchedule(currentViewedDate.getFullYear(), currentViewedDate.getMonth(), currentViewedDate.getDate());
             }
-            renderCalendar(currentCalDate); // 刷新大月曆網格
+            fetchAndRenderEvents(currentCalDate.getFullYear(), currentCalDate.getMonth()); // 刷新大月曆網格
         } catch (e) { alert('新增失敗：' + e.message); }
     }
 
@@ -9537,7 +10457,7 @@
             if (dayScheduleViewDOM.style.transform === 'translateX(0%)') {
                 openDaySchedule(currentViewedDate.getFullYear(), currentViewedDate.getMonth() + 1, currentViewedDate.getDate());
             }
-            renderCalendar(currentCalDate);
+            fetchAndRenderEvents(currentCalDate.getFullYear(), currentCalDate.getMonth());
         } catch (err) {
             alert('刪除失敗: ' + err.message);
         }
@@ -9564,6 +10484,17 @@
         dayScheduleViewDOM.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
         if (dayCurrentX > window.innerWidth / 3 || dayCurrentX > 30) closeDaySchedule();
         else dayScheduleViewDOM.style.transform = 'translateX(0%)';
+
+        // 【新增】：判斷是否處於指定共享模式，是的話滑下專屬標題列
+        const dayOverlay = document.getElementById('daySharedOverlay');
+        if (isSharedCalMode && sharedCalTargetData) {
+            
+            document.getElementById('daySharedText').innerHTML = `這是和 <b>${escapeHtml(sharedCalTargetData.name)}</b> 的分享`;
+            dayOverlay.classList.add('active');
+        } else {
+            dayOverlay.classList.remove('active');
+        }
+
         dayCurrentX = 0;
     });
 
@@ -9596,6 +10527,17 @@
         calEventDetailViewDOM.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
         if (detailCurrentX > window.innerWidth / 3 || detailCurrentX > 30) closeCalEventDetail();
         else calEventDetailViewDOM.style.transform = 'translateX(0%)';
+
+        // 【新增】：判斷是否處於指定共享模式，是的話滑下專屬標題列
+        const detailOverlay = document.getElementById('detailSharedOverlay');
+        if (isSharedCalMode && sharedCalTargetData) {
+            
+            document.getElementById('detailSharedText').innerHTML = `這是和 <b>${escapeHtml(sharedCalTargetData.name)}</b> 的分享`;
+            detailOverlay.classList.add('active');
+        } else {
+            detailOverlay.classList.remove('active');
+        }
+
         detailCurrentX = 0;
     });
 
@@ -9744,21 +10686,42 @@
     let calEvSharedUIDs = []; // 暫存要分享的對象
 
     // 擴充打開選取器邏輯
+    // 擴充打開選取器邏輯 (支援抓取群組)
     const originalOpenEventMemberPicker = openEventMemberPicker;
     openEventMemberPicker = async function(mode) {
         if (mode === 'cal_share') {
             evPickerMode = 'cal_share';
-            document.getElementById('evPickerTitle').innerHTML = '<i class="fas fa-share-alt"></i> 共享成員';
+            document.getElementById('evPickerTitle').innerHTML = '<i class="fas fa-share-alt"></i> 共享成員與群組';
             evTempSelectedUIDs = [...calEvSharedUIDs];
             const grid = document.getElementById('ev-picker-grid');
             grid.innerHTML = '<div style="text-align:center; padding:20px;"><i class="fas fa-spinner fa-spin"></i></div>';
             openModal('eventMemberPickerModal');
             try {
+                let html = '';
+                
+                // 1. 抓取我所在的群組
+                const groupSnap = await db.collection("chats").where("members", "array-contains", auth.currentUser.uid).where("isGroup", "==", true).get();
+                let groups = [];
+                groupSnap.forEach(doc => groups.push({ id: doc.id, ...doc.data() }));
+                groups.sort((a, b) => (a.groupName || "").localeCompare(b.groupName || ""));
+                
+                if (groups.length > 0) {
+                    html += '<div style="width:100%; padding: 5px 10px; font-weight:bold; color:var(--ly-gold); font-size:0.9rem; margin-top:10px;"><i class="fas fa-users"></i> 群組</div>';
+                    groups.forEach(g => {
+                        const gid = "GROUP_" + g.id; // 給予專屬群組前綴
+                        const isChecked = evTempSelectedUIDs.includes(gid) ? 'checked' : '';
+                        const avatar = g.groupAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(g.groupName)}&background=003153&color=fff`;
+                        html += `<label class="user-select-item"><input type="checkbox" value="${gid}" data-uids="${g.members.join(',')}" class="ev-member-checkbox" ${isChecked} onchange="toggleEvTempMember(this)"><div class="user-select-card"><img src="${avatar}"><span class="ev-picker-name">${g.groupName || '未命名群組'}</span></div></label>`;
+                    });
+                    html += '<div style="width:100%; padding: 5px 10px; font-weight:bold; color:var(--ly-blue); font-size:0.9rem; margin-top:15px;"><i class="fas fa-user"></i> 個人</div>';
+                }
+
+                // 2. 抓取個人
                 const snap = await db.collection("act").get();
                 let users = [];
                 snap.forEach(doc => { if (doc.id !== auth.currentUser.uid) users.push({ id: doc.id, ...doc.data() }); });
                 users.sort((a, b) => getMemberSortIndex(a.displayName) - getMemberSortIndex(b.displayName));
-                let html = '';
+                
                 users.forEach(d => {
                     const isChecked = evTempSelectedUIDs.includes(d.id) ? 'checked' : '';
                     html += `<label class="user-select-item"><input type="checkbox" value="${d.id}" class="ev-member-checkbox" ${isChecked} onchange="toggleEvTempMember(this)"><div class="user-select-card"><img src="${d.photoURL || 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true'}"><span class="ev-picker-name">${d.displayName || '未知'}</span></div></label>`;
@@ -9766,15 +10729,27 @@
                 grid.innerHTML = html;
             } catch(e) {}
         } else {
-            originalOpenEventMemberPicker(mode); // 呼叫原本的活動選取器
+            originalOpenEventMemberPicker(mode); 
         }
     };
 
-    // 擴充儲存選取邏輯
+    // 擴充儲存選取邏輯 (自動拆解群組成員 UID)
     const originalSaveEventSelectedMembers = saveEventSelectedMembers;
     saveEventSelectedMembers = async function() {
         if (evPickerMode === 'cal_share') {
-            calEvSharedUIDs = [...evTempSelectedUIDs];
+            calEvSharedUIDs = [];
+            const checkboxes = document.querySelectorAll('#ev-picker-grid .ev-member-checkbox:checked');
+            checkboxes.forEach(cb => {
+                calEvSharedUIDs.push(cb.value); // 存入 GROUP_id 或是 單人 UID
+                // 如果勾選的是群組，順便把群組裡面的人也加進去 (確保 Firestore array-contains 找得到)
+                if (cb.value.startsWith('GROUP_')) {
+                    const members = cb.getAttribute('data-uids').split(',');
+                    members.forEach(m => {
+                        if (m && m !== auth.currentUser.uid && !calEvSharedUIDs.includes(m)) calEvSharedUIDs.push(m);
+                    });
+                }
+            });
+            calEvSharedUIDs = [...new Set(calEvSharedUIDs)]; // 移除重複
             renderEvMemberPreview(calEvSharedUIDs, 'cal_share');
             closeModal('eventMemberPickerModal');
         } else {
@@ -9782,16 +10757,29 @@
         }
     };
 
-    // 擴充預覽邏輯
+    // 擴充預覽邏輯 (支援顯示群組頭像)
     const originalRenderEvMemberPreview = renderEvMemberPreview;
     renderEvMemberPreview = async function(uids, type) {
         if (type === 'cal_share') {
             const container = document.getElementById('cal-shared-members-preview');
-            if (uids.length === 0) return container.innerHTML = '<p style="color:#999; margin:0; font-size:0.9em;">無共享對象</p>';
+            // 只過濾出顯示用的主體 (排除因為群組被連帶加入的隱藏單人 UID)
+            const displayUids = uids.filter(uid => uid.startsWith('GROUP_') || !uids.some(otherUid => otherUid.startsWith('GROUP_') && document.querySelector(`input[value="${otherUid}"]`)?.getAttribute('data-uids').includes(uid)));
+            
+            if (displayUids.length === 0) return container.innerHTML = '<p style="color:#999; margin:0; font-size:0.9em;">無共享對象</p>';
             container.innerHTML = '載入中...';
             try {
-                const docs = await Promise.all(uids.map(uid => db.collection("act").doc(uid).get()));
-                let users = []; docs.forEach(d => { if(d.exists) users.push(d.data()) });
+                const docs = await Promise.all(displayUids.map(async uid => {
+                    if (uid.startsWith('GROUP_')) {
+                        const gid = uid.replace('GROUP_', '');
+                        const doc = await db.collection("chats").doc(gid).get();
+                        if (doc.exists) return { displayName: doc.data().groupName, photoURL: doc.data().groupAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(doc.data().groupName)}&background=003153&color=fff` };
+                    } else {
+                        const doc = await db.collection("act").doc(uid).get();
+                        if (doc.exists) return doc.data();
+                    }
+                    return null;
+                }));
+                let users = []; docs.forEach(d => { if(d) users.push(d) });
                 container.innerHTML = users.map(data => `<div class="user-select-card" style="width: 70px; padding: 5px; background: #fffdf5; border-color: var(--ly-gold);"><img src="${data.photoURL || 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true'}" style="width:35px;height:35px;margin:0 0 5px 0;"><span style="font-size:11px;">${data.displayName}</span></div>`).join('');
             } catch(e) {}
         } else {
@@ -9846,7 +10834,7 @@
             if (dayScheduleViewDOM.style.transform === 'translateX(0%)') {
                 openDaySchedule(currentViewedDate.getFullYear(), currentViewedDate.getMonth() + 1, currentViewedDate.getDate()); // 注意傳入真實月份
             }
-            renderCalendar(currentCalDate);
+            fetchAndRenderEvents(currentCalDate.getFullYear(), currentCalDate.getMonth());
         } catch (e) { alert('新增失敗：' + e.message); }
     };
 
@@ -9890,29 +10878,42 @@
     // ==========================================
     // 覆蓋修正：滿版共享行事曆的滑動與讀取邏輯
     // ==========================================
+    // 【替換】：打開或關閉群組共享
     async function openSharedCalendarList() {
-        isSharedCalMode = !isSharedCalMode;
-        const btn = document.getElementById('viewSharedCalBtn');
-        const title = document.getElementById('calendarTitle');
+        if (!checkCalendarUnsavedEdits()) return; // 【新增】：防呆攔截，自動關閉快速標籤
         
-        // 1. 觸發所有現有標籤的「縮小消失」動畫
-        document.querySelectorAll('.cal-tag-bar').forEach(tag => tag.classList.add('cal-tag-hide'));
-        
-        // 2. 按鈕狀態與標題切換
-        if (isSharedCalMode) {
-            btn.style.color = 'var(--ly-gold)';
-            btn.innerHTML = '<i class="fas fa-users"></i>';
-            title.innerHTML = `${currentCalDate.getFullYear()}年 ${currentCalDate.getMonth() + 1}月 <span style="font-size:0.75rem; background:var(--ly-gold); color:white; padding:2px 6px; border-radius:10px; margin-left:6px;">共享</span>`;
-        } else {
-            btn.style.color = 'white';
-            btn.innerHTML = '<i class="fas fa-users"></i>';
-            title.innerHTML = `${currentCalDate.getFullYear()}年 ${currentCalDate.getMonth() + 1}月 <i class="fas fa-caret-down" style="font-size:0.8em; margin-left:2px; color:#aaa;"></i>`;
+        if (!window.currentGroupMembers || window.currentGroupMembers.length <= 1) {
+            alert("您目前不在特定群組對話中。\n請使用右側的「分享行程選擇器 (分享圖示)」來自由選擇查看特定群組或對象。");
+            return;
         }
 
-        // 3. 延遲等待縮小動畫完成後，重新撈取資料並渲染 (並自帶放大出現動畫)
-        setTimeout(() => {
-            renderCalendar(currentCalDate);
-        }, 300);
+        if (isSharedCalMode && !sharedCalTargetData) {
+            exitSharedCalMode(); // 【修改】：直接呼叫退出函式
+            return;
+        } else {
+            isSharedCalMode = true;
+            sharedCalTargetData = null; // 清除特定對象標記，回歸當前群組
+        }
+
+        const btn1 = document.getElementById('viewSharedCalBtn');
+        const btn2 = document.getElementById('shareMyCalBtn');
+
+        document.querySelectorAll('.cal-tag-bar').forEach(tag => tag.classList.add('cal-tag-hide'));
+
+        btn1.style.color = 'var(--ly-gold)';
+        btn2.style.color = 'white';
+
+        // 【新增】：觸發主行事曆的動態覆蓋層 (群組模式)
+        const mainOverlay = document.getElementById('mainCalSharedOverlay');
+        if (mainOverlay) {
+            
+            const gName = document.getElementById('chatTitle').innerText;
+            document.getElementById('mainCalSharedText').innerHTML = `這是和 <b>${escapeHtml(gName)}</b> 的分享`;
+            document.getElementById('mainCalSharedMonth').innerHTML = `${currentCalDate.getFullYear()}年 ${currentCalDate.getMonth() + 1}月 <i class="fas fa-caret-down" style="font-size:0.8em; color:#aaa;"></i>`;
+            mainOverlay.classList.add('active');
+        }
+
+        setTimeout(() => { fetchAndRenderEvents(currentCalDate.getFullYear(), currentCalDate.getMonth()); }, 300);
     }
 
     
@@ -9947,7 +10948,7 @@
 
             await batch.commit();
             toggleQuickTagMode(); 
-            renderCalendar(currentCalDate); 
+            fetchAndRenderEvents(currentCalDate.getFullYear(), currentCalDate.getMonth()); 
         } catch (e) { alert('新增失敗：' + e.message); }
     }
 
@@ -9992,7 +10993,7 @@
             if (dayScheduleViewDOM.style.transform === 'translateX(0%)') {
                 openDaySchedule(currentViewedDate.getFullYear(), currentViewedDate.getMonth() + 1, currentViewedDate.getDate());
             }
-            renderCalendar(currentCalDate);
+            fetchAndRenderEvents(currentCalDate.getFullYear(), currentCalDate.getMonth());
         } catch (e) { alert('新增失敗：' + e.message); }
     };
 
@@ -10094,101 +11095,11 @@
             if (dayScheduleViewDOM.style.transform === 'translateX(0%)') {
                 openDaySchedule(currentViewedDate.getFullYear(), currentViewedDate.getMonth() + 1, currentViewedDate.getDate());
             }
-            renderCalendar(currentCalDate);
+            fetchAndRenderEvents(currentCalDate.getFullYear(), currentCalDate.getMonth());
         } catch (e) { alert('儲存失敗：' + e.message); }
     };
 
-    // ==========================================
-    // 渲染大月曆網格
-    // ==========================================
-    async function renderCalendar(date) {
-        const year = date.getFullYear(); const month = date.getMonth();
-        
-        if (!isSharedCalMode) {
-            document.getElementById('calendarTitle').innerHTML = `${year}年 ${month + 1}月 <i class="fas fa-caret-down" style="font-size:0.8em; margin-left:2px; color:#aaa;"></i>`;
-        } else {
-            document.getElementById('calendarTitle').innerHTML = `${year}年 ${month + 1}月 <span style="font-size:0.75rem; background:var(--ly-gold); color:white; padding:2px 6px; border-radius:10px; margin-left:6px;">共享</span>`;
-        }
-        
-        const calBody = document.getElementById('calendarBody');
-        calBody.className = 'calendar-body'; 
-        
-        const firstDayIndex = new Date(year, month, 1).getDay(); 
-        const daysInMonth = new Date(year, month + 1, 0).getDate(); 
-        const prevMonthDays = new Date(year, month, 0).getDate(); 
-        const today = new Date();
-        const isCurrentMonth = (year === today.getFullYear() && month === today.getMonth());
-        
-        let html = '';
-        const generateDayHtml = (y, m, d, isOtherMonth, isToday) => {
-            const targetDate = new Date(y, m - 1, d);
-            const dayOfWeek = targetDate.getDay();
-            let dayClass = 'day-num-text';
-            if (dayOfWeek === 0) dayClass += ' sunday';
-            if (dayOfWeek === 6) dayClass += ' saturday';
-
-            let lunarText = "";
-            if (typeof Lunar !== 'undefined') {
-                const lunar = Lunar.fromDate(targetDate);
-                lunarText = lunar.getDay() === 1 ? `${lunar.getMonthInChinese()}月` : lunar.getDayInChinese();
-            }
-            return `
-            <div class="calendar-day ${isToday ? 'today' : ''} ${isOtherMonth ? 'other-month' : ''}" id="cal-cell-${y}-${m}-${d}" onclick="handleDayClick(${y}, ${m}, ${d}, this)">
-                <div class="${dayClass}">${d}</div>
-                <div class="lunar-text">${lunarText}</div>
-            </div>`;
-        };
-
-        for (let i = firstDayIndex; i > 0; i--) html += generateDayHtml(month === 0 ? year - 1 : year, month === 0 ? 12 : month, prevMonthDays - i + 1, true, false);
-        for (let i = 1; i <= daysInMonth; i++) html += generateDayHtml(year, month + 1, i, false, (isCurrentMonth && i === today.getDate()));
-        const rem = (firstDayIndex + daysInMonth) <= 35 ? 35 - (firstDayIndex + daysInMonth) : 42 - (firstDayIndex + daysInMonth);
-        for (let i = 1; i <= rem; i++) html += generateDayHtml(month === 11 ? year + 1 : year, month === 11 ? 1 : month + 2, i, true, false);
-        
-        calBody.innerHTML = html;
-
-        try {
-            const startOfMonthStr = `${year}-${String(month+1).padStart(2,'0')}-01T00:00`;
-            const endOfMonthStr = `${year}-${String(month+1).padStart(2,'0')}-${String(daysInMonth).padStart(2,'0')}T23:59`;
-            currentMonthEvents = [];
-
-            let myName = document.getElementById('myName').innerText.trim();
-            if (!myName || myName === "載入中...") myName = auth.currentUser.displayName || "未知";
-
-            if (!isSharedCalMode) {
-                // 個人模式
-                const snap = await db.collection("Calendar_page").doc("calendar").collection(myName).where("creatorUid", "==", auth.currentUser.uid).get();
-                snap.forEach(doc => {
-                    const data = doc.data();
-                    if (data.end >= startOfMonthStr && data.start <= endOfMonthStr) currentMonthEvents.push({ id: doc.id, ...data });
-                });
-            } else {
-                // 共享模式：抓取別人分享給我的
-                const promises = window.currentGroupMembers.map(async uid => {
-                    if (uid === auth.currentUser.uid) return;
-                    const memberName = window.chatMembersCache[uid]?.displayName;
-                    if (!memberName) return;
-                    
-                    const snap = await db.collection("Calendar_page").doc("calendar").collection(memberName).where("sharedWith", "array-contains", auth.currentUser.uid).get();
-                    snap.forEach(doc => {
-                        const data = doc.data();
-                        if (data.end >= startOfMonthStr && data.start <= endOfMonthStr) currentMonthEvents.push({ id: doc.id, ...data, _sharedFromName: memberName });
-                    });
-                });
-                await Promise.all(promises);
-
-                // 【修復】：同時也抓取「我分享給別人的」
-                const mySnap = await db.collection("Calendar_page").doc("calendar").collection(myName).where("creatorUid", "==", auth.currentUser.uid).get();
-                mySnap.forEach(doc => {
-                    const data = doc.data();
-                    if (data.sharedWith && data.sharedWith.length > 0 && data.end >= startOfMonthStr && data.start <= endOfMonthStr) {
-                        currentMonthEvents.push({ id: doc.id, ...data, _sharedFromName: "我分享的" });
-                    }
-                });
-            }
-
-            drawCalendarTags(year, month + 1, daysInMonth);
-        } catch(e) {}
-    }
+    
 
     // ==========================================
     // 單日行程檢視 
@@ -10230,11 +11141,35 @@
                     }
                 });
             } else {
-                const promises = window.currentGroupMembers.map(async shareUid => {
+                let targetUIDs = [];
+                let isGroupQuery = false;
+                let queryTag = "";
+
+                if (sharedCalTargetData) {
+                    if (sharedCalTargetData.type === 'group') {
+                        targetUIDs = sharedCalTargetData.members;
+                        isGroupQuery = true;
+                        queryTag = "GROUP_" + sharedCalTargetData.id;
+                    } else {
+                        targetUIDs = [sharedCalTargetData.id, uid];
+                        queryTag = uid;
+                    }
+                } else {
+                    targetUIDs = window.currentGroupMembers || [];
+                    if (window.isCurrentChatGroup) {
+                        isGroupQuery = true;
+                        queryTag = "GROUP_" + currentChatId;
+                    } else {
+                        queryTag = uid;
+                    }
+                }
+
+                const promises = targetUIDs.map(async shareUid => {
                     if (shareUid === uid) return;
                     const memberName = window.chatMembersCache[shareUid]?.displayName;
                     if (!memberName) return;
-                    const snap = await db.collection("Calendar_page").doc("calendar").collection(memberName).where("sharedWith", "array-contains", uid).get();
+                    // 【關鍵修復】：使用精準的 queryTag 讀取單日資料
+                    const snap = await db.collection("Calendar_page").doc("calendar").collection(memberName).where("sharedWith", "array-contains", queryTag).get();
                     snap.forEach(doc => {
                         const ev = doc.data(); const evStart = new Date(ev.start).getTime(); const evEnd = new Date(ev.end).getTime();
                         if (evStart <= endOfDay && evEnd >= startOfDay) {
@@ -10245,18 +11180,18 @@
                 });
                 await Promise.all(promises);
 
-                // 【修復】：抓取自己分享給別人的
-                const mySnap = await db.collection("Calendar_page").doc("calendar").collection(myName).where("creatorUid", "==", uid).get();
-                mySnap.forEach(doc => {
-                    const ev = doc.data(); 
-                    if (ev.sharedWith && ev.sharedWith.length > 0) {
+                let myQueryTag = isGroupQuery ? queryTag : (sharedCalTargetData ? sharedCalTargetData.id : targetUIDs.find(u => u !== uid));
+                if (myQueryTag) {
+                    const mySnap = await db.collection("Calendar_page").doc("calendar").collection(myName).where("sharedWith", "array-contains", myQueryTag).get();
+                    mySnap.forEach(doc => {
+                        const ev = doc.data(); 
                         const evStart = new Date(ev.start).getTime(); const evEnd = new Date(ev.end).getTime();
                         if (evStart <= endOfDay && evEnd >= startOfDay) {
                             const evObj = { id: doc.id, ...ev, sortDate: new Date(evStart), type: 'simple', _sharedFromName: "我分享的" };
                             dayEvents.push(evObj); window.currentCalEventsData[doc.id] = evObj; 
                         }
-                    }
-                });
+                    });
+                }
             }
 
             if (dayEvents.length === 0) {
@@ -10269,7 +11204,55 @@
             dayEvents.forEach(ev => {
                 let timeDisplay = ev.isAllDay ? '全天行程' : `${ev.start.replace('T', ' ')} ~ ${ev.end.replace('T', ' ')}`;
                 let displayTitle = ev.isEncrypted ? '<i class="fas fa-lock" style="color:#d93025;"></i> 加密行程' : escapeHtml(ev.title || '個人行程');
-                if (ev._sharedFromName) displayTitle = `[${ev._sharedFromName}] ${displayTitle}`;
+                
+                // 【新增】：動態計算並產生右側的「頭像連結 UI」
+                let shareUIHtml = '';
+                if (isSharedCalMode && ev._sharedFromName) {
+                    displayTitle = `[${ev._sharedFromName}] ${displayTitle}`;
+                    
+                    let creatorName, creatorAvatar, receiverName, receiverAvatar;
+                    
+                    if (ev._sharedFromName === "我分享的") {
+                        // 【我分享給別人】
+                        creatorName = document.getElementById('myName').innerText.trim() || '我';
+                        creatorAvatar = document.getElementById('myAvatar').src;
+                        receiverName = sharedCalTargetData ? sharedCalTargetData.name : document.getElementById('chatTitle').innerText;
+                        receiverAvatar = sharedCalTargetData ? sharedCalTargetData.avatar : document.getElementById('targetAvatar').src;
+                    } else {
+                        // 【別人分享給我】
+                        creatorName = ev._sharedFromName;
+                        creatorAvatar = 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true';
+                        if (ev.creatorUid && window.chatMembersCache[ev.creatorUid]) {
+                            creatorAvatar = window.chatMembersCache[ev.creatorUid].photoURL || creatorAvatar;
+                        }
+                        receiverName = sharedCalTargetData ? sharedCalTargetData.name : document.getElementById('chatTitle').innerText;
+                        receiverAvatar = sharedCalTargetData ? sharedCalTargetData.avatar : document.getElementById('targetAvatar').src;
+                    }
+
+                    shareUIHtml = `
+                    <div class="shared-link-ui">
+                        <div style="display: flex; flex-direction: column; align-items: center;">
+                            <img src="${creatorAvatar}" class="shared-link-avatar" style="border: 1.5px solid var(--ly-blue);">
+                            <span class="shared-link-name">${escapeHtml(creatorName)}</span>
+                        </div>
+                        <i class="fas fa-link" style="color: #ccc; font-size: 0.75rem;"></i>
+                        <div style="display: flex; flex-direction: column; align-items: center;">
+                            <img src="${receiverAvatar}" class="shared-link-avatar" style="border: 1.5px solid var(--ly-gold);">
+                            <span class="shared-link-name">${escapeHtml(receiverName)}</span>
+                        </div>
+                    </div>`;
+                }
+
+                // 將內容排版為「左邊標題時間，右邊圖示」
+                let cardInnerHtml = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                        <div style="flex: 1; overflow: hidden; padding-right: 10px;">
+                            <h4 class="event-mini-title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${displayTitle}</h4>
+                            <div class="event-mini-meta"><span><i class="far fa-clock"></i> ${timeDisplay}</span></div>
+                        </div>
+                        ${shareUIHtml}
+                    </div>
+                `;
                 
                 if (!isSharedCalMode || ev._sharedFromName === "我分享的") {
                     html += `
@@ -10283,19 +11266,13 @@
                              onmouseup="calEvSwipeEnd(event, this, '${ev.id}')" onmouseleave="calEvSwipeEnd(event, this, '${ev.id}')" 
                              ontouchstart="calEvSwipeStart(event, this)" ontouchmove="calEvSwipeMove(event, this)" 
                              ontouchend="calEvSwipeEnd(event, this, '${ev.id}')">
-                            <div style="flex: 1; overflow: hidden;">
-                                <h4 class="event-mini-title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${displayTitle}</h4>
-                                <div class="event-mini-meta"><span><i class="far fa-clock"></i> ${timeDisplay}</span></div>
-                            </div>
+                            ${cardInnerHtml}
                         </div>
                     </div>`;
                 } else {
                     html += `
                     <div class="event-mini-item" style="margin-bottom: 12px; border-left-color: ${ev.color || 'var(--ly-gold)'}; cursor: pointer;" onclick="openCalEventDetail('${ev.id}')">
-                        <div style="flex: 1; overflow: hidden;">
-                            <h4 class="event-mini-title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${displayTitle}</h4>
-                            <div class="event-mini-meta"><span><i class="far fa-clock"></i> ${timeDisplay}</span></div>
-                        </div>
+                        ${cardInnerHtml}
                     </div>`;
                 }
             });
@@ -10429,6 +11406,263 @@
             }
         }
     }
+
+    // ==========================================
+    // 共享行程對象選擇器：滑動引擎與邏輯
+    // ==========================================
+    const sharedCalListViewDOM = document.getElementById('sharedCalListView');
+    let isScSwiping = false, scStartX = 0, scCurrentX = 0;
+    let sharedCalTargetData = null; // 全域變數：紀錄目前看的是誰的行程 { type: 'group'/'user', id: string, name: string, members: array }
+
+    // 左滑退出物理引擎
+    sharedCalListViewDOM.addEventListener('touchstart', (e) => {
+        if (e.touches[0].clientX < 40) { isScSwiping = true; scStartX = e.touches[0].clientX; sharedCalListViewDOM.style.transition = 'none'; }
+    }, {passive: true});
+    sharedCalListViewDOM.addEventListener('touchmove', (e) => {
+        if (!isScSwiping) return;
+        scCurrentX = e.touches[0].clientX - scStartX;
+        if (scCurrentX > 0) { if (e.cancelable) e.preventDefault(); sharedCalListViewDOM.style.transform = `translateX(${scCurrentX}px)`; }
+    }, { passive: false });
+    sharedCalListViewDOM.addEventListener('touchend', () => {
+        if (!isScSwiping) return;
+        isScSwiping = false;
+        sharedCalListViewDOM.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
+        if (scCurrentX > window.innerWidth / 3 || scCurrentX > 30) closeSharedCalList();
+        else sharedCalListViewDOM.style.transform = 'translateX(0%)';
+        scCurrentX = 0;
+    });
+
+    function closeSharedCalList() {
+        sharedCalListViewDOM.style.transform = 'translateX(100%)';
+        document.getElementById('sharedCalSearchInput').blur(); // 收起鍵盤
+    }
+
+    // ==========================================
+    // 智慧型共享清單過濾引擎 (只顯示有分享關係的對象)
+    // ==========================================
+    async function openShareMyCalMode() {
+        // 【關鍵防護】：第一步就先檢查並強制關閉快速標籤
+        if (!checkCalendarUnsavedEdits()) return; 
+
+        // 判斷是否已經在看某人的分享日曆，是的話就關閉它
+        if (isSharedCalMode && sharedCalTargetData) {
+            exitSharedCalMode();
+            return;
+        }
+
+        // 滑出選單
+        const sharedCalListViewDOM = document.getElementById('sharedCalListView');
+        if(sharedCalListViewDOM) sharedCalListViewDOM.style.transform = 'translateX(0%)';
+        const searchInput = document.getElementById('sharedCalSearchInput');
+        if(searchInput) searchInput.value = '';
+
+        const groupListEl = document.getElementById('scGroupList');
+        const personalListEl = document.getElementById('scPersonalList');
+
+        groupListEl.innerHTML = '<div style="text-align:center; padding:10px; color:#999;"><i class="fas fa-spinner fa-spin"></i> 尋找共享關係中...</div>';
+        personalListEl.innerHTML = '<div style="text-align:center; padding:10px; color:#999;"><i class="fas fa-spinner fa-spin"></i> 尋找共享關係中...</div>';
+
+        try {
+            const currentUser = auth.currentUser;
+            const myUid = currentUser.uid;
+            let myName = document.getElementById('myName').innerText.trim();
+            if (myName === '載入中...' || !myName) myName = currentUser.displayName;
+
+            // 1. 抓我分享給誰
+            const mySnap = await db.collection("Calendar_page").doc("calendar").collection(myName).where("creatorUid", "==", myUid).get();
+            let mySharedTags = new Set();
+            mySnap.forEach(doc => {
+                const data = doc.data();
+                if (data.sharedWith && Array.isArray(data.sharedWith)) data.sharedWith.forEach(u => mySharedTags.add(u));
+            });
+
+            // 2. 抓所有聊天室名單
+            const snap = await db.collection("chats").where("members", "array-contains", myUid).get();
+            let allUids = new Set(), groups = [], personals = [], personalNameCache = {};
+
+            snap.forEach(doc => {
+                const chat = doc.data();
+                if (chat.isGroup) {
+                    groups.push({ id: doc.id, name: chat.groupName || "群組", avatar: chat.groupAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(chat.groupName)}&background=003153&color=fff`, members: chat.members || [] });
+                    chat.members.forEach(u => allUids.add(u));
+                } else {
+                    const targetUid = chat.members.find(uid => uid !== myUid);
+                    if (targetUid) { personals.push({ id: targetUid, members: chat.members || [] }); allUids.add(targetUid); }
+                }
+            });
+            allUids.delete(myUid);
+
+            // 3. 抓誰分享給我
+            let othersSharedToMeUids = new Set();
+            let othersSharedGroupsToMe = new Set();
+            const checkPromises = Array.from(allUids).map(async (uid) => {
+                try {
+                    let uDoc = await db.collection("act").doc(uid).get();
+                    if (uDoc.exists) {
+                        let mName = uDoc.data().displayName;
+                        personalNameCache[uid] = uDoc.data();
+                        if (mName) {
+                            const sSnap = await db.collection("Calendar_page").doc("calendar").collection(mName).where("sharedWith", "array-contains", myUid).get();
+                            sSnap.forEach(doc => {
+                                othersSharedToMeUids.add(uid);
+                                const sw = doc.data().sharedWith || [];
+                                sw.forEach(tag => { if (tag.startsWith("GROUP_")) othersSharedGroupsToMe.add(tag); });
+                            });
+                        }
+                    }
+                } catch(e) {}
+            });
+            await Promise.all(checkPromises);
+
+            // 4. 終極過濾：只留下「有真實共享關係」的名單
+            const activePersonals = personals.filter(p => mySharedTags.has(p.id) || othersSharedToMeUids.has(p.id));
+            const activeGroups = groups.filter(g => {
+                const groupTag = "GROUP_" + g.id;
+                return mySharedTags.has(groupTag) || othersSharedGroupsToMe.has(groupTag);
+            });
+
+            // 渲染群組
+            let gHtml = '';
+            activeGroups.forEach(g => {
+                const safeName = escapeHtml(g.name).replace(/'/g, "\\'");
+                gHtml += `<div class="sc-list-item" data-name="${g.name.toLowerCase()}" onclick="loadTargetSharedCalendar('group', '${g.id}', '${safeName}', '${g.members.join(',')}', '${g.avatar}')"><img src="${g.avatar}"><span>${escapeHtml(g.name)}</span></div>`;
+            });
+            groupListEl.innerHTML = gHtml || '<div style="color:#999; font-size:0.9rem; padding: 10px;">無群組共享紀錄</div>';
+
+            // 渲染個人
+            let pHtml = '';
+            activePersonals.forEach(p => {
+                const uData = personalNameCache[p.id], pName = uData?.displayName || "未知成員", pAvatar = uData?.photoURL || 'https://via.placeholder.com/45';
+                const safeName = escapeHtml(pName).replace(/'/g, "\\'");
+                pHtml += `<div class="sc-list-item" data-name="${pName.toLowerCase()}" onclick="loadTargetSharedCalendar('user', '${p.id}', '${safeName}', '', '${pAvatar}')"><img src="${pAvatar}"><span>${escapeHtml(pName)}</span></div>`;
+            });
+            personalListEl.innerHTML = pHtml || '<div style="color:#999; font-size:0.9rem; padding: 10px;">無個人共享紀錄</div>';
+
+        } catch(e) {
+            console.error(e);
+            groupListEl.innerHTML = '<div style="color:red; font-size:0.9rem;">載入失敗</div>';
+        }
+    }
+
+    // 搜尋過濾功能
+    function filterSharedCalList() {
+        const kw = document.getElementById('sharedCalSearchInput').value.toLowerCase().trim();
+        document.querySelectorAll('.sc-list-item').forEach(item => {
+            const name = item.getAttribute('data-name');
+            if (name.includes(kw)) {
+                item.style.display = 'flex';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    }
+
+    // 【新增】：乾淨退出共享模式的專屬函式
+    function exitSharedCalMode() {
+        if (!checkCalendarUnsavedEdits()) return; // 【新增】：防呆攔截
+        isSharedCalMode = false;
+        sharedCalTargetData = null;
+
+        document.getElementById('shareMyCalBtn').style.color = 'white';
+        document.getElementById('viewSharedCalBtn').style.color = 'white';
+        
+        const title = document.getElementById('calendarTitle');
+        title.innerHTML = `${currentCalDate.getFullYear()}年 ${currentCalDate.getMonth() + 1}月 <i class="fas fa-caret-down" style="font-size:0.8em; margin-left:2px; color:#aaa;"></i>`;
+        
+        const mainOverlay = document.getElementById('mainCalSharedOverlay');
+        if (mainOverlay) mainOverlay.classList.remove('active');
+        
+        document.querySelectorAll('.cal-tag-bar').forEach(tag => tag.classList.add('cal-tag-hide'));
+        setTimeout(() => { fetchAndRenderEvents(currentCalDate.getFullYear(), currentCalDate.getMonth()); }, 300);
+    }
+
+    // 【替換】：點選清單後，切換行事曆目標狀態
+    function loadTargetSharedCalendar(type, targetId, targetName, membersStr, avatarUrl) {
+        closeSharedCalList();
+        isSharedCalMode = true;
+
+        sharedCalTargetData = {
+            type: type,
+            id: targetId,
+            name: targetName,
+            members: membersStr ? membersStr.split(',') : [],
+            avatar: avatarUrl || 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true'
+        };
+
+        const btn1 = document.getElementById('viewSharedCalBtn');
+        const btn2 = document.getElementById('shareMyCalBtn');
+        
+        btn2.style.color = 'var(--ly-gold)';
+        btn1.style.color = 'white'; 
+        
+        document.querySelectorAll('.cal-tag-bar').forEach(tag => tag.classList.add('cal-tag-hide'));
+
+        // 【新增】：觸發主行事曆的動態覆蓋層
+        const mainOverlay = document.getElementById('mainCalSharedOverlay');
+        if (mainOverlay) {
+            
+            document.getElementById('mainCalSharedText').innerHTML = `這是和 <b>${escapeHtml(targetName)}</b> 的分享`;
+            document.getElementById('mainCalSharedMonth').innerHTML = `${currentCalDate.getFullYear()}年 ${currentCalDate.getMonth() + 1}月 <i class="fas fa-caret-down" style="font-size:0.8em; color:#aaa;"></i>`;
+            mainOverlay.classList.add('active');
+        }
+
+        setTimeout(() => { fetchAndRenderEvents(currentCalDate.getFullYear(), currentCalDate.getMonth()); }, 300);
+    }
+
+    // ==========================================
+    // 行程表單：未儲存放棄攔截
+    // ==========================================
+    function attemptCloseCalEventModal() {
+        const title = document.getElementById('calEvTitle').value.trim();
+        const loc = document.getElementById('calEvLocation').value.trim();
+        const note = document.getElementById('calEvNote').value.trim();
+        
+        // 如果有填寫任何內容，就跳出警告
+        if (title || loc || note) {
+            if (!confirm("⚠️ 您的行程內容尚未儲存！\n\n確定要放棄編輯並關閉視窗嗎？")) return;
+        }
+        
+        // 使用者點選確認放棄，或根本沒填資料，則正常關閉
+        closeModal('createCalEventModal');
+    }
+
+    // ==========================================
+    // 聊天室 (chatView) 左側邊緣滑動退出引擎
+    // ==========================================
+    let isChatRoomSwiping = false, chatRoomStartX = 0, chatRoomCurrentX = 0;
+
+    chatViewDOM.addEventListener('touchstart', (e) => {
+        // 只允許在螢幕左側 40px 的邊緣內觸發返回手勢
+        if (e.touches[0].clientX < 40) { 
+            isChatRoomSwiping = true; 
+            chatRoomStartX = e.touches[0].clientX; 
+            chatViewDOM.style.transition = 'none'; 
+        }
+    }, {passive: true});
+
+    chatViewDOM.addEventListener('touchmove', (e) => {
+        if (!isChatRoomSwiping) return;
+        chatRoomCurrentX = e.touches[0].clientX - chatRoomStartX;
+        if (chatRoomCurrentX > 0) { 
+            if (e.cancelable) e.preventDefault(); 
+            chatViewDOM.style.transform = `translateX(${chatRoomCurrentX}px)`; 
+        }
+    }, { passive: false });
+
+    chatViewDOM.addEventListener('touchend', () => {
+        if (!isChatRoomSwiping) return;
+        isChatRoomSwiping = false;
+        chatViewDOM.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
+        
+        // 滑動超過三分之一，或快速滑出超過 30px，即執行關閉
+        if (chatRoomCurrentX > window.innerWidth / 3 || chatRoomCurrentX > 30) {
+            closeChatRoom();
+        } else {
+            // 滑動太短，回彈至原位
+            chatViewDOM.style.transform = 'translateX(0%)';
+        }
+        chatRoomCurrentX = 0;
+    });
 </script>
 </body>
     
