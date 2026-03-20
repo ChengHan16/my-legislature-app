@@ -2177,6 +2177,113 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         body.dark-mode .calendar-day.today .day-num-text::before {
             box-shadow: 0 2px 8px rgba(207, 169, 0, 0.4);
         }
+
+        /* ==========================================
+        新增選單 (行程/計畫) 樣式
+        ========================================== */
+        .add-action-menu {
+            display: none;
+            position: fixed;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            z-index: 300; /* 高於 overlay 與 header */
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            animation: slideDown 0.2s ease-out;
+            min-width: 140px;
+        }
+        .add-action-menu button {
+            background: none;
+            border: none;
+            padding: 15px 20px;
+            font-size: 1rem;
+            color: var(--ly-blue);
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid #f2f4f7;
+            text-align: left;
+            white-space: nowrap;
+            transition: 0.2s;
+        }
+        .add-action-menu button:last-child { border-bottom: none; }
+        .add-action-menu button:active { background: #f8f9fa; transform: scale(0.98); }
+
+        /* 深色模式適配 */
+        body.dark-mode .add-action-menu { background: #1c1c1e; border-color: #2c2c2e; }
+        body.dark-mode .add-action-menu button { color: #e0e0e0; border-bottom-color: #2c2c2e; }
+        body.dark-mode .add-action-menu button:active { background: #2a2a2a; }
+
+        /* ==========================================
+        新增計畫 (行政計畫管理系統) 專用樣式
+        ========================================== */
+        .plan-container { width: 100%; max-width: 850px; margin: 0 auto; padding: 10px; }
+        .plan-collapse-card { background: white; border: 1px solid var(--border-color); margin-bottom: 20px; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .plan-collapse-header { padding: 10px 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: #fff; }
+        .plan-collapse-header .header-text-group h2 { margin: 0; font-size: 0.95rem; color: var(--ly-blue); font-weight: 700; }
+        .plan-collapse-header .header-text-group p { margin: 2px 0 0 0; font-size: 11px; color: #888; }
+        .plan-collapse-content { display: none; padding: 10px 15px; border-top: 1px solid #eee; }
+
+        .plan-dynamic-section { background: #fdfdfd; border: 1px solid #eee; padding: 8px 12px 8px 35px; margin-top: 5px; position: relative; border-radius: 10px; }
+        .plan-dynamic-section input, .plan-dynamic-section textarea { width: 100%; padding: 8px 12px; border: 1px solid var(--border-color); font-size: 14px; outline: none; border-radius: 8px; margin-bottom: 5px; box-sizing: border-box; }
+        .plan-inner-drag-handle { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #333; cursor: grab; font-size: 20px; touch-action: none; padding: 5px; z-index: 10; }
+        .plan-section-ctrl { display: flex; gap: 8px; justify-content: flex-end; margin-bottom: 3px; }
+        .plan-ctrl-btn { cursor: pointer; font-size: 11px; color: var(--ly-blue); font-weight: bold; }
+
+        .plan-action-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin: 5px 0; }
+        .plan-add-btn { padding: 6px; border: 1px solid var(--ly-blue); background: white; color: var(--ly-blue); cursor: pointer; font-weight: bold; border-radius: 8px; font-size: 11px; }
+        .plan-save-btn { background: var(--ly-blue); color: white; border: none; padding: 10px; cursor: pointer; width: 100%; font-size: 14px; font-weight: bold; border-radius: 8px; margin-top: 5px; }
+
+        .plan-feed-item { background: white; border: 1px solid var(--border-color); padding: 10px 12px; margin-bottom: 10px; border-radius: 5px; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
+        .plan-feed-header-flex { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
+        .plan-feed-meta { font-size: 10px; color: #888; }
+        .plan-feed-time-tag { font-size: 10px; color: #bbb; }
+        .plan-feed-drag-handle { color: #333; text-align: center; font-size: 18px; margin-bottom: 2px; cursor: grab; width: 100%; padding: 6px 0; touch-action: none; }
+
+        .plan-feed-title { font-size: 1.1rem; font-weight: bold; color: #111; border-left: 5px solid var(--ly-gold); padding-left: 10px; margin: 0 0 8px 0; }
+        .plan-item-row { padding: 5px 8px; margin-bottom: 3px; background: #fafafa; border-radius: 6px; }
+        .plan-inner-heading { font-size: 1.05rem; font-weight: 600; color: var(--ly-blue); margin: 2px 0 6px 0; display: block; position: relative; padding-bottom: 3px; }
+        .plan-inner-heading::after { content: ""; position: absolute; bottom: 0; left: 0; width: 50%; height: 2px; background: linear-gradient(to right, var(--ly-blue) 0%, transparent 100%); }
+        .plan-warning-box { background-color: #ffeb3b; color: #333; border: 2.5px solid #333; padding: 8px 12px; border-radius: 6px; font-weight: 700; font-size: 12.5px; margin: 2px 0; display: block; box-shadow: 2px 2px 0px #333; white-space: pre-wrap; }
+        .plan-warning-box i { color: #d32f2f; margin-right: 8px; font-size: 14px; }
+
+        .plan-flight-tags-container { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; margin-bottom: 2px; }
+        .plan-base-tag { display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 10.5px; height: 22px; padding: 0 8px; border-radius: 4px; border: 1.5px solid; }
+        .plan-time-tag { color: #ffffff; background: #455a64; border-color: #37474f; }
+        .plan-flight-info-tag { color: #212121; background: #ffc107; border-color: #333; }
+        .plan-route-tag { color: #003153; background: #e0f2f1; border-color: #004d40; }
+
+        .plan-member-info-wrap { font-size: 10.5px; color: var(--ly-blue); font-weight: 600; margin-top: 3px; display: flex; gap: 5px; flex-wrap: wrap; }
+        .plan-member-tag { background: #fff; padding: 0px 5px; border-radius: 3px; border: 1px solid var(--ly-blue); }
+
+        .plan-inline-edit-area { border: 2px dashed var(--ly-blue); padding: 12px; border-radius: 10px; background: #f9fbff; margin-top: 10px; }
+        .plan-inline-footer { display: flex; justify-content: flex-end; align-items: center; margin-top: 12px; gap: 8px; }
+        .plan-post-footer { display: flex; justify-content: flex-end; margin-top: 8px; border-top: 1px solid #f0f0f0; padding-top: 6px; gap: 10px; }
+        .plan-edit-link { padding: 4px 12px; border: 1px solid var(--ly-blue); color: var(--ly-blue); font-size: 10.5px; cursor: pointer; font-weight: bold; border-radius: 6px; }
+        .plan-btn-sm { padding: 6px 12px; font-size: 11px; border-radius: 6px; cursor: pointer; font-weight: bold; border: 1px solid transparent; }
+        .plan-btn-delete { color: #a94442; border-color: #a94442; background: white; }
+        .plan-btn-cancel { color: #555; background: #eee; border: none; }
+        .plan-btn-update { color: white; background: var(--ly-blue); border: none; }
+
+        /* 深色模式適配 */
+        body.dark-mode .plan-collapse-card { background: #1c1c1e; border-color: #2c2c2e; }
+        body.dark-mode .plan-collapse-header { background: #1c1c1e; }
+        body.dark-mode .plan-collapse-content { border-top-color: #333; }
+        body.dark-mode .plan-dynamic-section { background: #2a2a2a; border-color: #444; color: #e0e0e0; }
+        body.dark-mode .plan-dynamic-section input, body.dark-mode .plan-dynamic-section textarea { background: #1c1c1e; color: #e0e0e0; border-color: #444; }
+        body.dark-mode .plan-inner-drag-handle { color: #aaa; }
+        body.dark-mode .plan-add-btn { background: #2a2a2a; color: var(--ly-blue); border-color: var(--ly-blue); }
+        body.dark-mode .plan-feed-item { background: #1c1c1e; border-color: #2c2c2e; }
+        body.dark-mode .plan-feed-title { color: #e0e0e0; }
+        body.dark-mode .plan-item-row { background: #2a2a2a; }
+        body.dark-mode .plan-feed-drag-handle { color: #aaa; }
+        body.dark-mode .plan-inline-edit-area { background: #121212; border-color: var(--ly-blue); }
+        body.dark-mode .plan-post-footer { border-top-color: #333; }
+        body.dark-mode .plan-member-tag { background: #1c1c1e; color: #e0e0e0; }
     </style>
 </head>
 <body>
@@ -2894,7 +3001,7 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             </div>
         </header>
         <div style="flex: 1; display: flex; flex-direction: column; align-items: center; padding: 40px 20px; background: white; overflow-y: auto;">
-            <input type="file" id="settingsAvatarInput" accept="image/*" style="display: none;" onchange="handleSettingsAvatarChange(event)">
+            <input type="file" id="settingsAvatarInput" accept="image/*" style="display: none;" onchange="openCropper(event, 'settingsAvatar')">
             
             <div class="avatar-edit-wrapper" style="position: relative; width: 120px; height: 120px; margin-bottom: 10px; display: inline-block;">
                 
@@ -3094,8 +3201,10 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                         <span id="mainCalSharedText" style="font-size: 0.85rem; color: #ddd; font-weight: 500;"></span>
                     </div>
                 </div>
-                <button title="新增行程" onclick="openCreateCalEventModal()" style="background: none; border: none; color: var(--ly-gold); font-size: 1.4rem; cursor: pointer;"><i class="fas fa-plus"></i></button>
-            </div>
+                <!--修-->
+                <button title="新增" onclick="toggleAddEventMenu(event)" style="background: none; border: none; color: var(--ly-gold); font-size: 1.4rem; cursor: pointer;">
+    <i class="fas fa-plus"></i>
+</button></div>
 
             <div class="header-content" style="padding: 15px 20px; justify-content: space-between;">
                 <div class="user-profile" style="flex: unset; gap: 5px;">
@@ -3113,8 +3222,9 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                     <button id="quickTagBtn" onclick="toggleQuickTagMode()" style="background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer;">
                         <i class="fas fa-tags"></i>
                     </button>
-                    <button title="新增行程" onclick="openCreateCalEventModal()" style="background: none; border: none; color: var(--ly-gold); font-size: 1.4rem; cursor: pointer;"><i class="fas fa-plus"></i></button>
-                </div>
+                    <button title="新增" onclick="toggleAddEventMenu(event)" style="background: none; border: none; color: var(--ly-gold); font-size: 1.4rem; cursor: pointer;">
+    <i class="fas fa-plus"></i>
+</button></div>
             </div>
         </header>
 
@@ -3175,8 +3285,9 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                     </div>
                 </div>
                 <div class="header-actions">
-                    <button title="新增行程" onclick="openCreateCalEventModal()" style="background: none; border: none; color: var(--ly-gold); font-size: 1.4rem; cursor: pointer;"><i class="fas fa-plus"></i></button>
-                </div>
+                    <button title="新增" onclick="toggleAddEventMenu(event)" style="background: none; border: none; color: var(--ly-gold); font-size: 1.4rem; cursor: pointer;">
+    <i class="fas fa-plus"></i>
+</button></div>
             </div>
         </header>
         <div id="dayScheduleBody" style="flex: 1; background: var(--bg-gray); overflow-y: auto; padding: 20px; -webkit-overflow-scrolling: touch;"></div>
@@ -3200,7 +3311,7 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             </div>
             
         </header>
-        <div id="calEventDetailBody" style="flex: 1; background: var(--bg-gray); overflow-y: auto; padding: 20px; -webkit-overflow-scrolling: touch;">
+        <div id="calEventDetailBody" style="flex: 1; background: var(--bg-gray); overflow-y: auto; padding: auto; -webkit-overflow-scrolling: touch;">
         </div>
     </div>
 
@@ -3870,6 +3981,53 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             <div class="modal-footer" style="background: white; border-top: 1px solid #eee;">
                 <button class="btn-modal btn-cancel" onclick="closeModal('batchShareEventModal')">取消</button>
                 <button class="btn-modal btn-confirm" style="background: var(--ly-gold); border: none;" onclick="nextBatchShareEvents()">下一步</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="addEventMenu" class="add-action-menu">
+        <button onclick="handleMenuCreateEvent()"><i class="fas fa-calendar-alt"></i> 新增行程</button>
+        <button onclick="openCreatePlanView()"><i class="fas fa-project-diagram"></i> 新增計畫</button>
+    </div>
+
+    <div id="createPlanView" class="app-view" style="z-index: 85; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);">
+        <header class="messenger-header">
+            <div class="header-content" style="padding: 15px 20px; justify-content: space-between; align-items: center;">
+                <div class="user-profile" style="flex: unset; gap: 5px;">
+                    <button class="back-btn" onclick="closeCreatePlanView()" style="margin-right: 0;"><i class="fas fa-chevron-left"></i></button>
+                    <span class="user-name" style="font-size: 1.2rem; margin-right: 0;">行政計畫管理</span>
+                </div>
+            </div>
+        </header>
+        
+        <div style="flex: 1; background: var(--bg-gray); overflow-y: auto; padding: auto; -webkit-overflow-scrolling: touch;">
+            <div class="plan-container">
+                <div class="plan-collapse-card" id="plan-top-creator-card">
+                    <div class="plan-collapse-header" onclick="togglePlanEditArea()">
+                        <div class="header-text-group">
+                            <h2>發布新計畫</h2>
+                            <p>點擊展開以建立新的內容</p>
+                        </div>
+                        <i id="plan-chevron-icon" class="fas fa-chevron-down" style="font-size: 12px; color: #ccc;"></i>
+                    </div>
+                    <div id="plan-edit-area" class="plan-collapse-content">
+                        <input type="text" id="planMainTitle" placeholder="計畫主標題" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border-color); font-size: 14px; outline: none; border-radius: 8px; margin-bottom: 5px; box-sizing: border-box;">
+                        
+                        <div id="plan-dynamic-container"></div>
+                        
+                        <div class="plan-action-btns">
+                            <button class="plan-add-btn" onclick="addPlanSection('heading', {}, 'plan-dynamic-container')">+ 大標題</button>
+                            <button class="plan-add-btn" onclick="addPlanSection('content', {}, 'plan-dynamic-container')">+ 內容資訊</button>
+                            <button class="plan-add-btn" onclick="addPlanSection('flight', {}, 'plan-dynamic-container')">+ 航班資訊</button>
+                            <button class="plan-add-btn" style="border-color:#d32f2f; color:#d32f2f;" onclick="addPlanSection('warning', {}, 'plan-dynamic-container')">+ 注意事項</button>
+                        </div>
+                        <button class="plan-save-btn" onclick="handlePlanSave()">發佈內容</button>
+                    </div>
+                </div>
+
+                <div id="plan-feed-container">
+                    <div style="text-align: center; color: #999; margin-top: 30px;"><i class="fas fa-spinner fa-spin"></i> 讀取計畫資料中...</div>
+                </div>
             </div>
         </div>
     </div>
@@ -5981,7 +6139,16 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         if(!cropperInstance || !targetPreviewId) return;
         const cvs = cropperInstance.getCroppedCanvas({ width:300, height:300, fillColor:'#fff' });
         document.getElementById(targetPreviewId).src = cvs.toDataURL('image/jpeg');
-        cvs.toBlob(b => { window.croppedAvatarBlob = b; if(targetPreviewId==='editGroupAvatarPreview') markAsUnsaved(); closeCropper(); }, 'image/jpeg', 0.85);
+        cvs.toBlob(async b => { 
+            window.croppedAvatarBlob = b; 
+            if(targetPreviewId === 'editGroupAvatarPreview') markAsUnsaved(); 
+            closeCropper(); 
+            
+            // 【新增】：如果裁切的目標是個人大頭貼，裁切完畢後直接啟動上傳程序
+            if(targetPreviewId === 'settingsAvatar') {
+                await uploadPersonalAvatar(b);
+            }
+        }, 'image/jpeg', 0.85);
     }
 
     async function createGroup() {
@@ -7557,10 +7724,9 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         }
     }
 
-    // --- 設定頁面：上傳/更新個人大頭貼 ---
-    async function handleSettingsAvatarChange(e) {
-        const file = e.target.files[0];
-        if (!file) return;
+    // --- 設定頁面：上傳/更新個人大頭貼 (支援裁切版) ---
+    async function uploadPersonalAvatar(blob) {
+        if (!blob) return;
         const user = auth.currentUser;
         if (!user) return;
 
@@ -7569,27 +7735,27 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             const avatarImg = document.getElementById('settingsAvatar');
             avatarImg.style.opacity = '0.5';
 
-            // 2. 使用既有的前端函數壓縮圖片至 1MB 以下 (傳入 1 代表 1MB)
-            const compressedFile = await compressImageClientSide(file, 1);
+            // 將裁切器吐出來的 Blob 轉為 File 格式
+            const file = new File([blob], `avatar_${Date.now()}.jpg`, { type: 'image/jpeg' });
 
-            // 3. 取得舊照片網址，準備稍後刪除
+            // 2. 取得舊照片網址，準備稍後刪除
             const userDocRef = db.collection("act").doc(user.uid);
             const userDoc = await userDocRef.get();
             const oldPhotoUrl = userDoc.exists ? userDoc.data().photoURL : null;
 
-            // 4. 上傳到 Storage 的 avatars 資料夾
-            const snap = await storage.ref(`avatars/${user.uid}_${Date.now()}.jpg`).put(compressedFile);
+            // 3. 上傳到 Storage 的 avatars 資料夾
+            const snap = await storage.ref(`avatars/${user.uid}_${Date.now()}.jpg`).put(file);
             const newUrl = await snap.ref.getDownloadURL();
 
-            // 5. 更新 Firestore act 集合
+            // 4. 更新 Firestore act 集合
             await userDocRef.update({ photoURL: newUrl });
 
-            // 6. 刪除舊照片 (加上防呆機制：只刪除 Storage 中 avatars 資料夾內的圖片)
+            // 5. 刪除舊照片 (加上防呆機制：只刪除 Storage 中 avatars 資料夾內的圖片)
             if (oldPhotoUrl && oldPhotoUrl.includes('firebasestorage') && oldPhotoUrl.includes('%2Favatars%2F')) {
                 try { await storage.refFromURL(oldPhotoUrl).delete(); } catch(err) { console.warn('刪除舊頭像失敗', err); }
             }
 
-            // 7. 更新畫面顯示
+            // 6. 更新畫面顯示
             avatarImg.src = newUrl;
             document.getElementById('myAvatar').src = newUrl;
             avatarImg.style.opacity = '1';
@@ -7599,7 +7765,8 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             alert("圖片上傳失敗，請重試");
             document.getElementById('settingsAvatar').style.opacity = '1';
         }
-        e.target.value = '';
+        // 清空 Input，確保下次點擊相同圖片也能觸發
+        document.getElementById('settingsAvatarInput').value = '';
     }
 
 
@@ -12456,6 +12623,335 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             groupListEl.innerHTML = '<div style="color:red; font-size:0.9rem;">載入失敗</div>';
         }
     }
+
+    // ==========================================
+    // 新增選單引擎 (行程 / 計畫)
+    // ==========================================
+    function toggleAddEventMenu(e) {
+        if (e) e.stopPropagation();
+        const menu = document.getElementById('addEventMenu');
+        
+        if (menu.style.display === 'flex') {
+            menu.style.display = 'none';
+        } else {
+            menu.style.display = 'flex';
+            // 動態抓取按鈕位置，確保選單精準出現在按鈕正下方
+            if (e && e.currentTarget) {
+                const rect = e.currentTarget.getBoundingClientRect();
+                menu.style.top = (rect.bottom + 10) + 'px';
+                menu.style.right = '20px'; // 靠右對齊
+            }
+        }
+    }
+
+    // 選單內點擊「新增行程」
+    function handleMenuCreateEvent() {
+        document.getElementById('addEventMenu').style.display = 'none';
+        openCreateCalEventModal(); // 觸發原本的功能
+    }
+
+    // 點擊畫面其他地方自動關閉選單
+    document.addEventListener('click', (e) => {
+        const addMenu = document.getElementById('addEventMenu');
+        if (addMenu && addMenu.style.display === 'flex' && !addMenu.contains(e.target)) {
+            addMenu.style.display = 'none';
+        }
+    }, true);
+
+    // ==========================================
+    // 新增計畫頁面：滑出與左滑返回引擎
+    // ==========================================
+    const createPlanViewDOM = document.getElementById('createPlanView');
+    let isCpSwiping = false, cpStartX = 0, cpCurrentX = 0;
+
+    // 開啟與關閉介面
+    function openCreatePlanView() {
+        document.getElementById('addEventMenu').style.display = 'none';
+        createPlanViewDOM.style.transform = 'translateX(0%)';
+    }
+
+    function closeCreatePlanView() {
+        createPlanViewDOM.style.transform = 'translateX(100%)';
+    }
+
+    // 左滑返回物理引擎
+    createPlanViewDOM.addEventListener('touchstart', (e) => {
+        // 限制只能從螢幕左邊 40px 的邊緣滑動
+        if (e.touches[0].clientX < 40) { 
+            isCpSwiping = true; 
+            cpStartX = e.touches[0].clientX; 
+            createPlanViewDOM.style.transition = 'none'; 
+        }
+    }, {passive: true});
+
+    createPlanViewDOM.addEventListener('touchmove', (e) => {
+        if (!isCpSwiping) return;
+        cpCurrentX = e.touches[0].clientX - cpStartX;
+        if (cpCurrentX > 0) { 
+            if (e.cancelable) e.preventDefault(); 
+            createPlanViewDOM.style.transform = `translateX(${cpCurrentX}px)`; 
+        }
+    }, { passive: false });
+
+    createPlanViewDOM.addEventListener('touchend', () => {
+        if (!isCpSwiping) return;
+        isCpSwiping = false;
+        createPlanViewDOM.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
+        // 滑動距離超過三分之一，或快速滑出超過 30px 就關閉
+        if (cpCurrentX > window.innerWidth / 3 || cpCurrentX > 30) {
+            closeCreatePlanView();
+        } else {
+            createPlanViewDOM.style.transform = 'translateX(0%)';
+        }
+        cpCurrentX = 0;
+    });
+
+    // ==========================================
+// 行政計畫系統核心邏輯 (Plan Management)
+// ==========================================
+let sortablePlanFeedInstance = null;
+let sortablePlanEditorInstances = {}; 
+let activePlanEditId = null;
+let isPlanListenerStarted = false;
+
+// 覆蓋我們前一個步驟的 openCreatePlanView，在打開時觸發資料監聽
+const _originalOpenCreatePlanView = openCreatePlanView;
+openCreatePlanView = function() {
+    _originalOpenCreatePlanView();
+    if (!isPlanListenerStarted) {
+        startPlanListening();
+        isPlanListenerStarted = true;
+    }
+};
+
+function togglePlanEditArea(forceClose = false) {
+    const area = document.getElementById('plan-edit-area');
+    const icon = document.getElementById('plan-chevron-icon');
+    const isOpening = !forceClose && area.style.display !== "block";
+    
+    if (forceClose || !isOpening) {
+        document.getElementById('planMainTitle').value = "";
+        document.getElementById('plan-dynamic-container').innerHTML = "";
+        area.style.display = "none";
+        icon.className = "fas fa-chevron-down";
+    } else {
+        area.style.display = "block";
+        icon.className = "fas fa-chevron-up";
+        refreshPlanEditorSortable('plan-dynamic-container');
+    }
+}
+
+function addPlanSection(type, data = {}, containerId) {
+    const container = document.getElementById(containerId);
+    const div = document.createElement('div');
+    div.className = 'plan-dynamic-section';
+    div.dataset.type = type;
+    const ctrls = `<div class="plan-inner-drag-handle"><i class="fas fa-grip-vertical"></i></div><div class="plan-section-ctrl">
+            <span class="plan-ctrl-btn" onclick="this.parentElement.parentElement.previousElementSibling?.before(this.parentElement.parentElement)">上移</span>
+            <span class="plan-ctrl-btn" onclick="this.parentElement.parentElement.nextElementSibling?.after(this.parentElement.parentElement)">下移</span>
+            <span class="plan-ctrl-btn" style="color:#d9534f" onclick="this.parentElement.parentElement.remove()">移除</span>
+        </div>`;
+
+    if (type === 'heading') {
+        div.innerHTML = `${ctrls}<input type="text" class="plan-sec-text" placeholder="標題..." value="${data.text || ''}" style="font-weight:600; border:none; background:transparent; border-bottom: 2px solid var(--ly-gold); border-radius: 0; padding-left: 0;">`;
+    } else if (type === 'warning') {
+        div.innerHTML = `${ctrls}<textarea class="plan-sec-text" rows="2" placeholder="注意事項..." style="background:#fffde7; border:1.5px solid #333; font-weight:bold; color: #333;">${data.text || ''}</textarea>`;
+    } else if (type === 'content') {
+        div.innerHTML = `${ctrls}<textarea class="plan-sec-text" rows="3" placeholder="內容...">${data.text || ''}</textarea>`;
+    } else {
+        div.innerHTML = `${ctrls}
+            <div style="display:flex; gap:5px; margin-bottom:5px;">
+                <input type="date" class="plan-sec-date" value="${data.date || ''}" style="flex:1">
+                <input type="time" class="plan-sec-time" value="${data.time || ''}" style="flex:1">
+            </div>
+            <div style="display:flex; gap:5px; margin-bottom:5px;">
+                <input type="text" class="plan-sec-from" value="${data.from || ''}" placeholder="起飛" style="flex:1">
+                <input type="text" class="plan-sec-to" value="${data.to || ''}" placeholder="降落" style="flex:1">
+            </div>
+            <div style="display:flex; gap:5px; margin-bottom:5px;">
+                <input type="text" class="plan-sec-member" value="${data.member || ''}" placeholder="成員" style="flex:1">
+                <input type="text" class="plan-sec-buddy" value="${data.buddy || ''}" placeholder="同行" style="flex:1">
+            </div>
+            <input type="text" class="plan-sec-text" value="${data.text || ''}" placeholder="航班資訊內容">`;
+    }
+    container.appendChild(div);
+    refreshPlanEditorSortable(containerId);
+}
+
+function refreshPlanEditorSortable(containerId) {
+    const el = document.getElementById(containerId);
+    if (!el) return;
+    if (sortablePlanEditorInstances[containerId]) sortablePlanEditorInstances[containerId].destroy();
+    
+    sortablePlanEditorInstances[containerId] = Sortable.create(el, { 
+        animation: 150, 
+        handle: '.plan-inner-drag-handle', 
+        ghostClass: 'sortable-ghost',
+        forceFallback: true,
+        fallbackOnBody: true,
+        swapThreshold: 0.65
+    });
+}
+
+function extractPlanSectionData(sec) {
+    return {
+        type: sec.dataset.type,
+        date: sec.querySelector('.plan-sec-date')?.value || "",
+        time: sec.querySelector('.plan-sec-time')?.value || "",
+        from: sec.querySelector('.plan-sec-from')?.value || "",
+        to: sec.querySelector('.plan-sec-to')?.value || "",
+        member: sec.querySelector('.plan-sec-member')?.value || "",
+        buddy: sec.querySelector('.plan-sec-buddy')?.value || "",
+        text: sec.querySelector('.plan-sec-text').value
+    };
+}
+
+async function handlePlanSave() {
+    const title = document.getElementById('planMainTitle').value.trim();
+    const sections = document.querySelectorAll('#plan-dynamic-container .plan-dynamic-section');
+    if (!title || sections.length === 0) return alert("內容不完整");
+    
+    const items = Array.from(sections).map(extractPlanSectionData);
+    await db.collection("post").add({
+        user: auth.currentUser.email, title, items,
+        orderIndex: Date.now(), timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    togglePlanEditArea(true);
+}
+
+async function startPlanInlineEdit(id) {
+    if (activePlanEditId && activePlanEditId !== id) startPlanListening();
+    activePlanEditId = id;
+    
+    const doc = await db.collection("post").doc(id).get();
+    const data = doc.data();
+    const card = document.querySelector(`.plan-feed-item[data-id="${id}"]`);
+    
+    card.querySelector('.plan-content-body').style.display = "none";
+    card.querySelector('.plan-post-footer').style.display = "none";
+    
+    const editDiv = document.createElement('div');
+    editDiv.className = "plan-inline-edit-area";
+    editDiv.innerHTML = `
+        <input type="text" id="inline-title-${id}" value="${data.title}" placeholder="標題" style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 10px;">
+        <div id="inline-container-${id}"></div>
+        <div class="plan-action-btns">
+            <button class="plan-add-btn" onclick="addPlanSection('heading', {}, 'inline-container-${id}')">+ 大標題</button>
+            <button class="plan-add-btn" onclick="addPlanSection('content', {}, 'inline-container-${id}')">+ 內容資訊</button>
+            <button class="plan-add-btn" onclick="addPlanSection('flight', {}, 'inline-container-${id}')">+ 航班資訊</button>
+            <button class="plan-add-btn" style="border-color:#d32f2f; color:#d32f2f;" onclick="addPlanSection('warning', {}, 'inline-container-${id}')">+ 注意事項</button>
+        </div>
+        <div class="plan-inline-footer">
+            <button class="plan-btn-sm plan-btn-delete" onclick="deletePlanPost('${id}')">永久刪除</button>
+            <button class="plan-btn-sm plan-btn-cancel" onclick="confirmPlanCancelInline()">取消修改</button>
+            <button class="plan-btn-sm plan-btn-update" onclick="updatePlanInlinePost('${id}')">更新存檔</button>
+        </div>
+    `;
+    card.appendChild(editDiv);
+    data.items.forEach(item => addPlanSection(item.type, item, `inline-container-${id}`));
+    refreshPlanEditorSortable(`inline-container-${id}`);
+}
+
+function confirmPlanCancelInline() { 
+    if (confirm("現有編輯內容尚未儲存，是否捨棄？")) { 
+        activePlanEditId = null; 
+        startPlanListening(); 
+        togglePlanEditArea(true); 
+    } 
+}
+
+async function updatePlanInlinePost(id) {
+    const title = document.getElementById(`inline-title-${id}`).value.trim();
+    const sections = document.querySelectorAll(`#inline-container-${id} .plan-dynamic-section`);
+    if (!title || sections.length === 0) return alert("不可為空");
+    
+    const items = Array.from(sections).map(extractPlanSectionData);
+    await db.collection("post").doc(id).update({ title, items });
+    activePlanEditId = null;
+    startPlanListening();
+    togglePlanEditArea(true);
+}
+
+async function deletePlanPost(id) { 
+    if (confirm("永久移除計畫？")) { 
+        await db.collection("post").doc(id).delete(); 
+        activePlanEditId = null; 
+        startPlanListening(); 
+        togglePlanEditArea(true);
+    } 
+}
+
+const planVipUsers = ["momoe@gmail.com", "wu@ll.com", "nina@shiba.com", "momo@h.com"];
+
+function startPlanListening() {
+    activePlanEditId = null;
+    const currentUserEmail = auth.currentUser ? auth.currentUser.email : "";
+    const isVip = planVipUsers.includes(currentUserEmail);
+
+    db.collection("post").orderBy("orderIndex", "desc").onSnapshot(snapshot => {
+        if (activePlanEditId) return;
+        const container = document.getElementById('plan-feed-container');
+        container.innerHTML = "";
+        
+        if (snapshot.empty) {
+            container.innerHTML = '<div style="text-align: center; color: #999; padding: 20px;">尚無計畫資料</div>';
+            return;
+        }
+
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const postAuthor = data.user;
+
+            if (!isVip && planVipUsers.includes(postAuthor)) {
+                return; // 權限：隱藏 VIP 發布的內容
+            }
+
+            const publishDate = data.timestamp ? data.timestamp.toDate() : new Date();
+            const timeStr = `${publishDate.toLocaleDateString()} ${publishDate.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}`;
+            
+            const itemHtml = data.items.map(i => {
+                let memberSection = (i.type === 'flight' && (i.member || i.buddy)) ? `<div class="plan-member-info-wrap">${i.member ? `<span class="plan-member-tag">成員: ${i.member}</span>` : ""}${i.buddy ? `<span class="plan-member-tag">同行: ${i.buddy}</span>` : ""}</div>` : "";
+                let routeSection = (i.type === 'flight' && (i.from || i.to)) ? `<span class="plan-base-tag plan-route-tag">${i.from} <i class="fas fa-arrow-right" style="font-size:9px"></i> ${i.to}</span>` : "";
+                
+                if (i.type === 'heading') return `<div class="plan-item-row" style="background:transparent;"><div class="plan-inner-heading">${i.text}</div></div>`;
+                if (i.type === 'warning') return `<div class="plan-item-row" style="background:transparent; padding:2px 0;"><div class="plan-warning-box"><i class="fas fa-exclamation-triangle"></i>${i.text}</div></div>`;
+                if (i.type === 'flight') return `<div class="plan-item-row"><div class="plan-flight-tags-container"><span class="plan-base-tag plan-time-tag"><i class="far fa-clock"></i>&nbsp;${i.date} ${i.time}</span>${routeSection}<span class="plan-base-tag plan-flight-info-tag"><i class="fas fa-plane"></i>&nbsp;${i.text}</span></div>${memberSection}</div>`;
+                
+                return `<div class="plan-item-row"><p style="margin:0; white-space:pre-wrap; font-size:13.5px; color: inherit;">${i.text}</p></div>`;
+            }).join("");
+
+            container.innerHTML += `
+                <div class="plan-feed-item" data-id="${doc.id}">
+                    <div class="plan-feed-drag-handle"><i class="fas fa-grip-lines"></i></div>
+                    <div class="plan-feed-header-flex"><div class="plan-feed-meta">發布人：${data.user}</div><div class="plan-feed-time-tag">${timeStr}</div></div>
+                    <div class="plan-feed-title">${data.title}</div>
+                    <div class="plan-content-body">${itemHtml}</div>
+                    <div class="plan-post-footer"><div class="plan-edit-link" onclick="startPlanInlineEdit('${doc.id}')">編輯計畫</div></div>
+                </div>
+            `;
+        });
+        initPlanFeedSortableRebind(); 
+    });
+}
+
+function initPlanFeedSortableRebind() {
+    const el = document.getElementById('plan-feed-container');
+    if (sortablePlanFeedInstance) sortablePlanFeedInstance.destroy();
+    sortablePlanFeedInstance = Sortable.create(el, {
+        animation: 150, handle: '.plan-feed-drag-handle', ghostClass: 'sortable-ghost',
+        forceFallback: true,
+        onEnd: async function() {
+            const items = document.querySelectorAll('.plan-feed-item');
+            const batch = db.batch();
+            let newIndex = Date.now();
+            items.forEach((item) => { 
+                batch.update(db.collection("post").doc(item.dataset.id), { orderIndex: newIndex }); 
+                newIndex -= 1000; 
+            });
+            await batch.commit();
+        }
+    });
+}
 
     // ==========================================
     // 聊天室 (chatView) 左側邊緣滑動退出引擎

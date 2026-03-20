@@ -170,10 +170,31 @@
             0% { transform: scale(0.9); opacity: 0.7; }
             100% { transform: scale(1.1); opacity: 1; }
         }
+        /* ==========================================
+           深色模式 (Dark Mode) 適配 - 啟動動畫 (SplashScreen)
+           ========================================== */
+        body.dark-mode #splashScreen {
+            background: #000000 !important; /* 移除漸層，改為 OLED 純黑底色 */
+        }
         
+        body.dark-mode #splashScreen .splash-text {
+            color: #5ba4d6 !important; /* 文字改為高質感的暗金色 */
+            text-shadow: 0 0 20px #5ba4d6 !important; /* 加上淡淡的金色光暈，取代原本的黑色陰影 */
+        }
     </style>
 </head>
 <body>
+    <script>
+        (function() {
+            if (localStorage.getItem('isLoggedIn') === 'true') {
+                const savedDarkMode = localStorage.getItem('darkMode');
+                const systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                if (savedDarkMode === 'true' || (savedDarkMode === null && systemPrefersDark)) {
+                    document.body.classList.add('dark-mode');
+                }
+            }
+        })();
+    </script>
 <div id="splashScreen">
     <div class="splash-text"><i class="fas fa-landmark"></i> 立法院 Legislature</div>
 </div>
@@ -250,6 +271,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
 
 <script>
+    
     const firebaseConfig = {
         apiKey: "AIzaSyACnoimIASfb1rb59SbgLDkUmyYR6ODbUU",
         authDomain: "llwb-ed686.firebaseapp.com",
