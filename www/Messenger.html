@@ -789,6 +789,8 @@
         
         /* 專屬設定頁切換按鈕背景 */
         body.dark-mode #darkModeContainer { background: #2a2a2a !important; border-color: #444 !important; }
+        body.dark-mode #languageContainer { background: #2a2a2a !important; border-color: #444 !important; }
+        
 
         /* ==========================================
            釘選視窗專用樣式
@@ -1536,12 +1538,49 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             touch-action: pan-y; overflow-y: auto; align-content: start; flex: 1;
             transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.3s ease;
         }
-        .calendar-day {
-            background: white; padding: 6px 2px;
-            display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
-            border-bottom: 1px solid #f0f0f0; /* 只有下方有淡淡的分隔線 */
-            cursor: pointer; position: relative; transition: 0.2s;
+
+        /* ==========================================
+           終極修復：自動均分填滿螢幕 + 絕對防撐破網格
+           ========================================== */
+        .calendar-grid {
+            display: grid; 
+            grid-template-columns: repeat(7, 1fr); 
+            grid-auto-rows: 1fr; /* 自動均分可用高度，不會被內容撐破，且完美填滿螢幕 */
+            height: 100%; 
+            background: white; 
+            gap: 0; 
+            flex: 1; 
         }
+        body.dark-mode .calendar-grid { background: #000 !important; }
+
+        .calendar-day {
+            background: white; 
+            padding: 4px 2px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: flex-start;
+            border-bottom: 1px solid #f0f0f0; 
+            cursor: pointer; 
+            position: relative; 
+            min-width: 0; 
+            min-height: 0; /* 【核心防破版魔法】：脫離內容高度限制 */
+            overflow: hidden; /* 超出格子的標籤全部截斷隱藏 */
+        }
+
+        /* 超過 3 個標籤時顯示的 ... 樣式 */
+        .cal-tag-more {
+            font-size: 0.85rem;
+            color: #888;
+            font-weight: 900;
+            margin-top: 1px;
+            text-align: center;
+            line-height: 1;
+            pointer-events: none;
+            letter-spacing: 2px;
+        }
+        body.dark-mode .cal-tag-more { color: #aaa; }
+
         /* 數字與農曆文字排版 */
         .day-num-text { font-size: 1.15rem; font-weight: 500; color: #333; margin-bottom: 2px; line-height: 1; }
         .day-num-text.sunday { color: #ff3b30; } /* 星期日紅色 */
@@ -1801,13 +1840,9 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             overflow-y: auto; overflow-x: hidden; 
             transform: translateZ(0); -webkit-transform: translateZ(0);
         }
-
+        /* 降級原本的 calendar-body，改名為 calendar-grid 0320 */
         /* 降級原本的 calendar-body，改名為 calendar-grid */
-        .calendar-grid {
-            display: grid; grid-template-columns: repeat(7, 1fr); 
-            grid-auto-rows: minmax(85px, 1fr); 
-            background: white; gap: 0; flex: 1; align-content: start;
-        }
+        
         body.dark-mode .calendar-grid { background: #000 !important; }
 
         /* 星期列背景融入網格 */
@@ -1845,15 +1880,10 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         }
 
         /* 確保原有的 calendar-grid 滿版適應 */
-        .calendar-grid {
-            display: grid; 
-            grid-template-columns: repeat(7, 1fr); 
-            grid-auto-rows: minmax(85px, 1fr); 
-            background: white; 
-            gap: 0; 
-            flex: 1; 
-            align-content: start;
-        }
+        /* 降級原本的 calendar-body，改名為 calendar-grid */
+        
+        body.dark-mode .calendar-grid { background: #000 !important; }
+
 
         /* ==========================================
         修復：連續標籤無縫接軌與寬度拉伸 (最終完美版)
@@ -1866,11 +1896,13 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             box-sizing: border-box;
             transition: transform 0.3s ease, opacity 0.3s ease;
             
-            /* 【魔法核心】：使用 stretch 自動填滿，拒絕寫死 width 導致的置中偏移 */
             align-self: stretch;
             width: auto !important;
-            min-height: 18px;
-            line-height: 1.2;
+            
+            /* 【關鍵修復】：強制鎖死高度與行高，絕對不允許換行撐開 */
+            height: 18px !important;
+            min-height: 18px !important;
+            line-height: 12px !important;
         }
 
         /* 利用負邊距 (Negative Margin) 精準吃掉父層格子的 2px Padding */
@@ -2288,7 +2320,7 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         <div class="modal-card">
             <div class="modal-header">
                 <h3><i class="fas fa-users"></i> 建立群組聊天</h3>
-                <span style="cursor:pointer;" onclick="attemptCloseCalEventModal()">&times;</span>
+                <span style="cursor:pointer;" onclick="closeModal('createGroupModal')">&times;</span>
             </div>
             <div class="modal-body">
                 <div class="modal-input-group" style="text-align: center;">
@@ -2883,6 +2915,11 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                 <i class="fas fa-sun" id="darkModeToggleIcon" style="font-size: 1.5rem; color: #e67e22; transition: transform 0.3s ease, color 0.3s ease;"></i>
             </div>
 
+            <div id="languageContainer" onclick="toggleLanguageWithAnim()" style="width: 100%; max-width: 300px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 12px 15px; background: #f8f9fa; border-radius: 8px; border: 1px solid #eee; box-sizing: border-box; cursor: pointer; transition: 0.2s;">
+                <span id="langLabelText" style="font-weight: bold; color: var(--ly-blue);"><i class="fas fa-globe"></i> 言語切替</span>
+                <span id="languageToggleIcon" style="font-size: 1.1rem; font-weight: 900; color: var(--ly-gold); transition: transform 0.3s ease;">JP <i class="fas fa-exchange-alt" style="margin-left:4px;"></i></span>
+            </div>
+
             <div style="width: 100%; max-width: 300px; display: flex; gap: 10px; margin-bottom: 15px;">
                 <button class="btn-modal btn-cancel" style="flex: 1; padding: 10px; border-radius: 8px; font-size: 0.9rem;" onclick="handleChangeEmail()"><i class="fas fa-envelope"></i> 修改信箱</button>
                 <button class="btn-modal btn-cancel" style="flex: 1; padding: 10px; border-radius: 8px; font-size: 0.9rem;" onclick="handleChangePassword()"><i class="fas fa-key"></i> 修改密碼</button>
@@ -2918,68 +2955,128 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         
         <div style="flex: 1; overflow-y: auto; padding: 25px 20px; background: transparent; -webkit-overflow-scrolling: touch;">
             
-            <div class="guide-section">
-                <h4><i class="fas fa-info-circle"></i> 基礎操作</h4>
-                <ul class="guide-list">
-                    <li>點擊左上角的「個人大頭貼」即可切換到設定頁面。</li>
-                </ul>
+            <div id="guideContentZH">
+                <div class="guide-section">
+                    <h4><i class="fas fa-info-circle"></i> 基礎操作</h4>
+                    <ul class="guide-list">
+                        <li>點擊左上角的「個人大頭貼」即可切換到設定頁面。</li>
+                        <li><b>切換語言：</b>在設定頁面中點擊「言語切替 / 語言切換」按鈕，即可無縫切換繁體中文與日文介面。</li>
+                        <li><b>深色模式：</b>支援跟隨系統自動切換，或在設定中手動開啟純黑 (OLED) 深色模式。</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h4><i class="fas fa-comments"></i> 聊天與訊息功能</h4>
+                    <ul class="guide-list">
+                        <li>傳送 <b>.png / .jpeg / .gif</b> 等網址時，系統會自動轉換成預覽圖片。</li>
+                        <li>針對單一訊息<b>向左或向右滑動</b>，即可快速回覆該則訊息。</li>
+                        <li><b>長按訊息</b>會喚出專屬選單（包含：釘選、回覆、複製、收回）。</li>
+                        <li><b>長按別人按的「表情符號」</b>，即可查看點擊該表情的成員清單。</li>
+                        <li>在群組對話中，點擊訊息時間旁邊的<b>「已讀」</b>，可查看所有已讀成員。</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h4><i class="fas fa-calendar-alt"></i> 建立活動功能</h4>
+                    <ul class="guide-list">
+                        <li><b>發起活動：</b>點擊對話框左側的「+」>「活動行程」>「新增活動」。</li>
+                        <li><b>隱私設定：</b>活動可設為「公開」或「私人」（私人模式僅限您授權的成員檢視與參與）。</li>
+                        <li><b>自訂欄位：</b>支援動態新增地點、集合時間、詳細內容，並可上傳多張活動照片。</li>
+                        <li><b>管理行程：</b>在行程總覽中，對著自己建立的卡片<b>向左滑動</b>即可「編輯」或「刪除」。</li>
+                        <li><b>行程確認：</b>活動發布至聊天室後，成員可直接點擊卡片進行「參與」或「下次再說」的統計。</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h4><i class="fas fa-shopping-cart"></i> 建立團購功能</h4>
+                    <ul class="guide-list">
+                        <li><b>發起團購：</b>點擊對話框左側的「+」>「團購功能」>「新增團購」。</li>
+                        <li><b>商品設定：</b>可無限新增商品品項，並為各商品設定單價、數量上限及專屬預覽圖。</li>
+                        <li><b>登記訂購：</b>成員點擊聊天室的團購卡片後，可自由調整購買數量，並能針對單一商品填寫「專屬備註」（如：微糖少冰、尺寸 L）。</li>
+                        <li><b>自動統整：</b>系統會自動加總每項商品的總訂購數，並列出各成員的點單明細與備註，方便代購者一目了然。</li>
+                        <li><b>管理訂單：</b>在團購清單中，對著自己發起的訂單<b>向左滑動</b>即可「編輯」或徹底「刪除」。</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h4><i class="far fa-calendar-alt"></i> 行事曆與共享視角</h4>
+                    <ul class="guide-list">
+                        <li><b>無縫滑動：</b>在行事曆畫面中，向左或向右滑動即可無縫切換月份；點擊頂部的「年份/月份標題」，可快速跳轉至指定年月。</li>
+                        <li><b>快捷綁定共享對象：</b><strong style="color: #d93025;">長按</strong>右上角的「多個人頭圖示 (<i class="fas fa-users"></i>)」綁定「群組」或「個人」。</li>
+                        <li><b>一鍵切換視角：</b>綁定對象後，只要<strong style="color: #d93025;">單擊</strong>該人頭圖示，就能瞬間切換「個人」與「共享」行程！</li>
+                        <li><b>批次分享行程：</b>點擊右上角的「分享圖示 (<i class="fas fa-share-alt"></i>)」，可一次勾選並發布個人行程。</li>
+                        <li><b>快速標籤模式：</b>點擊右上角「標籤圖示 (<i class="fas fa-tags"></i>)」，點選多個日期後能快速填滿「休假、出差」或自訂標籤。</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h4><i class="fas fa-user-secret"></i> 機密文件系統</h4>
+                    <ul class="guide-list">
+                        <li><b>發送機密：</b>點擊左側「+」>「機密文件」>「新增機密檔案」，支援多檔案、連結與帳號密碼。</li>
+                        <li><b>雙重密碼防護：</b>建立時需設定「真密碼」；若設定「假密碼」，輸入假密碼將導向系統偽裝頁面，防範脅迫。</li>
+                        <li><b>指定接收人：</b>建立時可勾選指定傳遞對象，僅有授權成員可見。</li>
+                        <li><b>防窺視偏移：</b>檢視機密時，點擊密碼旁的眼睛圖示，文字將以「+3 偏移」顯示防側錄。</li>
+                        <li><b>安全銷毀：</b>對著自己建立的機密檔案<b>向左滑動</b>即可「徹底刪除」。</li>
+                    </ul>
+                </div>
             </div>
 
-            <div class="guide-section">
-                <h4><i class="fas fa-comments"></i> 聊天與訊息功能</h4>
-                <ul class="guide-list">
-                    <li>傳送 <b>.png / .jpeg / .gif</b> 等網址時，系統會自動轉換成預覽圖片。</li>
-                    <li>針對單一訊息<b>向左或向右滑動</b>，即可快速回覆該則訊息。</li>
-                    <li><b>長按訊息</b>會喚出專屬選單（包含：釘選、回覆、複製、收回）。</li>
-                    <li><b>長按別人按的「表情符號」</b>，即可查看點擊該表情的成員清單。</li>
-                    <li>在群組對話中，點擊訊息時間旁邊的<b>「已讀」</b>，可查看所有已讀成員。</li>
-                </ul>
+            <div id="guideContentJP" style="display: none;">
+                <div class="guide-section">
+                    <h4><i class="fas fa-info-circle"></i> 基本操作</h4>
+                    <ul class="guide-list">
+                        <li>左上の「プロフィールアイコン」をタップすると設定画面に切り替わります。</li>
+                        <li><b>言語切替：</b>設定画面の「言語切り替え」ボタンをタップすると、日中言語をシームレスに切り替えられます。</li>
+                        <li><b>ダークモード：</b>システム連動、または設定から手動でピュアブラック（OLED）のダークモードを有効にできます。</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h4><i class="fas fa-comments"></i> チャットとメッセージ機能</h4>
+                    <ul class="guide-list">
+                        <li><b>.png / .jpeg / .gif</b> などのURLを送信すると、自動的にプレビュー画像に変換されます。</li>
+                        <li>メッセージを<b>左右にスワイプ</b>すると、クイック返信ができます。</li>
+                        <li><b>メッセージを長押し</b>すると、専用メニュー（ピン留め、返信、コピー、送信取消）が表示されます。</li>
+                        <li>他の人が付けた<b>「リアクション絵文字」を長押し</b>すると、反応したメンバー一覧を確認できます。</li>
+                        <li>グループチャットでメッセージ時間の横にある<b>「既読」</b>をタップすると、既読メンバーを確認できます。</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h4><i class="fas fa-calendar-alt"></i> イベント作成機能</h4>
+                    <ul class="guide-list">
+                        <li><b>イベント作成：</b>入力欄左側の「+」>「スケジュール」>「新規イベント作成」をタップします。</li>
+                        <li><b>プライバシー：</b>イベントは「公開」または指定メンバーのみ閲覧可能な「非公開」に設定できます。</li>
+                        <li><b>カスタム項目：</b>場所、集合時間などを動的に追加でき、複数の写真もアップロード可能です。</li>
+                        <li><b>スケジュール管理：</b>一覧で自分が作成したカードを<b>左にスワイプ</b>すると「編集」または「削除」が可能です。</li>
+                        <li><b>出欠確認：</b>メンバーはチャットのカードをタップして、「参加」または「今回は見送り」を選択できます。</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h4><i class="fas fa-shopping-cart"></i> 共同購入機能</h4>
+                    <ul class="guide-list">
+                        <li><b>共同購入の開始：</b>入力欄左側の「+」>「共同購入機能」>「新規共同購入」をタップします。</li>
+                        <li><b>商品設定：</b>商品を無制限に追加でき、単価や数量上限、専用のプレビュー画像を設定可能です。</li>
+                        <li><b>注文の登録：</b>メンバーはカードをタップして数量を調整し、専用メモ（例：微糖・Lサイズ）を記入できます。</li>
+                        <li><b>自動集計：</b>システムが各商品の総注文数を自動集計し、メンバーの明細を一覧表示します。</li>
+                        <li><b>注文管理：</b>自分が開始した注文を<b>左にスワイプ</b>すると「編集」または完全に「削除」できます。</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h4><i class="far fa-calendar-alt"></i> カレンダーと共有視点</h4>
+                    <ul class="guide-list">
+                        <li><b>シームレスなスワイプ：</b>カレンダー画面で左右にスワイプすると月を切り替えられます。</li>
+                        <li><b>共有相手の登録：</b>右上の「複数人アイコン (<i class="fas fa-users"></i>)」を<strong style="color: #d93025;">長押し</strong>して、グループや個人を登録します。</li>
+                        <li><b>ワンタップ視点切替：</b>登録後、そのアイコンを<strong style="color: #d93025;">ワンタップ</strong>するだけで、自分の予定と共有予定を瞬時に切り替えられます！</li>
+                        <li><b>一括共有：</b>右上の「共有アイコン (<i class="fas fa-share-alt"></i>)」から、自分の予定を複数日選択して一括送信できます。</li>
+                        <li><b>クイックタグモード：</b>右上の「タグアイコン (<i class="fas fa-tags"></i>)」から複数の日付を選択し、「休み、出張」などのタグを素早く追加できます。</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h4><i class="fas fa-user-secret"></i> 機密ドキュメントシステム</h4>
+                    <ul class="guide-list">
+                        <li><b>機密の送信：</b>「+」>「機密ドキュメント」で、複数ファイル、リンク、ID/パスワードの送信が可能です。</li>
+                        <li><b>二重パスワード：</b>「本パスワード」を設定します。「ダミーパスワード」を設定し入力させると偽装画面に誘導され、脅迫を防ぎます。</li>
+                        <li><b>受信者の指定：</b>送信相手を指定でき、指定されたメンバーと作成者のみが閲覧できます。</li>
+                        <li><b>覗き見防止：</b>機密情報の閲覧中、パスワード横の目玉アイコンをタップすると「+3シフト」で表示され、覗き見を防ぎます。</li>
+                        <li><b>安全な破棄：</b>自分が作成したファイルを<b>左にスワイプ</b>すると、クラウド上から安全に消去されます。</li>
+                    </ul>
+                </div>
             </div>
 
-            <div class="guide-section">
-                <h4><i class="fas fa-calendar-alt"></i> 建立活動功能</h4>
-                <ul class="guide-list">
-                    <li><b>發起活動：</b>點擊對話框左側的「+」>「活動行程」>「新增活動」。</li>
-                    <li><b>隱私設定：</b>活動可設為「公開」或「私人」（私人模式僅限您授權的成員檢視與參與）。</li>
-                    <li><b>自訂欄位：</b>支援動態新增地點、集合時間、詳細內容，並可上傳多張活動照片。</li>
-                    <li><b>管理行程：</b>在行程總覽中，對著自己建立的卡片<b>向左滑動</b>即可「編輯」或「刪除」。</li>
-                    <li><b>行程確認：</b>活動發布至聊天室後，成員可直接點擊卡片進行「參與」或「下次再說」的統計。</li>
-                </ul>
-            </div>
-
-            <div class="guide-section">
-                <h4><i class="fas fa-shopping-cart"></i> 建立團購功能</h4>
-                <ul class="guide-list">
-                    <li><b>發起團購：</b>點擊對話框左側的「+」>「團購功能」>「新增團購」。</li>
-                    <li><b>商品設定：</b>可無限新增商品品項，並為各商品設定單價、數量上限及專屬預覽圖。</li>
-                    <li><b>登記訂購：</b>成員點擊聊天室的團購卡片後，可自由調整購買數量，並能針對單一商品填寫「專屬備註」（如：微糖少冰、尺寸 L）。</li>
-                    <li><b>自動統整：</b>系統會自動加總每項商品的總訂購數，並列出各成員的點單明細與備註，方便代購者一目了然。</li>
-                    <li><b>管理訂單：</b>在團購清單中，對著自己發起的訂單<b>向左滑動</b>即可「編輯」或徹底「刪除」。</li>
-                </ul>
-            </div>
-
-            <div class="guide-section">
-                <h4><i class="far fa-calendar-alt"></i> 行事曆與共享視角</h4>
-                <ul class="guide-list">
-                    <li><b>無縫滑動：</b>在行事曆畫面中，向左或向右滑動即可無縫切換月份；點擊頂部的「年份/月份標題」，可快速跳轉至指定年月。</li>
-                    <li><b>快捷綁定共享對象：</b><strong style="color: #d93025;">長按</strong>右上角的「多個人頭圖示 (<i class="fas fa-users"></i>)」，可滑出名單並綁定您最常查看的「群組」或「個人」。</li>
-                    <li><b>一鍵切換視角：</b>綁定對象後，只要<strong style="color: #d93025;">單擊</strong>該人頭圖示，就能瞬間在您的「個人行程」與「該對象的共享行程」之間來回切換！</li>
-                    <li><b>批次分享行程：</b>點擊右上角的「分享圖示 (<i class="fas fa-share-alt"></i>)」，可一次勾選多天的個人行程，並一鍵發布給指定群組或成員。</li>
-                    <li><b>快速標籤模式：</b>點擊右上角的「標籤圖示 (<i class="fas fa-tags"></i>)」，即可進入快速模式。點選多個日期後，能快速填滿「休假、出差」或自訂顏色的標籤。</li>
-                </ul>
-            </div>
-
-            <div class="guide-section">
-                <h4><i class="fas fa-user-secret"></i> 機密文件系統</h4>
-                <ul class="guide-list">
-                    <li><b>發送機密：</b>點擊左側「+」>「機密文件」>「新增機密檔案」，支援上傳多個檔案（含極致壓縮）、外部連結與帳號密碼。</li>
-                    <li><b>雙重密碼防護：</b>建立時請設定「真密碼」供解鎖真實內容；亦可設定「假密碼」，輸入假密碼將導向系統偽裝頁面，防範脅迫。</li>
-                    <li><b>指定接收人：</b>建立時可勾選指定傳遞對象，只有被指定的成員與建立者，才能在文件庫看見該檔案並嘗試解鎖。</li>
-                    <li><b>防窺視偏移：</b>建立或檢視「帳號密碼」類別時，點擊密碼旁的眼睛圖示，文字將以密碼學「+3 偏移」顯示，防止旁人側錄偷窺。</li>
-                    <li><b>安全銷毀：</b>在機密文件庫中，對著自己建立的機密檔案<b>向左滑動</b>即可觸發「徹底刪除」，雲端檔案將被安全清空。</li>
-                </ul>
-            </div>
-            
             <div style="text-align: center; color: #aaa; font-size: 0.8rem; margin-top: 30px; margin-bottom: 20px;">
                 © 立法院 Legislature Communication System
             </div>
@@ -3231,10 +3328,25 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
 
                 <div class="release-item latest">
                     <div class="version-title" style="cursor: pointer; user-select: none;" onclick="toggleReleaseContent(this)">
-                        <span class="v-badge latest">v 1.0.99 - 1.1.0</span>
-                        <span class="v-date">雙模捷徑與原生優化</span>
+                        <span class="v-badge latest">v 1.1.1</span>
+                        <span class="v-date">國際化語系與智慧排版升級</span>
                     </div>
                     <div class="v-content" style="display: block;">
+                        <ul>
+                            <li><b>【全新功能】</b>導入輕量級「中/日雙語切換引擎 (i18n)」，支援一鍵瞬間翻譯全系統介面、按鈕與系統操作說明。</li>
+                            <li><b>【視覺升級】</b>行事曆網格全面升級「智慧自適應引擎」，自動計算 5/6 週並完美填滿螢幕；當日行程超過 3 筆時自動優雅折疊，徹底解決版面撐破變形問題。</li>
+                            <li><b>【體驗優化】</b>重構各類「成員選取清單」排版，依據權限自動分類與預設摺疊 (大家庭/立法院成員)，並優化共享視角退出時的無縫防滑動機制 (Z 軸縮放)。</li>
+                            <li><b>【資安與修復】</b>新增「隱藏特定成員」權限過濾機制，僅特定對象可見；修復來回快速滑動行事曆造成的標籤疊加渲染 Bug；排除後端推播名單重複導致的雙重通知錯誤。</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="release-item">
+                    <div class="version-title" style="cursor: pointer; user-select: none;" onclick="toggleReleaseContent(this)">
+                        <span class="v-badge">v 1.0.99 - 1.1.0</span>
+                        <span class="v-date">雙模捷徑與原生優化</span>
+                    </div>
+                    <div class="v-content" style="display: none;">
                         <ul>
                             <li><b>【全新體驗】</b>實裝「長按/單擊」雙模引擎：長按行事曆頂部群組圖示可綁定「專屬共享對象」，單擊即可瞬間切換「個人/共享」視角，並搭載 Z 軸縮放過渡動畫。</li>
                             <li><b>【視覺升級】</b>單日行程新增 6 款高質感「預設標籤色」快捷鍵；「今天」的高亮視覺改為獨立漂浮圖層，徹底解決連續標籤推擠與斷層問題。</li>
@@ -3806,14 +3918,125 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
     let currentSubscribeMessages = null; // 【新增】：儲存重新監聽的函式
 
     // ==========================================
+    // 隱藏特定成員過濾引擎 (Hidden Members Filter)
+    // ==========================================
+    const HIDDEN_MEMBER_EMAILS = ['shiba@ll.com', 'meiju@ll.com', 'momo@ll.com'];
+
+    function canViewHiddenMembers() {
+        const currentUser = auth.currentUser;
+        if (!currentUser) return false;
+        
+        // 1. 如果自己就是隱藏帳號之一，當然可以看到
+        if (HIDDEN_MEMBER_EMAILS.includes(currentUser.email)) return true;
+        
+        // 2. 如果自己的名字是「班長」，擁有最高權限也可以看到
+        const myName = document.getElementById('myName')?.innerText.trim();
+        if (myName === '班長') return true;
+        
+        // 3. 其他一般成員皆無權限
+        return false;
+    }
+
+    // ==========================================
+    // 全域多國語系翻譯引擎 (I18N Translation Engine)
+    // ==========================================
+    const I18N_DICT = {
+        "大家庭 成員": "ファミリー", "立法院 成員": "立法院メンバー", "點擊展開/收合": "クリックして展開",
+        "外觀模式切換": "外観モード切替", "介面語言切換": "言語切り替え (Language)",
+        "修改信箱": "メール変更", "修改密碼": "パスワード変更", "個人行事曆": "マイカレンダー",
+        "系統操作說明": "システム説明", "版本更新內容": "アップデート情報", "登出帳號": "ログアウト",
+        "休假 (紅)": "休み (赤)", "上班 (藍)": "出勤 (青)", "出差 (金)": "出張 (金)",
+        "自訂標籤...": "カスタムタグ...", "新增": "追加", "刪除": "削除", "取消": "キャンセル", 
+        "確認儲存": "保存", "下一步": "次へ", "確認勾選": "確認",
+        "全天行程": "終日", "開始時間": "開始時間", "結束時間": "終了時間",
+        "標籤顏色": "タグの色", "通知提醒": "通知設定", "地點": "場所", "備註": "メモ", "網址": "URL",
+        "加密行程": "暗号スケジュール", "地點、備註與網址": "場所・メモ・URL",
+        "群組聊天": "グループチャット", "個人聊天": "個人チャット", "群組": "グループ", "個人": "個人",
+        "發起新對話": "新規メッセージ", "建立群組聊天": "グループ作成",
+        "活動行程總覽": "スケジュール一覧", "團購清單": "共同購入リスト", "機密文件庫": "機密ドキュメント",
+        "分享我的行程給...": "スケジュール共有...", "請點選要分享的日期": "共有する日付を選択してください",
+        "請輸入標題或標籤名稱...": "タイトルまたはタグを入力...", "請輸入訊息...": "メッセージを入力...",
+        "一": "月", "二": "火", "三": "水", "四": "木", "五": "金", "六": "土",
+        "個人設定": "設定", "聊天室設定": "チャット設定", "編輯行程/標籤": "スケジュール・タグ編集",
+        "自訂顏色，或選擇下方預設：": "カスタム色、または以下から選択：",
+        "共享成員 (選填)": "共有メンバー (任意)", "選擇共享對象...": "共有相手を選択...",
+        "標題 (可選填)": "タイトル (任意)"
+    };
+
+    window.appLang = localStorage.getItem('appLang') || 'zh';
+
+    // 負責轉換動態字串的函數
+    function t(text) { return (window.appLang === 'jp' && I18N_DICT[text]) ? I18N_DICT[text] : text; }
+
+    // 點擊按鈕切換語言並重新載入畫面
+    function toggleLanguageWithAnim() {
+        window.appLang = window.appLang === 'zh' ? 'jp' : 'zh';
+        localStorage.setItem('appLang', window.appLang);
+        
+        const icon = document.getElementById('languageToggleIcon');
+        icon.style.transform = 'scale(0.1)';
+        setTimeout(() => {
+            // 【邏輯】：中文模式時顯示「切換到日文」的按鈕，反之亦然
+            if (window.appLang === 'zh') {
+                document.getElementById('langLabelText').innerHTML = '<i class="fas fa-globe"></i> 言語切替';
+                icon.innerHTML = 'JP <i class="fas fa-exchange-alt" style="margin-left:4px;"></i>';
+            } else {
+                document.getElementById('langLabelText').innerHTML = '<i class="fas fa-globe"></i> 語言切換';
+                icon.innerHTML = '中文 <i class="fas fa-exchange-alt" style="margin-left:4px;"></i>';
+            }
+            icon.style.transform = 'scale(1.2)';
+            setTimeout(() => icon.style.transform = 'scale(1)', 150);
+        }, 150);
+
+        // 重整畫面以徹底套用全新語言
+        setTimeout(() => { window.location.reload(); }, 350);
+    }
+
+    // 掃描 DOM 並替換靜態文字的超級爬蟲
+    function applyI18nToStaticDOM() {
+        const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+        let node;
+        while (node = walk.nextNode()) {
+            const parentName = node.parentNode.nodeName;
+            if (parentName === 'SCRIPT' || parentName === 'STYLE') continue;
+            
+            const val = node.nodeValue.trim();
+            if (val && I18N_DICT[val]) node.nodeValue = node.nodeValue.replace(val, I18N_DICT[val]);
+        }
+        document.querySelectorAll('input, textarea').forEach(el => {
+            if (el.placeholder && I18N_DICT[el.placeholder]) el.placeholder = I18N_DICT[el.placeholder];
+        });
+    }
+
+    // ==========================================
     // 0. 系統初始化與深色模式
     // ==========================================
     document.addEventListener("DOMContentLoaded", () => {
         const savedDarkMode = localStorage.getItem('darkMode');
-        // 【新增】：偵測 iOS 系統目前是否為深色模式
         const systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
         
-        // 判斷邏輯：如果使用者曾手動開啟，或（第一次使用 且 系統是深色）
+        // 【關鍵修復 1】：翻譯引擎必須獨立於外觀模式之外，無論黑白都要執行！
+        const langLabel = document.getElementById('langLabelText');
+        const langIcon = document.getElementById('languageToggleIcon');
+        const gZh = document.getElementById('guideContentZH');
+        const gJp = document.getElementById('guideContentJP');
+
+        if (window.appLang === 'jp') {
+            // 切換為日文模式：按鈕顯示切回中文、啟動日文版說明書
+            if (langLabel) langLabel.innerHTML = '<i class="fas fa-globe"></i> 語言切換';
+            if (langIcon) langIcon.innerHTML = '中文 <i class="fas fa-exchange-alt" style="margin-left:4px;"></i>';
+            if (gZh) gZh.style.display = 'none';
+            if (gJp) gJp.style.display = 'block';
+            applyI18nToStaticDOM(); // 瞬間翻譯全域介面
+        } else {
+            // 中文模式：按鈕顯示切換到 JP、顯示中文版說明書
+            if (langLabel) langLabel.innerHTML = '<i class="fas fa-globe"></i> 言語切替';
+            if (langIcon) langIcon.innerHTML = 'JP <i class="fas fa-exchange-alt" style="margin-left:4px;"></i>';
+            if (gZh) gZh.style.display = 'block';
+            if (gJp) gJp.style.display = 'none';
+        }
+        
+        // 外觀模式判定
         if (savedDarkMode === 'true' || (savedDarkMode === null && systemPrefersDark)) {
             document.body.classList.add('dark-mode');
             if (savedDarkMode === null) localStorage.setItem('darkMode', 'true');
@@ -3822,7 +4045,7 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             if (savedDarkMode === null) localStorage.setItem('darkMode', 'false');
         }
         
-        // 檢查是否看過操作說明，若看過則切換回「新增對話」按鈕
+        // 檢查是否看過操作說明
         if (localStorage.getItem('hasSeenGuide') === 'true') {
             const btn = document.getElementById('topNavActionBtn');
             if (btn) {
@@ -3830,7 +4053,7 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                 btn.title = '新增對話';
                 btn.style.background = '';
                 btn.style.borderColor = '';
-                btn.classList.remove('guide-calling-btn'); // 拔除呼喚動畫
+                btn.classList.remove('guide-calling-btn'); 
             }
         }
     });
@@ -5689,15 +5912,34 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         try {
             const snap = await db.collection("act").get(); 
             let users = [];
-            snap.forEach(doc => { if (doc.id !== auth.currentUser.uid) users.push({id: doc.id, ...doc.data()}); });
+            const canView = canViewHiddenMembers();
+            snap.forEach(doc => { 
+                const data = doc.data();
+                if (doc.id !== auth.currentUser.uid) {
+                    if (!canView && HIDDEN_MEMBER_EMAILS.includes(data.email)) return; // 隱藏防護
+                    users.push({id: doc.id, ...data});
+                }
+            });
             
+            // 【套用排序】
             // 【套用排序】
             users.sort((a, b) => getMemberSortIndex(a.displayName) - getMemberSortIndex(b.displayName));
 
-            let html = '';
+            let familyHtml = '', legisHtml = '';
             users.forEach(data => {
-                html += `<label class="user-select-item"><input type="radio" name="singleChatUser" value="${data.displayName}" onclick="document.getElementById('targetUserName').value = this.value"><div class="user-select-card"><img src="${data.photoURL||'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true'}"><span>${data.displayName}</span></div></label>`;
+                // 【修改】：只有特權人員能觸發大家庭分類，一般人看全部都是立法院
+                const isFamily = canView && ((data.displayName === '班長') || (data.email && HIDDEN_MEMBER_EMAILS.includes(data.email)));
+                const itemHtml = `<label class="user-select-item"><input type="radio" name="singleChatUser" value="${data.displayName}" onclick="document.getElementById('targetUserName').value = this.value"><div class="user-select-card"><img src="${data.photoURL||'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true'}"><span>${data.displayName}</span></div></label>`;
+                if (isFamily) familyHtml += itemHtml; else legisHtml += itemHtml;
             });
+            
+            let html = '';
+            // 【升級】：大家庭成員改為預設摺疊，並套用多國語系引擎 t()
+            if (familyHtml) html += `<div style="grid-column: 1 / -1; width: 100%; margin-top: 10px;"><details><summary style="padding: 8px 10px; font-weight:bold; color:var(--ly-blue); font-size:0.9rem; border-bottom: 2px solid var(--ly-gold); cursor: pointer; outline: none; list-style: none;"><i class="fas fa-home"></i> ${t('大家庭 成員')} <span style="font-size:0.8em; color:#999; font-weight:normal;">(${t('點擊展開/收合')})</span></summary><div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 15px; padding-top: 15px;">${familyHtml}</div></details></div>`;
+            
+            // 【升級】：立法院成員套用多國語系引擎 t()
+            if (legisHtml) html += `<div style="grid-column: 1 / -1; width: 100%; margin-top: 10px;"><details><summary style="padding: 8px 10px; font-weight:bold; color:var(--ly-blue); font-size:0.9rem; border-bottom: 2px solid var(--ly-gold); cursor: pointer; outline: none; list-style: none;"><i class="fas fa-landmark"></i> ${t('立法院 成員')} <span style="font-size:0.8em; color:#999; font-weight:normal;">(${t('點擊展開/收合')})</span></summary><div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 15px; padding-top: 15px;">${legisHtml}</div></details></div>`;
+            
             listEl.innerHTML = html || '<div style="text-align:center;">無資料</div>';
         } catch(e){ listEl.innerHTML="載入失敗"; }
     }
@@ -5757,15 +5999,34 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         try {
             const snap = await db.collection("act").get(); 
             let users = [];
-            snap.forEach(doc => { if (doc.id !== auth.currentUser.uid) users.push({id: doc.id, ...doc.data()}); });
+            const canView = canViewHiddenMembers();
+            snap.forEach(doc => { 
+                const data = doc.data();
+                if (doc.id !== auth.currentUser.uid) {
+                    if (!canView && HIDDEN_MEMBER_EMAILS.includes(data.email)) return; // 隱藏防護
+                    users.push({id: doc.id, ...data});
+                }
+            });
             
+            // 【套用排序】
             // 【套用排序】
             users.sort((a, b) => getMemberSortIndex(a.displayName) - getMemberSortIndex(b.displayName));
 
-            let html = '';
+            let familyHtml = '', legisHtml = '';
             users.forEach(data => {
-                html += `<label class="user-select-item"><input type="checkbox" value="${data.id}" class="group-member-checkbox"><div class="user-select-card"><img src="${data.photoURL||'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true'}"><span>${data.displayName}</span></div></label>`;
-            }); 
+                // 【修改】：只有特權人員能觸發大家庭分類
+                const isFamily = canView && ((data.displayName === '班長') || (data.email && HIDDEN_MEMBER_EMAILS.includes(data.email)));
+                const itemHtml = `<label class="user-select-item"><input type="checkbox" value="${data.id}" class="group-member-checkbox"><div class="user-select-card"><img src="${data.photoURL||'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true'}"><span>${data.displayName}</span></div></label>`;
+                if (isFamily) familyHtml += itemHtml; else legisHtml += itemHtml;
+            });
+            
+            let html = '';
+            // 【升級】：大家庭成員改為預設摺疊，並套用多國語系引擎 t()
+            if (familyHtml) html += `<div style="grid-column: 1 / -1; width: 100%; margin-top: 10px;"><details><summary style="padding: 8px 10px; font-weight:bold; color:var(--ly-blue); font-size:0.9rem; border-bottom: 2px solid var(--ly-gold); cursor: pointer; outline: none; list-style: none;"><i class="fas fa-home"></i> ${t('大家庭 成員')} <span style="font-size:0.8em; color:#999; font-weight:normal;">(${t('點擊展開/收合')})</span></summary><div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 15px; padding-top: 15px;">${familyHtml}</div></details></div>`;
+            
+            // 【升級】：立法院成員套用多國語系引擎 t()
+            if (legisHtml) html += `<div style="grid-column: 1 / -1; width: 100%; margin-top: 10px;"><details><summary style="padding: 8px 10px; font-weight:bold; color:var(--ly-blue); font-size:0.9rem; border-bottom: 2px solid var(--ly-gold); cursor: pointer; outline: none; list-style: none;"><i class="fas fa-landmark"></i> ${t('立法院 成員')} <span style="font-size:0.8em; color:#999; font-weight:normal;">(${t('點擊展開/收合')})</span></summary><div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 15px; padding-top: 15px;">${legisHtml}</div></details></div>`;
+            
             listEl.innerHTML = html || '無成員';
         } catch(e){ listEl.innerHTML="載入失敗"; }
     }
@@ -6093,16 +6354,33 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         try {
             const snap = await db.collection("act").get(); 
             let users = [];
-            snap.forEach(doc => { users.push({id: doc.id, ...doc.data()}); });
+            const canView = canViewHiddenMembers();
+            snap.forEach(doc => { 
+                const data = doc.data();
+                if (!canView && HIDDEN_MEMBER_EMAILS.includes(data.email)) return; // 隱藏防護
+                users.push({id: doc.id, ...data}); 
+            });
             
+            // 【套用排序】
             // 【套用排序】
             users.sort((a, b) => getMemberSortIndex(a.displayName) - getMemberSortIndex(b.displayName));
 
-            let html = '';
+            let familyHtml = '', legisHtml = '';
             users.forEach(data => {
                 const isChecked = window.currentGroupMembers.includes(data.id) ? 'checked' : '';
-                html += `<label class="user-select-item"><input type="checkbox" value="${data.id}" class="edit-group-member-checkbox" ${isChecked}><div class="user-select-card"><img src="${data.photoURL}"><span>${data.displayName}</span></div></label>`;
-            }); 
+                // 【修改】：只有特權人員能觸發大家庭分類
+                const isFamily = canView && ((data.displayName === '班長') || (data.email && HIDDEN_MEMBER_EMAILS.includes(data.email)));
+                const itemHtml = `<label class="user-select-item"><input type="checkbox" value="${data.id}" class="edit-group-member-checkbox" ${isChecked}><div class="user-select-card"><img src="${data.photoURL}"><span>${data.displayName}</span></div></label>`;
+                if (isFamily) familyHtml += itemHtml; else legisHtml += itemHtml;
+            });
+            
+            let html = '';
+            // 【升級】：大家庭成員改為預設摺疊，並套用多國語系引擎 t()
+            if (familyHtml) html += `<div style="grid-column: 1 / -1; width: 100%; margin-top: 10px;"><details><summary style="padding: 8px 10px; font-weight:bold; color:var(--ly-blue); font-size:0.9rem; border-bottom: 2px solid var(--ly-gold); cursor: pointer; outline: none; list-style: none;"><i class="fas fa-home"></i> ${t('大家庭 成員')} <span style="font-size:0.8em; color:#999; font-weight:normal;">(${t('點擊展開/收合')})</span></summary><div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 15px; padding-top: 15px;">${familyHtml}</div></details></div>`;
+            
+            // 【升級】：立法院成員套用多國語系引擎 t()
+            if (legisHtml) html += `<div style="grid-column: 1 / -1; width: 100%; margin-top: 10px;"><details><summary style="padding: 8px 10px; font-weight:bold; color:var(--ly-blue); font-size:0.9rem; border-bottom: 2px solid var(--ly-gold); cursor: pointer; outline: none; list-style: none;"><i class="fas fa-landmark"></i> ${t('立法院 成員')} <span style="font-size:0.8em; color:#999; font-weight:normal;">(${t('點擊展開/收合')})</span></summary><div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 15px; padding-top: 15px;">${legisHtml}</div></details></div>`;
+            
             listEl.innerHTML = html;
         } catch(e){ listEl.innerHTML="失敗"; }
     }
@@ -7587,18 +7865,26 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         try {
             const snap = await db.collection("act").get();
             let users = [];
-            snap.forEach(doc => { users.push({ id: doc.id, ...doc.data() }); });
+            const canView = canViewHiddenMembers();
+            snap.forEach(doc => { 
+                const data = doc.data();
+                if (!canView && HIDDEN_MEMBER_EMAILS.includes(data.email)) return; // 隱藏防護
+                users.push({ id: doc.id, ...data }); 
+            });
             
+            // 【套用排序】：活動成員選擇器
             // 【套用排序】：活動成員選擇器
             users.sort((a, b) => getMemberSortIndex(a.displayName) - getMemberSortIndex(b.displayName));
 
-            let html = '';
+            let familyHtml = '', legisHtml = '';
             users.forEach(d => {
                 if (mode === 'authorized' && d.id === auth.currentUser.uid) {
                     if (!evTempSelectedUIDs.includes(d.id)) evTempSelectedUIDs.push(d.id);
                 }
                 const isChecked = evTempSelectedUIDs.includes(d.id) ? 'checked' : '';
-                html += `
+                // 【修改】：只有特權人員能觸發大家庭分類
+                const isFamily = canView && ((d.displayName === '班長') || (d.email && HIDDEN_MEMBER_EMAILS.includes(d.email)));
+                const itemHtml = `
                 <label class="user-select-item">
                     <input type="checkbox" value="${d.id}" class="ev-member-checkbox" ${isChecked} onchange="toggleEvTempMember(this)">
                     <div class="user-select-card">
@@ -7606,7 +7892,16 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                         <span class="ev-picker-name">${d.displayName || '未知'}</span>
                     </div>
                 </label>`;
+                if (isFamily) familyHtml += itemHtml; else legisHtml += itemHtml;
             });
+            
+            let html = '';
+            // 【升級】：大家庭成員改為預設摺疊，並套用多國語系引擎 t()
+            if (familyHtml) html += `<div style="grid-column: 1 / -1; width: 100%; margin-top: 10px;"><details><summary style="padding: 8px 10px; font-weight:bold; color:var(--ly-blue); font-size:0.9rem; border-bottom: 2px solid var(--ly-gold); cursor: pointer; outline: none; list-style: none;"><i class="fas fa-home"></i> ${t('大家庭 成員')} <span style="font-size:0.8em; color:#999; font-weight:normal;">(${t('點擊展開/收合')})</span></summary><div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 15px; padding-top: 15px;">${familyHtml}</div></details></div>`;
+            
+            // 【升級】：立法院成員套用多國語系引擎 t()
+            if (legisHtml) html += `<div style="grid-column: 1 / -1; width: 100%; margin-top: 10px;"><details><summary style="padding: 8px 10px; font-weight:bold; color:var(--ly-blue); font-size:0.9rem; border-bottom: 2px solid var(--ly-gold); cursor: pointer; outline: none; list-style: none;"><i class="fas fa-landmark"></i> ${t('立法院 成員')} <span style="font-size:0.8em; color:#999; font-weight:normal;">(${t('點擊展開/收合')})</span></summary><div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 15px; padding-top: 15px;">${legisHtml}</div></details></div>`;
+            
             grid.innerHTML = html;
         } catch(e) { grid.innerHTML="讀取失敗"; }
     }
@@ -7627,10 +7922,17 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
     }
 
     function searchEventMember() {
-        const kw = document.getElementById('ev-member-search').value.toLowerCase();
+        const kw = document.getElementById('ev-member-search').value.toLowerCase().trim();
         document.querySelectorAll('#ev-picker-grid .user-select-item').forEach(item => {
-            const name = item.querySelector('.ev-picker-name').innerText.toLowerCase();
+            const nameEl = item.querySelector('.ev-picker-name') || item.querySelector('span');
+            const name = nameEl ? nameEl.innerText.toLowerCase() : '';
             item.style.display = name.includes(kw) ? 'block' : 'none';
+        });
+        
+        // 如果有輸入搜尋字串，自動展開「立法院成員」的摺疊區塊
+        const detailsList = document.querySelectorAll('#ev-picker-grid details');
+        detailsList.forEach(details => {
+            if (kw) details.setAttribute('open', 'true');
         });
     }
 
@@ -9498,41 +9800,56 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
 
     // 1. 返回鍵滿版滑動退出 (左側邊緣滑動)
     let isCalPageSwiping = false, calPageStartX = 0, calPageCurrentX = 0;
+    
     calendarViewDOM.addEventListener('touchstart', (e) => {
-        if (e.touches[0].clientX < 40) { isCalPageSwiping = true; calPageStartX = e.touches[0].clientX; calendarViewDOM.style.transition = 'none'; }
+        if (e.touches[0].clientX < 40) { 
+            isCalPageSwiping = true; 
+            calPageStartX = e.touches[0].clientX; 
+            // 【修復】：如果是共享模式，不移除動畫，因為我們根本不打算移動畫面
+            if (!isSharedCalMode) calendarViewDOM.style.transition = 'none'; 
+        }
     }, {passive: true});
+
     calendarViewDOM.addEventListener('touchmove', (e) => {
         if (!isCalPageSwiping) return;
         calPageCurrentX = e.touches[0].clientX - calPageStartX;
-        if (calPageCurrentX > 0) { if (e.cancelable) e.preventDefault(); calendarViewDOM.style.transform = `translateX(${calPageCurrentX}px)`; }
+        if (calPageCurrentX > 0) { 
+            if (e.cancelable) e.preventDefault(); 
+            // 【修復】：只有在「個人模式」下，才讓畫面跟隨手指右移
+            if (!isSharedCalMode) calendarViewDOM.style.transform = `translateX(${calPageCurrentX}px)`; 
+        }
     }, { passive: false });
+
     calendarViewDOM.addEventListener('touchend', () => {
         if (!isCalPageSwiping) return;
         isCalPageSwiping = false;
-        calendarViewDOM.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
+        
+        // 【修復】：只有個人模式需要恢復動畫設定
+        if (!isSharedCalMode) calendarViewDOM.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
         
         if (calPageCurrentX > window.innerWidth / 3 || calPageCurrentX > 30) {
-            // 【新增】：滑動返回時也觸發防呆攔截
+            // 滑動返回時也觸發防呆攔截
             if (!checkCalendarUnsavedEdits()) {
-                calendarViewDOM.style.transform = 'translateX(0%)'; // 放棄返回，彈回原位
+                if (!isSharedCalMode) calendarViewDOM.style.transform = 'translateX(0%)';
                 calPageCurrentX = 0;
                 return;
             }
 
             if (isSharedCalMode) {
+                // 【關鍵】：如果是共享模式，畫面鎖死在原地，並觸發內部退回動畫
                 exitSharedCalMode();
                 calendarViewDOM.style.transform = 'translateX(0%)';
             } else {
+                // 個人模式：關閉整個行事曆
                 closeCalendarView();
             }
         } else {
-            calendarViewDOM.style.transform = 'translateX(0%)';
+            // 滑動距離不夠，彈回原位
+            if (!isSharedCalMode) calendarViewDOM.style.transform = 'translateX(0%)';
         }
         calPageCurrentX = 0;
     });
 
-
-    
     function closeCalendarView() {
         calendarViewDOM.style.transform = 'translateX(100%)';
     }
@@ -9580,7 +9897,7 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             
             let html = `
             <div class="calendar-weekdays">
-                <div class="sunday">日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div class="saturday">六</div>
+                <div class="sunday">${t('日')}</div><div>${t('一')}</div><div>${t('二')}</div><div>${t('三')}</div><div>${t('四')}</div><div>${t('五')}</div><div class="saturday">${t('六')}</div>
             </div>
             <div class="calendar-grid">
             `;
@@ -9606,7 +9923,10 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
 
             for (let i = firstDayIndex; i > 0; i--) html += generateDayHtml(m === 0 ? y - 1 : y, m === 0 ? 12 : m, prevMonthDays - i + 1, true, false);
             for (let i = 1; i <= daysInMonth; i++) html += generateDayHtml(y, m + 1, i, false, (y === today.getFullYear() && m === today.getMonth() && i === today.getDate()));
-            const rem = 42 - (firstDayIndex + daysInMonth); 
+            // 智慧計算當月需要 5 週還是 6 週
+            const totalCells = firstDayIndex + daysInMonth;
+            const totalWeeks = Math.ceil(totalCells / 7);
+            const rem = (totalWeeks * 7) - totalCells;
             for (let i = 1; i <= rem; i++) html += generateDayHtml(m === 11 ? y + 1 : y, m === 11 ? 1 : m + 2, i, true, false);
             
             html += '</div>'; 
@@ -9794,17 +10114,36 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         });
 
         // 4. 將計算好的槽位渲染到畫面上
+        const MAX_VISIBLE_SLOTS = 3; // 每個格子最多顯示 3 條標籤軌道
+
         for (const [cellId, slots] of Object.entries(slotMap)) {
             const cells = document.querySelectorAll(`[id="${cellId}"]`);
             cells.forEach(cell => {
                 let html = '';
-                for (let i = 0; i < slots.length; i++) {
+                let extraCount = 0;
+                
+                // 計算被隱藏到 3 條軌道之後的真實行程數量
+                for (let i = MAX_VISIBLE_SLOTS; i < slots.length; i++) {
+                    if (slots[i] && !slots[i].includes('color: transparent')) {
+                        extraCount++;
+                    }
+                }
+
+                // 限制：只渲染前 3 個軌道槽位
+                const displayLimit = Math.min(slots.length, MAX_VISIBLE_SLOTS);
+                for (let i = 0; i < displayLimit; i++) {
                     if (slots[i]) {
                         html += slots[i];
                     } else {
                         html += `<div class="cal-tag-bar cal-tag-hide" style="background: transparent; color: transparent; pointer-events: none;">&nbsp;</div>`;
                     }
                 }
+                
+                // 若底下還有真實行程，用 ... 替代顯示
+                if (extraCount > 0) {
+                    html += `<div class="cal-tag-more">...</div>`; 
+                }
+
                 cell.insertAdjacentHTML('beforeend', html);
                 
                 setTimeout(() => { 
@@ -10058,25 +10397,39 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         
         // 【關鍵修復】：強制所有月份補滿 42 格 (6 週)，確保左右滑動時網格線與高度 100% 完美對齊
         const totalCells = firstDayIndex + daysInMonth;
-        const rem = 42 - totalCells;
+        // 智慧計算當月需要 5 週還是 6 週，避免多餘空白列
+        const totalWeeks = Math.ceil(totalCells / 7);
+        const rem = (totalWeeks * 7) - totalCells;
         for (let i = 1; i <= rem; i++) html += generateDayHtml(m === 11 ? y + 1 : y, m === 11 ? 1 : m + 2, i, true, false);
         
         return html + '</div></div>';
     }
 
-    // 4. 動態抓取資料與畫標籤 (加入強大快取防呆機制)
+    // ==========================================
+    // 全域旗標：日曆繪製防重複引擎
+    // ==========================================
+    let isCalRendering = false;
+
+    // 4. 動態抓取資料與畫標籤 (搭載防護鎖與自動清空機制)
     async function fetchAndRenderEvents(year, month) {
-        const startFetchDate = new Date(year, month - 1, 1);
-        const endFetchDate = new Date(year, month + 2, 0); 
-        
-        const startOfMonthStr = `${startFetchDate.getFullYear()}-${String(startFetchDate.getMonth()+1).padStart(2,'0')}-01T00:00`;
-        const endOfMonthStr = `${endFetchDate.getFullYear()}-${String(endFetchDate.getMonth()+1).padStart(2,'0')}-${String(endFetchDate.getDate()).padStart(2,'0')}T23:59`;
-        
-        currentMonthEvents = [];
-        let myName = document.getElementById('myName').innerText.trim();
-        if (!myName || myName === "載入中...") myName = auth.currentUser?.displayName || "未知";
+        // 【防護 1】：如果正在繪製中，直接攔截重複的呼叫
+        if (isCalRendering) {
+            console.log("🛑 警告：日曆正在讀取中，忽略此次重複呼叫");
+            return;
+        }
+        isCalRendering = true; // 上鎖
 
         try {
+            const startFetchDate = new Date(year, month - 1, 1);
+            const endFetchDate = new Date(year, month + 2, 0); 
+            
+            const startOfMonthStr = `${startFetchDate.getFullYear()}-${String(startFetchDate.getMonth()+1).padStart(2,'0')}-01T00:00`;
+            const endOfMonthStr = `${endFetchDate.getFullYear()}-${String(endFetchDate.getMonth()+1).padStart(2,'0')}-${String(endFetchDate.getDate()).padStart(2,'0')}T23:59`;
+            
+            currentMonthEvents = [];
+            let myName = document.getElementById('myName')?.innerText.trim();
+            if (!myName || myName === "載入中...") myName = auth.currentUser?.displayName || "未知";
+
             if (!isSharedCalMode) {
                 // 【個人模式】：只抓自己的
                 const snap = await db.collection("Calendar_page").doc("calendar").collection(myName).where("creatorUid", "==", auth.currentUser.uid).get();
@@ -10085,6 +10438,7 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                     if (data.end >= startOfMonthStr && data.start <= endOfMonthStr) currentMonthEvents.push({ id: doc.id, ...data });
                 });
             } else {
+                // 【共享模式】：抓取指定對象與群組
                 let targetUIDs = [];
                 let isGroupQuery = false;
                 let queryTag = "";
@@ -10108,16 +10462,13 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                     }
                 }
 
-                // 1. 抓取目標名單中，別人分享給我們(或群組)的行程
                 const promises = targetUIDs.map(async uid => {
                     if (uid === auth.currentUser.uid) return; 
                     
-                    // 【關鍵修復】：加入強大名稱尋找防呆機制，解決對方剛開 App 讀不到行程的問題
                     let memberName = window.chatMembersCache[uid]?.displayName;
                     if (!memberName && sharedCalTargetData && sharedCalTargetData.id === uid) {
                         memberName = sharedCalTargetData.name;
                     }
-                    // 如果快取還是空的，強制去資料庫把他的名字要出來
                     if (!memberName) {
                         try {
                             const uDoc = await db.collection("act").doc(uid).get();
@@ -10127,7 +10478,7 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                             }
                         } catch(e) {}
                     }
-                    if (!memberName) return; // 真的找不到才放棄
+                    if (!memberName) return; 
                     
                     const snap = await db.collection("Calendar_page").doc("calendar").collection(memberName).where("sharedWith", "array-contains", queryTag).get();
                     snap.forEach(doc => {
@@ -10137,7 +10488,6 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                 });
                 await Promise.all(promises);
 
-                // 2. 抓取「我分享給他們(或群組)的行程」
                 let myQueryTag = isGroupQuery ? queryTag : (sharedCalTargetData ? sharedCalTargetData.id : targetUIDs.find(u => u !== auth.currentUser.uid));
                 if (myQueryTag) {
                     const mySnap = await db.collection("Calendar_page").doc("calendar").collection(myName).where("sharedWith", "array-contains", myQueryTag).get();
@@ -10149,8 +10499,19 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                     });
                 }
             }
+
+            // 【防護 2】：在畫新標籤之前，強制拔除畫面上殘留的所有舊標籤與「...」，防止疊加！
+            document.querySelectorAll('.cal-tag-bar, .cal-tag-more').forEach(el => el.remove());
+
+            // 呼叫你的繪圖引擎
             drawCalendarTags();
-        } catch(e) { console.error("載入行程失敗", e); }
+
+        } catch(e) { 
+            console.error("載入行程失敗", e); 
+        } finally {
+            // 【關鍵】：不論成功失敗，最後一定要解開防護鎖
+            isCalRendering = false;
+        }
     }
 
     // ==========================================
@@ -10377,12 +10738,29 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                 // 2. 抓取個人
                 const snap = await db.collection("act").get();
                 let users = [];
-                snap.forEach(doc => { if (doc.id !== auth.currentUser.uid) users.push({ id: doc.id, ...doc.data() }); });
+                const canView = canViewHiddenMembers();
+                snap.forEach(doc => { 
+                    const data = doc.data();
+                    if (doc.id !== auth.currentUser.uid) {
+                        if (!canView && HIDDEN_MEMBER_EMAILS.includes(data.email)) return; // 隱藏防護
+                        users.push({ id: doc.id, ...data }); 
+                    }
+                });
                 users.sort((a, b) => getMemberSortIndex(a.displayName) - getMemberSortIndex(b.displayName));
                 
+                let familyHtml = '', legisHtml = '';
                 users.forEach(d => {
-                    html += `<label class="user-select-item"><input type="checkbox" value="${d.id}" class="ev-member-checkbox" onchange="toggleEvTempMember(this)"><div class="user-select-card"><img src="${d.photoURL || 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true'}"><span class="ev-picker-name">${d.displayName || '未知'}</span></div></label>`;
+                    // 【修改】：只有特權人員能觸發大家庭分類
+                    const isFamily = canView && ((d.displayName === '班長') || (d.email && HIDDEN_MEMBER_EMAILS.includes(d.email)));
+                    const itemHtml = `<label class="user-select-item"><input type="checkbox" value="${d.id}" class="ev-member-checkbox" onchange="toggleEvTempMember(this)"><div class="user-select-card"><img src="${d.photoURL || 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true'}"><span class="ev-picker-name">${d.displayName || '未知'}</span></div></label>`;
+                    if (isFamily) familyHtml += itemHtml; else legisHtml += itemHtml;
                 });
+                
+                // 【升級】：大家庭成員改為預設摺疊，並套用多國語系引擎 t()
+                if (familyHtml) html += `<div style="grid-column: 1 / -1; width: 100%; margin-top: 10px;"><details><summary style="padding: 8px 10px; font-weight:bold; color:var(--ly-blue); font-size:0.9rem; border-bottom: 2px solid var(--ly-gold); cursor: pointer; outline: none; list-style: none;"><i class="fas fa-home"></i> ${t('大家庭 成員')} <span style="font-size:0.8em; color:#999; font-weight:normal;">(${t('點擊展開/收合')})</span></summary><div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 15px; padding-top: 15px;">${familyHtml}</div></details></div>`;
+                // 【升級】：立法院成員套用多國語系引擎 t()
+                if (legisHtml) html += `<div style="grid-column: 1 / -1; width: 100%; margin-top: 10px;"><details><summary style="padding: 8px 10px; font-weight:bold; color:var(--ly-blue); font-size:0.9rem; border-bottom: 2px solid var(--ly-gold); cursor: pointer; outline: none; list-style: none;"><i class="fas fa-landmark"></i> ${t('立法院 成員')} <span style="font-size:0.8em; color:#999; font-weight:normal;">(${t('點擊展開/收合')})</span></summary><div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 15px; padding-top: 15px;">${legisHtml}</div></details></div>`;
+                
                 grid.innerHTML = html;
             } catch(e) {}
         } else {
@@ -10881,13 +11259,30 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                 // 2. 抓取個人
                 const snap = await db.collection("act").get();
                 let users = [];
-                snap.forEach(doc => { if (doc.id !== auth.currentUser.uid) users.push({ id: doc.id, ...doc.data() }); });
+                const canView = canViewHiddenMembers();
+                snap.forEach(doc => { 
+                    const data = doc.data();
+                    if (doc.id !== auth.currentUser.uid) {
+                        if (!canView && HIDDEN_MEMBER_EMAILS.includes(data.email)) return; // 隱藏防護
+                        users.push({ id: doc.id, ...data }); 
+                    }
+                });
                 users.sort((a, b) => getMemberSortIndex(a.displayName) - getMemberSortIndex(b.displayName));
                 
+                let familyHtml = '', legisHtml = '';
                 users.forEach(d => {
                     const isChecked = evTempSelectedUIDs.includes(d.id) ? 'checked' : '';
-                    html += `<label class="user-select-item"><input type="checkbox" value="${d.id}" class="ev-member-checkbox" ${isChecked} onchange="toggleEvTempMember(this)"><div class="user-select-card"><img src="${d.photoURL || 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true'}"><span class="ev-picker-name">${d.displayName || '未知'}</span></div></label>`;
+                    // 【修改】：只有特權人員能觸發大家庭分類
+                    const isFamily = canView && ((d.displayName === '班長') || (d.email && HIDDEN_MEMBER_EMAILS.includes(d.email)));
+                    const itemHtml = `<label class="user-select-item"><input type="checkbox" value="${d.id}" class="ev-member-checkbox" ${isChecked} onchange="toggleEvTempMember(this)"><div class="user-select-card"><img src="${d.photoURL || 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true'}"><span class="ev-picker-name">${d.displayName || '未知'}</span></div></label>`;
+                    if (isFamily) familyHtml += itemHtml; else legisHtml += itemHtml;
                 });
+                
+                // 【升級】：大家庭成員改為預設摺疊，並套用多國語系引擎 t()
+                if (familyHtml) html += `<div style="grid-column: 1 / -1; width: 100%; margin-top: 10px;"><details><summary style="padding: 8px 10px; font-weight:bold; color:var(--ly-blue); font-size:0.9rem; border-bottom: 2px solid var(--ly-gold); cursor: pointer; outline: none; list-style: none;"><i class="fas fa-home"></i> ${t('大家庭 成員')} <span style="font-size:0.8em; color:#999; font-weight:normal;">(${t('點擊展開/收合')})</span></summary><div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 15px; padding-top: 15px;">${familyHtml}</div></details></div>`;
+                // 【升級】：立法院成員套用多國語系引擎 t()
+                if (legisHtml) html += `<div style="grid-column: 1 / -1; width: 100%; margin-top: 10px;"><details><summary style="padding: 8px 10px; font-weight:bold; color:var(--ly-blue); font-size:0.9rem; border-bottom: 2px solid var(--ly-gold); cursor: pointer; outline: none; list-style: none;"><i class="fas fa-landmark"></i> ${t('立法院 成員')} <span style="font-size:0.8em; color:#999; font-weight:normal;">(${t('點擊展開/收合')})</span></summary><div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 15px; padding-top: 15px;">${legisHtml}</div></details></div>`;
+                
                 grid.innerHTML = html;
             } catch(e) {}
         } else {

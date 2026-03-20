@@ -44,46 +44,48 @@ exports.sendChatNotification = onDocumentCreated("chats/{chatId}/messages/{messa
     
     if (!chatData || !chatData.members) return null;
 
-    const receivers = chatData.members.filter(uid => uid !== senderId);
+    // 【修復 1：過濾發送者，並利用 Set 強制移除陣列中重複的 UID】
+    const uniqueReceivers = [...new Set(chatData.members.filter(uid => uid !== senderId))];
     
     const senderDoc = await admin.firestore().collection('act').doc(senderId).get();
     const senderName = senderDoc.exists ? senderDoc.data().displayName : '成員';
 
     const tokens = [];
-    for (const uid of receivers) {
+    for (const uid of uniqueReceivers) {
         const userDoc = await admin.firestore().collection('act').doc(uid).get();
         if (userDoc.exists && userDoc.data().pushToken) {
             tokens.push(userDoc.data().pushToken); 
         }
     }
 
-    // --- 從這裡開始替換 ---
-    console.log("🔍 準備發送給這些 UID:", receivers);
-    console.log("🔍 收集到的 Token 數量:", tokens.length);
+    // 【修復 2：將 Token 也強制去重複，確保絕對不會對同一個手機發射兩次推播！】
+    const uniqueTokens = [...new Set(tokens)];
 
-    if (tokens.length === 0) {
-        console.log("🛑 警告：找不到任何 Token！推播程序提前結束。請檢查資料庫裡的 act 集合，對應的 UID 文件裡是否有 pushToken 欄位。");
+    console.log("🔍 準備發送給這些 UID:", uniqueReceivers);
+    console.log("🔍 收集到的 Token 數量:", uniqueTokens.length);
+
+    if (uniqueTokens.length === 0) {
+        console.log("🛑 警告：找不到任何 Token！推播程序提前結束。");
         return null;
     }
     
-    console.log("✅ 準備發射推播！Token 內容:", tokens);
-    // --- 替換到這裡 ---
+    console.log("✅ 準備發射推播！Token 內容:", uniqueTokens);
 
-    // --- 找到 index.js 的 message 變數，替換成這樣 ---
+    // 準備推播包裹
     const message = {
         notification: {
             title: chatData.isGroup ? chatData.groupName : senderName,
             body: chatData.isGroup ? `${senderName}: ${text}` : text,
         },
         data: {
-            chatId: String(chatId) // 【新增這行】：把聊天室 ID 當作隱藏包裹寄給手機
+            chatId: String(chatId) 
         },
         apns: {
             payload: {
                 aps: { sound: 'default' }
             }
         },
-        tokens: tokens
+        tokens: uniqueTokens // 【關鍵】：使用過濾後乾淨的 Token 陣列
     };
 
     try {
