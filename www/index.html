@@ -186,17 +186,15 @@
 <body>
     <script>
         (function() {
-            if (localStorage.getItem('isLoggedIn') === 'true') {
-                const savedDarkMode = localStorage.getItem('darkMode');
-                const systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-                if (savedDarkMode === 'true' || (savedDarkMode === null && systemPrefersDark)) {
-                    document.body.classList.add('dark-mode');
-                }
+            const savedDarkMode = localStorage.getItem('darkMode');
+            const systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (savedDarkMode === 'true' || (savedDarkMode === null && systemPrefersDark)) {
+                document.body.classList.add('dark-mode');
             }
         })();
     </script>
 <div id="splashScreen">
-    <div class="splash-text"><i class="fas fa-landmark"></i> 立法院 Legislature</div>
+    <div class="splash-text"><i class="fas fa-landmark"></i> 立法院</div>
 </div>
 
 <div id="loadingOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f0f2f5; z-index: 9999; flex-direction: column; justify-content: center; align-items: center;">
