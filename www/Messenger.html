@@ -2244,7 +2244,7 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         .plan-feed-time-tag { font-size: 10px; color: #bbb; }
         .plan-feed-drag-handle { color: #333; text-align: center; font-size: 18px; margin-bottom: 2px; cursor: grab; width: 100%; padding: 6px 0; touch-action: none; }
 
-        .plan-feed-title { font-size: 1.1rem; font-weight: bold; color: #111; border-left: 5px solid var(--ly-gold); padding-left: 10px; margin: 0 0 8px 0; }
+        .plan-feed-title { font-size: 1.1rem; font-weight: bold; color: var(--ly-blue) !important; /* 強制套用系統藍色 */ border-left: 5px solid var(--ly-gold); padding-left: 10px; margin: 0 0 8px 0; }
         .plan-item-row { padding: 5px 8px; margin-bottom: 3px; background: #fafafa; border-radius: 6px; }
         .plan-inner-heading { font-size: 1.05rem; font-weight: 600; color: var(--ly-blue); margin: 2px 0 6px 0; display: block; position: relative; padding-bottom: 3px; }
         .plan-inner-heading::after { content: ""; position: absolute; bottom: 0; left: 0; width: 50%; height: 2px; background: linear-gradient(to right, var(--ly-blue) 0%, transparent 100%); }
@@ -2624,6 +2624,165 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         body.dark-mode .fd-route-line-track::before { background-color: #555; }
         body.dark-mode .fd-route-dot { background-color: #2c2c2e; border-color: #555; }
         body.dark-mode .fd-plane-icon { background-color: #2c2c2e00; color: #aaa; }
+
+        /* ==========================================
+           行事曆：行政計畫專屬背景細線 (加寬加粗版)
+           ========================================== */
+        .plan-cal-line {
+            position: absolute;
+            height: 12px; /* 【修改】：從 4px 改為 7px，讓線條上下變粗 */
+            left: 0; right: 0;
+            z-index: 1;
+            pointer-events: none; 
+            opacity: 0.85; /* 【微調】：稍微提高一點不透明度，讓顏色更飽和 */
+        }
+        
+        /* 【修改】：把原本的 15% 縮小成 6%，讓線條左右延伸得更寬、更貼近格子邊緣 */
+        .plan-line-start { margin-left: 6%; border-radius: 4px 0 0 4px; }
+        .plan-line-end { margin-right: 6%; border-radius: 0 4px 4px 0; }
+        .plan-line-single { margin-left: 6%; margin-right: 6%; border-radius: 4px; }
+        .plan-line-mid { border-radius: 0; }
+        
+        /* 強化日期數字，確保在細線前方 */
+        .calendar-day .day-num-text {
+            position: relative;
+            z-index: 2; 
+            text-shadow: none !important; /* 【修復】：徹底拔除陰影，解決深色模式下的髒污感 */
+        }
+        body.dark-mode .calendar-day .day-num-text {
+            text-shadow: none !important; /* 【修復】：徹底拔除陰影 */
+        }
+        
+        /* ==========================================
+           單日行程與計畫卡片：深色模式強制定色補丁
+           ========================================== */
+        body.dark-mode .event-mini-item {
+            background: #1c1c1e !important;
+            border-color: #2c2c2e !important;
+        }
+        body.dark-mode .event-mini-title {
+            color: #e0e0e0 !important;
+        }
+        body.dark-mode .event-mini-meta {
+            color: #aaa !important;
+        }
+        body.dark-mode .event-mini-title i {
+            color: var(--ly-gold) !important; /* 將標題前的藍色 Icon 在深色模式統一調亮為金色 */
+        }
+
+        /* ==========================================
+           已授權/已分享 狀態標籤
+           ========================================== */
+        .shared-indicator-tag {
+            display: flex; align-items: center; gap: 5px; flex-shrink: 0;
+            background: #f0f4f8; color: var(--ly-blue); padding: 4px 8px;
+            border-radius: 6px; font-size: 0.75rem; font-weight: bold; border: 1px solid #d9e2ec;
+        }
+        body.dark-mode .shared-indicator-tag {
+            background: rgba(91, 164, 214, 0.15); color: #5ba4d6; border-color: rgba(91, 164, 214, 0.3);
+        }
+
+        /* ==========================================
+           音樂節奏遊戲 (Rhythm Game) 專屬樣式
+           ========================================== */
+        .game-track { 
+            flex: 1; border-right: 1px dashed rgba(255,255,255,0.15); position: relative; 
+            background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(91,164,214,0.1) 100%);
+        }
+        .game-track:last-child { border-right: none; }
+        
+        /* 掉落的音符方塊 */
+        .game-note { 
+            position: absolute; top: 0; width: 70%; left: 15%; height: 25px; /* 【修復】：加入 top: 0 確保視覺與物理判定 100% 一致 */
+            background: #5ba4d6; border-radius: 8px; border: 2px solid #fff; 
+            box-shadow: 0 0 10px #5ba4d6, inset 0 0 8px rgba(255,255,255,0.5); 
+            will-change: transform; 
+        }
+        
+        /* 操作按鈕 (仿街機機台) */
+        .game-ctrl-btn { 
+            width: 65px; height: 65px; border-radius: 50%; 
+            border: 3px solid rgba(255,255,255,0.5); background: transparent; 
+            color: white; font-size: 1.8rem; display: flex; justify-content: center; align-items: center; 
+            transition: 0.1s; user-select: none; -webkit-user-select: none;
+        }
+        .game-ctrl-btn:active { 
+            background: rgba(255,255,255,0.3); transform: scale(0.85); border-color: var(--ly-gold); color: var(--ly-gold);
+            box-shadow: 0 0 20px var(--ly-gold);
+        }
+
+        /* 軌道點擊光效 */
+        .track-hit-effect {
+            position: absolute; bottom: 20px; left: 0; width: 100%; height: 60px;
+            background: linear-gradient(to top, rgba(207, 169, 0, 0.6) 0%, transparent 100%);
+            opacity: 0; pointer-events: none; transition: opacity 0.2s ease-out;
+        }
+        .track-hit-effect.active { opacity: 1; transition: none; }
+
+        /* 判定與連擊浮動文字 */
+        .game-combo-text { 
+            position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0.5); 
+            color: white; font-size: 3.5rem; font-weight: 900; font-style: italic; opacity: 0; pointer-events: none; 
+            text-shadow: 0 0 15px var(--ly-gold); transition: all 0.1s; z-index: 5;
+        }
+        .game-combo-text.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        
+        .game-judgment-text {
+            position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%); 
+            font-size: 2rem; font-weight: 900; opacity: 0; pointer-events: none; z-index: 6;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8); transition: all 0.1s; letter-spacing: 2px;
+        }
+        .game-judgment-text.show { opacity: 1; transform: translate(-50%, -60%); }
+        .judge-perfect { color: #f1c40f; text-shadow: 0 0 20px #f1c40f; }
+        .judge-good { color: #2ecc71; text-shadow: 0 0 15px #2ecc71; }
+        .judge-miss { color: #e74c3c; text-shadow: 0 0 15px #e74c3c; }
+
+        /* ✅ 【新增】：完美圖示放大淡出動畫 */
+        @keyframes specialPulseFade {
+            0% { transform: scale(1); opacity: 0; }
+            10% { transform: scale(1.1); opacity: 1; } /* 瞬間放大並顯示 */
+            100% { transform: scale(1.5); opacity: 0; } /* 慢慢放大並淡出 */
+        }
+        .game-special-active {
+            animation: specialPulseFade 0.8s ease-out forwards;
+        }
+        
+        /* 強化：讓血條在低血量時閃爍紅光 */
+        @keyframes hpLowBlink {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        .hp-low {
+            animation: hpLowBlink 0.3s infinite;
+            background: #e74c3c !important; /* 變成紅血 */
+        }
+
+        /* 手機端圖片不要溢出 & 內容容器寬度防爆 */
+        img { max-width: 100%; height: auto; display: block; margin-top: 8px; margin-bottom: 8px; }
+        .msg-content p img,
+        .msg-content img { max-width: 100% !important; height: auto !important; }
+
+        /* 針對 Flexbox 佈局中，文字和圖片可能擠爆的情況 */
+        /* 1. 文本換行防爆 */
+        .msg-content,
+        p,
+        span,
+        div {
+            max-width: 100%;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        /* 2. Flex 子項防爆 */
+        .msg-flex-container,
+        .ion-no-margin,
+        ion-item,
+        .ion-card-content,
+        .rendered-content {
+            min-width: 0;
+            max-width: 100%;
+        }
     </style>
 </head>
 <body>
@@ -3376,6 +3535,10 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                 <i class="fas fa-calendar-alt"></i> 個人行事曆
             </button>
 
+            <button class="btn-modal btn-cancel" style="width: 100%; max-width: 300px; padding: 12px; border-radius: 8px; font-size: 1rem; margin-bottom: 10px; color: var(--ly-gold); border: 1px solid var(--ly-gold); font-weight: bold; background: #fffdf5;" onclick="openGameView()">
+                <i class="fas fa-gamepad"></i> 節奏遊戲 (Beta)
+            </button>
+
             <button class="btn-modal btn-cancel" style="width: 100%; max-width: 300px; padding: 12px; border-radius: 8px; font-size: 1rem; margin-bottom: 10px; color: var(--ly-blue); border: 1px solid var(--ly-blue); font-weight: bold;" onclick="openGuide()">
                 <i class="fas fa-book-open"></i> 系統操作說明
             </button>
@@ -3626,11 +3789,11 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                 </div>
                 <div class="header-actions">
                     <button title="新增" onclick="toggleAddEventMenu(event)" style="background: none; border: none; color: var(--ly-gold); font-size: 1.4rem; cursor: pointer;">
-    <i class="fas fa-plus"></i>
-</button></div>
+                        <i class="fas fa-plus"></i>
+                    </button></div>
             </div>
         </header>
-        <div id="dayScheduleBody" style="flex: 1; background: var(--bg-gray); overflow-y: auto; padding: 20px; -webkit-overflow-scrolling: touch;"></div>
+        <div id="dayScheduleBody" style="flex: 1; background: var(--bg-gray); overflow-y: auto; overflow-x: hidden; width: 100%; box-sizing: border-box; padding: 20px; -webkit-overflow-scrolling: touch;"></div>
     </div>
 
     <div id="calEventDetailView" class="app-view" style="z-index: 80; transform: translateX(100%);">
@@ -3760,6 +3923,58 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             <div class="modal-footer">
                 <button class="btn-modal btn-cancel" onclick="attemptCloseCalEventModal()">取消</button>
                 <button class="btn-modal btn-confirm" onclick="saveCalEvent()">確認儲存</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="gameView" class="app-view" style="z-index: 100; transform: translateX(100%);">
+        <header class="messenger-header" style="background: #000; border-bottom: 1px solid #333;">
+            <div class="header-content" style="padding: 15px 20px; justify-content: space-between; align-items: center;">
+                <div class="user-profile" style="flex: unset;">
+                    <button class="back-btn" onclick="closeGameView()" style="color: white; margin-right: 10px;"><i class="fas fa-chevron-left"></i></button>
+                    <span class="user-name" style="color: var(--ly-gold); font-size: 1.2rem;">Rhythm Tap</span>
+                </div>
+                <div style="text-align: right; line-height: 1.2; width: 45%;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
+                        <div id="gameLevelDisplay" style="color: var(--ly-gold); font-weight: 900; font-size: 1.1rem; font-style: italic;">LV 1</div>
+                        <div id="gameScoreDisplay" style="color: white; font-weight: bold; font-size: 0.9rem; font-family: monospace;">0000000</div>
+                    </div>
+                    <div style="width: 100%; height: 6px; background: #333; border-radius: 3px; overflow: hidden; position: relative; border: 1px solid rgba(255,255,255,0.2);">
+                        <div id="gameHpBar" style="position: absolute; top: 0; left: 0; height: 100%; width: 100%; background: linear-gradient(to right, #e74c3c, #2ecc71); transition: width 0.1s linear, background 0.3s;"></div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div id="gameContainer" style="flex: 1; background: #111; position: relative; overflow: hidden; display: flex; flex-direction: column;">
+            
+            <div id="gameTracks" style="flex: 1; display: flex; position: relative; overflow: hidden;">
+                <div class="game-track" id="track-0"><div class="track-hit-effect"></div></div>
+                <div class="game-track" id="track-1"><div class="track-hit-effect"></div></div>
+                <div class="game-track" id="track-2"><div class="track-hit-effect"></div></div>
+                <div class="game-track" id="track-3"><div class="track-hit-effect"></div></div>
+                
+                <div id="gameHitLine" style="position: absolute; bottom: 20px; left: 0; width: 100%; height: 60px; border-top: 2px solid rgba(255,255,255,0.4); border-bottom: 2px solid rgba(255,255,255,0.4); background: rgba(255,255,255,0.05); pointer-events: none;"></div>
+                
+                <div id="gameComboText" class="game-combo-text"></div>
+                <div id="gameJudgmentText" class="game-judgment-text"></div>
+                
+                <div id="gameSpecialEffect" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10; pointer-events: none;">
+                    <img id="gameSpecialImg" src="https://github.com/ChengHan16/Other_File/blob/master/HTML%205/Image/20210505(%E9%BD%8A3.png?raw=true" style="opacity: 0; transition: opacity 0s;">
+                </div>
+            </div>
+
+            <div style="height: 100px; background: #000; border-top: 1px solid #333; display: flex; justify-content: space-around; align-items: center; padding: 0 10px;">
+                <button class="game-ctrl-btn" ontouchstart="handleGameHit(0, event)" onmousedown="handleGameHit(0, event)"><i class="fas fa-arrow-left"></i></button>
+                <button class="game-ctrl-btn" ontouchstart="handleGameHit(1, event)" onmousedown="handleGameHit(1, event)"><i class="fas fa-arrow-up"></i></button>
+                <button class="game-ctrl-btn" ontouchstart="handleGameHit(2, event)" onmousedown="handleGameHit(2, event)"><i class="fas fa-arrow-down"></i></button>
+                <button class="game-ctrl-btn" ontouchstart="handleGameHit(3, event)" onmousedown="handleGameHit(3, event)"><i class="fas fa-arrow-right"></i></button>
+            </div>
+
+            <div id="gameOverLay" style="position: absolute; inset: 0; background: rgba(0,0,0,0.85); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10;">
+                <h2 id="gameOverLayTitle" style="color: var(--ly-gold); font-size: 2.5rem; margin-bottom: 10px; font-style: italic;">RHYTHM TAP</h2>
+                <p id="gameOverLaySub" style="color: #ccc; margin-bottom: 30px;">準備好挑戰 100 級極速了嗎？</p>
+                <button onclick="startGameEngine()" style="padding: 15px 40px; font-size: 1.5rem; border-radius: 30px; background: var(--ly-gold); color: #000; border: none; font-weight: 900; cursor: pointer; box-shadow: 0 0 20px rgba(207,169,0,0.5);">START</button>
             </div>
         </div>
     </div>
@@ -4353,6 +4568,33 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                     <div id="plan-edit-area" class="plan-collapse-content">
                         <input type="text" id="planMainTitle" placeholder="計畫主標題" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border-color); font-size: 14px; outline: none; border-radius: 8px; margin-bottom: 5px; box-sizing: border-box;">
                         
+                        <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 15px;">
+                            <div class="modal-input-group" style="margin-bottom: 0;">
+                                <label style="font-size: 13px; color: var(--ly-blue); font-weight: 700; margin-bottom: 8px; display: block;"><i class="far fa-calendar-alt"></i> 開始時間 <span style="color:red;">*</span></label>
+                                <input type="datetime-local" id="planStart" class="ev-dynamic-input" style="padding: 10px;">
+                            </div>
+                            <div class="modal-input-group" style="margin-bottom: 0;">
+                                <label style="font-size: 13px; color: var(--ly-blue); font-weight: 700; margin-bottom: 8px; display: block;"><i class="far fa-calendar-check"></i> 結束時間 <span style="color:red;">*</span></label>
+                                <input type="datetime-local" id="planEnd" class="ev-dynamic-input" style="padding: 10px;">
+                            </div>
+                        </div>
+
+                        <div class="modal-input-group" style="margin-top: 15px; margin-bottom: 5px;">
+                            <label style="font-size: 13px; color: var(--ly-blue); font-weight: 700; margin-bottom: 8px; display: block;"><i class="fas fa-palette"></i> 計畫標籤顏色</label>
+                            <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px;">
+                                <input type="color" id="planColor" value="#003153" style="width: 50px; height: 40px; padding: 0; border: none; border-radius: 8px; cursor: pointer;">
+                                <span style="font-size: 0.85rem; color: #888;">選擇顏色或點選預設：</span>
+                            </div>
+                            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                                <div class="color-preset-btn" style="background: #003153;" onclick="document.getElementById('planColor').value='#003153'"></div>
+                                <div class="color-preset-btn" style="background: #dc3838;" onclick="document.getElementById('planColor').value='#dc3838'"></div>
+                                <div class="color-preset-btn" style="background: #dab511;" onclick="document.getElementById('planColor').value='#dab511'"></div>
+                                <div class="color-preset-btn" style="background: #5ba4d6;" onclick="document.getElementById('planColor').value='#5ba4d6'"></div>
+                                <div class="color-preset-btn" style="background: #44ad62;" onclick="document.getElementById('planColor').value='#44ad62'"></div>
+                                <div class="color-preset-btn" style="background: #8e44ad;" onclick="document.getElementById('planColor').value='#8e44ad'"></div>
+                            </div>
+                        </div>
+
                         <div class="modal-input-group" style="margin-top: 15px; margin-bottom: 15px;">
                             <label style="font-size: 13px; color: var(--ly-blue); font-weight: 700; margin-bottom: 8px; display: block;"><i class="fas fa-users"></i> 授權共享對象 (預設僅自己可見)</label>
                             <div id="plan-shared-members-preview" class="member-preview-list" style="margin-bottom: 8px; background: white; min-height: 45px;">
@@ -6502,14 +6744,22 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         if(!cropperInstance || !targetPreviewId) return;
         const cvs = cropperInstance.getCroppedCanvas({ width:300, height:300, fillColor:'#fff' });
         document.getElementById(targetPreviewId).src = cvs.toDataURL('image/jpeg');
-        cvs.toBlob(async b => { 
-            window.croppedAvatarBlob = b; 
-            if(targetPreviewId === 'editGroupAvatarPreview') markAsUnsaved(); 
-            closeCropper(); 
-            
-            // 【新增】：如果裁切的目標是個人大頭貼，裁切完畢後直接啟動上傳程序
+        
+        cvs.toBlob(async b => {
+            window.croppedAvatarBlob = b;
+            closeCropper();
+
+            // 1. 個人設定：自動上傳
             if(targetPreviewId === 'settingsAvatar') {
                 await uploadPersonalAvatar(b);
+            }
+            // 2. 群組設定：改為自動上傳 (解決您的痛點！)
+            else if (targetPreviewId === 'editGroupAvatarPreview') {
+                await uploadGroupAvatar(b);
+            }
+            // 3. 建立群組：因為還要填名稱，所以保留 Blob 等待按下建立按鈕才上傳
+            else if (targetPreviewId === 'createGroupAvatarPreview') {
+                // 不做任何動作，維持現有邏輯
             }
         }, 'image/jpeg', 0.85);
     }
@@ -6639,16 +6889,18 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
 
         if (nameInput.value === "立法院 Legislature" && document.getElementById('myName').innerText !== "班長") {
             nameInput.disabled = true; 
-            document.querySelector('.avatar-edit-wrapper').style.pointerEvents='none';
-            document.querySelector('.avatar-edit-icon').style.display='none'; 
-            document.getElementById('deleteGroupBtn').style.display='none'; 
-            editMembersBtn.style.display='none';
+            // 【修正】：精準指定 #groupSettingsView 內的元素
+            document.querySelector('#groupSettingsView .avatar-edit-wrapper').style.pointerEvents = 'none';
+            document.querySelector('#groupSettingsView .avatar-edit-icon').style.display = 'none'; 
+            document.getElementById('deleteGroupBtn').style.display = 'none'; 
+            editMembersBtn.style.display = 'none';
         } else {
             nameInput.disabled = false; 
-            document.querySelector('.avatar-edit-wrapper').style.pointerEvents='auto';
-            document.querySelector('.avatar-edit-icon').style.display='flex'; 
-            document.getElementById('deleteGroupBtn').style.display='block'; 
-            editMembersBtn.style.display='block';
+            // 【修正】：精準指定 #groupSettingsView 內的元素
+            document.querySelector('#groupSettingsView .avatar-edit-wrapper').style.pointerEvents = 'auto';
+            document.querySelector('#groupSettingsView .avatar-edit-icon').style.display = 'flex'; 
+            document.getElementById('deleteGroupBtn').style.display = 'block'; 
+            editMembersBtn.style.display = 'block';
         }
 
         const listEl = document.getElementById('groupMembersList'); 
@@ -6669,21 +6921,45 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         }
     }
 
+    // 【升級版】：群組設定儲存引擎
     async function saveGroupSettings() {
-        const newName = document.getElementById('groupNameEdit').value.trim(); if (!newName) return alert('不能為空');
-        if (window.croppedAvatarBlob && !confirm("確認更改圖片？")) { window.croppedAvatarBlob=null; document.getElementById('editGroupAvatarPreview').src = document.getElementById('targetAvatar').src; return; }
+        const newName = document.getElementById('groupNameEdit').value.trim(); 
+        if (!newName) return alert('群組名稱不能為空！');
         
-        const b = document.getElementById('saveGroupBtn'); b.innerText="儲存中..."; b.disabled=true;
+        // 如果有裁切新圖片，跳出確認框 (若按取消則中斷儲存)
+        if (window.croppedAvatarBlob && !confirm("確認儲存新的群組設定與圖片嗎？")) { 
+            return; 
+        }
+        
+        const b = document.getElementById('saveGroupBtn'); 
+        b.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 雲端儲存中...'; 
+        b.disabled = true;
+
         try {
             const updateData = { groupName: newName };
+            
+            // 1. 如果有新圖片，先上傳到 Storage 換取網址
             if (window.croppedAvatarBlob) {
                 const snap = await storage.ref(`groupAvatars/${currentChatId}/${Date.now()}_avatar.jpg`).put(window.croppedAvatarBlob);
                 updateData.groupAvatar = await snap.ref.getDownloadURL();
             }
+            
+            // 2. 寫入 Firestore 資料庫
             await db.collection("chats").doc(currentChatId).update(updateData); 
-            closeGroupSettings(); // 【修改】：改為呼叫關閉滑動頁面
-            window.croppedAvatarBlob=null;
-        } catch(e){ alert("失敗"); } finally { b.innerText="儲存修改"; b.disabled=false; }
+            
+            // 3. 成功後關閉滑動頁面與重置狀態
+            closeGroupSettings(); 
+            window.croppedAvatarBlob = null;
+            resetSaveButtonState(); // 恢復按鈕預設狀態
+
+        } catch(e) { 
+            console.error("儲存群組設定失敗:", e);
+            // 加上精準報錯，未來如果是權限問題就會直接顯示在這裡！
+            alert("儲存失敗！原因：" + e.message); 
+        } finally { 
+            b.innerText = "儲存修改"; 
+            b.disabled = false; 
+        }
     }
     
     // 1. 點擊進階選項的「解散群組」按鈕：開啟第一道防線
@@ -6861,23 +7137,6 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             }
         }
     }
-
-    async function saveGroupSettings() {
-        const newName = document.getElementById('groupNameEdit').value.trim(); if (!newName) return alert('不能為空');
-        if (window.croppedAvatarBlob && !confirm("確認更改圖片？")) { window.croppedAvatarBlob=null; document.getElementById('editGroupAvatarPreview').src = document.getElementById('targetAvatar').src; return; }
-        
-        const b = document.getElementById('saveGroupBtn'); b.innerText="儲存中..."; b.disabled=true;
-        try {
-            const updateData = { groupName: newName };
-            if (window.croppedAvatarBlob) {
-                const snap = await storage.ref(`groupAvatars/${currentChatId}/${Date.now()}_avatar.jpg`).put(window.croppedAvatarBlob);
-                updateData.groupAvatar = await snap.ref.getDownloadURL();
-            }
-            await db.collection("chats").doc(currentChatId).update(updateData); closeModal('groupSettingsModal'); window.croppedAvatarBlob=null;
-        } catch(e){ alert("失敗"); } finally { b.innerText="儲存"; b.disabled=false; }
-    }
-    
-    
 
     async function openEditMembersModal() {
         openModal('editMembersModal'); const listEl = document.getElementById('editMembersList'); listEl.innerHTML='載入中...';
@@ -8130,6 +8389,37 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         }
         // 清空 Input，確保下次點擊相同圖片也能觸發
         document.getElementById('settingsAvatarInput').value = '';
+    }
+
+    // --- 群組設定：自動上傳群組大頭貼 ---
+    async function uploadGroupAvatar(blob) {
+        if (!blob || !currentChatId) return;
+
+        try {
+            const avatarImg = document.getElementById('editGroupAvatarPreview');
+            avatarImg.style.opacity = '0.5';
+
+            // 1. 上傳圖片到 Storage 的 groupAvatars 資料夾
+            const snap = await storage.ref(`groupAvatars/${currentChatId}/${Date.now()}_avatar.jpg`).put(blob);
+            const newUrl = await snap.ref.getDownloadURL();
+
+            // 2. 立即更新 Firestore 資料庫
+            await db.collection("chats").doc(currentChatId).update({ groupAvatar: newUrl });
+
+            // 3. 更新畫面顯示 (設定頁面與聊天室頂部)
+            avatarImg.src = newUrl;
+            document.getElementById('targetAvatar').src = newUrl;
+            avatarImg.style.opacity = '1';
+
+            // 4. 清空暫存，避免下方的儲存按鈕又重複上傳一次
+            window.croppedAvatarBlob = null;
+            resetSaveButtonState();
+
+        } catch (error) {
+            console.error("更新群組大頭貼失敗:", error);
+            alert("圖片上傳失敗，請重試");
+            document.getElementById('editGroupAvatarPreview').style.opacity = '1';
+        }
     }
 
 
@@ -10442,6 +10732,7 @@ renderEvMemberPreview = async function(uids, type) {
     let isCalPageSwiping = false, calPageStartX = 0, calPageCurrentX = 0;
     
     calendarViewDOM.addEventListener('touchstart', (e) => {
+        document.getElementById('addEventMenu').style.display = 'none'; // 【新增】：觸控畫面時立刻收起選單
         if (e.touches[0].clientX < 40) { 
             isCalPageSwiping = true; 
             calPageStartX = e.touches[0].clientX; 
@@ -10490,10 +10781,6 @@ renderEvMemberPreview = async function(uids, type) {
         calPageCurrentX = 0;
     });
 
-    function closeCalendarView() {
-        calendarViewDOM.style.transform = 'translateX(100%)';
-    }
-
     function toggleCalendarMode() {
         if (!checkCalendarUnsavedEdits()) return; // 【新增】：防呆攔截
         if (calMode === 'days') {
@@ -10505,9 +10792,7 @@ renderEvMemberPreview = async function(uids, type) {
             renderYearSelector();
         }
     }
-
     
-
     function selectCalYear(y) {
         selectorYear = y;
         calMode = 'months';
@@ -10666,69 +10951,87 @@ renderEvMemberPreview = async function(uids, type) {
     }
 
     // 智慧型跨面板連續標籤繪圖引擎 (單週置中演算法版)
+    // 智慧型跨面板連續標籤繪圖引擎 (支援計畫背景細線)
     function drawCalendarTags() {
-        document.querySelectorAll('.cal-tag-bar').forEach(e => e.remove());
+        document.querySelectorAll('.cal-tag-bar, .cal-tag-more, .plan-cal-line').forEach(e => e.remove());
         const slotMap = {}; 
+        const planSlotMap = {}; // 【新增】：行政計畫專屬槽位
 
-        // 1. 排序行程：開始日期早的優先；若同天開始，跨越多天的優先
         currentMonthEvents.sort((a, b) => {
             const aStart = new Date(a.start).getTime();
             const bStart = new Date(b.start).getTime();
             if (aStart !== bStart) return aStart - bStart;
-            
-            const aDuration = new Date(a.end).getTime() - aStart;
-            const bDuration = new Date(b.end).getTime() - bStart;
-            return bDuration - aDuration;
+            return (new Date(b.end).getTime() - bStart) - (new Date(a.end).getTime() - aStart);
         });
 
         currentMonthEvents.forEach(ev => {
             const sDate = new Date(ev.start); 
             const eDate = new Date(ev.end);
-            
             const start = new Date(sDate.getFullYear(), sDate.getMonth(), sDate.getDate());
             const end = new Date(eDate.getFullYear(), eDate.getMonth(), eDate.getDate());
-            
-            const loopStart = start.getTime();
             const loopEnd = end.getTime();
 
             const cellDates = [];
-            for (let d = new Date(start); d.getTime() <= loopEnd; d.setDate(d.getDate() + 1)) {
-                cellDates.push(new Date(d));
+            for (let d = new Date(start); d.getTime() <= loopEnd; d.setDate(d.getDate() + 1)) cellDates.push(new Date(d));
+
+            // ==========================================
+            // 如果是行政計畫：畫在數字背後的細線
+            // ==========================================
+            if (ev.isPlan) {
+                let targetPlanSlot = 0;
+                while (true) {
+                    let isSlotFree = true;
+                    for (const d of cellDates) {
+                        const cid = `cal-cell-${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+                        if (planSlotMap[cid] && planSlotMap[cid][targetPlanSlot]) { isSlotFree = false; break; }
+                    }
+                    if (isSlotFree) break;
+                    targetPlanSlot++;
+                }
+
+                for (let i = 0; i < cellDates.length; i++) {
+                    const d = cellDates[i];
+                    const cid = `cal-cell-${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+                    if (!planSlotMap[cid]) planSlotMap[cid] = [];
+                    
+                    let positionClass = 'plan-line-single';
+                    if (cellDates.length > 1) {
+                        if (i === 0) positionClass = 'plan-line-start';
+                        else if (i === cellDates.length - 1) positionClass = 'plan-line-end';
+                        else positionClass = 'plan-line-mid';
+                    }
+
+                    // 從距離頂部 16px (大約數字腰部) 開始畫，每疊加一條往下推 6px
+                    const topOffset = 125 + (targetPlanSlot * 6); 
+                    planSlotMap[cid][targetPlanSlot] = `<div class="plan-cal-line ${positionClass}" style="top: ${topOffset}px; background: ${ev.color};"></div>`;
+                }
+                return; // 計畫畫完就跳出，不佔用正常標籤空間
             }
 
             // ==========================================
-            // 【新增】：計算每週文字置中的 Index 演算法
+            // 以下保留原本的一般標籤排版邏輯
             // ==========================================
             const textIndices = new Set();
             let currentSegment = [];
-            
             for (let i = 0; i < cellDates.length; i++) {
                 currentSegment.push(i);
-                // 如果遇到星期六 (該列的最後一天) 或是行程的最後一天，就進行結算
                 if (cellDates[i].getDay() === 6 || i === cellDates.length - 1) {
-                    // 取該段落陣列的中間值 Index
-                    const midIndex = currentSegment[Math.floor(currentSegment.length / 2)];
-                    textIndices.add(midIndex);
-                    currentSegment = []; // 清空，準備計算下一週
+                    textIndices.add(currentSegment[Math.floor(currentSegment.length / 2)]);
+                    currentSegment = []; 
                 }
             }
 
-            // 2. 尋找這些天中共同的「最小空槽位 (Target Slot)」
             let targetSlot = 0;
             while (true) {
                 let isSlotFree = true;
                 for (const d of cellDates) {
                     const cid = `cal-cell-${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
-                    if (slotMap[cid] && slotMap[cid][targetSlot]) {
-                        isSlotFree = false;
-                        break;
-                    }
+                    if (slotMap[cid] && slotMap[cid][targetSlot]) { isSlotFree = false; break; }
                 }
                 if (isSlotFree) break;
                 targetSlot++;
             }
 
-            // 3. 準備標籤內容並填入對應的槽位
             const isEncrypted = !!ev.isEncrypted;
             let displayTitle = isEncrypted ? '<i class="fas fa-lock"></i> 加密' : escapeHtml(ev.title || '行程');
             if (isSharedCalMode && ev._sharedFromName) displayTitle = `${escapeHtml(ev._sharedFromName)}: ${displayTitle}`;
@@ -10745,57 +11048,49 @@ renderEvMemberPreview = async function(uids, type) {
                     else positionClass = 'cal-tag-mid';
                 }
 
-                // 【修改】：使用算好的置中 Index 決定是否顯示文字
                 const showText = textIndices.has(i);
                 const text = showText ? displayTitle : '&nbsp;';
-
-                // 【修改】：根據旗標決定是否加入 cal-tag-hide
                 const animClass = needsCalTagAnimation ? 'cal-tag-hide' : '';
                 slotMap[cid][targetSlot] = `<div class="cal-tag-bar ${positionClass} ${animClass}" style="background: ${ev.color || '#5ba4d6'};">${text}</div>`;
             }
         });
 
-        // 4. 將計算好的槽位渲染到畫面上
-        const MAX_VISIBLE_SLOTS = 3; // 每個格子最多顯示 3 條標籤軌道
-
+        // 渲染一般行程標籤
+        const MAX_VISIBLE_SLOTS = 3; 
         for (const [cellId, slots] of Object.entries(slotMap)) {
             const cells = document.querySelectorAll(`[id="${cellId}"]`);
             cells.forEach(cell => {
                 let html = '';
                 let extraCount = 0;
-                
-                // 計算被隱藏到 3 條軌道之後的真實行程數量
                 for (let i = MAX_VISIBLE_SLOTS; i < slots.length; i++) {
-                    if (slots[i] && !slots[i].includes('color: transparent')) {
-                        extraCount++;
-                    }
+                    if (slots[i] && !slots[i].includes('color: transparent')) extraCount++;
                 }
 
-                // 限制：只渲染前 3 個軌道槽位
                 const displayLimit = Math.min(slots.length, MAX_VISIBLE_SLOTS);
                 for (let i = 0; i < displayLimit; i++) {
-                    if (slots[i]) {
-                        html += slots[i];
-                    } else {
-                        html += `<div class="cal-tag-bar cal-tag-hide" style="background: transparent; color: transparent; pointer-events: none;">&nbsp;</div>`;
-                    }
+                    html += slots[i] ? slots[i] : `<div class="cal-tag-bar cal-tag-hide" style="background: transparent; color: transparent; pointer-events: none;">&nbsp;</div>`;
                 }
-                
-                // 若底下還有真實行程，用 ... 替代顯示
-                if (extraCount > 0) {
-                    html += `<div class="cal-tag-more">...</div>`; 
-                }
+                if (extraCount > 0) html += `<div class="cal-tag-more">...</div>`; 
 
                 cell.insertAdjacentHTML('beforeend', html);
-                
-                // 【修改】：只有在需要動畫時，才執行拔除 class 的觸發器
                 if (needsCalTagAnimation) {
-                    setTimeout(() => { 
-                        cell.querySelectorAll('.cal-tag-bar').forEach(tag => tag.classList.remove('cal-tag-hide')); 
-                    }, 50);
+                    setTimeout(() => { cell.querySelectorAll('.cal-tag-bar').forEach(tag => tag.classList.remove('cal-tag-hide')); }, 50);
                 }
             });
         }
+
+        // 渲染行政計畫背景細線 (用 afterbegin 確保它在日曆格子 HTML 結構的最前面，Z-index 才能把它壓在數字背後)
+        for (const [cellId, slots] of Object.entries(planSlotMap)) {
+            const cells = document.querySelectorAll(`[id="${cellId}"]`);
+            cells.forEach(cell => {
+                let html = '';
+                for (let i = 0; i < slots.length; i++) {
+                    if (slots[i]) html += slots[i];
+                }
+                cell.insertAdjacentHTML('afterbegin', html); 
+            });
+        }
+
         needsCalTagAnimation = false;
     }
 
@@ -10884,6 +11179,7 @@ renderEvMemberPreview = async function(uids, type) {
 
     function closeCalendarView() {
         if (!checkCalendarUnsavedEdits()) return; // 防呆攔截
+        document.getElementById('addEventMenu').style.display = 'none'; // 【新增】：收起新增選單
         calendarViewDOM.style.transform = 'translateX(100%)';
     }
 
@@ -10980,32 +11276,31 @@ renderEvMemberPreview = async function(uids, type) {
                     const m = parseInt(entry.target.dataset.month);
                     const titleStr = `${y}年 ${m + 1}月 <i class="fas fa-caret-down" style="font-size:0.8em; margin-left:2px; color:#aaa;"></i>`;
                     
-                    // 更新頂部標題
-                    if (!isSharedCalMode) {
+                // 更新頂部標題
+                if (!isSharedCalMode) {
                         document.getElementById('calendarTitle').innerHTML = titleStr;
                     } else {
                         document.getElementById('calendarTitle').innerHTML = `${y}年 ${m + 1}月 <span style="font-size:0.75rem; background:var(--ly-gold); color:white; padding:2px 6px; border-radius:10px; margin-left:6px;">共享</span>`;
-                        
-                        // 【新增】：同步更新覆蓋層上的月份
                         const overlayMonth = document.getElementById('mainCalSharedMonth');
                         if (overlayMonth) overlayMonth.innerHTML = titleStr;
                     }
                     
                     currentCalDate = new Date(y, m, 1);
-                    await fetchAndRenderEvents(y, m);
+                    // 【刪除】：移除原本在這裡的 await fetchAndRenderEvents(y, m); 解除滑動更新
                 }
             });
-        }, { root: container, threshold: 0.5 }); // 當該月份區塊有 50% 進入畫面時觸發
+        }, { root: container, threshold: 0.5 }); 
 
-        // 開始觀察所有月份面板
         document.querySelectorAll('.calendar-month-panel').forEach(panel => calObserver.observe(panel));
 
-        // 瞬間移動到正中央 (當前月份)
         container.style.scrollBehavior = 'auto'; 
         setTimeout(() => {
             const panelWidth = container.clientWidth;
             container.scrollLeft = panelWidth * CAL_RANGE;
             container.style.scrollBehavior = 'smooth'; // 恢復平滑滾動供使用者操作
+            
+            // ✅ 【新增】：捲動定位完成後，觸發一次性的「全域讀取」！
+            fetchAndRenderEvents();
         }, 0);
     }
 
@@ -11058,8 +11353,8 @@ renderEvMemberPreview = async function(uids, type) {
     // ==========================================
     let isCalRendering = false;
 
-    // 4. 動態抓取資料與畫標籤 (搭載防護鎖與自動清空機制)
-    async function fetchAndRenderEvents(year, month) {
+    // 4. 動態抓取資料與畫標籤 (搭載防護鎖與全域快取機制)
+    async function fetchAndRenderEvents() {
         // 【防護 1】：如果正在繪製中，直接攔截重複的呼叫
         if (isCalRendering) {
             console.log("🛑 警告：日曆正在讀取中，忽略此次重複呼叫");
@@ -11068,8 +11363,16 @@ renderEvMemberPreview = async function(uids, type) {
         isCalRendering = true; // 上鎖
 
         try {
-            const startFetchDate = new Date(year, month - 1, 1);
-            const endFetchDate = new Date(year, month + 2, 0); 
+            // 【終極修復】：不再只抓單月，而是「一次性抓取畫面上所有的月份 (高達 25 個月)」，配合滑動不重繪！
+            const panels = document.querySelectorAll('.calendar-month-panel');
+            if (panels.length === 0) { isCalRendering = false; return; }
+            
+            // 直接從畫面的第一塊面板與最後一塊面板，取得最寬廣的時間範圍
+            const firstPanel = panels[0];
+            const lastPanel = panels[panels.length - 1];
+            
+            const startFetchDate = new Date(parseInt(firstPanel.dataset.year), parseInt(firstPanel.dataset.month), 1);
+            const endFetchDate = new Date(parseInt(lastPanel.dataset.year), parseInt(lastPanel.dataset.month) + 1, 0);
             
             const startOfMonthStr = `${startFetchDate.getFullYear()}-${String(startFetchDate.getMonth()+1).padStart(2,'0')}-01T00:00`;
             const endOfMonthStr = `${endFetchDate.getFullYear()}-${String(endFetchDate.getMonth()+1).padStart(2,'0')}-${String(endFetchDate.getDate()).padStart(2,'0')}T23:59`;
@@ -11150,6 +11453,68 @@ renderEvMemberPreview = async function(uids, type) {
 
             // 【防護 2】：在畫新標籤之前，強制拔除畫面上殘留的所有舊標籤與「...」，防止疊加！
             document.querySelectorAll('.cal-tag-bar, .cal-tag-more').forEach(el => el.remove());
+
+            
+            // ==========================================
+            // 【新增】：將行政計畫也拉進來一起渲染
+            // ==========================================
+            if (!window.myPlanGroupsCache) {
+                const groupSnap = await db.collection("chats").where("members", "array-contains", auth.currentUser.uid).where("isGroup", "==", true).get();
+                window.myPlanGroupsCache = groupSnap.docs.map(doc => "GROUP_" + doc.id);
+            }
+            
+            const planSnap = await db.collection("post").get();
+            planSnap.forEach(doc => {
+                const data = doc.data();
+                if (!data.start || !data.end) return; 
+
+                const isCreator = (data.creatorUid === auth.currentUser.uid) || (data.user === auth.currentUser.email);
+                const isSharedToMe = (data.sharedWith || []).includes(auth.currentUser.uid) || (data.sharedWith || []).some(tag => window.myPlanGroupsCache && window.myPlanGroupsCache.includes(tag));
+                const isMonitor = (myName === '班長');
+                
+                // ==========================================
+                // 【關鍵升級】：共享日曆 vs 個人日曆的雙軌授權判斷 (支援雙向與群組)
+                // ==========================================
+                if (isSharedCalMode) {
+                    const targetData = sharedCalTargetData || {};
+                    const isGroupMode = targetData.type === 'group';
+                    const targetId = targetData.id;
+                    const sharedWith = data.sharedWith || [];
+                    
+                    if (isGroupMode) {
+                        // 群組模式：檢查這個計畫是否有分享給這個群組，且發布者也是該群組的人
+                        const groupTag = "GROUP_" + targetId;
+                        const isSharedToThisGroup = sharedWith.includes(groupTag);
+                        const isFromMember = (targetData.members || []).includes(data.creatorUid);
+                        if (!isSharedToThisGroup || !isFromMember) {
+                            if (!isMonitor) return;
+                        }
+                    } else {
+                        // 個人模式雙向判斷：
+                        // 1. 對方發布的計畫，且我有權限看 (對方分享給我)
+                        const isFromTargetToMe = (data.creatorUid === targetId) && isSharedToMe;
+                        // 2. 我發布的計畫，且我直接分享給對方 (我分享給對方)
+                        const isFromMeToTarget = isCreator && sharedWith.includes(targetId);
+                        
+                        if (!isFromTargetToMe && !isFromMeToTarget && !isMonitor) return;
+                    }
+                } else {
+                    // 【修正】：個人模式下，只顯示「自己發布的計畫」(班長特權保留)
+                    if (!isCreator && !isMonitor) return;
+                }
+
+                // 判斷是否落在本月
+
+                // 判斷是否落在本月
+                if (data.end >= startOfMonthStr && data.start <= endOfMonthStr) {
+                    currentMonthEvents.push({ 
+                        id: doc.id, 
+                        ...data, 
+                        isPlan: true, // 這是專屬行政計畫的標記
+                        color: data.color || 'var(--ly-blue)' // 【修改】：優先讀取自訂顏色，沒設定才用藍色
+                    });
+                }
+            });
 
             // 呼叫你的繪圖引擎
             drawCalendarTags();
@@ -11644,6 +12009,7 @@ renderEvMemberPreview = async function(uids, type) {
     let currentViewedDate = null; // 全域變數：紀錄目前正在看哪一天
 
     dayScheduleViewDOM.addEventListener('touchstart', (e) => {
+        document.getElementById('addEventMenu').style.display = 'none'; // 【新增】：觸控畫面時立刻收起選單
         if (e.touches[0].clientX < 40) { isDaySwiping = true; dayStartX = e.touches[0].clientX; dayScheduleViewDOM.style.transition = 'none'; }
     }, {passive: true});
     dayScheduleViewDOM.addEventListener('touchmove', (e) => {
@@ -11671,15 +12037,8 @@ renderEvMemberPreview = async function(uids, type) {
         dayCurrentX = 0;
     });
 
-    function closeDaySchedule() {
-        dayScheduleViewDOM.style.transform = 'translateX(100%)';
-    }
-
     // 【新增】：全域快取，用來讓詳細頁面能瞬間讀取資料
     window.currentCalEventsData = {};
-
-    
-
     // ==========================================
     // 行程詳細內容：滑出與檢視引擎
     // ==========================================
@@ -12368,39 +12727,121 @@ renderEvMemberPreview = async function(uids, type) {
                 }
             }
 
+            // ==========================================
+            // 【新增】：同時抓取「行政計畫 (post 集合)」
+            // ==========================================
+            if (!window.myPlanGroupsCache) {
+                const groupSnap = await db.collection("chats").where("members", "array-contains", uid).where("isGroup", "==", true).get();
+                window.myPlanGroupsCache = groupSnap.docs.map(doc => "GROUP_" + doc.id);
+            }
+            
+            const planSnap = await db.collection("post").get();
+            planSnap.forEach(doc => {
+                const data = doc.data();
+                if (!data.start || !data.end) return;
+
+                const evStart = new Date(data.start).getTime();
+                const evEnd = new Date(data.end).getTime();
+
+                // 判斷計畫時間是否與今天重疊
+                // 判斷計畫時間是否與今天重疊
+                if (evStart <= endOfDay && evEnd >= startOfDay) {
+                    const isCreator = (data.creatorUid === uid) || (data.user === auth.currentUser.email);
+                    const isSharedToMe = (data.sharedWith || []).includes(uid) || (data.sharedWith || []).some(tag => window.myPlanGroupsCache && window.myPlanGroupsCache.includes(tag));
+                    const isMonitor = (myName === '班長');
+                    
+                    // ==========================================
+                    // 【關鍵升級】：單日清單內的共享授權判斷 (支援雙向與群組)
+                    // ==========================================
+                    if (isSharedCalMode) {
+                        const targetData = sharedCalTargetData || {};
+                        const isGroupMode = targetData.type === 'group';
+                        const targetId = targetData.id;
+                        const sharedWith = data.sharedWith || [];
+                        
+                        if (isGroupMode) {
+                            const groupTag = "GROUP_" + targetId;
+                            const isSharedToThisGroup = sharedWith.includes(groupTag);
+                            const isFromMember = (targetData.members || []).includes(data.creatorUid);
+                            if (!isSharedToThisGroup || !isFromMember) {
+                                if (!isMonitor) return;
+                            }
+                        } else {
+                            const isFromTargetToMe = (data.creatorUid === targetId) && isSharedToMe;
+                            const isFromMeToTarget = isCreator && sharedWith.includes(targetId);
+                            if (!isFromTargetToMe && !isFromMeToTarget && !isMonitor) return;
+                        }
+                    } else {
+                        if (!isCreator && !isMonitor) return;
+                    }
+
+                    const evObj = { id: doc.id, ...data, sortDate: new Date(evStart), type: 'plan', _sharedFromName: data.userName, color: data.color || 'var(--ly-blue)' };
+                    dayEvents.push(evObj);
+                    window.currentCalEventsData[doc.id] = evObj; 
+                    
+                    // 【關鍵修復】：將計畫資料同步存入計畫專屬快取，解決點擊無法開啟的問題！
+                    window.currentPlansData[doc.id] = { id: doc.id, isCreator, isMonitor, ...data };
+                }
+            });
+
             if (dayEvents.length === 0) {
-                bodyEl.innerHTML = '<div style="text-align: center; color: #999; margin-top: 50px; font-weight: bold;">該日無任何行程</div>'; return;
+                bodyEl.innerHTML = '<div style="text-align: center; color: #999; margin-top: 50px; font-weight: bold;">該日無任何行程與計畫</div>'; return;
             }
 
-            dayEvents.sort((a, b) => a.sortDate - b.sortDate);
+            // ==========================================
+            // 【核心】：雙軌排序 (先排類型：行程優先於計畫，同類型再排時間)
+            // ==========================================
+            dayEvents.sort((a, b) => {
+                if (a.type !== b.type) return a.type === 'simple' ? -1 : 1;
+                return a.sortDate - b.sortDate;
+            });
+
             let html = '<div class="event-mini-list" style="padding: 0;">';
+            let hasRenderedEventDivider = false;
+            let hasRenderedPlanDivider = false;
             
             dayEvents.forEach(ev => {
-                // 【修復】：時間改為兩行顯示
+                // 【新增】：分類分隔線 (-- 行程 -- 與 -- 計畫 --)
+                if (ev.type === 'simple' && !hasRenderedEventDivider) {
+                    html += `<div style="text-align: center; color: #888; font-size: 0.85rem; font-weight: bold; margin: 15px 0 10px 0; display: flex; align-items: center; justify-content: center; gap: 10px;"><div style="height: 1px; background: #ddd; flex: 1;"></div><i class="fas fa-calendar-alt"></i> 行 程<div style="height: 1px; background: #ddd; flex: 1;"></div></div>`;
+                    hasRenderedEventDivider = true;
+                }
+                if (ev.type === 'plan' && !hasRenderedPlanDivider) {
+                    html += `<div style="text-align: center; color: var(--ly-blue); font-size: 0.85rem; font-weight: bold; margin: 25px 0 10px 0; display: flex; align-items: center; justify-content: center; gap: 10px;"><div style="height: 1px; background: #cce0ff; flex: 1;"></div><i class="fas fa-project-diagram"></i> 計 畫<div style="height: 1px; background: #cce0ff; flex: 1;"></div></div>`;
+                    hasRenderedPlanDivider = true;
+                }
+
+                // 預設為 Simple Event (一般行程) 的樣式
                 let timeDisplay = ev.isAllDay ? '全天行程' : `開始時間：${ev.start.replace('T', ' ')}<br>結束時間：${ev.end.replace('T', ' ')}`;
                 let displayTitle = ev.isEncrypted ? '<i class="fas fa-lock" style="color:#d93025;"></i> 加密行程' : escapeHtml(ev.title || '個人行程');
+                let cardBorderColor = ev.color || 'var(--ly-gold)';
+                let titleColor = 'inherit';
+
+                // 如果是 Plan (計畫)，替換專屬樣式與卡片顏色
+                if (ev.type === 'plan') {
+                    displayTitle = `<i class="fas fa-project-diagram" style="color:var(--ly-blue);"></i> ${escapeHtml(ev.title)}`;
+                    timeDisplay = `開始：${ev.start.replace('T', ' ')}<br>結束：${ev.end.replace('T', ' ')}`;
+                    cardBorderColor = ev.color;
+                    titleColor = 'var(--ly-blue)';
+                }
                 
+                // 共享標籤 UI 渲染
                 let shareUIHtml = '';
                 if (isSharedCalMode && ev._sharedFromName) {
                     displayTitle = `[${ev._sharedFromName}] ${displayTitle}`;
-                    
                     let creatorName, creatorAvatar, receiverName, receiverAvatar;
                     
                     if (ev._sharedFromName === "我分享的") {
-                        // 【我分享給別人/群組】
                         creatorName = document.getElementById('myName').innerText.trim() || '我';
                         creatorAvatar = document.getElementById('myAvatar').src;
                         receiverName = sharedCalTargetData ? sharedCalTargetData.name : document.getElementById('chatTitle').innerText;
                         receiverAvatar = sharedCalTargetData ? sharedCalTargetData.avatar : document.getElementById('targetAvatar').src;
                     } else {
-                        // 【別人分享給我/群組】
                         creatorName = ev._sharedFromName;
                         creatorAvatar = 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true';
                         if (ev.creatorUid && window.chatMembersCache[ev.creatorUid]) {
                             creatorAvatar = window.chatMembersCache[ev.creatorUid].photoURL || creatorAvatar;
                         }
-                        
-                        // 【關鍵修復】：精準判斷接收者是我還是群組
                         if (sharedCalTargetData && sharedCalTargetData.type === 'group') {
                             receiverName = sharedCalTargetData.name;
                             receiverAvatar = sharedCalTargetData.avatar;
@@ -12422,9 +12863,16 @@ renderEvMemberPreview = async function(uids, type) {
                             <span class="shared-link-name">${escapeHtml(receiverName)}</span>
                         </div>
                     </div>`;
+                } 
+                // ✅【新增這段】：在個人行事曆模式下，如果有分享給別人，右方顯示授權標籤
+                else if (ev.sharedWith && ev.sharedWith.length > 0) {
+                    shareUIHtml = `
+                    <div class="shared-indicator-tag">
+                        <i class="fas fa-user-friends"></i> 授權
+                    </div>`;
                 }
 
-                // 將內容排版為「左邊標題時間，右邊圖示」
+                // 卡片內部 HTML
                 let cardInnerHtml = `
                     <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
                         <div style="flex: 1; overflow: hidden; padding-right: 10px;">
@@ -12438,26 +12886,36 @@ renderEvMemberPreview = async function(uids, type) {
                     </div>
                 `;
                 
-                if (!isSharedCalMode || ev._sharedFromName === "我分享的") {
+                // 依照類別產生不同的外層容器
+                if (ev.type === 'plan') {
+                    // 【修復】：移除寫死的 background: #fdfdfd;，讓深色模式可以正常套用
                     html += `
-                    <div class="swipe-container" style="margin-bottom: 12px; background: #111; border-radius: 8px;">
-                        <div class="swipe-actions-dual">
-                            <button class="swipe-edit-btn" onclick="editCalEvent(event, '${ev.id}')"><i class="fas fa-edit"></i></button>
-                            <button class="swipe-delete-btn-half" onclick="deleteCalEvent(event, '${ev.id}')"><i class="fas fa-trash-alt"></i></button>
-                        </div>
-                        <div class="swipe-content event-mini-item" style="margin-bottom: 0; border-left-color: ${ev.color || 'var(--ly-gold)'}; cursor: pointer;"
-                             onmousedown="calEvSwipeStart(event, this)" onmousemove="calEvSwipeMove(event, this)" 
-                             onmouseup="calEvSwipeEnd(event, this, '${ev.id}')" onmouseleave="calEvSwipeEnd(event, this, '${ev.id}')" 
-                             ontouchstart="calEvSwipeStart(event, this)" ontouchmove="calEvSwipeMove(event, this)" 
-                             ontouchend="calEvSwipeEnd(event, this, '${ev.id}')">
-                            ${cardInnerHtml}
-                        </div>
-                    </div>`;
-                } else {
-                    html += `
-                    <div class="event-mini-item" style="margin-bottom: 12px; border-left-color: ${ev.color || 'var(--ly-gold)'}; cursor: pointer;" onclick="openCalEventDetail('${ev.id}')">
+                    <div class="event-mini-item" style="margin-bottom: 12px; border-left-color: ${cardBorderColor}; cursor: pointer;" onclick="openPlanDetail('${ev.id}')">
                         ${cardInnerHtml}
                     </div>`;
+                } else {
+                    // 【行程專屬卡片】：保留原本的左滑編輯/刪除功能
+                    if (!isSharedCalMode || ev._sharedFromName === "我分享的") {
+                        html += `
+                        <div class="swipe-container" style="margin-bottom: 12px; background: #111; border-radius: 8px;">
+                            <div class="swipe-actions-dual">
+                                <button class="swipe-edit-btn" onclick="editCalEvent(event, '${ev.id}')"><i class="fas fa-edit"></i></button>
+                                <button class="swipe-delete-btn-half" onclick="deleteCalEvent(event, '${ev.id}')"><i class="fas fa-trash-alt"></i></button>
+                            </div>
+                            <div class="swipe-content event-mini-item" style="margin-bottom: 0; border-left-color: ${cardBorderColor}; cursor: pointer;"
+                                 onmousedown="calEvSwipeStart(event, this)" onmousemove="calEvSwipeMove(event, this)" 
+                                 onmouseup="calEvSwipeEnd(event, this, '${ev.id}')" onmouseleave="calEvSwipeEnd(event, this, '${ev.id}')" 
+                                 ontouchstart="calEvSwipeStart(event, this)" ontouchmove="calEvSwipeMove(event, this)" 
+                                 ontouchend="calEvSwipeEnd(event, this, '${ev.id}')">
+                                ${cardInnerHtml}
+                            </div>
+                        </div>`;
+                    } else {
+                        html += `
+                        <div class="event-mini-item" style="margin-bottom: 12px; border-left-color: ${cardBorderColor}; cursor: pointer;" onclick="openCalEventDetail('${ev.id}')">
+                            ${cardInnerHtml}
+                        </div>`;
+                    }
                 }
             });
             html += '</div>';
@@ -12466,19 +12924,24 @@ renderEvMemberPreview = async function(uids, type) {
         } catch (e) { bodyEl.innerHTML = '<div style="text-align: center; color: #d93025; margin-top: 50px;">載入失敗，請檢查網路</div>'; }
     }
 
-    function closeDaySchedule() { dayScheduleViewDOM.style.transform = 'translateX(100%)'; }
+    function closeDaySchedule() {
+        document.getElementById('addEventMenu').style.display = 'none'; // 【新增】：收起新增選單
+        dayScheduleViewDOM.style.transform = 'translateX(100%)';
+    }
 
     // ==========================================
-    // 單日行程左滑引擎 (雙按鈕版)
+    // 單日行程左滑引擎 (雙按鈕版 + 垂直防誤觸鎖定)
     // ==========================================
-    let calEvStartX = 0, calEvCurrentX = 0, isCalEvSwiping = false, calEvSwipedOpen = null;
+    let calEvStartX = 0, calEvStartY = 0, calEvCurrentX = 0, isCalEvSwiping = false, calEvSwipedOpen = null;
 
     function calEvSwipeStart(e, el) {
         if (calEvSwipedOpen && calEvSwipedOpen !== el) { 
             calEvSwipedOpen.style.transform = 'translateX(0px)'; 
             calEvSwipedOpen = null; 
         }
-        calEvStartX = e.type.includes('mouse') ? e.pageX : e.touches[0].clientX;
+        const touch = e.type.includes('mouse') ? e : e.touches[0];
+        calEvStartX = touch.clientX;
+        calEvStartY = touch.clientY; // 【新增】：紀錄 Y 軸座標
         calEvCurrentX = 0; 
         isCalEvSwiping = true; 
         el.style.transition = 'none';
@@ -12486,8 +12949,18 @@ renderEvMemberPreview = async function(uids, type) {
 
     function calEvSwipeMove(e, el) {
         if (!isCalEvSwiping) return;
-        const x = e.type.includes('mouse') ? e.pageX : e.touches[0].clientX;
-        calEvCurrentX = x - calEvStartX;
+        const touch = e.type.includes('mouse') ? e : e.touches[0];
+        const diffX = touch.clientX - calEvStartX;
+        const diffY = Math.abs(touch.clientY - calEvStartY);
+        
+        // 【防誤觸引擎】：如果使用者是上下滑動清單超過 10px，立刻沒收左右滑動的權限
+        if (diffY > 10 && Math.abs(diffX) < 20) {
+            isCalEvSwiping = false;
+            el.style.transform = 'translateX(0px)'; // 強制歸位
+            return;
+        }
+
+        calEvCurrentX = diffX;
         
         // 支援雙按鈕寬度，限制向左滑動最多 -150px
         if (calEvCurrentX < 0 && calEvCurrentX > -150) {
@@ -12652,10 +13125,16 @@ renderEvMemberPreview = async function(uids, type) {
             let myName = document.getElementById('myName').innerText.trim();
             if (myName === '載入中...' || !myName) myName = currentUser.displayName;
 
-            // 1. 抓我分享給誰
+            // 1. 抓我分享給誰 (加入行程與計畫雙重掃描)
             const mySnap = await db.collection("Calendar_page").doc("calendar").collection(myName).where("creatorUid", "==", myUid).get();
             let mySharedTags = new Set();
             mySnap.forEach(doc => {
+                const data = doc.data();
+                if (data.sharedWith && Array.isArray(data.sharedWith)) data.sharedWith.forEach(u => mySharedTags.add(u));
+            });
+            // 【新增】：同步抓取我分享出去的「計畫 (post)」
+            const myPlanSnap = await db.collection("post").where("creatorUid", "==", myUid).get();
+            myPlanSnap.forEach(doc => {
                 const data = doc.data();
                 if (data.sharedWith && Array.isArray(data.sharedWith)) data.sharedWith.forEach(u => mySharedTags.add(u));
             });
@@ -12697,6 +13176,49 @@ renderEvMemberPreview = async function(uids, type) {
                 } catch(e) {}
             });
             await Promise.all(checkPromises);
+
+            // 【新增】：同步掃描「計畫 (post)」，找出誰把計畫分享給我
+            const allPlanSnap = await db.collection("post").get();
+            const myGroupTags = groups.map(g => "GROUP_" + g.id);
+            allPlanSnap.forEach(doc => {
+                const data = doc.data();
+                const sharedWith = data.sharedWith || [];
+                
+                // 【關鍵修復】：嚴格區分「直接分享給我」與「分享給我的群組」
+                const isSharedToMeDirectly = sharedWith.includes(myUid);
+                const isSharedToMyGroup = sharedWith.some(tag => myGroupTags.includes(tag));
+                
+                // 如果是直接分享給我，才把他列入「個人共享」名單
+                if (isSharedToMeDirectly && data.creatorUid) {
+                    othersSharedToMeUids.add(data.creatorUid);
+                }
+                
+                // 如果是分享給群組，就把群組加入「群組共享」名單，不把發布者牽扯進個人名單
+                if (isSharedToMyGroup) {
+                    sharedWith.forEach(tag => {
+                        if (myGroupTags.includes(tag)) {
+                            othersSharedGroupsToMe.add(tag);
+                        }
+                    });
+                }
+            });
+
+            // 【終極防呆】：如果對方有分享給我或我分享給他，但他不在我的聊天記錄裡，強制補齊對方資料並加入清單
+            const forceAddMissingUsers = async (uidsSet) => {
+                for (let targetUid of uidsSet) {
+                    if (!targetUid.startsWith("GROUP_") && targetUid !== myUid && !personals.some(p => p.id === targetUid)) {
+                        try {
+                            let uDoc = await db.collection("act").doc(targetUid).get();
+                            if (uDoc.exists) {
+                                personalNameCache[targetUid] = uDoc.data();
+                                personals.push({ id: targetUid, members: [targetUid, myUid] });
+                            }
+                        } catch (e) {}
+                    }
+                }
+            };
+            await forceAddMissingUsers(othersSharedToMeUids);
+            await forceAddMissingUsers(mySharedTags);
 
             // 4. 終極過濾：只留下「有真實共享關係」的名單
             const activePersonals = personals.filter(p => mySharedTags.has(p.id) || othersSharedToMeUids.has(p.id));
@@ -13033,10 +13555,16 @@ renderEvMemberPreview = async function(uids, type) {
             let myName = document.getElementById('myName').innerText.trim();
             if (myName === '載入中...' || !myName) myName = currentUser.displayName;
 
-            // 1. 抓我分享給誰
+            // 1. 抓我分享給誰 (加入行程與計畫雙重掃描)
             const mySnap = await db.collection("Calendar_page").doc("calendar").collection(myName).where("creatorUid", "==", myUid).get();
             let mySharedTags = new Set();
             mySnap.forEach(doc => {
+                const data = doc.data();
+                if (data.sharedWith && Array.isArray(data.sharedWith)) data.sharedWith.forEach(u => mySharedTags.add(u));
+            });
+            // 【新增】：同步抓取我分享出去的「計畫 (post)」
+            const myPlanSnap = await db.collection("post").where("creatorUid", "==", myUid).get();
+            myPlanSnap.forEach(doc => {
                 const data = doc.data();
                 if (data.sharedWith && Array.isArray(data.sharedWith)) data.sharedWith.forEach(u => mySharedTags.add(u));
             });
@@ -13079,7 +13607,50 @@ renderEvMemberPreview = async function(uids, type) {
             });
             await Promise.all(checkPromises);
 
-            // 4. 過濾：只留下有真實共享關係的名單
+            // 【新增】：同步掃描「計畫 (post)」，找出誰把計畫分享給我
+            const allPlanSnap = await db.collection("post").get();
+            const myGroupTags = groups.map(g => "GROUP_" + g.id);
+            allPlanSnap.forEach(doc => {
+                const data = doc.data();
+                const sharedWith = data.sharedWith || [];
+                
+                // 【關鍵修復】：嚴格區分「直接分享給我」與「分享給我的群組」
+                const isSharedToMeDirectly = sharedWith.includes(myUid);
+                const isSharedToMyGroup = sharedWith.some(tag => myGroupTags.includes(tag));
+                
+                // 如果是直接分享給我，才把他列入「個人共享」名單
+                if (isSharedToMeDirectly && data.creatorUid) {
+                    othersSharedToMeUids.add(data.creatorUid);
+                }
+                
+                // 如果是分享給群組，就把群組加入「群組共享」名單，不把發布者牽扯進個人名單
+                if (isSharedToMyGroup) {
+                    sharedWith.forEach(tag => {
+                        if (myGroupTags.includes(tag)) {
+                            othersSharedGroupsToMe.add(tag);
+                        }
+                    });
+                }
+            });
+
+            // 【終極防呆】：如果對方有分享給我或我分享給他，但他不在我的聊天記錄裡，強制補齊對方資料並加入清單
+            const forceAddMissingUsers = async (uidsSet) => {
+                for (let targetUid of uidsSet) {
+                    if (!targetUid.startsWith("GROUP_") && targetUid !== myUid && !personals.some(p => p.id === targetUid)) {
+                        try {
+                            let uDoc = await db.collection("act").doc(targetUid).get();
+                            if (uDoc.exists) {
+                                personalNameCache[targetUid] = uDoc.data();
+                                personals.push({ id: targetUid, members: [targetUid, myUid] });
+                            }
+                        } catch (e) {}
+                    }
+                }
+            };
+            await forceAddMissingUsers(othersSharedToMeUids);
+            await forceAddMissingUsers(mySharedTags);
+
+            // 4. 終極過濾：只留下「有真實共享關係」的名單
             const activePersonals = personals.filter(p => mySharedTags.has(p.id) || othersSharedToMeUids.has(p.id));
             const activeGroups = groups.filter(g => {
                 const groupTag = "GROUP_" + g.id;
@@ -13135,11 +13706,17 @@ renderEvMemberPreview = async function(uids, type) {
         openCreateCalEventModal(); // 觸發原本的功能
     }
 
-    // 點擊畫面其他地方自動關閉選單
+    // 點擊畫面其他地方自動關閉選單 (加入防誤觸引擎)
     document.addEventListener('click', (e) => {
         const addMenu = document.getElementById('addEventMenu');
-        if (addMenu && addMenu.style.display === 'flex' && !addMenu.contains(e.target)) {
-            addMenu.style.display = 'none';
+        if (addMenu && addMenu.style.display === 'flex') {
+            // 判斷點擊的地方是不是「新增按鈕」本身
+            const isTriggerBtn = e.target.closest('[onclick="toggleAddEventMenu(event)"]');
+            
+            // 如果不是選單內部，也不是那顆 + 號按鈕，才執行自動關閉
+            if (!addMenu.contains(e.target) && !isTriggerBtn) {
+                addMenu.style.display = 'none';
+            }
         }
     }, true);
 
@@ -13227,9 +13804,17 @@ renderEvMemberPreview = async function(uids, type) {
         const area = document.getElementById('plan-edit-area');
         const icon = document.getElementById('plan-chevron-icon');
         const isOpening = !forceClose && area.style.display !== "block";
+
+        document.getElementById('planMainTitle').value = "";
+        document.getElementById('planStart').value = ""; // 【新增】清空時間
+        document.getElementById('planEnd').value = "";   // 【新增】清空時間
+        document.getElementById('plan-dynamic-container').innerHTML = "";
         
         if (forceClose || !isOpening) {
             document.getElementById('planMainTitle').value = "";
+            document.getElementById('planStart').value = ""; 
+            document.getElementById('planEnd').value = "";   
+            document.getElementById('planColor').value = "#003153"; // 【新增】重置顏色為預設藍色
             document.getElementById('plan-dynamic-container').innerHTML = "";
             area.style.display = "none";
             icon.className = "fas fa-chevron-down";
@@ -13407,21 +13992,28 @@ renderEvMemberPreview = async function(uids, type) {
 
     async function handlePlanSave() {
         const title = document.getElementById('planMainTitle').value.trim();
+        const startStr = document.getElementById('planStart').value; 
+        const endStr = document.getElementById('planEnd').value;     
+        const colorVal = document.getElementById('planColor').value; // 【新增】讀取顏色
         const sections = document.querySelectorAll('#plan-dynamic-container .plan-dynamic-section');
-        if (!title || sections.length === 0) return alert("內容不完整");
         
-        // 【修改】：抓取目前的發布人顯示名稱
+        if (!title || !startStr || !endStr || sections.length === 0) return alert("標題、時間與內容皆不可為空");
+        if (new Date(startStr) > new Date(endStr)) return alert("結束時間不可早於開始時間");
+        
         let myName = document.getElementById('myName').innerText.trim();
         if (!myName || myName === "載入中...") myName = auth.currentUser.displayName || "未知成員";
 
         const items = Array.from(sections).map(extractPlanSectionData);
         await db.collection("post").add({
             user: auth.currentUser.email,
-            userName: myName, // 儲存名稱供顯示
-            creatorUid: auth.currentUser.uid, // 儲存 UID 供權限辨識
+            userName: myName,
+            creatorUid: auth.currentUser.uid,
             title, 
+            start: startStr, 
+            end: endStr,     
+            color: colorVal, // 【新增寫入顏色】
             items,
-            sharedWith: planSharedUIDs, // 寫入授權對象
+            sharedWith: planSharedUIDs,
             orderIndex: Date.now(), 
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
@@ -13429,6 +14021,7 @@ renderEvMemberPreview = async function(uids, type) {
         planSharedUIDs = [];
         renderEvMemberPreview(planSharedUIDs, 'plan_share');
         togglePlanEditArea(true);
+        fetchAndRenderEvents(); // 【新增】：同步刷新行事曆上的計畫標籤與顏色
     }
 
     // 全域變數：快取當前載入的計畫資料，供點擊進入詳細頁面時讀取
@@ -13440,13 +14033,12 @@ renderEvMemberPreview = async function(uids, type) {
         const currentUserEmail = auth.currentUser ? auth.currentUser.email : "";
         const myName = document.getElementById('myName').innerText.trim();
         const isMonitor = (myName === '班長');
-        const isVip = planVipUsers.includes(currentUserEmail);
 
         db.collection("post").orderBy("timestamp", "desc").onSnapshot(snapshot => {
-            if (activePlanEditId) return; // 如果正在編輯中則暫停畫面刷新
+            if (activePlanEditId) return; 
             const container = document.getElementById('plan-feed-container');
             container.innerHTML = "";
-            window.currentPlansData = {}; // 清空快取
+            window.currentPlansData = {}; 
             
             if (snapshot.empty) {
                 container.innerHTML = '<div style="text-align: center; color: #999; padding: 20px;">尚無計畫資料</div>';
@@ -13459,8 +14051,7 @@ renderEvMemberPreview = async function(uids, type) {
                 const postAuthorUid = data.creatorUid;
                 const displayPublisherName = data.userName || (data.user ? data.user.split('@')[0] : "未知");
 
-                // 權限過濾邏輯
-                if (!isVip && planVipUsers.includes(postAuthorEmail)) return; 
+                // 【修改】：移除舊版的特定人員寫死限制，完全依賴授權名單
                 const sharedWith = data.sharedWith || [];
                 const isCreator = (postAuthorUid === currentUid) || (postAuthorEmail === currentUserEmail);
                 const isSharedToMe = sharedWith.includes(currentUid) || sharedWith.some(tag => tag.startsWith('GROUP_') && window.myPlanGroupsCache && window.myPlanGroupsCache.includes(tag));
@@ -13473,15 +14064,17 @@ renderEvMemberPreview = async function(uids, type) {
                 const publishDate = data.timestamp ? data.timestamp.toDate() : new Date();
                 const timeStr = `${publishDate.toLocaleDateString()} ${publishDate.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}`;
                 
-                // 【修改】：清單上只顯示發布人、時間與標題，並加上 onclick 進入詳細頁面
+                // 【修改】：加入計畫執行時間的顯示
+                const planTimeStr = (data.start && data.end) ? `<div style="font-size: 0.8rem; color: #888; margin-top: 6px;"><i class="far fa-calendar-alt"></i> ${data.start.replace('T', ' ')} ~ ${data.end.replace('T', ' ')}</div>` : '';
+
                 container.innerHTML += `
                     <div class="plan-feed-item collapsed" data-id="${doc.id}" onclick="openPlanDetail('${doc.id}')">
-                        
                         <div class="plan-feed-meta-row">
                             <span><i class="fas fa-user-edit"></i> 發布人：<b>${escapeHtml(displayPublisherName)}</b></span>
                             <span><i class="far fa-clock"></i> ${timeStr}</span>
                         </div>
                         <div class="plan-feed-title" style="margin: 0; font-size: 1.15rem; border-left-color: var(--ly-blue);">${escapeHtml(data.title)}</div>
+                        ${planTimeStr}
                     </div>
                 `;
             });
@@ -13539,14 +14132,86 @@ renderEvMemberPreview = async function(uids, type) {
     }
 
     // 2. 渲染並打開詳細頁面
-    function openPlanDetail(id) {
+    // 2. 渲染並打開詳細頁面 (升級為非同步 async 支援樹狀圖)
+    async function openPlanDetail(id) {
         const plan = window.currentPlansData[id];
         if (!plan) return;
         activePlanEditId = null; // 確保重置編輯狀態
 
         const body = document.getElementById('planDetailBody');
-        let html = `<div class="plan-pro-title">${escapeHtml(plan.title)}</div>`;
+        
+        // 【新增】：先秀出載入中畫面並滑出，避免等待網路時畫面卡死
+        body.innerHTML = '<div style="text-align:center; padding:30px; color:#999;"><i class="fas fa-spinner fa-spin fa-2x"></i><br><br>載入詳細內容中...</div>';
+        planDetailViewDOM.style.transform = 'translateX(0%)';
 
+        // 【關鍵修復】：非同步去 Firebase 把「還沒被快取過」的成員資料抓下來！
+        const uidsToFetch = [];
+        if (plan.creatorUid && !window.chatMembersCache[plan.creatorUid]) uidsToFetch.push(plan.creatorUid);
+        if (plan.sharedWith && plan.sharedWith.length > 0) {
+            plan.sharedWith.forEach(uid => {
+                if (!window.chatMembersCache[uid]) uidsToFetch.push(uid);
+            });
+        }
+        
+        if (uidsToFetch.length > 0) {
+            const promises = uidsToFetch.map(async uid => {
+                try {
+                    // 判斷是否為群組標籤，若是則去 chats 集合抓群組名稱與大頭貼
+                    if (uid.startsWith('GROUP_')) {
+                        const gid = uid.replace('GROUP_', '');
+                        const gDoc = await db.collection("chats").doc(gid).get();
+                        if (gDoc.exists) {
+                            window.chatMembersCache[uid] = {
+                                displayName: gDoc.data().groupName,
+                                photoURL: gDoc.data().groupAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(gDoc.data().groupName)}&background=003153&color=fff`
+                            };
+                        }
+                    } else {
+                        // 個人對象維持去 act 集合抓資料
+                        const uDoc = await db.collection("act").doc(uid).get();
+                        if (uDoc.exists) window.chatMembersCache[uid] = uDoc.data();
+                    }
+                } catch(e) {}
+            });
+            await Promise.all(promises); // 等待所有人與群組抓完
+        }
+
+        // ==========================================
+        // 建立分享對象樹狀圖 (若有授權對象)
+        // ==========================================
+        let sharedTreeHtml = '';
+        if (plan.sharedWith && plan.sharedWith.length > 0) {
+            const creatorName = plan.userName || plan.user.split('@')[0] || '發起人';
+            let creatorAvatar = 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true';
+            
+            // 此時記憶體裡一定有資料了
+            if (plan.creatorUid && window.chatMembersCache[plan.creatorUid]) {
+                creatorAvatar = window.chatMembersCache[plan.creatorUid].photoURL || creatorAvatar;
+            }
+
+            sharedTreeHtml += `<div class="tree-layout-wrapper" style="margin-bottom: 25px; padding-top: 0;">`;
+            // 發起人節點
+            sharedTreeHtml += `<div class="map-node top-node"><img src="${creatorAvatar}"><div class="node-name">${escapeHtml(creatorName)}</div></div>`;
+            // 連結線
+            sharedTreeHtml += `<div class="tree-map-line v-line" style="position: relative; height: 30px; width: 2px; margin: 0; left: 0; transform: none;"><i class="fas fa-link map-link-icon"></i></div>`;
+            // 共享對象網格
+            sharedTreeHtml += `<div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; width: 100%; position: relative; padding-top: 5px;">`;
+            
+            plan.sharedWith.forEach(uid => {
+                const mCache = window.chatMembersCache[uid] || {};
+                const mName = mCache.displayName || '未知';
+                const mAvatar = mCache.photoURL || 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true';
+                sharedTreeHtml += `<div class="map-node grid-node"><img src="${mAvatar}" style="width: 50px; height: 50px;"><div class="node-name" style="font-size: 0.85rem;">${escapeHtml(mName)}</div></div>`;
+            });
+            sharedTreeHtml += `</div></div>`;
+        }
+
+        let html = sharedTreeHtml + `<div class="plan-pro-title" style="margin-bottom: 5px;">${escapeHtml(plan.title)}</div>`;
+        
+        // 【顯示計畫時間】
+        if (plan.start && plan.end) {
+            html += `<div style="font-size: 0.95rem; font-weight: bold; color: #666; margin-bottom: 25px; margin-left: 15px;"><i class="far fa-calendar-alt"></i> ${plan.start.replace('T', ' ')} ~ ${plan.end.replace('T', ' ')}</div>`;
+        }
         // 依序渲染專業版文字與卡片
         plan.items.forEach(i => {
             if (i.type === 'heading') {
@@ -13727,36 +14392,40 @@ renderEvMemberPreview = async function(uids, type) {
 
                         <div class="fd-gb-block">
                             <div class="fd-gb-city-date">${escapeHtml(fromDisplay)}  ${formattedDate}</div>
-                            <div class="fd-gb-info-row">
+                            <div class="fd-gb-info-row" style="display: flex !important; justify-content: space-between !important; width: 100%;">
                                 <div class="fd-gb-info-col time-col">
                                     <div class="fd-gb-label">預定起飛時間</div>
                                     <div class="fd-gb-val time-green">${formatAmPm(timeDisplay)}</div>
                                 </div>
-                                <div class="fd-gb-info-col">
-                                    <div class="fd-gb-label">航廈</div>
-                                    <div class="fd-gb-val">${termFrom}</div>
-                                </div>
-                                <div class="fd-gb-info-col">
-                                    <div class="fd-gb-label">登機門</div>
-                                    <div class="fd-gb-val">${gateFrom}</div>
+                                <div style="display: flex; gap: 30px; text-align: right;">
+                                    <div class="fd-gb-info-col" style="align-items: flex-end;">
+                                        <div class="fd-gb-label">航廈</div>
+                                        <div class="fd-gb-val">${termFrom}</div>
+                                    </div>
+                                    <div class="fd-gb-info-col" style="align-items: flex-end;">
+                                        <div class="fd-gb-label">登機門</div>
+                                        <div class="fd-gb-val">${gateFrom}</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                         
                         <div class="fd-gb-block arrival">
                             <div class="fd-gb-city-date">${escapeHtml(toDisplay)}  ${formattedDate}</div>
-                            <div class="fd-gb-info-row">
+                            <div class="fd-gb-info-row" style="display: flex !important; justify-content: space-between !important; width: 100%;">
                                 <div class="fd-gb-info-col time-col">
                                     <div class="fd-gb-label">預定抵達時間</div>
                                     <div class="fd-gb-val time-green">${formatAmPm(arrivalTimeDisplay)}</div>
                                 </div>
-                                <div class="fd-gb-info-col">
-                                    <div class="fd-gb-label">航廈</div>
-                                    <div class="fd-gb-val">${termTo}</div>
-                                </div>
-                                <div class="fd-gb-info-col">
-                                    <div class="fd-gb-label">登機門</div>
-                                    <div class="fd-gb-val">${gateTo}</div>
+                                <div style="display: flex; gap: 30px; text-align: right;">
+                                    <div class="fd-gb-info-col" style="align-items: flex-end;">
+                                        <div class="fd-gb-label">航廈</div>
+                                        <div class="fd-gb-val">${termTo}</div>
+                                    </div>
+                                    <div class="fd-gb-info-col" style="align-items: flex-end;">
+                                        <div class="fd-gb-label">登機門</div>
+                                        <div class="fd-gb-val">${gateTo}</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -13820,6 +14489,33 @@ renderEvMemberPreview = async function(uids, type) {
         body.innerHTML = `
             <h3 style="color: var(--ly-blue); margin-top:0;"><i class="fas fa-edit"></i> 編輯計畫內容</h3>
             <input type="text" id="inline-title-${id}" value="${escapeHtml(plan.title)}" placeholder="標題" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 1.1rem; font-weight: bold; margin-bottom: 10px; box-sizing: border-box;">
+            
+            <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 15px;">
+                <div class="modal-input-group" style="margin-bottom: 0;">
+                    <label style="font-size: 13px; color: var(--ly-blue); font-weight: 700; margin-bottom: 8px; display: block;">開始時間</label>
+                    <input type="datetime-local" id="inline-start-${id}" class="ev-dynamic-input" value="${plan.start || ''}" style="padding:10px;">
+                </div>
+                <div class="modal-input-group" style="margin-bottom: 0;">
+                    <label style="font-size: 13px; color: var(--ly-blue); font-weight: 700; margin-bottom: 8px; display: block;">結束時間</label>
+                    <input type="datetime-local" id="inline-end-${id}" class="ev-dynamic-input" value="${plan.end || ''}" style="padding:10px;">
+                </div>
+            </div>
+
+            <div class="modal-input-group" style="margin-bottom: 15px;">
+                <label style="font-size: 13px; color: var(--ly-blue); font-weight: 700; margin-bottom: 8px; display: block;">計畫標籤顏色</label>
+                <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px;">
+                    <input type="color" id="inline-color-${id}" value="${plan.color || '#003153'}" style="width: 50px; height: 40px; padding: 0; border: none; border-radius: 8px; cursor: pointer;">
+                </div>
+                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                    <div class="color-preset-btn" style="background: #003153;" onclick="document.getElementById('inline-color-${id}').value='#003153'"></div>
+                    <div class="color-preset-btn" style="background: #dc3838;" onclick="document.getElementById('inline-color-${id}').value='#dc3838'"></div>
+                    <div class="color-preset-btn" style="background: #dab511;" onclick="document.getElementById('inline-color-${id}').value='#dab511'"></div>
+                    <div class="color-preset-btn" style="background: #5ba4d6;" onclick="document.getElementById('inline-color-${id}').value='#5ba4d6'"></div>
+                    <div class="color-preset-btn" style="background: #44ad62;" onclick="document.getElementById('inline-color-${id}').value='#44ad62'"></div>
+                    <div class="color-preset-btn" style="background: #8e44ad;" onclick="document.getElementById('inline-color-${id}').value='#8e44ad'"></div>
+                </div>
+            </div>
+            
             ${shareHtml}
             <div id="inline-container-${id}"></div>
             <div class="plan-action-btns" style="margin-bottom: 30px;">
@@ -13842,8 +14538,13 @@ renderEvMemberPreview = async function(uids, type) {
 
     async function updatePlanInlinePostInDetail(id) {
         const title = document.getElementById(`inline-title-${id}`).value.trim();
+        const startStr = document.getElementById(`inline-start-${id}`).value; 
+        const endStr = document.getElementById(`inline-end-${id}`).value;     
+        const colorVal = document.getElementById(`inline-color-${id}`).value; // 【新增】讀取顏色
         const sections = document.querySelectorAll(`#inline-container-${id} .plan-dynamic-section`);
-        if (!title || sections.length === 0) return alert("內容不可為空");
+        
+        if (!title || !startStr || !endStr || sections.length === 0) return alert("內容與時間不可為空");
+        if (new Date(startStr) > new Date(endStr)) return alert("結束時間不可早於開始時間");
 
         const btn = document.querySelector('.btn-confirm');
         btn.disabled = true; btn.innerText = "儲存中...";
@@ -13852,18 +14553,24 @@ renderEvMemberPreview = async function(uids, type) {
             const items = Array.from(sections).map(extractPlanSectionData);
             await db.collection("post").doc(id).update({
                 title,
+                start: startStr, 
+                end: endStr,     
+                color: colorVal, // 【新增寫入】
                 items,
                 sharedWith: planSharedUIDs
             });
             
-            // 更新本地快取，無縫切換回唯讀模式
             window.currentPlansData[id].title = title;
+            window.currentPlansData[id].start = startStr; 
+            window.currentPlansData[id].end = endStr;     
+            window.currentPlansData[id].color = colorVal; // 【新增快取】
             window.currentPlansData[id].items = items;
             window.currentPlansData[id].sharedWith = planSharedUIDs;
 
             activePlanEditId = null;
-            startPlanListening(); // 重啟外層牆的刷新
-            openPlanDetail(id); // 切換回唯讀畫面
+            startPlanListening(); 
+            openPlanDetail(id); 
+            fetchAndRenderEvents(); // 【新增】：同步刷新行事曆上的計畫標籤與顏色
         } catch(e) {
             alert("更新失敗：" + e.message);
             btn.disabled = false; btn.innerText = "更新存檔";
@@ -13876,6 +14583,7 @@ renderEvMemberPreview = async function(uids, type) {
             activePlanEditId = null;
             startPlanListening();
             closePlanDetail(); // 刪除後自動滑出退出
+            fetchAndRenderEvents(); // 【新增】：同步刷新行事曆上的計畫標籤與顏色
         }
     }
 
@@ -13908,6 +14616,387 @@ renderEvMemberPreview = async function(uids, type) {
                 await batch.commit();
             }
         });
+    }
+
+    // ==========================================
+    // 音樂節奏遊戲引擎 (Rhythm Game Engine)
+    // ==========================================
+    const gameViewDOM = document.getElementById('gameView');
+    let isGameSwiping = false, gameStartX = 0, gameCurrentX = 0;
+
+    // 滑動退出防呆
+    gameViewDOM.addEventListener('touchstart', (e) => {
+        if (e.touches[0].clientX < 40) { isGameSwiping = true; gameStartX = e.touches[0].clientX; gameViewDOM.style.transition = 'none'; }
+    }, {passive: true});
+    gameViewDOM.addEventListener('touchmove', (e) => {
+        if (!isGameSwiping) return;
+        gameCurrentX = e.touches[0].clientX - gameStartX;
+        if (gameCurrentX > 0) { if (e.cancelable) e.preventDefault(); gameViewDOM.style.transform = `translateX(${gameCurrentX}px)`; }
+    }, { passive: false });
+    gameViewDOM.addEventListener('touchend', () => {
+        if (!isGameSwiping) return;
+        isGameSwiping = false;
+        gameViewDOM.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
+        if (gameCurrentX > window.innerWidth / 3 || gameCurrentX > 30) closeGameView();
+        else gameViewDOM.style.transform = 'translateX(0%)';
+        gameCurrentX = 0;
+    });
+
+    // 全域變數：暫存從資料庫抓下來的 Combo 圖片網址
+    window.rhythmComboImages = [];
+
+    async function openGameView() {
+        gameViewDOM.style.transform = 'translateX(0%)';
+        document.getElementById('gameOverLay').style.display = 'flex';
+        document.getElementById('gameOverLayTitle').innerText = 'RHYTHM TAP';
+        document.getElementById('gameOverLaySub').innerText = '準備好挑戰 100 級極速了嗎？';
+
+        if (window.rhythmComboImages.length === 0) {
+            try {
+                // 指向您 Firebase Storage 中的資料夾
+                const listRef = storage.ref('Game/Rhythmgame/1');
+                const res = await listRef.listAll();
+                
+                // 【關鍵修復】：強制解析檔名中的「數字」進行精準排序
+                const sortedItems = res.items.sort((a, b) => {
+                    const numA = parseInt(a.name.match(/\d+/)?.[0] || 0);
+                    const numB = parseInt(b.name.match(/\d+/)?.[0] || 0);
+                    return numA - numB;
+                });
+
+                // 取得所有圖片的下載網址
+                window.rhythmComboImages = await Promise.all(sortedItems.map(item => item.getDownloadURL()));
+                console.log("成功載入排序後的 Combo 圖片：", window.rhythmComboImages);
+            } catch(e) {
+                console.warn("Combo圖片載入失敗", e);
+            }
+        }
+    }
+
+    function closeGameView() {
+        gameViewDOM.style.transform = 'translateX(100%)';
+        stopGameEngine(); // 關閉時自動暫停遊戲
+    }
+
+    // --- 遊戲核心變數 ---
+    let gameReqAnimId;
+    let isGamePlaying = false;
+    let gameNotes = []; // 存儲畫面上的方塊 { id, track, y, el, isHit }
+    let gameScore = 0;
+    let gameCombo = 0;
+    let gameLevel = 1;
+    let gameSpeed = 5; // 掉落速度 (Pixels per frame)
+    let noteSpawnRate = 800; // 產生頻率 (ms)
+    let lastSpawnTime = 0;
+    let trackHeight = 0;
+    let notesSpawnedThisLevel = 0;
+
+    // ✅ 【新增】：死亡機制與特殊效果變數
+    let gameHp = 100; // 滿血 100
+    const MISS_PENALTY = 15; // Miss 扣 15 血
+    const PERFECT_HEAL = 2; // Perfect 補 2 血
+    // 【修復】：補回判定線的座標常數，解決計算變成 NaN 導致狂跳 Miss 的問題
+    const HIT_LINE_BOTTOM = 20;
+    const HIT_LINE_HEIGHT = 60;
+
+    function startGameEngine() {
+        document.getElementById('gameOverLay').style.display = 'none';
+        trackHeight = document.getElementById('gameTracks').clientHeight;
+        
+        // ✅ 【新增】：清空特殊效果圖示
+        document.getElementById('gameSpecialImg').className = ''; 
+
+        // 重置狀態
+        gameNotes.forEach(n => n.el.remove());
+        gameNotes = [];
+        gameScore = 0;
+        gameCombo = 0;
+        gameLevel = 1;
+        gameHp = 100; // ✅ 【新增】：重置滿血
+        gameSpeed = 5; // 重置基礎速度
+        noteSpawnRate = 800; // 重置基礎頻率
+        notesSpawnedThisLevel = 0;
+        isGamePlaying = true;
+        lastSpawnTime = performance.now();
+        
+        updateGameStats();
+        gameLoop(performance.now());
+    }
+
+    function stopGameEngine() {
+        isGamePlaying = false;
+        cancelAnimationFrame(gameReqAnimId);
+    }
+
+    // ✅ 【新增】：專用結束遊戲觸發函式 (通關 vs 死亡)
+    function triggerGameOver(reason) {
+        stopGameEngine();
+        const lay = document.getElementById('gameOverLay');
+        const title = document.getElementById('gameOverLayTitle');
+        const sub = document.getElementById('gameOverLaySub');
+        
+        lay.style.display = 'flex';
+        
+        if (reason === '死亡') {
+            title.innerText = 'GAME OVER';
+            title.style.color = '#e74c3c'; // 紅色
+            title.style.textShadow = '0 0 20px #e74c3c';
+            sub.innerHTML = `你死亡了！<br>最終分：${gameScore}<br>最高 LV：${gameLevel}`;
+        } else if (reason === '通關') {
+            title.innerText = 'CLEAR!';
+            title.style.color = 'var(--ly-gold)'; // 金色
+            title.style.textShadow = '0 0 20px rgba(207,169,0,0.5)';
+            sub.innerHTML = `恭喜通關！<br>總分：${gameScore}`;
+        }
+    }
+
+    function gameLoop(currentTime) {
+        if (!isGamePlaying) return;
+
+        // 1. 產生新音符 (Level Up 邏輯：每掉 15 個方塊升一級，最高 100 級)
+        // 1. 產生新音符
+        if (currentTime - lastSpawnTime > noteSpawnRate) {
+            // 【新增邏輯】：Combo 達到 11 以上時，每次產生 2 顆音符
+            let spawnCount = (gameCombo >= 11) ? 2 : 1;
+            spawnNote(spawnCount);
+            
+            lastSpawnTime = currentTime;
+            notesSpawnedThisLevel += spawnCount; // 計算生成的總數量
+            
+            if (notesSpawnedThisLevel >= 15 && gameLevel < 100) {
+                gameLevel++;
+                notesSpawnedThisLevel = 0;
+                gameSpeed *= 1.04; // 升級變快 4%
+                noteSpawnRate *= 0.95; // 升級頻率縮短 5%
+                updateGameStats();
+                showJudgment('LEVEL UP!', 'perfect');
+            }
+        }
+
+        // 2. 移動現有音符 & 判定 Miss
+        for (let i = gameNotes.length - 1; i >= 0; i--) {
+            let note = gameNotes[i];
+            if (note.isHit) continue;
+
+            note.y += gameSpeed;
+            note.el.style.transform = `translateY(${note.y}px)`;
+
+            // 超過螢幕底部 (Miss)
+            if (note.y > trackHeight) {
+                note.el.remove();
+                gameNotes.splice(i, 1);
+                // ✅ 【修復】：改用扣血邏輯
+                processGameMiss(); 
+                updateGameStats();
+            }
+        }
+
+        gameReqAnimId = requestAnimationFrame(gameLoop);
+    }
+
+    // 【升級】：支援一次掉落多顆音符，並保證不會擠在同一個軌道
+    function spawnNote(count = 1) {
+        const usedTracks = new Set();
+        
+        for (let i = 0; i < count; i++) {
+            let trackIdx;
+            // 確保多顆音符不會掉在同一個軌道上
+            do {
+                trackIdx = Math.floor(Math.random() * 4);
+            } while (usedTracks.has(trackIdx) && usedTracks.size < 4);
+            
+            usedTracks.add(trackIdx);
+
+            const trackEl = document.getElementById(`track-${trackIdx}`);
+            const noteEl = document.createElement('div');
+            noteEl.className = 'game-note';
+            noteEl.style.transform = `translateY(-30px)`;
+            trackEl.appendChild(noteEl);
+
+            gameNotes.push({
+                id: Date.now() + Math.random(),
+                track: trackIdx,
+                y: -30,
+                el: noteEl,
+                isHit: false
+            });
+        }
+    }
+
+    // 【新增】：軌道專屬的防連點鎖，杜絕幽靈觸控
+    let lastHitTime = {};
+
+    // 3. 玩家點擊按鈕打擊判定 (頂級精準版)
+    function handleGameHit(trackIdx, e) {
+        if (e && e.cancelable) e.preventDefault(); // 阻擋手機長按選單
+        if (!isGamePlaying) return;
+
+        // 【防呆 1】：防雙重觸發 (Touch + Mouse)，50毫秒內同軌道的點擊直接無視
+        const now = Date.now();
+        if (lastHitTime[trackIdx] && now - lastHitTime[trackIdx] < 50) return;
+        lastHitTime[trackIdx] = now;
+
+        // 軌道閃光特效
+        const effect = document.querySelector(`#track-${trackIdx} .track-hit-effect`);
+        if (effect) {
+            effect.classList.add('active');
+            setTimeout(() => effect.classList.remove('active'), 100);
+        }
+
+        // 【防呆 2】：動態抓取高度，避免手機網址列縮放導致判定線飄移
+        trackHeight = document.getElementById('gameTracks').clientHeight;
+
+        // 尋找該軌道上「最接近底部」的方塊
+        let targetNote = null;
+        let targetIndex = -1;
+        let maxY = -999;
+
+        for (let i = 0; i < gameNotes.length; i++) {
+            let note = gameNotes[i];
+            if (note.track === trackIdx && !note.isHit && note.y > maxY) {
+                maxY = note.y;
+                targetNote = note;
+                targetIndex = i;
+            }
+        }
+
+        if (targetNote) {
+            const hitLineCenter = trackHeight - HIT_LINE_BOTTOM - (HIT_LINE_HEIGHT / 2);
+            const noteCenter = targetNote.y + 12.5; 
+            const diff = Math.abs(hitLineCenter - noteCenter);
+            
+            if (diff < 50 || diff < 100) { // 合併 Perfect 與 Good 的 Combo 計算
+                if (diff < 50) {
+                    gameScore += 100 + (gameCombo * 10);
+                    if (gameHp < 100) gameHp = Math.min(100, gameHp + PERFECT_HEAL); 
+                    showJudgment('PERFECT', 'perfect');
+                } else {
+                    gameScore += 50 + (gameCombo * 5);
+                    showJudgment('GOOD', 'good');
+                }
+                
+                gameCombo++;
+                
+                // 🚀 【新增】：特定 Combo 數的難度爆發
+                if (gameCombo === 11) {
+                    gameSpeed *= 1.15;      // 速度加快 15%
+                    noteSpawnRate *= 0.85;  // 掉落變密集
+                } else if (gameCombo === 12) {
+                    gameSpeed *= 1.15;      // 再次加快 15%
+                    noteSpawnRate *= 0.85;
+                } else if (gameCombo >= 13) {
+                    gameSpeed *= 1.03;      // 13 之後每一擊持續微幅加速
+                    noteSpawnRate *= 0.97;
+                }
+
+                // 💎 【完美修復】：Combo 圖片切換與動畫重置
+                if (gameCombo >= 11) {
+                    const imgEl = document.getElementById('gameSpecialImg');
+                    if (imgEl && window.rhythmComboImages.length > 0) {
+                        
+                        let imgIndex = gameCombo - 11;
+                        if (imgIndex >= window.rhythmComboImages.length) {
+                            imgIndex = window.rhythmComboImages.length - 1; // 超過總圖片數就卡在最後一張
+                        }
+                        
+                        imgEl.src = window.rhythmComboImages[imgIndex];
+                        
+                        // 【關鍵】：強制重置 CSS 動畫，讓每一張圖片都能「重新跳出來」
+                        imgEl.style.animation = 'none';
+                        imgEl.classList.remove('game-special-active');
+                        void imgEl.offsetWidth; // 觸發瀏覽器重繪 (Reflow)
+                        imgEl.classList.add('game-special-active'); 
+                        imgEl.style.animation = ''; // 恢復套用 class 中的動畫
+                    }
+                }
+                removeNoteHit(targetIndex);
+                
+            } else if (diff < 180) { 
+                processGameMiss(); 
+                removeNoteHit(targetIndex); 
+            }
+            updateGameStats();
+        }
+    }
+
+    // ✅ 【新增】：專用 Miss 處理函式 (扣血、斷連擊、檢查死亡)
+    // ✅ 專用 Miss 處理函式 (扣血、斷連擊、重置速度、檢查死亡)
+    function processGameMiss() {
+        gameCombo = 0; // 斷連擊，下次達到 11 時圖片會完美從 1.jpg 開始
+        gameHp = Math.max(0, gameHp - MISS_PENALTY); // 扣血
+        showJudgment('MISS', 'miss');
+        
+        // 【新增】：斷 Combo 時，將速度退回目前 Level 的基礎速度
+        gameSpeed = 5 * Math.pow(1.04, gameLevel - 1);
+        noteSpawnRate = 800 * Math.pow(0.95, gameLevel - 1);
+        
+        // 隱藏可能還在畫面上的 Combo 圖片
+        const imgEl = document.getElementById('gameSpecialImg');
+        if (imgEl) imgEl.classList.remove('game-special-active');
+        
+        // 檢查死亡
+        if (gameHp <= 0) {
+            triggerGameOver('死亡');
+        }
+    }
+
+    function removeNoteHit(index) {
+        let note = gameNotes[index];
+        note.isHit = true;
+        // 打擊成功的炸裂特效
+        note.el.style.transition = 'all 0.1s ease-out';
+        note.el.style.transform = `translateY(${note.y}px) scale(1.5)`;
+        note.el.style.opacity = '0';
+        setTimeout(() => { note.el.remove(); }, 100);
+        gameNotes.splice(index, 1);
+    }
+
+    function updateGameStats() {
+        document.getElementById('gameLevelDisplay').innerText = `LV ${gameLevel}`;
+        document.getElementById('gameScoreDisplay').innerText = String(gameScore).padStart(7, '0');
+        
+        // ✅ 【新增】：動態血條刷新
+        const hpBar = document.getElementById('gameHpBar');
+        if (hpBar) {
+            hpBar.style.width = `${gameHp}%`;
+            
+            // 低血量閃爍提示
+            if (gameHp <= 30) {
+                hpBar.classList.add('hp-low');
+            } else {
+                hpBar.classList.remove('hp-low');
+            }
+        }
+
+        const comboText = document.getElementById('gameComboText');
+        if (gameCombo > 2) {
+            comboText.innerText = `${gameCombo} COMBO`;
+            comboText.classList.remove('show');
+            void comboText.offsetWidth; // 觸發重繪
+            comboText.classList.add('show');
+        } else {
+            comboText.classList.remove('show');
+        }
+        
+        // 遊戲結束判定 (通關 100 級)
+        if (gameLevel >= 100 && notesSpawnedThisLevel >= 15) {
+            triggerGameOver('通關');
+        }
+    }
+
+    let judgeTimer;
+    function showJudgment(text, type) {
+        const judgeEl = document.getElementById('gameJudgmentText');
+        judgeEl.className = `game-judgment-text judge-${type}`;
+        judgeEl.innerText = text;
+        judgeEl.classList.remove('show');
+        void judgeEl.offsetWidth; // 觸發重繪
+        judgeEl.classList.add('show');
+
+        clearTimeout(judgeTimer);
+        judgeTimer = setTimeout(() => {
+            judgeEl.classList.remove('show');
+        }, 300);
     }
 
     // ==========================================
