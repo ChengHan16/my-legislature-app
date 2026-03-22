@@ -456,12 +456,15 @@
         }
         .user-select-item input { display: none; }
         /* 卡片式選擇 - 強制固定高度確保大小完全一致 */
+        /* 卡片式選擇 - 強制等高並防止文字被切 */
         .user-select-card { 
             display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            padding: 10px 5px; background: white; border: 1.5px solid #eee; border-radius: 12px; 
+            padding: 12px 5px; /* 【修正】：增加上下內距，讓卡片呼吸空間變大 */
+            background: white; border: 1.5px solid #eee; border-radius: 12px; 
             transition: all 0.2s ease; box-shadow: 0 2px 6px rgba(0,0,0,0.03); 
             position: relative; overflow: hidden; 
-            height: 105px; /* 【關鍵修復】：強制所有卡片等高 */
+            height: 100%; /* 【修正】：改用 100% 配合外層網格等高 */
+            min-height: 110px; /* 【修正】：拉高最小高度，避免名字被截斷 */
             box-sizing: border-box;
         }
         
@@ -492,7 +495,13 @@
         }
         .user-select-card:hover { border-color: #ddd; box-shadow: 0 4px 10px rgba(0,0,0,0.08); transform: translateY(-2px); }
         .user-select-card img { width: 55px; height: 55px; border-radius: 50%; object-fit: cover; margin-bottom: 8px; border:none; flex-shrink:0;}
-        .user-select-card span { display: block; font-size: 13px; font-weight: 600; color: #333; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; padding: 0 4px; box-sizing: border-box; }
+        .user-select-card span { 
+            display: block; font-size: 13px; font-weight: 600; color: #333; 
+            text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
+            width: 100%; padding: 0 4px; box-sizing: border-box; 
+            line-height: 1.4; /* 【修正】：給予明確行高，防止字體下沉 */
+            padding-bottom: 2px; /* 預留底部空間給 g, y 等字母 */
+        }
         .user-select-item input:checked + .user-select-card { border-color: var(--ly-gold); background: #fffdf5; box-shadow: 0 4px 12px rgba(207, 169, 0, 0.15); }
         .user-select-item input:checked + .user-select-card img { border: 2px solid var(--ly-gold); }
         .user-select-item input:checked + .user-select-card span { color: var(--ly-gold); }
@@ -585,6 +594,11 @@
         .event-mini-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; padding-right:5px;}
         .event-mini-item { background: white; border-left: 5px solid var(--ly-blue); border-radius: 8px; padding: 15px 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: all 0.2s ease; cursor: pointer; display: block; color: inherit; }
         .event-mini-item:hover { transform: translateX(4px); border-color: var(--ly-gold); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        
+        /* 【新增】：專門針對計畫卡片，取消 hover 時的偏移，改為純粹的點擊微縮放感 */
+        .event-mini-item.plan-fixed-card:hover { transform: none; border-color: var(--ly-gold); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .event-mini-item.plan-fixed-card:active { transform: scale(0.98); background-color: #fdfdfd; }
+        body.dark-mode .event-mini-item.plan-fixed-card:active { background-color: #2a2a2a !important; }
         .event-mini-title { font-size: 1.1rem; color: var(--ly-blue); font-weight: 800; margin: 0 0 8px 0; line-height: 1.4; }
         /* 卡片式選擇 (強制三欄並排防撐破) */
         .user-select-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 15px; padding: 10px; background: transparent; border: none; }
@@ -2705,6 +2719,9 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             border: 3px solid rgba(255,255,255,0.5); background: transparent; 
             color: white; font-size: 1.8rem; display: flex; justify-content: center; align-items: center; 
             transition: 0.1s; user-select: none; -webkit-user-select: none;
+            /* 【關鍵修復】：徹底封殺瀏覽器縮放與手勢，解鎖極限雙點觸控零延遲 */
+            touch-action: none; 
+            -webkit-tap-highlight-color: transparent;
         }
         .game-ctrl-btn:active { 
             background: rgba(255,255,255,0.3); transform: scale(0.85); border-color: var(--ly-gold); color: var(--ly-gold);
@@ -2786,6 +2803,20 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
     </style>
 </head>
 <body>
+    <script>
+        (function() {
+            try {
+                var isDark = localStorage.getItem('darkMode') === 'true' || 
+                             (localStorage.getItem('darkMode') === null && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                if (isDark) {
+                    document.body.classList.add('dark-mode');
+                    // 強制將最底層的 html 標籤也塗黑，防止 iOS 回彈時的白底
+                    document.documentElement.style.backgroundColor = '#000000'; 
+                }
+            } catch(e) {}
+        })();
+    </script>
+
     <div id="appInitLoader" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; background: var(--bg-gray); z-index: 99999; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.3s ease;">
         <div class="spin-logo-char">立</div>
         <div style="color: var(--ly-blue); font-weight: 800; font-size: 1.1rem; letter-spacing: 1px;">資料同步中...</div>
@@ -3946,7 +3977,7 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             </div>
         </header>
 
-        <div id="gameContainer" style="flex: 1; background: #111; position: relative; overflow: hidden; display: flex; flex-direction: column;">
+        <div id="gameContainer" style="flex: 1; background: #111; position: relative; overflow: hidden; display: flex; flex-direction: column; touch-action: none;">
             
             <div id="gameTracks" style="flex: 1; display: flex; position: relative; overflow: hidden;">
                 <div class="game-track" id="track-0"><div class="track-hit-effect"></div></div>
@@ -3994,10 +4025,59 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
 
                 <div class="release-item latest">
                     <div class="version-title" style="cursor: pointer; user-select: none;" onclick="toggleReleaseContent(this)">
-                        <span class="v-badge latest">v 1.1.1</span>
-                        <span class="v-date">國際化語系與智慧排版升級</span>
+                        <span class="v-badge latest">v 1.1.6</span>
+                        <span class="v-date">深色模式與操作手感極致優化</span>
                     </div>
                     <div class="v-content" style="display: block;">
+                        <ul>
+                            <li><b>【系統優化】</b>實裝「阻塞渲染腳本 (Blocking Script)」，徹底解決深色模式載入時的「無樣式內容閃爍 (FOUC / 閃白光)」問題，讓畫面完美銜接純黑背景。</li>
+                            <li><b>【日曆進化】</b>針對「行政計畫」資訊卡導入專屬的固定樣式，移除左滑機制以防誤觸，同時保留點擊微縮放回饋，使操作手感更貼近原生 App。</li>
+                            <li><b>【遊戲優化】</b>節奏遊戲 (Rhythm Tap) 放寬雙點擊的物理容錯率，並從底層徹底封殺瀏覽器預設的手勢與縮放干擾，解鎖極限雙指連擊零延遲。</li>
+                            <li><b>【排版修復】</b>解決行事曆「共享對象」成員卡片名稱因高度限制導致字體截斷的問題；並修正共享日曆模式下，因特權邏輯導致個人計畫異常溢出的 Bug。</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="release-item">
+                    <div class="version-title" style="cursor: pointer; user-select: none;" onclick="toggleReleaseContent(this)">
+                        <span class="v-badge">v 1.1.4</span>
+                        <span class="v-date">後台管理與遊戲體驗大升級</span>
+                    </div>
+                    <div class="v-content" style="display: none;">
+                        <ul>
+                            <li><b>【全新系統】</b>獨立實裝「使用者帳號管理系統」，限最高權限管理員 (班長) 登入。可直接於後台修改全體成員的顯示名稱與頭像，並即時同步至資料庫。</li>
+                            <li><b>【遊戲進化】</b>節奏遊戲 (Rhythm Tap) 導入「動態難度與狂暴引擎」！Combo 11 以上將自動提速並掉落多顆音符，斷 Combo 則自動恢復基礎速度。</li>
+                            <li><b>【遊戲修復】</b>節奏遊戲特殊圖片改為直接動態掃描 Firebase Storage 資料夾，精準依據檔名數字排序顯示，解決圖片不出現或重複的 Bug。</li>
+                            <li><b>【體驗優化】</b>群組設定中的「變更頭像」全面升級為「即時自動上傳」，裁切完成瞬間同步生效，無需再手動滑到底部點擊儲存。</li>
+                            <li><b>【聊天優化】</b>重構貼圖傳送的渲染邏輯，實裝「雙重強制置底引擎」，徹底解決傳送貼圖後畫面不會自動滾動到最新訊息的問題。</li>
+                            <li><b>【防呆修復】</b>個人聊天室設定頁新增隱藏版的「刪除對話」進階選單；並修復在不同聊天室間切換時，刪除按鈕異常卡在「處理中」的狀態殘留 Bug。</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="release-item">
+                    <div class="version-title" style="cursor: pointer; user-select: none;" onclick="toggleReleaseContent(this)">
+                        <span class="v-badge">v 1.1.3</span>
+                        <span class="v-date">國際化語系與全端體驗大升級</span>
+                    </div>
+                    <div class="v-content" style="display: none;">
+                        <ul>
+                            <li><b>【全新功能】</b>導入輕量級「中/日雙語切換引擎 (i18n)」，支援一鍵瞬間翻譯全系統；獨立實裝「使用者帳號後台管理系統」，限最高權限管理員 (班長) 登入，即時修改全體成員資料。</li>
+                            <li><b>【視覺升級】</b>行事曆網格全面升級「智慧自適應引擎」，自動計算 5/6 週完美填滿螢幕；重構各類「成員選取清單」排版，依據權限自動分類與預設摺疊 (大家庭/立法院成員)。</li>
+                            <li><b>【遊戲進化】</b>節奏遊戲 (Rhythm Tap) 導入「動態難度與狂暴引擎」！Combo 11 以上將自動提速並掉落多顆音符；特殊圖片改為動態掃描 Storage 資料夾精準排序，解決破圖 Bug。</li>
+                            <li><b>【體驗優化】</b>群組設定「變更頭像」升級為即時自動上傳；重構貼圖傳送邏輯，實裝「雙重強制置底引擎」；優化共享視角退出時的無縫 Z 軸縮放防滑動機制。</li>
+                            <li><b>【資安與防呆】</b>新增「隱藏特定成員」權限過濾機制；個人對話設定頁新增隱藏版的「刪除對話」進階選單，並修復在不同聊天室間切換時，按鈕異常卡在「處理中」的狀態殘留 Bug。</li>
+                            <li><b>【錯誤修復】</b>修復來回快速滑動行事曆造成的標籤疊加渲染問題；排除後端推播名單重複導致的雙重通知錯誤。</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="release-item">
+                    <div class="version-title" style="cursor: pointer; user-select: none;" onclick="toggleReleaseContent(this)">
+                        <span class="v-badge">v 1.1.1</span>
+                        <span class="v-date">國際化語系與智慧排版升級</span>
+                    </div>
+                    <div class="v-content" style="display: none;">
                         <ul>
                             <li><b>【全新功能】</b>導入輕量級「中/日雙語切換引擎 (i18n)」，支援一鍵瞬間翻譯全系統介面、按鈕與系統操作說明。</li>
                             <li><b>【視覺升級】</b>行事曆網格全面升級「智慧自適應引擎」，自動計算 5/6 週並完美填滿螢幕；當日行程超過 3 筆時自動優雅折疊，徹底解決版面撐破變形問題。</li>
@@ -4417,7 +4497,18 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                 <div style="text-align: center; color: #999; margin-top: 20px;">輸入關鍵字開始搜尋</div>
             </div>
 
-            <div style="padding: 20px; background: transparent; flex-shrink: 0;">
+            <div style="padding: 20px; background: transparent; flex-shrink: 0; display: flex; flex-direction: column; gap: 10px;">
+                
+                <div id="psMoreOptionsToggle" style="color: #999; font-size: 0.95rem; cursor: pointer; text-align: center; padding: 10px; font-weight: bold;" onclick="togglePersonalSettingsOptions()">
+                    <i class="fas fa-ellipsis-h"></i> 更多選項
+                </div>
+                
+                <div id="psMoreOptionsContainer" style="display: none; flex-direction: column; gap: 10px; margin-bottom: 10px;">
+                    <button id="deletePersonalChatBtn" class="btn-modal btn-danger" style="width: 100%; padding: 12px; border-radius: 8px; font-weight: bold; background: #ff4d4d; color: white; border: none;" onclick="deletePersonalChat()">
+                        <i class="fas fa-trash-alt"></i> 刪除對話紀錄
+                    </button>
+                </div>
+
                 <button class="btn-modal btn-cancel ps-close-btn" style="width: 100%; padding: 12px; border-radius: 8px; font-weight: bold; color: #666; background: white; border: 1px solid #ddd; box-shadow: 0 2px 8px rgba(0,0,0,0.05);" onclick="closePersonalSettings()">
                     <i class="fas fa-times"></i> 關閉設定頁面
                 </button>
@@ -7417,6 +7508,10 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
     // 發送真實貼圖的引擎
     async function sendRealSticker(stickerUrl) {
         document.getElementById('stickerPanel').style.display = 'none'; // 點擊後收起面板
+        
+        // 【修復】：面板收起瞬間先強制置底一次，抵銷版面高度變化導致的誤差
+        scrollToBottom(false); 
+
         if (!currentChatId || !auth.currentUser) return;
         
         try {
@@ -7424,8 +7519,6 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             const chatRef = db.collection("chats").doc(currentChatId);
             const msgRef = chatRef.collection("messages").doc();
             
-            // 貼圖其實就是一張圖片，所以我們以 fileType: 'image' 發送，text 留空
-            // 這樣在聊天室渲染時，它會自動被判定為 isMediaOnly，完美去掉氣泡框！
             batch.set(msgRef, { 
                 text: "", 
                 fileUrl: stickerUrl, 
@@ -7442,7 +7535,11 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             });
             
             await batch.commit();
-            scrollToBottom(true);
+            
+            // 【修復】：給予雙重延遲，確保資料庫渲染後與圖片讀取後都能精準拉到最底
+            setTimeout(() => scrollToBottom(true), 150);
+            setTimeout(() => scrollToBottom(true), 500);
+
         } catch (error) {
             console.error("貼圖發送失敗", error);
             alert("貼圖發送失敗，請檢查網路連線。");
@@ -10588,6 +10685,45 @@ renderEvMemberPreview = async function(uids, type) {
         }
     }
 
+    // ==========================================
+    // 個人對話設定：進階選項與刪除邏輯
+    // ==========================================
+    function togglePersonalSettingsOptions() {
+        const c = document.getElementById('psMoreOptionsContainer');
+        const t = document.getElementById('psMoreOptionsToggle');
+        if (c.style.display === 'none') { 
+            c.style.display = 'flex'; 
+            t.innerHTML = '<i class="fas fa-chevron-up"></i> 收起選項'; 
+        } else { 
+            c.style.display = 'none'; 
+            t.innerHTML = '<i class="fas fa-ellipsis-h"></i> 更多選項'; 
+        }
+    }
+
+    async function deletePersonalChat() {
+        if (!currentChatId) return;
+        if (!confirm("⚠️ 確定要永久刪除此對話嗎？\n這將清除雙方的聊天紀錄且無法復原！")) return;
+        
+        const btn = document.getElementById('deletePersonalChatBtn');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 刪除中...';
+        btn.disabled = true;
+
+        try {
+            // 執行 Firebase 文件刪除 (對話主文檔刪除，首頁清單就會消失)
+            await db.collection("chats").doc(currentChatId).delete();
+            
+            alert("✅ 對話已成功刪除！");
+            closePersonalSettings(); // 關閉設定頁面
+            closeChatRoom();         // 退出聊天室退回首頁
+        } catch (e) {
+            alert("刪除失敗：" + e.message);
+        } finally {
+            // 【關鍵修復】：無論成功或失敗，最後都把按鈕恢復原狀，避免影響到其他聊天室
+            btn.innerHTML = '<i class="fas fa-trash-alt"></i> 刪除對話紀錄';
+            btn.disabled = false;
+        }
+    }
+
     function openPersonalSettings() {
         // 抓取畫面上已經載入的頭像與名稱
         const targetName = document.getElementById('chatTitle').innerText;
@@ -10602,10 +10738,17 @@ renderEvMemberPreview = async function(uids, type) {
         document.getElementById('psMyAvatar').src = myAvatar;
         document.getElementById('psTargetName').innerText = targetName;
         document.getElementById('psTargetAvatar').src = targetAvatar;
-
-        // 初始化搜尋列
         document.getElementById('chatSearchInput').value = '';
         document.getElementById('chatSearchResults').innerHTML = '<div style="text-align: center; color: #999; margin-top: 20px;">輸入關鍵字開始搜尋</div>';
+        
+        // 【新增】：每次打開時強制重置為摺疊狀態
+        const moreOptionsContainer = document.getElementById('psMoreOptionsContainer');
+        const moreOptionsToggle = document.getElementById('psMoreOptionsToggle');
+        if (moreOptionsContainer && moreOptionsToggle) {
+            moreOptionsContainer.style.display = 'none';
+            moreOptionsToggle.innerHTML = '<i class="fas fa-ellipsis-h"></i> 更多選項';
+        }
+
         personalSettingsViewDOM.style.transform = 'translateX(0%)';
     }
 
@@ -11002,7 +11145,7 @@ renderEvMemberPreview = async function(uids, type) {
                     }
 
                     // 從距離頂部 16px (大約數字腰部) 開始畫，每疊加一條往下推 6px
-                    const topOffset = 125 + (targetPlanSlot * 6); 
+                    const topOffset = 120 + (targetPlanSlot * 6); 
                     planSlotMap[cid][targetPlanSlot] = `<div class="plan-cal-line ${positionClass}" style="top: ${topOffset}px; background: ${ev.color};"></div>`;
                 }
                 return; // 計畫畫完就跳出，不佔用正常標籤空間
@@ -11487,19 +11630,19 @@ renderEvMemberPreview = async function(uids, type) {
                         const isSharedToThisGroup = sharedWith.includes(groupTag);
                         const isFromMember = (targetData.members || []).includes(data.creatorUid);
                         if (!isSharedToThisGroup || !isFromMember) {
-                            if (!isMonitor) return;
+                            return; // 【修復】：移除 !isMonitor 判斷，確保共享視角下的畫面純淨
                         }
                     } else {
                         // 個人模式雙向判斷：
-                        // 1. 對方發布的計畫，且我有權限看 (對方分享給我)
-                        const isFromTargetToMe = (data.creatorUid === targetId) && isSharedToMe;
-                        // 2. 我發布的計畫，且我直接分享給對方 (我分享給對方)
+                        // 1. 對方發布的計畫，且我有權限看 (對方分享給我，或我是班長有特權看對方的)
+                        const isFromTargetToMe = (data.creatorUid === targetId) && (isSharedToMe || isMonitor);
+                        // 2. 我發布的計畫，且我有勾選直接分享給對方
                         const isFromMeToTarget = isCreator && sharedWith.includes(targetId);
                         
-                        if (!isFromTargetToMe && !isFromMeToTarget && !isMonitor) return;
+                        if (!isFromTargetToMe && !isFromMeToTarget) return; // 【修復】：移除全域的 !isMonitor，避免自己沒分享的計畫溢出
                     }
                 } else {
-                    // 【修正】：個人模式下，只顯示「自己發布的計畫」(班長特權保留)
+                    // 個人模式下，只顯示「自己發布的計畫」(班長特權保留)
                     if (!isCreator && !isMonitor) return;
                 }
 
@@ -12764,12 +12907,12 @@ renderEvMemberPreview = async function(uids, type) {
                             const isSharedToThisGroup = sharedWith.includes(groupTag);
                             const isFromMember = (targetData.members || []).includes(data.creatorUid);
                             if (!isSharedToThisGroup || !isFromMember) {
-                                if (!isMonitor) return;
+                                return; // 【修復】：移除 !isMonitor 判斷
                             }
                         } else {
-                            const isFromTargetToMe = (data.creatorUid === targetId) && isSharedToMe;
+                            const isFromTargetToMe = (data.creatorUid === targetId) && (isSharedToMe || isMonitor);
                             const isFromMeToTarget = isCreator && sharedWith.includes(targetId);
-                            if (!isFromTargetToMe && !isFromMeToTarget && !isMonitor) return;
+                            if (!isFromTargetToMe && !isFromMeToTarget) return; // 【修復】：移除 !isMonitor 判斷
                         }
                     } else {
                         if (!isCreator && !isMonitor) return;
@@ -12888,9 +13031,9 @@ renderEvMemberPreview = async function(uids, type) {
                 
                 // 依照類別產生不同的外層容器
                 if (ev.type === 'plan') {
-                    // 【修復】：移除寫死的 background: #fdfdfd;，讓深色模式可以正常套用
+                    // 【修復】：加入 plan-fixed-card，強制卡片固定不允許左右滑動
                     html += `
-                    <div class="event-mini-item" style="margin-bottom: 12px; border-left-color: ${cardBorderColor}; cursor: pointer;" onclick="openPlanDetail('${ev.id}')">
+                    <div class="event-mini-item plan-fixed-card" style="margin-bottom: 12px; border-left-color: ${cardBorderColor}; cursor: pointer;" onclick="openPlanDetail('${ev.id}')">
                         ${cardInnerHtml}
                     </div>`;
                 } else {
@@ -14865,8 +15008,9 @@ renderEvMemberPreview = async function(uids, type) {
             const noteCenter = targetNote.y + 12.5; 
             const diff = Math.abs(hitLineCenter - noteCenter);
             
-            if (diff < 50 || diff < 100) { // 合併 Perfect 與 Good 的 Combo 計算
-                if (diff < 50) {
+            // 【修復】：放寬物理容錯率 (50->80, 100->160)，解決雙點擊時的手指微小時間差
+            if (diff < 80 || diff < 160) { 
+                if (diff < 80) {
                     gameScore += 100 + (gameCombo * 10);
                     if (gameHp < 100) gameHp = Math.min(100, gameHp + PERFECT_HEAL); 
                     showJudgment('PERFECT', 'perfect');
@@ -14877,41 +15021,40 @@ renderEvMemberPreview = async function(uids, type) {
                 
                 gameCombo++;
                 
-                // 🚀 【新增】：特定 Combo 數的難度爆發
+                // 🚀 特定 Combo 數的難度爆發
                 if (gameCombo === 11) {
-                    gameSpeed *= 1.15;      // 速度加快 15%
-                    noteSpawnRate *= 0.85;  // 掉落變密集
+                    gameSpeed *= 1.15;      
+                    noteSpawnRate *= 0.85;  
                 } else if (gameCombo === 12) {
-                    gameSpeed *= 1.15;      // 再次加快 15%
+                    gameSpeed *= 1.15;      
                     noteSpawnRate *= 0.85;
                 } else if (gameCombo >= 13) {
-                    gameSpeed *= 1.03;      // 13 之後每一擊持續微幅加速
+                    gameSpeed *= 1.03;      
                     noteSpawnRate *= 0.97;
                 }
 
-                // 💎 【完美修復】：Combo 圖片切換與動畫重置
+                // 💎 Combo 圖片切換與動畫重置
                 if (gameCombo >= 11) {
                     const imgEl = document.getElementById('gameSpecialImg');
                     if (imgEl && window.rhythmComboImages.length > 0) {
-                        
                         let imgIndex = gameCombo - 11;
                         if (imgIndex >= window.rhythmComboImages.length) {
-                            imgIndex = window.rhythmComboImages.length - 1; // 超過總圖片數就卡在最後一張
+                            imgIndex = window.rhythmComboImages.length - 1; 
                         }
                         
                         imgEl.src = window.rhythmComboImages[imgIndex];
                         
-                        // 【關鍵】：強制重置 CSS 動畫，讓每一張圖片都能「重新跳出來」
                         imgEl.style.animation = 'none';
                         imgEl.classList.remove('game-special-active');
-                        void imgEl.offsetWidth; // 觸發瀏覽器重繪 (Reflow)
+                        void imgEl.offsetWidth; 
                         imgEl.classList.add('game-special-active'); 
-                        imgEl.style.animation = ''; // 恢復套用 class 中的動畫
+                        imgEl.style.animation = ''; 
                     }
                 }
                 removeNoteHit(targetIndex);
                 
-            } else if (diff < 180) { 
+            } else if (diff < 220) { 
+                // 【修復】：對應放寬 Miss 的偵測底線 (180->220)
                 processGameMiss(); 
                 removeNoteHit(targetIndex); 
             }
