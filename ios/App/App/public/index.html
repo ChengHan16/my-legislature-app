@@ -3,8 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#f2f4f7" id="theme-color-meta">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>立法院 - 系統登入</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
@@ -184,41 +182,17 @@
             text-shadow: 0 0 20px #5ba4d6 !important; /* 加上淡淡的金色光暈，取代原本的黑色陰影 */
         }
     </style>
-
-    <script>
-        (function() {
-            try {
-                var isDark = localStorage.getItem('darkMode') === 'true' || 
-                             (localStorage.getItem('darkMode') === null && window.matchMedia('(prefers-color-scheme: dark)').matches);
-                if (isDark) {
-                    // 1. 強制把最底層的 html 標籤塗黑 (iOS 啟動時看的底色)
-                    document.documentElement.style.backgroundColor = '#1a1a1a'; 
-                    // 2. 瞬間更改 iOS 頂部狀態列的顏色
-                    document.getElementById('theme-color-meta').setAttribute('content', '#1a1a1a');
-                    // 3. 預先加上 class，讓後續的 CSS 直接生效
-                    document.documentElement.classList.add('dark-mode');
-                } else {
-                    document.documentElement.style.backgroundColor = '#f2f4f7';
-                    document.getElementById('theme-color-meta').setAttribute('content', '#f2f4f7');
-                }
-            } catch(e) {}
-        })();
-    </script>
-</head>
 </head>
 <body>
-    <!--
-        <script>
-            (function() {
-                const savedDarkMode = localStorage.getItem('darkMode');
-                const systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-                if (savedDarkMode === 'true' || (savedDarkMode === null && systemPrefersDark)) {
-                    document.body.classList.add('dark-mode');
-                }
-            })();
-        </script>
-    -->
-    
+    <script>
+        (function() {
+            const savedDarkMode = localStorage.getItem('darkMode');
+            const systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (savedDarkMode === 'true' || (savedDarkMode === null && systemPrefersDark)) {
+                document.body.classList.add('dark-mode');
+            }
+        })();
+    </script>
 <div id="splashScreen">
     <div class="splash-text"><i class="fas fa-landmark"></i> 立法院</div>
 </div>
