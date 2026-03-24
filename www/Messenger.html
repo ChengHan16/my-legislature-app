@@ -14846,48 +14846,118 @@ renderEvMemberPreview = async function(uids, type) {
     }
 
     // --- 遊戲核心變數 ---
+    // --- 遊戲核心變數 ---
     let gameReqAnimId;
     let isGamePlaying = false;
-    let gameNotes = []; // 存儲畫面上的方塊 { id, track, y, el, isHit }
+    let gameNotes = []; 
     let gameScore = 0;
     let gameCombo = 0;
     let gameLevel = 1;
-    let gameSpeed = 5; // 掉落速度 (Pixels per frame)
-    let noteSpawnRate = 800; // 產生頻率 (ms)
+    let gameSpeed = 5; 
+    let noteSpawnRate = 800; 
     let lastSpawnTime = 0;
     let trackHeight = 0;
     let notesSpawnedThisLevel = 0;
 
-    // ✅ 【新增】：死亡機制與特殊效果變數
-    let gameHp = 100; // 滿血 100
-    const MISS_PENALTY = 15; // Miss 扣 15 血
-    const PERFECT_HEAL = 2; // Perfect 補 2 血
-    // 【修復】：補回判定線的座標常數，解決計算變成 NaN 導致狂跳 Miss 的問題
+    // ✅ 【效能優化】：新增 DeltaTime 與畫面快取變數
+    let lastFrameTime = 0;
+    let hitLineCenter = 0;
+    let displayScore = -1, displayLevel = -1, displayHp = -1, displayCombo = -1;
+
+    let gameHp = 100; 
+    const MISS_PENALTY = 15; 
+    const PERFECT_HEAL = 2; 
     const HIT_LINE_BOTTOM = 20;
     const HIT_LINE_HEIGHT = 60;
 
+    // ✅ 【效能優化】：預先計算高度，避免點擊時發生 Layout Thrashing
+    function updateGameDimensions() {
+        const tracksEl = document.getElementById('gameTracks');
+        if (tracksEl) {
+            trackHeight = tracksEl.clientHeight;
+            hitLineCenter = trackHeight - HIT_LINE_BOTTOM - (HIT_LINE_HEIGHT / 2);
+        }
+    }
+
+    // 螢幕翻轉或大小改變時才重新計算
+    window.addEventListener('resize', () => {
+        if (isGamePlaying) updateGameDimensions();
+    });
+
     function startGameEngine() {
         document.getElementById('gameOverLay').style.display = 'none';
-        trackHeight = document.getElementById('gameTracks').clientHeight;
         
-        // ✅ 【新增】：清空特殊效果圖示
+        // ✅ 取代原本在迴圈與點擊裡的 DOM 讀取
+        updateGameDimensions(); 
+
         document.getElementById('gameSpecialImg').className = ''; 
 
-        // 重置狀態
         gameNotes.forEach(n => n.el.remove());
         gameNotes = [];
         gameScore = 0;
         gameCombo = 0;
         gameLevel = 1;
-        gameHp = 100; // ✅ 【新增】：重置滿血
-        gameSpeed = 10; // 重置基礎速度
-        noteSpawnRate = 800; // 重置基礎頻率
+        gameHp = 100; 
+        gameSpeed = 10; 
+        noteSpawnRate = 800; 
         notesSpawnedThisLevel = 0;
         isGamePlaying = true;
-        lastSpawnTime = performance.now();
+        
+        // 重置 UI 快取
+        displayScore = displayLevel = displayHp = displayCombo = -1;
+
+        const now = performance.now();
+        lastSpawnTime = now;
+        lastFrameTime = now; // 記錄初始時間
         
         updateGameStats();
-        gameLoop(performance.now());
+        gameLoop(now);
+    }
+
+    function gameLoop(currentTime) {
+        if (!isGamePlaying) return;
+
+        // ✅ 【效能優化】：計算 DeltaTime，讓掉落速度不受掉幀影響
+        const deltaTime = currentTime - lastFrameTime;
+        lastFrameTime = currentTime;
+        
+        // 限制最大時間差 (防呆：如果玩家縮小網頁再回來，方塊不會瞬間飛出畫面)
+        const timeFactor = Math.min(deltaTime / 16.666, 3); 
+
+        if (currentTime - lastSpawnTime > noteSpawnRate) {
+            let spawnCount = (gameCombo >= 11) ? 2 : 1;
+            spawnNote(spawnCount);
+            
+            lastSpawnTime = currentTime;
+            notesSpawnedThisLevel += spawnCount; 
+            
+            if (notesSpawnedThisLevel >= 15 && gameLevel < 100) {
+                gameLevel++;
+                notesSpawnedThisLevel = 0;
+                gameSpeed *= 1.04; 
+                noteSpawnRate *= 0.95; 
+                updateGameStats();
+                showJudgment('LEVEL UP!', 'perfect');
+            }
+        }
+
+        for (let i = gameNotes.length - 1; i >= 0; i--) {
+            let note = gameNotes[i];
+            if (note.isHit) continue;
+
+            // ✅ 乘上 timeFactor，確保掉落平滑；並使用 translate3d 開啟 GPU 硬體加速
+            note.y += gameSpeed * timeFactor;
+            note.el.style.transform = `translate3d(0, ${note.y}px, 0)`;
+
+            if (note.y > trackHeight) {
+                note.el.remove();
+                gameNotes.splice(i, 1);
+                processGameMiss(); 
+                updateGameStats();
+            }
+        }
+
+        gameReqAnimId = requestAnimationFrame(gameLoop);
     }
 
     function stopGameEngine() {
@@ -14917,50 +14987,7 @@ renderEvMemberPreview = async function(uids, type) {
         }
     }
 
-    function gameLoop(currentTime) {
-        if (!isGamePlaying) return;
-
-        // 1. 產生新音符 (Level Up 邏輯：每掉 15 個方塊升一級，最高 100 級)
-        // 1. 產生新音符
-        if (currentTime - lastSpawnTime > noteSpawnRate) {
-            // 【新增邏輯】：Combo 達到 11 以上時，每次產生 2 顆音符
-            let spawnCount = (gameCombo >= 11) ? 2 : 1;
-            spawnNote(spawnCount);
-            
-            lastSpawnTime = currentTime;
-            notesSpawnedThisLevel += spawnCount; // 計算生成的總數量
-            
-            if (notesSpawnedThisLevel >= 15 && gameLevel < 100) {
-                gameLevel++;
-                notesSpawnedThisLevel = 0;
-                gameSpeed *= 1.04; // 升級變快 4%
-                noteSpawnRate *= 0.95; // 升級頻率縮短 5%
-                updateGameStats();
-                showJudgment('LEVEL UP!', 'perfect');
-            }
-        }
-
-        // 2. 移動現有音符 & 判定 Miss
-        for (let i = gameNotes.length - 1; i >= 0; i--) {
-            let note = gameNotes[i];
-            if (note.isHit) continue;
-
-            note.y += gameSpeed;
-            note.el.style.transform = `translateY(${note.y}px)`;
-
-            // 超過螢幕底部 (Miss)
-            if (note.y > trackHeight) {
-                note.el.remove();
-                gameNotes.splice(i, 1);
-                // ✅ 【修復】：改用扣血邏輯
-                processGameMiss(); 
-                updateGameStats();
-            }
-        }
-
-        gameReqAnimId = requestAnimationFrame(gameLoop);
-    }
-
+    
     // 【升級】：支援一次掉落多顆音符，並保證不會擠在同一個軌道
     function spawnNote(count = 1) {
         const usedTracks = new Set();
@@ -14991,29 +15018,25 @@ renderEvMemberPreview = async function(uids, type) {
     }
 
     // 【新增】：軌道專屬的防連點鎖，杜絕幽靈觸控
+    // 3. 玩家點擊按鈕打擊判定 (頂級精準版)
     let lastHitTime = {};
 
-    // 3. 玩家點擊按鈕打擊判定 (頂級精準版)
     function handleGameHit(trackIdx, e) {
-        if (e && e.cancelable) e.preventDefault(); // 阻擋手機長按選單
+        if (e && e.cancelable) e.preventDefault(); 
         if (!isGamePlaying) return;
 
-        // 【防呆 1】：防雙重觸發 (Touch + Mouse)，50毫秒內同軌道的點擊直接無視
         const now = Date.now();
         if (lastHitTime[trackIdx] && now - lastHitTime[trackIdx] < 50) return;
         lastHitTime[trackIdx] = now;
 
-        // 軌道閃光特效
         const effect = document.querySelector(`#track-${trackIdx} .track-hit-effect`);
         if (effect) {
             effect.classList.add('active');
             setTimeout(() => effect.classList.remove('active'), 100);
         }
 
-        // 【防呆 2】：動態抓取高度，避免手機網址列縮放導致判定線飄移
-        trackHeight = document.getElementById('gameTracks').clientHeight;
+        // ❌ 刪除這行：trackHeight = document.getElementById('gameTracks').clientHeight; (這就是造成同時點擊卡死的元兇！)
 
-        // 尋找該軌道上「最接近底部」的方塊
         let targetNote = null;
         let targetIndex = -1;
         let maxY = -999;
@@ -15028,13 +15051,13 @@ renderEvMemberPreview = async function(uids, type) {
         }
 
         if (targetNote) {
-            const hitLineCenter = trackHeight - HIT_LINE_BOTTOM - (HIT_LINE_HEIGHT / 2);
             const noteCenter = targetNote.y + 12.5; 
+            // 這裡直接使用全域預先算好的 hitLineCenter
             const diff = Math.abs(hitLineCenter - noteCenter);
             
-            // 【修復】：放寬物理容錯率 (50->80, 100->160)，解決雙點擊時的手指微小時間差
-            if (diff < 80 || diff < 160) { 
-                if (diff < 80) {
+            // ✅ 放寬物理容錯率，更貼近手機音樂遊戲手感
+            if (diff < 100 || diff < 180) { 
+                if (diff < 100) {
                     gameScore += 100 + (gameCombo * 10);
                     if (gameHp < 100) gameHp = Math.min(100, gameHp + PERFECT_HEAL); 
                     showJudgment('PERFECT', 'perfect');
@@ -15045,7 +15068,6 @@ renderEvMemberPreview = async function(uids, type) {
                 
                 gameCombo++;
                 
-                // 🚀 特定 Combo 數的難度爆發
                 if (gameCombo === 11) {
                     gameSpeed *= 1.15;      
                     noteSpawnRate *= 0.85;  
@@ -15057,48 +15079,43 @@ renderEvMemberPreview = async function(uids, type) {
                     noteSpawnRate *= 0.97;
                 }
 
-                // 💎 Combo 圖片切換與動畫重置
-                // 💎 Combo 圖片切換與動畫重置
                 if (gameCombo >= 11) {
                     const imgEl = document.getElementById('gameSpecialImg');
                     if (imgEl && window.rhythmComboImages && window.rhythmComboImages.length > 0) {
                         
                         let imgIndex = gameCombo - 11;
-                        
-                        // ==========================================
-                        // 【新增】：特定帳號鎖定只顯示第一張圖片
-                        // ==========================================
                         const userEmail = auth.currentUser ? auth.currentUser.email : "";
                         const userName = auth.currentUser ? auth.currentUser.displayName : "";
-                        
-                        // 建立名單 (同時包含信箱格式與名稱格式，避免漏抓 shiba2017)
                         const restrictedAccounts = ['shiba@ll.com', 'meiju@ll.com', 'shiba2017', 'shiba2017@ll.com'];
                         
                         if (restrictedAccounts.includes(userEmail) || restrictedAccounts.includes(userName)) {
-                            // 如果是這三個帳號，永遠鎖定在陣列的第 0 項 (即 combo_img_1.jpg)
                             imgIndex = 0; 
                         } else if (imgIndex >= window.rhythmComboImages.length) {
-                            // 一般玩家邏輯：超過總圖片數就卡在最後一張
                             imgIndex = window.rhythmComboImages.length - 1; 
                         }
-                        // ==========================================
                         
-                        // 【防呆】：確保該索引真的有網址才進行替換
                         if (window.rhythmComboImages[imgIndex]) {
-                            imgEl.src = window.rhythmComboImages[imgIndex];
+                            const newSrc = window.rhythmComboImages[imgIndex];
+                            if (imgEl.getAttribute('src') !== newSrc) {
+                                imgEl.src = newSrc;
+                            }
                             
                             imgEl.style.animation = 'none';
                             imgEl.classList.remove('game-special-active');
-                            void imgEl.offsetWidth; // 觸發重繪
-                            imgEl.classList.add('game-special-active'); 
-                            imgEl.style.animation = ''; 
+                            
+                            requestAnimationFrame(() => {
+                                requestAnimationFrame(() => {
+                                    imgEl.classList.add('game-special-active'); 
+                                    imgEl.style.animation = ''; 
+                                });
+                            });
                         }
                     }
                 }
                 removeNoteHit(targetIndex);
                 
-            } else if (diff < 220) { 
-                // 【修復】：對應放寬 Miss 的偵測底線 (180->220)
+            } else if (diff < 250) { 
+                // 放寬提早按到 Miss 的判定線
                 processGameMiss(); 
                 removeNoteHit(targetIndex); 
             }
@@ -15139,33 +15156,37 @@ renderEvMemberPreview = async function(uids, type) {
     }
 
     function updateGameStats() {
-        document.getElementById('gameLevelDisplay').innerText = `LV ${gameLevel}`;
-        document.getElementById('gameScoreDisplay').innerText = String(gameScore).padStart(7, '0');
-        
-        // ✅ 【新增】：動態血條刷新
-        const hpBar = document.getElementById('gameHpBar');
-        if (hpBar) {
-            hpBar.style.width = `${gameHp}%`;
-            
-            // 低血量閃爍提示
-            if (gameHp <= 30) {
-                hpBar.classList.add('hp-low');
-            } else {
-                hpBar.classList.remove('hp-low');
+        // ✅ 只有數值真的改變時，才去操作 DOM
+        if (displayLevel !== gameLevel) {
+            document.getElementById('gameLevelDisplay').innerText = `LV ${gameLevel}`;
+            displayLevel = gameLevel;
+        }
+        if (displayScore !== gameScore) {
+            document.getElementById('gameScoreDisplay').innerText = String(gameScore).padStart(7, '0');
+            displayScore = gameScore;
+        }
+        if (displayHp !== gameHp) {
+            const hpBar = document.getElementById('gameHpBar');
+            if (hpBar) {
+                hpBar.style.width = `${gameHp}%`;
+                if (gameHp <= 30) hpBar.classList.add('hp-low');
+                else hpBar.classList.remove('hp-low');
             }
+            displayHp = gameHp;
         }
-
-        const comboText = document.getElementById('gameComboText');
-        if (gameCombo > 2) {
-            comboText.innerText = `${gameCombo} COMBO`;
-            comboText.classList.remove('show');
-            void comboText.offsetWidth; // 觸發重繪
-            comboText.classList.add('show');
-        } else {
-            comboText.classList.remove('show');
+        if (displayCombo !== gameCombo) {
+            const comboText = document.getElementById('gameComboText');
+            if (gameCombo > 2) {
+                comboText.innerText = `${gameCombo} COMBO`;
+                comboText.classList.remove('show');
+                void comboText.offsetWidth; 
+                comboText.classList.add('show');
+            } else {
+                comboText.classList.remove('show');
+            }
+            displayCombo = gameCombo;
         }
         
-        // 遊戲結束判定 (通關 100 級)
         if (gameLevel >= 100 && notesSpawnedThisLevel >= 15) {
             triggerGameOver('通關');
         }
