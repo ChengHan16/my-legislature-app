@@ -181,24 +181,43 @@
             color: #5ba4d6 !important; /* 文字改為高質感的暗金色 */
             text-shadow: 0 0 20px #5ba4d6 !important; /* 加上淡淡的金色光暈，取代原本的黑色陰影 */
         }
+
+        /* ==========================================
+        深色模式適配 - 準備進入系統的載入畫面 (Loading Overlay)
+        ========================================== */
+        body.dark-mode #loadingOverlay {
+            background: #000000 !important;
+        }
+
+        body.dark-mode #loadingOverlay i,
+        body.dark-mode #loadingOverlay span {
+            color: #5ba4d6 !important; /* 改為與深色模式呼應的藍色 */
+        }
     </style>
+        <script>
+            (function() {
+                const savedDarkMode = localStorage.getItem('darkMode');
+                const systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                if (savedDarkMode === 'true' || (savedDarkMode === null && systemPrefersDark)) {
+                    // 提早把最底層的 html 標籤塗黑，防止跳轉瞬間的白底
+                    document.documentElement.style.backgroundColor = '#000000'; 
+                    
+                    // 確保網頁載入後 body 也能掛上深色 class
+                    document.addEventListener('DOMContentLoaded', () => {
+                        document.body.classList.add('dark-mode');
+                    });
+                } else {
+                    document.documentElement.style.backgroundColor = '#f0f2f5';
+                }
+            })();
+        </script>
 </head>
 <body>
-    <script>
-        (function() {
-            const savedDarkMode = localStorage.getItem('darkMode');
-            const systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-            if (savedDarkMode === 'true' || (savedDarkMode === null && systemPrefersDark)) {
-                document.body.classList.add('dark-mode');
-            }
-        })();
-    </script>
 <div id="splashScreen">
     <div class="splash-text"><i class="fas fa-landmark"></i> 立法院</div>
 </div>
 
-<div id="loadingOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f0f2f5; z-index: 9999; flex-direction: column; justify-content: center; align-items: center;">
-    <i class="fas fa-spinner fa-spin" style="font-size: 3rem; color: #003153; margin-bottom: 20px;"></i>
+<div id="loadingOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; flex-direction: column; justify-content: center; align-items: center;">    <i class="fas fa-spinner fa-spin" style="font-size: 3rem; color: #003153; margin-bottom: 20px;"></i>
     <span style="color: #003153; font-size: 1.1rem; font-weight: bold; letter-spacing: 1px;">安全連線中，準備進入系統...</span>
 </div>
     
