@@ -222,7 +222,7 @@
         /* 2. 左側按鈕群組容器 */
         .left-action-group {
             display: flex; gap: 10px; align-items: center;
-            overflow: hidden; 
+            overflow: visible; /* 【修正】：將 hidden 改為 visible，避免麥克風放大時被切邊 */
             max-width: 150px; /* 足夠放下三個按鈕的寬度 */
             opacity: 1;
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -287,8 +287,10 @@
 
         .attach-btn, .expand-menu-btn { 
             background: none; border: none; color: #888; 
-            font-size: 1.35rem; /* 【修改】：左側 + 號與迴紋針縮小 */
-            cursor: pointer; padding: 0 4px; display: flex; align-items: center; justify-content: center; transition: 0.3s;
+            font-size: 1.35rem; 
+            cursor: pointer; 
+            padding: 4px 6px; /* 【修正】：增加內距，給圖示呼吸與放大的空間 */
+            display: flex; align-items: center; justify-content: center; transition: 0.3s;
         }
         
         .attach-btn:hover, .expand-menu-btn:hover { color: var(--ly-blue); }
@@ -437,7 +439,7 @@
         .modal-input-group input { width: 100%; padding: 12px 15px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 16px; outline: none; box-sizing: border-box; appearance: none;}        .modal-input-group input:focus { border-color: var(--ly-gold); }
         .modal-footer { flex-shrink: 0; padding: 15px 20px; background: #f8f9fa; display: flex; justify-content: flex-end; gap: 12px; }
         .btn-modal { padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; border: none; transition: 0.3s;}
-        .btn-confirm { background: var(--ly-blue); color: white; }
+        .btn-confirm { background: #13222c; color: white; }
         .btn-cancel { background: white; color: #666; border: 1px solid #ddd; }
         .btn-danger { background: #ff4d4d; color: white; }
 
@@ -2902,6 +2904,221 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         body.dark-mode .poll-countdown[style*="color: #d93025"] {
             color: #ff4d4d !important;
         }
+
+        /* ==========================================
+        【深色模式適配】發起投票 (Create Poll Modal) OLED 純黑版
+        ========================================== */
+        body.dark-mode #createPollModal .modal-body {
+            background-color: #000000 !important;
+        }
+
+        body.dark-mode #pollDeadline,
+        body.dark-mode #pollContent,
+        body.dark-mode .poll-option-input {
+            background-color: #1c1c1e !important;
+            border-color: #2c2c2e !important;
+            color: #e0e0e0 !important;
+        }
+
+        /* 【新增】：投票詳情內容的深色文字適配 */
+        body.dark-mode .poll-detail-content-text {
+            color: #ccc !important;
+        }
+
+        body.dark-mode #createPollModal button[onclick="addPollOption()"] {
+            background-color: transparent !important;
+            border-color: #33475b !important;
+            color: var(--ly-blue) !important;
+        }
+
+        /* ==========================================
+        【深色模式適配】群組投票系統 (滿版 App View 版)
+        ========================================== */
+        body.dark-mode #createPollModal div[style*="background: #f8f9fa"] {
+            background-color: #1c1c1e !important;
+            border-color: #33475b !important;
+        }
+
+        body.dark-mode #pollDetailView > div[style*="background: white"],
+        body.dark-mode #pollVotersView > div[style*="background: white"] {
+            background: #000000 !important;
+            border-top-color: #1c1c1e !important;
+        }
+
+        body.dark-mode #pollDetailBody div[style*="background: #fffdf5"] {
+            background: #1c1c1e !important;
+            border-color: #2c2c2e !important;
+            color: #e0e0e0 !important;
+        }
+        body.dark-mode #pollDetailBody h2 { color: #e0e0e0 !important; }
+
+        body.dark-mode #pollVotersView .cd-type-tabs {
+            background: #000000 !important;
+            border-bottom: 1px solid #1c1c1e !important;
+        }
+        body.dark-mode #pollVotersView .cd-tab { color: #666 !important; }
+        body.dark-mode #pollVotersView .cd-tab.active { background: #1c1c1e !important; color: var(--ly-gold) !important; }
+
+        body.dark-mode #pollVotersBody .user-select-card {
+            background: #1c1c1e !important;
+            border-color: #2c2c2e !important;
+        }
+        body.dark-mode #pollVotersBody .user-select-card span { color: #ccc !important; }
+
+        /* ==========================================
+           【新增】：投票選項內的成員頭像預覽樣式
+           ========================================== */
+        .poll-voter-avatar {
+            width: 26px; height: 26px; border-radius: 50%; object-fit: cover; 
+            position: relative; flex-shrink: 0;
+            border: 2px solid #fff;
+        }
+        .poll-voter-more {
+            width: 26px; height: 26px; border-radius: 50%; background: #e0e0e0;
+            position: relative; display: flex; align-items: center; justify-content: center; 
+            font-size: 10px; color: #555; font-weight: bold; flex-shrink: 0;
+            border: 2px solid #fff;
+        }
+        
+        /* 深色模式適配 */
+        body.dark-mode .poll-voter-avatar,
+        body.dark-mode .poll-voter-more {
+            border-color: #1c1c1e;
+        }
+        body.dark-mode .poll-voter-more {
+            background: #333; color: #ccc;
+        }
+
+        /* ==========================================
+           【新增】：聊天卡片上投票選項內的頭貼預覽樣式 (縮小版)
+           ========================================== */
+        .msg-vote-voter-avatar {
+            width: 20px; height: 20px; border-radius: 50%; object-fit: cover; 
+            position: relative; flex-shrink: 0;
+            border: 1px solid #fff;
+        }
+        .msg-vote-voter-more {
+            width: 20px; height: 20px; border-radius: 50%; background: #e0e0e0;
+            position: relative; display: flex; align-items: center; justify-content: center; 
+            font-size: 8px; color: #555; font-weight: bold; flex-shrink: 0;
+            border: 1px solid #fff;
+        }
+        
+        /* 深色模式適配 */
+        body.dark-mode .msg-vote-voter-avatar,
+        body.dark-mode .msg-vote-voter-more {
+            border-color: #1c1c1e;
+        }
+        body.dark-mode .msg-vote-voter-more {
+            background: #333; color: #ccc;
+        }
+
+        /* ==========================================
+           群組成員摺疊區塊 深色模式適配
+           ========================================== */
+        body.dark-mode #groupMembersCollapseContainer {
+            border-top-color: #33475b !important;
+        }
+
+        /* ==========================================
+           【修復】：團購詳情 (viewGroupBuyModal) 深色模式適配
+           ========================================== */
+        body.dark-mode #vgbItemsList .gb-order-item {
+            border-bottom-color: #33475b !important;
+        }
+        body.dark-mode #vgbItemsList .gb-order-item img {
+            border-color: #33475b !important;
+        }
+        body.dark-mode #vgbItemsList .gb-order-info h4 {
+            color: var(--ly-blue) !important;
+        }
+        body.dark-mode #vgbItemsList .gb-order-info p {
+            color: #aaa !important;
+        }
+        body.dark-mode #vgbItemsList .gb-order-info p[style*="background:#f4f4f4"] {
+            background: #2a3642 !important;
+            color: #ccc !important;
+        }
+        body.dark-mode #vgbItemsList .gb-qty-btn {
+            background: #1e2b38 !important;
+            border-color: #5ba4d6 !important;
+            color: #5ba4d6 !important;
+        }
+        body.dark-mode #vgbItemsList .gb-qty-btn:active {
+            background: #5ba4d6 !important;
+            color: #1e2b38 !important;
+        }
+        body.dark-mode #vgbItemsList .gb-qty-btn:disabled {
+            background: #121b24 !important;
+            border-color: #33475b !important;
+            color: #666 !important;
+        }
+        body.dark-mode #vgbItemsList span[id^="qty-"] {
+            color: #e0e0e0 !important;
+        }
+        body.dark-mode #vgbItemsList .gb-buyers-wrapper {
+            background: #1e2b38 !important;
+            border-left-color: var(--ly-gold) !important;
+        }
+        body.dark-mode #vgbItemsList .gb-buyer-row {
+            border-bottom-color: #2a3642 !important;
+            color: #ccc !important;
+        }
+        body.dark-mode #vgbItemsList .gb-buyer-name {
+            color: var(--ly-blue) !important;
+        }
+        body.dark-mode #vgbItemsList .gb-buyer-note {
+            color: #999 !important;
+        }
+        body.dark-mode #vgbItemsList .gb-buyer-row[style*="background:#f1f3f5"] {
+            background: #2a3642 !important;
+            color: #e0e0e0 !important;
+        }
+        
+        /* 投票相關深色模式更新 */
+        body.dark-mode #pollListView > div { background: #000000 !important; }
+        body.dark-mode #createPollView > div { background: #000000 !important; }
+        body.dark-mode #pollListContainer .event-mini-item { background: #1c1c1e; border-color: #2c2c2e; }
+        body.dark-mode #pollListContainer .event-mini-title { color: #e0e0e0; }
+        body.dark-mode #pollListContainer .event-mini-meta { color: #aaa; }
+        body.dark-mode #pollOptionsContainer .poll-option-input { background: #1c1c1e; border-color: #444; color: #e0e0e0; }
+        body.dark-mode #createPollView textarea { background: #1c1c1e !important; color: #e0e0e0 !important; border-color: #444 !important; }
+        body.dark-mode #createPollView input[type="datetime-local"] { background: #1c1c1e !important; color: #e0e0e0 !important; border-color: #444 !important; }
+    
+        /* ==========================================
+           【修復】：發布頁面的深色模式特調適配
+           ========================================== */
+        body.dark-mode #createEventView > div,
+        body.dark-mode #createGroupBuyView > div,
+        body.dark-mode #createConfidentialView > div {
+            background-color: #000000 !important;
+        }
+
+        /* 投票：允許成員新增選項 */
+        body.dark-mode #createPollView div[style*="background: #f8f9fa"] {
+            background-color: #1c1c1e !important;
+            border-color: #33475b !important;
+        }
+
+        /* 活動：設為私人活動 / 授權名單 */
+        body.dark-mode #createEventView div[style*="background: #fff5f5"],
+        body.dark-mode #createEventView #private-auth-section {
+            background-color: rgba(217, 48, 37, 0.1) !important;
+            border-color: rgba(217, 48, 37, 0.5) !important;
+        }
+        
+        /* 加亮紅色字體 */
+        body.dark-mode label[for="pollAllowAdd"] { color: var(--ly-blue) !important; }
+        body.dark-mode #createEventView label[style*="color: #d93025"],
+        body.dark-mode #createEventView i[style*="color: #d93025"] { 
+            color: #ff4d4d !important; 
+        }
+
+        /* 機密文件：輸入框與背景 */
+        body.dark-mode #createConfidentialView .modal-input-group label { color: #e0e0e0; }
+        body.dark-mode #createConfidentialView .cipher-hint { color: #ff4d4d; }
+        body.dark-mode #createConfidentialView .cd-file-row input { background-color: #1c1c1e !important; border-color: #333 !important; color: #fff !important; }
+        body.dark-mode #cd-loading-overlay { background: rgba(0, 0, 0, 0.85) !important; }
     </style>
 
     <script>
@@ -3006,7 +3223,7 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             </div>
 
             <div id="expandMenuPanel" class="expand-menu-panel">
-                <div class="expand-menu-item" onclick="openPollModal()">
+                <div class="expand-menu-item" onclick="openPollList()">
                     <div class="icon-circle" style="color: #003153;"><i class="fas fa-poll"></i></div>
                     <span>發起投票</span>
                 </div>
@@ -3141,11 +3358,17 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             </div>
 
             <div class="gs-members-section" style="padding: 20px; background: white; border-bottom: 1px solid var(--border-color); margin-top: 10px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <label id="groupMembersLabel" style="font-weight: bold; color: var(--ly-blue); margin: 0; font-size: 1rem;"><i class="fas fa-users"></i> 群組成員</label>
-                    <button id="editMembersBtn" style="background: none; border: none; color: var(--ly-gold); font-weight: bold; font-size: 0.9rem; cursor: pointer; padding: 5px;" onclick="openEditMembersModal()"><i class="fas fa-user-edit"></i> 編輯名單</button>
+                <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="toggleGroupMembersList()">
+                    <label id="groupMembersLabel" style="font-weight: bold; color: var(--ly-blue); margin: 0; font-size: 1.05rem; cursor: pointer;"><i class="fas fa-users"></i> 群組成員</label>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <button id="editMembersBtn" style="background: none; border: none; color: var(--ly-gold); font-weight: bold; font-size: 0.95rem; cursor: pointer; padding: 5px;" onclick="event.stopPropagation(); openEditMembersModal()"><i class="fas fa-user-edit"></i> 編輯名單</button>
+                        <i id="groupMembersChevron" class="fas fa-chevron-down" style="color: #999; font-size: 1.1rem; transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);"></i>
+                    </div>
                 </div>
-                <div id="groupMembersList" class="group-members-list" style="max-height: none; overflow-y: visible; background: transparent; border: none; padding: 0;"></div>
+                
+                <div id="groupMembersCollapseContainer" style="display: none; margin-top: 15px; border-top: 1px dashed #eee; padding-top: 15px;">
+                    <div id="groupMembersList" class="group-members-list" style="max-height: none; overflow-y: visible; background: transparent; border: none; padding: 0;"></div>
+                </div>
             </div>
 
             <div class="ps-search-header" style="padding: 15px 20px; background: white; border-bottom: 1px solid var(--border-color); flex-shrink: 0; margin-top: 10px;">
@@ -3213,151 +3436,40 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         </div>
     </div>
 
-    <div id="activityScheduleModal" class="modal-overlay" style="z-index: 4000;">
-        <div class="modal-card" style="max-width: 450px !important; height: 80vh; max-height: 600px; display: flex; flex-direction: column; background: #f8f9fa;">
-            <div class="modal-header">
-                <h3 id="scheduleModalTitle" style="transition: 0.3s;"><i class="fas fa-calendar-check"></i> 活動行程總覽</h3>
-                <div style="display: flex; align-items: center; gap: 15px;">
-                    <i class="fas fa-globe" id="scheduleToggleIcon" style="font-size: 1.3rem; cursor: pointer; transition: transform 0.3s ease, color 0.3s ease; color: white;" onclick="toggleScheduleMode()" title="切換私人/公開模式"></i>
-                    <span style="cursor:pointer; font-size: 1.4rem;" onclick="closeModal('activityScheduleModal')">&times;</span>
+    
+
+
+    <div id="pollDetailView" class="app-view" style="z-index: 85; transform: translateX(100%);">
+        <header class="messenger-header">
+            <div class="header-content" style="padding: 15px 20px; justify-content: space-between;">
+                <div class="user-profile" style="flex: unset; gap: 5px;">
+                    <button class="back-btn" onclick="closePollDetailView()" style="margin-right: 0;"><i class="fas fa-chevron-left"></i></button>
+                    <span class="user-name" style="font-size: 1.2rem; margin-right: 0;">投票詳情</span>
                 </div>
             </div>
-            <div id="activityScheduleList" class="event-mini-list" style="padding: 15px;"></div>
-            <div class="modal-footer" style="justify-content: space-between; background: white; border-top: 1px solid #eee;">
-                <button class="btn-modal btn-cancel" onclick="closeModal('activityScheduleModal')">關閉</button>
-                <button class="btn-modal btn-confirm" onclick="openCreateEventModal()"><i class="fas fa-plus"></i> 新增活動</button>
-            </div>
-        </div>
-    </div> 
-
-    <div id="createEventModal" class="modal-overlay" style="z-index: 5000;">
-        <div class="modal-card" style="max-width: 500px; max-height: 85dvh; display: flex; flex-direction: column;">
-            <div class="modal-header">
-                <h3><i class="fas fa-calendar-plus"></i> 發起新活動</h3>
-                <span style="cursor:pointer;" onclick="closeModal('createEventModal')">&times;</span>
-            </div>
-            <div class="modal-body" style="background: white;">
-                
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 10px; background: #fff5f5; border-radius: 8px; border: 1px dashed #d93025;">
-                    <label style="font-weight: bold; color: #d93025; margin: 0;"><i class="fas fa-user-secret"></i> 設為私人活動 (僅限授權可見)</label>
-                    <input type="checkbox" id="ev-is-private" onchange="toggleEventPrivateMode(this.checked)" style="width: 20px; height: 20px; accent-color: #d93025;">
-                </div>
-
-                <div class="modal-input-group">
-                    <label>① 活動標題 <small style="color:red;">(必填)</small></label>
-                    <input type="text" id="ev-title" class="ev-dynamic-input" placeholder="請輸入標題">
-                </div>
-
-                <div id="dynamic-fields-container" style="width: 100%;"></div>
-
-                <div class="field-adder-bar">
-                    <button class="tag-btn" onclick="addEventField('headline', '標題')">+ 標題</button>
-                    <button class="tag-btn" onclick="addEventField('location', '地點')">+ 地點</button>
-                    <button class="tag-btn" onclick="addEventField('meetup', '集合時間')">+ 集合時間</button>
-                    <button class="tag-btn" onclick="addEventField('time', '活動時間')">+ 活動時間</button>
-                    <button class="tag-btn" onclick="addEventField('content_text', '活動內容')">+ 內容</button>
-                    <button class="tag-btn tag-btn-img" onclick="addEventField('image_upload', '活動照片')">
-                        <i class="fas fa-image"></i> + 照片
-                    </button>
-                </div>
-
-                <div id="public-participants-section" style="margin-top: 20px;">
-                    <label style="font-weight: bold; color: var(--ly-blue); display: block; margin-bottom: 8px;">參加成員名單</label>
-                    <div id="selected-members-preview" class="member-preview-list">
-                        <p style="color: #999; font-size: 0.9em; margin:0;">尚未選擇成員</p>
-                    </div>
-                    <div style="text-align: center; margin-top: 10px;">
-                        <button id="editPublicParticipantsBtn" class="btn-modal btn-cancel" onclick="openEventMemberPicker('participants')" style="width: 100%; transition: 0.3s;">
-                            <i class="fas fa-users-cog"></i> 編輯參加名單
-                        </button>
-                    </div>
-                </div>
-
-                <div id="private-auth-section" style="display: none; background: #fff5f5; padding: 15px; border-radius: 8px; border: 1px dashed #d93025; margin-top: 20px;">
-                    <label style="font-weight: bold; color: #d93025; display: block; margin-bottom: 8px;">授權檢視成員 (私人模式)</label>
-                    <div id="authorized-members-preview" class="member-preview-list" style="background: white; border-color: #ffcccb;">
-                        <p style="color: #999; font-size: 0.9em; margin:0;">尚未授權任何成員</p>
-                    </div>
-                    <div style="text-align: center; margin-top: 10px;">
-                        <button class="btn-modal btn-cancel" onclick="openEventMemberPicker('authorized')" style="width: 100%; color: #d93025; border-color: #d93025;">
-                            <i class="fas fa-user-plus"></i> 編輯授權名單
-                        </button>
-                    </div>
-                </div> 
-
-                <div class="modal-input-group" style="margin-top: 20px;">
-                    <label>投票/報名 截止時間</label>
-                    <input type="datetime-local" id="ev-deadline" class="ev-dynamic-input">
-                </div>
-            </div>
-            <div class="modal-footer" style="justify-content: space-between;">
-                <button class="btn-modal btn-cancel" onclick="closeModal('createEventModal')">取消</button>
-                <button class="btn-modal btn-confirm" id="btnSubmitEvent" onclick="submitNewEvent()">確認發布</button>
-            </div>
+        </header>
+        <div id="pollDetailBody" style="flex: 1; background: var(--bg-gray); overflow-y: auto; padding: 20px; -webkit-overflow-scrolling: touch;"></div>
+        <div style="flex-shrink: 0; padding: 15px 20px; background: white; border-top: 1px solid var(--border-color); padding-bottom: calc(15px + env(safe-area-inset-bottom));">
+            <button class="btn-modal btn-confirm" style="width: 100%; background: var(--ly-blue); box-shadow: 0 4px 10px rgba(0, 49, 83, 0.2);" onclick="openPollVoters()">
+                <i class="fas fa-users"></i> 查看投票成員
+            </button>
         </div>
     </div>
 
-    <div id="createPollModal" class="modal-overlay" style="z-index: 5000;">
-        <div class="modal-card" style="max-width: 400px;">
-            <div class="modal-header">
-                <h3><i class="fas fa-poll"></i> 發起投票</h3>
-                <span style="cursor:pointer;" onclick="closeModal('createPollModal')">&times;</span>
-            </div>
-            <div class="modal-body" style="background: white; padding: 20px;">
-                <div class="modal-input-group">
-                    <label>投票主題 <small style="color:red;">(必填)</small></label>
-                    <input type="text" id="pollQuestion" placeholder="例如：午餐吃什麼？開會時間？">
+    <div id="pollVotersView" class="app-view" style="z-index: 86; transform: translateX(100%);">
+        <header class="messenger-header">
+            <div class="header-content" style="padding: 15px 20px; justify-content: space-between;">
+                <div class="user-profile" style="flex: unset; gap: 5px;">
+                    <button class="back-btn" onclick="closePollVotersView()" style="margin-right: 0;"><i class="fas fa-chevron-left"></i></button>
+                    <span class="user-name" style="font-size: 1.2rem; margin-right: 0;">投票成員名單</span>
                 </div>
-                
-                <div class="modal-input-group" style="margin-bottom: 15px;">
-                    <label>投票結束時間 (選填)</label>
-                    <input type="datetime-local" id="pollDeadline" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
-                </div>
-                
-                <label style="font-size: 13px; color: var(--ly-blue); font-weight: 700; margin-bottom: 8px; display: block;">選項設定</label>
-                <div id="pollOptionsContainer" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;">
-                    <input type="text" class="poll-option-input" placeholder="選項 1" style="padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
-                    <input type="text" class="poll-option-input" placeholder="選項 2" style="padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
-                </div>
-                <button onclick="addPollOption()" style="width: 100%; background: #f8f9fa; border: 1px dashed var(--ly-blue); color: var(--ly-blue); padding: 8px; border-radius: 6px; cursor: pointer; font-weight: bold;">+ 新增選項</button>
-                
             </div>
-            <div class="modal-footer" style="justify-content: space-between;">
-                <button class="btn-modal btn-cancel" onclick="closeModal('createPollModal')">取消</button>
-                <button class="btn-modal btn-confirm" onclick="submitPoll()">發布投票</button>
-            </div>
+        </header>
+        <div class="cd-type-tabs" style="display: flex; background: white; padding: 8px 15px; border-bottom: 1px solid var(--border-color);">
+            <button class="cd-tab active" id="tab-voted" onclick="switchPollTab('voted')">已投票</button>
+            <button class="cd-tab" id="tab-unvoted" onclick="switchPollTab('unvoted')">未投票</button>
         </div>
-    </div>
-
-    <div id="pollDetailModal" class="modal-overlay" style="z-index: 5500;" onclick="if(event.target === this) closeModal('pollDetailModal')">
-        <div class="modal-card" style="max-width: 450px; height: 80vh; max-height: 600px; display: flex; flex-direction: column;">
-            <div class="modal-header">
-                <h3><i class="fas fa-poll-h"></i> 投票詳情</h3>
-                <span style="cursor:pointer;" onclick="closeModal('pollDetailModal')">&times;</span>
-            </div>
-            <div class="modal-body" id="pollDetailBody" style="flex: 1; overflow-y: auto; padding: 20px;">
-                </div>
-            <div class="modal-footer" style="background: white; border-top: 1px solid #eee; justify-content: center;">
-                <button class="btn-modal btn-confirm" style="width: 100%; background: var(--ly-blue); box-shadow: 0 4px 10px rgba(0, 49, 83, 0.2);" onclick="openPollVoters()">
-                    <i class="fas fa-users"></i> 查看投票成員
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <div id="pollVotersModal" class="modal-overlay" style="z-index: 6000;" onclick="if(event.target === this) closeModal('pollVotersModal')">
-        <div class="modal-card" style="max-width: 450px; height: 80vh; max-height: 600px; display: flex; flex-direction: column;">
-            <div class="modal-header">
-                <h3><i class="fas fa-clipboard-list"></i> 投票成員名單</h3>
-                <span style="cursor:pointer;" onclick="closeModal('pollVotersModal')">&times;</span>
-            </div>
-            <div class="cd-type-tabs" style="display: flex; background: #eee; padding: 4px;">
-                <button class="cd-tab active" id="tab-voted" onclick="switchPollTab('voted')">已投票</button>
-                <button class="cd-tab" id="tab-unvoted" onclick="switchPollTab('unvoted')">未投票</button>
-            </div>
-            <div class="modal-body" id="pollVotersBody" style="flex: 1; overflow-y: auto; padding: 0; background: #f8f9fa;">
-                </div>
-        </div>
+        <div id="pollVotersBody" style="flex: 1; background: var(--bg-gray); overflow-y: auto; padding: 0; -webkit-overflow-scrolling: touch;"></div>
     </div>
 
     <div id="eventMemberPickerModal" class="modal-overlay" style="z-index: 8000;">
@@ -3384,54 +3496,6 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             </div>
         </div> 
     </div>
-    
-    <div id="groupBuyListModal" class="modal-overlay" style="z-index: 4000;">
-        <div class="modal-card" style="max-width: 450px !important; height: 80vh; max-height: 600px; display: flex; flex-direction: column; background: #f8f9fa;">
-            <div class="modal-header">
-                <h3><i class="fas fa-shopping-basket"></i> 團購清單</h3>
-                <span style="cursor:pointer;" onclick="closeModal('groupBuyListModal')">&times;</span>
-            </div>
-            <div id="groupBuyListContainer" class="event-mini-list" style="padding: 15px;"></div>
-            
-            <div class="modal-footer" style="justify-content: space-between; background: white; border-top: 1px solid #eee;">
-                <button class="btn-modal btn-cancel" onclick="closeModal('groupBuyListModal')">關閉</button>
-                <button class="btn-modal btn-confirm" onclick="openCreateGroupBuyModal()"><i class="fas fa-plus"></i> 新增團購</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="createGroupBuyModal" class="modal-overlay" style="z-index: 4000;">
-        <div class="modal-card" style="max-width: 500px; max-height: 85vh; display: flex; flex-direction: column;">
-            <div class="modal-header">
-                <h3><i class="fas fa-shopping-cart"></i> 發起團購訂單</h3>
-                <span style="cursor:pointer;" onclick="closeModal('createGroupBuyModal')">&times;</span>
-            </div>
-            <div class="modal-body" style="flex: 1; overflow-y: auto; padding: 20px;">
-                <div class="modal-input-group">
-                    <label>代購成員 (發起人)</label>
-                    <input type="text" id="gbInitiator" disabled style="background:#f8f9fa; font-weight:bold; color:var(--ly-blue); border:none;">
-                </div>
-                <div class="modal-input-group">
-                    <label>團購標題</label>
-                    <input type="text" id="gbTitle" placeholder="例如：LOCH 卡包...">
-                </div>
-                <div class="modal-input-group">
-                    <label>截止時間</label>
-                    <input type="datetime-local" id="gbDeadline">
-                </div>
-                
-                <div style="height: 1px; background: #eee; margin: 20px 0;"></div>
-                <label style="display:block; font-size: 14px; color: var(--ly-blue); font-weight: 800; margin-bottom: 12px;"><i class="fas fa-box-open"></i> 商品列表</label>
-                
-                <div id="gbItemsContainer"></div>
-                <button class="btn-add-item" onclick="addGroupBuyItemRow()"><i class="fas fa-plus"></i> 增加一項商品</button>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-modal btn-cancel" onclick="closeModal('createGroupBuyModal')">取消</button>
-                <button class="btn-modal btn-confirm" id="gbSubmitBtn" onclick="submitGroupBuy()">儲存訂單</button>
-            </div>
-        </div>
-    </div>
 
     <div id="viewGroupBuyModal" class="modal-overlay" style="z-index: 4000;">
         <div class="modal-card" style="max-width: 500px; max-height: 85vh; display: flex; flex-direction: column;">
@@ -3448,81 +3512,6 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             <div class="modal-footer" style="background: white; border-top: 1px solid #eee;">
                 <button class="btn-modal btn-cancel" onclick="closeModal('viewGroupBuyModal')">關閉</button>
                 <button class="btn-modal btn-confirm" id="vgbSaveBtn" onclick="saveGroupBuyOrder()">儲存我的訂單</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="confidentialListModal" class="modal-overlay" style="z-index: 4000;">
-        <div class="modal-card" style="max-width: 650px; max-height: 85dvh; display: flex; flex-direction: column; background: #1a1a1a; border: 1px solid #333;">
-            <div class="modal-header" style="background: #000; border-bottom: 2px solid #d93025;">
-                <h3 style="color: white;"><i class="fas fa-folder-open"></i> 機密文件庫</h3>
-                <span style="cursor:pointer; color: white;" onclick="closeModal('confidentialListModal')">&times;</span>
-            </div>
-            <div id="confidentialListContainer" style="flex: 1; overflow-y: auto; padding: 0;"></div>
-            <div class="modal-footer" style="background: #000; border-top: 1px solid #333; justify-content: space-between;">
-                <button class="btn-modal btn-cancel" style="background: #333; color: white; border: none;" onclick="closeModal('confidentialListModal')">關閉</button>
-                <button class="btn-modal btn-confirm" style="background: #d93025; border: none;" onclick="openCreateConfidentialModal()"><i class="fas fa-plus"></i> 新增機密檔案</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="createConfidentialModal" class="modal-overlay" style="z-index: 5000;">
-        <div class="modal-card" style="max-width: 450px; max-height: 85dvh; position: relative;">
-            
-            <div id="cd-loading-overlay" style="display: none; position: absolute; inset: 0; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(3px); z-index: 100; flex-direction: column; justify-content: center; align-items: center; border-radius: 4px;">
-                <i class="fas fa-spinner fa-spin fa-3x" style="color: var(--ly-blue); margin-bottom: 15px;"></i>
-                <span id="cd-loading-text" style="font-weight: bold; color: var(--ly-blue); font-size: 1.1rem; text-align: center; padding: 0 20px;">加密處理中...</span>
-            </div>
-
-            <div class="modal-header" style="background: #2b2b2b; border-bottom: 3px solid #d93025;">
-                <h3 style="color: white;"><i class="fas fa-user-secret"></i> 傳送機密文件</h3>
-                <span style="cursor:pointer; color: white;" onclick="closeModal('createConfidentialModal')">&times;</span>
-            </div>
-            <div class="modal-body" style="background: #f8f9fa;">
-                <div class="modal-input-group">
-                    <label>文件標題</label>
-                    <input type="text" id="cd-title" placeholder="請輸入機密標題...">
-                </div>
-                <div class="modal-input-group" style="margin-bottom: 15px;">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 8px;">
-                        <label style="margin-bottom: 0;">指定傳遞對象 (勾選可檢視列表的成員)</label>
-                        <div style="display: flex; gap: 8px;">
-                            <button type="button" class="tag-btn" onclick="toggleAllCdMembers(true)" style="border-color: #28a745; color: #28a745; padding: 2px 10px; font-size: 0.8rem;">全選</button>
-                            <button type="button" class="tag-btn" onclick="toggleAllCdMembers(false)" style="border-color: #d93025; color: #d93025; padding: 2px 10px; font-size: 0.8rem;">清除</button>
-                        </div>
-                    </div>
-                    <div id="cd-recipient-list" class="user-select-list" style="background: #fff; border: 1px solid #ccc; border-radius: 8px; max-height: 150px; overflow-y: auto; padding: 8px;"></div>
-                </div>
-                <div class="modal-input-group">
-                    <label>內容類別</label>
-                    <div class="cd-type-tabs" style="display: flex; background: #eee; border-radius: 8px; padding: 4px; gap: 4px;">
-                        <button type="button" class="cd-tab active" data-type="file" onclick="changeConfidentialType('file')">📂 檔案傳送</button>
-                        <button type="button" class="cd-tab" data-type="link" onclick="changeConfidentialType('link')">🔗 外部連結</button>
-                        <button type="button" class="cd-tab" data-type="account" onclick="changeConfidentialType('account')">🔑 帳號密碼</button>
-                    </div>
-                    <input type="hidden" id="cd-type" value="file">
-                </div>
-
-                <div id="cd-dynamic-area"></div>
-
-                <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
-
-                <div class="modal-input-group">
-                    <label style="color: #d93025;"><i class="fas fa-lock"></i> 加密密碼 (真密碼)</label>
-                    <div class="cipher-input-group">
-                        <input type="password" id="cd-true-pass" placeholder="設定解鎖密碼...">
-                        <button class="cipher-eye-btn" onmousedown="showCipherPreview('cd-true-pass')" onmouseup="hideCipherPreview('cd-true-pass')" ontouchstart="showCipherPreview('cd-true-pass')" ontouchend="hideCipherPreview('cd-true-pass')"><i class="fas fa-eye"></i></button>
-                    </div>
-                    <span class="cipher-hint">※ 長按眼睛查看密碼時，將以密碼學 +3 偏移顯示</span>
-                </div>
-                <div class="modal-input-group">
-                    <label style="color: #666;"><i class="fas fa-mask"></i> 假密碼 (防護用)</label>
-                    <input type="text" id="cd-fake-pass" placeholder="設定防護用的假密碼...">
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-modal btn-cancel" onclick="closeModal('createConfidentialModal')">取消</button>
-                <button class="btn-modal btn-confirm" style="background: #d93025; border: none;" onclick="submitConfidential()"><i class="fas fa-paper-plane"></i> 加密傳送</button>
             </div>
         </div>
     </div>
@@ -3772,7 +3761,7 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                 <i class="fas fa-book-open"></i> 系統操作說明
             </button>
 
-            <button class="btn-modal btn-cancel" style="width: 100%; max-width: 300px; padding: 12px; border-radius: 8px; font-size: 1rem; margin-bottom: 10px; color: var(--ly-gold); border: 1px solid var(--ly-gold); font-weight: bold;" onclick="openReleaseNotes()">
+            <button class="btn-modal btn-cancel" style="width: 100%; max-width: 300px; padding: 12px; border-radius: 8px; font-size: 1rem; margin-bottom: 15px; color: var(--ly-gold); border: 1px solid var(--ly-gold); font-weight: bold;" onclick="openReleaseNotes()">
                 <i class="fas fa-history"></i> 版本更新內容
             </button>
 
@@ -4220,13 +4209,28 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         
         <div style="flex: 1; overflow-y: auto; padding: 25px 20px; background: transparent; -webkit-overflow-scrolling: touch;">
             <div class="release-timeline">
-
                 <div class="release-item latest">
                     <div class="version-title" style="cursor: pointer; user-select: none;" onclick="toggleReleaseContent(this)">
-                        <span class="v-badge latest">v 1.1.6</span>
-                        <span class="v-date">深色模式與操作手感極致優化</span>
+                        <span class="v-badge latest">v 1.1.10</span>
+                        <span class="v-date">介面重構與深色模式修復</span>
                     </div>
                     <div class="v-content" style="display: block;">
+                        <ul>
+                            <li><b>【體驗重構】</b>淘汰傳統小型彈跳視窗 (Modal)，將「發起新活動」、「發起團購訂單」、「傳送機密文件」全面升級為「滿版側滑頁面 (App View)」，提供與系統一致的沉浸式操作手感，並完整支援邊緣左滑返回手勢。</li>
+                            <li><b>【深色適配】</b>修復發布頁面在深色模式下的顯示異常。針對「設為私人活動」、「允許新增選項」等特殊設定區塊，導入高質感暗色系透明底與高亮文字適配，提升視覺辨識度。</li>
+                            <li><b>【流程防呆】</b>優化各類卡片發布至聊天室前的確認流程，於提示框中動態加入「發送對象 (群組/個人)」名稱，確保訊息不會傳錯聊天室。</li>
+                            <li><b>【Bug 修復】</b>解決在手機上點選左滑功能後，因觸控事件與滑鼠事件連續觸發，導致確認視窗異常跳出兩次的臭蟲。</li>
+                        </ul>
+                    </div>
+                </div>
+
+
+                <div class="release-item">
+                    <div class="version-title" style="cursor: pointer; user-select: none;" onclick="toggleReleaseContent(this)">
+                        <span class="v-badge">v 1.1.6</span>
+                        <span class="v-date">深色模式與操作手感極致優化</span>
+                    </div>
+                    <div class="v-content" style="display: none;">
                         <ul>
                             <li><b>【系統優化】</b>實裝「阻塞渲染腳本 (Blocking Script)」，徹底解決深色模式載入時的「無樣式內容閃爍 (FOUC / 閃白光)」問題，讓畫面完美銜接純黑背景。</li>
                             <li><b>【日曆進化】</b>針對「行政計畫」資訊卡導入專屬的固定樣式，移除左滑機制以防誤觸，同時保留點擊微縮放回饋，使操作手感更貼近原生 App。</li>
@@ -4924,6 +4928,274 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         <div id="planDetailBody" style="flex: 1; background: var(--bg-gray); overflow-y: auto; padding: 20px; -webkit-overflow-scrolling: touch;">
             </div>
     </div>
+    </div>
+
+    
+    <div id="pollListView" class="app-view" style="z-index: 85; transform: translateX(100%);">
+        <header class="messenger-header">
+            <div class="header-content" style="padding: 15px 20px; justify-content: space-between; align-items: center;">
+                <div class="user-profile" style="flex: unset; gap: 5px;">
+                    <button class="back-btn" onclick="closePollList()" style="margin-right: 0;"><i class="fas fa-chevron-left"></i></button>
+                    <span class="user-name" style="font-size: 1.2rem; margin-right: 0;">投票清單</span>
+                </div>
+                <div class="header-actions">
+                    <button title="新增投票" onclick="openCreatePollView()" style="background: none; border: none; color: var(--ly-gold); font-size: 1.4rem; cursor: pointer;">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+        <div id="pollListContainer" style="flex: 1; background: var(--bg-gray); overflow-y: auto; padding: 20px; -webkit-overflow-scrolling: touch; display: flex; flex-direction: column; gap: 12px;">
+            </div>
+    </div>
+
+    <div id="createPollView" class="app-view" style="z-index: 86; transform: translateX(100%);">
+        <header class="messenger-header">
+            <div class="header-content" style="padding: 15px 20px; justify-content: space-between; align-items: center;">
+                <div class="user-profile" style="flex: unset; gap: 5px;">
+                    <button class="back-btn" onclick="closeCreatePollView()" style="margin-right: 0;"><i class="fas fa-chevron-left"></i></button>
+                    <span class="user-name" id="createPollTitle" style="font-size: 1.2rem; margin-right: 0;">發起投票</span>
+                </div>
+            </div>
+        </header>
+        <div style="flex: 1; background: white; overflow-y: auto; padding: 20px; -webkit-overflow-scrolling: touch;">
+            <div class="modal-input-group">
+                <label>投票主題 <small style="color:red;">(必填)</small></label>
+                <input type="text" id="pollQuestion" placeholder="例如：下次要買哪間的法棍" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 1rem;">
+            </div>
+
+            <div class="modal-input-group" style="margin-bottom: 15px;">
+                <label>投票內容說明 (選填)</label>
+                <textarea id="pollContent" placeholder="請輸入詳細說明..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; min-height: 80px; resize: vertical; box-sizing: border-box; font-family: inherit; font-size: 15px;"></textarea>
+            </div>
+
+            <div class="modal-input-group" style="margin-bottom: 15px;">
+                <label>投票結束時間 (選填)</label>
+                <input type="datetime-local" id="pollDeadline" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; background: #f8f9fa; padding: 12px; border-radius: 8px; border: 1px dashed var(--ly-blue);">
+                <label for="pollAllowAdd" style="margin: 0; font-weight: bold; color: var(--ly-blue); cursor: pointer;">允許成員新增選項</label>
+                <input type="checkbox" id="pollAllowAdd" style="width: 20px; height: 20px; accent-color: var(--ly-blue); cursor: pointer;">
+            </div>
+
+            <label style="font-size: 13px; color: var(--ly-blue); font-weight: 700; margin-bottom: 8px; display: block;">選項設定</label>
+            <div id="pollOptionsContainer" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;">
+                </div>
+            <button onclick="addPollOption()" style="width: 100%; background: #f8f9fa; border: 1px dashed var(--ly-blue); color: var(--ly-blue); padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold; margin-bottom: 30px;"><i class="fas fa-plus"></i> 新增選項</button>
+
+            <button class="btn-modal btn-confirm" id="btnSubmitPoll" style="width: 100%; padding: 15px; font-size: 1.1rem; border-radius: 8px; box-shadow: 0 4px 15px rgba(0, 49, 83, 0.2);" onclick="submitPoll()">儲存並發布</button>
+        </div>
+    </div>
+
+    <div id="activityScheduleView" class="app-view" style="z-index: 85; transform: translateX(100%);">
+        <header class="messenger-header">
+            <div class="header-content" style="padding: 15px 20px; justify-content: space-between; align-items: center;">
+                <div class="user-profile" style="flex: unset; gap: 5px;">
+                    <button class="back-btn" onclick="closeActivityScheduleView()" style="margin-right: 0;"><i class="fas fa-chevron-left"></i></button>
+                    <span class="user-name" id="scheduleModalTitle" style="font-size: 1.2rem; margin-right: 0;"><i class="fas fa-calendar-check"></i> 活動行程總覽</span>
+                </div>
+                <div class="header-actions" style="display: flex; gap: 15px; align-items: center;">
+                    <i class="fas fa-globe" id="scheduleToggleIcon" style="font-size: 1.3rem; cursor: pointer; transition: transform 0.3s ease, color 0.3s ease; color: white;" onclick="toggleScheduleMode()" title="切換私人/公開模式"></i>
+                    <button title="新增活動" onclick="openCreateEventModal()" style="background: none; border: none; color: var(--ly-gold); font-size: 1.4rem; cursor: pointer;">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+        <div id="activityScheduleList" class="event-mini-list" style="flex: 1; background: var(--bg-gray); overflow-y: auto; padding: 20px; -webkit-overflow-scrolling: touch; display: flex; flex-direction: column; gap: 15px;"></div>
+    </div>
+
+    <div id="groupBuyListView" class="app-view" style="z-index: 85; transform: translateX(100%);">
+        <header class="messenger-header">
+            <div class="header-content" style="padding: 15px 20px; justify-content: space-between; align-items: center;">
+                <div class="user-profile" style="flex: unset; gap: 5px;">
+                    <button class="back-btn" onclick="closeGroupBuyListView()" style="margin-right: 0;"><i class="fas fa-chevron-left"></i></button>
+                    <span class="user-name" style="font-size: 1.2rem; margin-right: 0;"><i class="fas fa-shopping-basket"></i> 團購清單</span>
+                </div>
+                <div class="header-actions">
+                    <button title="新增團購" onclick="openCreateGroupBuyModal()" style="background: none; border: none; color: var(--ly-gold); font-size: 1.4rem; cursor: pointer;">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+        <div id="groupBuyListContainer" class="event-mini-list" style="flex: 1; background: var(--bg-gray); overflow-y: auto; padding: 20px; -webkit-overflow-scrolling: touch; display: flex; flex-direction: column; gap: 15px;"></div>
+    </div>
+
+    <div id="confidentialListView" class="app-view" style="z-index: 85; transform: translateX(100%);">
+        <header class="messenger-header" style="background: #000; border-bottom: 1px solid #d93025;">
+            <div class="header-content" style="padding: 15px 20px; justify-content: space-between; align-items: center;">
+                <div class="user-profile" style="flex: unset; gap: 5px;">
+                    <button class="back-btn" onclick="closeConfidentialListView()" style="margin-right: 0; color: white;"><i class="fas fa-chevron-left"></i></button>
+                    <span class="user-name" style="font-size: 1.2rem; margin-right: 0; color: white;"><i class="fas fa-folder-open"></i> 機密文件庫</span>
+                </div>
+                <div class="header-actions">
+                    <button title="新增機密檔案" onclick="openCreateConfidentialModal()" style="background: none; border: none; color: #d93025; font-size: 1.4rem; cursor: pointer;">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+        <div id="confidentialListContainer" style="flex: 1; background: #1a1a1a; overflow-y: auto; padding: 20px; -webkit-overflow-scrolling: touch; display: flex; flex-direction: column; gap: 12px;"></div>
+    </div>
+
+    <div id="createEventView" class="app-view" style="z-index: 86; transform: translateX(100%);">
+        <header class="messenger-header">
+            <div class="header-content" style="padding: 15px 20px; justify-content: space-between; align-items: center;">
+                <div class="user-profile" style="flex: unset; gap: 5px;">
+                    <button class="back-btn" onclick="closeCreateEventView()" style="margin-right: 0;"><i class="fas fa-chevron-left"></i></button>
+                    <span class="user-name" id="createEventTitle" style="font-size: 1.2rem; margin-right: 0;"><i class="fas fa-calendar-plus"></i> 發起新活動</span>
+                </div>
+            </div>
+        </header>
+        <div style="flex: 1; background: white; overflow-y: auto; padding: 20px; -webkit-overflow-scrolling: touch;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 10px; background: #fff5f5; border-radius: 8px; border: 1px dashed #d93025;">
+                <label style="font-weight: bold; color: #d93025; margin: 0;"><i class="fas fa-user-secret"></i> 設為私人活動 (僅限授權可見)</label>
+                <input type="checkbox" id="ev-is-private" onchange="toggleEventPrivateMode(this.checked)" style="width: 20px; height: 20px; accent-color: #d93025;">
+            </div>
+
+            <div class="modal-input-group">
+                <label>① 活動標題 <small style="color:red;">(必填)</small></label>
+                <input type="text" id="ev-title" class="ev-dynamic-input" placeholder="請輸入標題" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 1rem;">
+            </div>
+
+            <div id="dynamic-fields-container" style="width: 100%;"></div>
+
+            <div class="field-adder-bar">
+                <button class="tag-btn" onclick="addEventField('headline', '標題')">+ 標題</button>
+                <button class="tag-btn" onclick="addEventField('location', '地點')">+ 地點</button>
+                <button class="tag-btn" onclick="addEventField('meetup', '集合時間')">+ 集合時間</button>
+                <button class="tag-btn" onclick="addEventField('time', '活動時間')">+ 活動時間</button>
+                <button class="tag-btn" onclick="addEventField('content_text', '活動內容')">+ 內容</button>
+                <button class="tag-btn tag-btn-img" onclick="addEventField('image_upload', '活動照片')">
+                    <i class="fas fa-image"></i> + 照片
+                </button>
+            </div>
+
+            <div id="public-participants-section" style="margin-top: 20px;">
+                <label style="font-weight: bold; color: var(--ly-blue); display: block; margin-bottom: 8px;">參加成員名單</label>
+                <div id="selected-members-preview" class="member-preview-list">
+                    <p style="color: #999; font-size: 0.9em; margin:0;">尚未選擇成員</p>
+                </div>
+                <div style="text-align: center; margin-top: 10px;">
+                    <button id="editPublicParticipantsBtn" class="btn-modal btn-cancel" onclick="openEventMemberPicker('participants')" style="width: 100%; padding: 10px; border-radius: 8px; transition: 0.3s;">
+                        <i class="fas fa-users-cog"></i> 編輯參加名單
+                    </button>
+                </div>
+            </div>
+
+            <div id="private-auth-section" style="display: none; background: #fff5f5; padding: 15px; border-radius: 8px; border: 1px dashed #d93025; margin-top: 20px;">
+                <label style="font-weight: bold; color: #d93025; display: block; margin-bottom: 8px;">授權檢視成員 (私人模式)</label>
+                <div id="authorized-members-preview" class="member-preview-list" style="background: white; border-color: #ffcccb;">
+                    <p style="color: #999; font-size: 0.9em; margin:0;">尚未授權任何成員</p>
+                </div>
+                <div style="text-align: center; margin-top: 10px;">
+                    <button class="btn-modal btn-cancel" onclick="openEventMemberPicker('authorized')" style="width: 100%; padding: 10px; border-radius: 8px; color: #d93025; border-color: #d93025;">
+                        <i class="fas fa-user-plus"></i> 編輯授權名單
+                    </button>
+                </div>
+            </div> 
+
+            <div class="modal-input-group" style="margin-top: 20px; margin-bottom: 10px;">
+                <label>投票/報名 截止時間</label>
+                <input type="datetime-local" id="ev-deadline" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 1rem;">
+            </div>
+
+            <button class="btn-modal btn-confirm" id="btnSubmitEvent" style="width: 100%; padding: 15px; font-size: 1.1rem; border-radius: 8px; box-shadow: 0 4px 15px rgba(0, 49, 83, 0.2); margin-top: 20px; margin-bottom: 30px;" onclick="submitNewEvent()">確認發布</button>
+        </div>
+    </div>
+
+    <div id="createGroupBuyView" class="app-view" style="z-index: 86; transform: translateX(100%);">
+        <header class="messenger-header">
+            <div class="header-content" style="padding: 15px 20px; justify-content: space-between; align-items: center;">
+                <div class="user-profile" style="flex: unset; gap: 5px;">
+                    <button class="back-btn" onclick="closeCreateGroupBuyView()" style="margin-right: 0;"><i class="fas fa-chevron-left"></i></button>
+                    <span class="user-name" id="createGroupBuyTitle" style="font-size: 1.2rem; margin-right: 0;"><i class="fas fa-shopping-cart"></i> 發起團購訂單</span>
+                </div>
+            </div>
+        </header>
+        <div style="flex: 1; background: white; overflow-y: auto; padding: 20px; -webkit-overflow-scrolling: touch;">
+            <div class="modal-input-group">
+                <label>代購成員 (發起人)</label>
+                <input type="text" id="gbInitiator" disabled style="width: 100%; padding: 12px; border-radius: 8px; background:#f8f9fa; font-weight:bold; color:var(--ly-blue); border:none;">
+            </div>
+            <div class="modal-input-group">
+                <label>團購標題</label>
+                <input type="text" id="gbTitle" placeholder="例如：LOCH 卡包..." style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 1rem;">
+            </div>
+            <div class="modal-input-group">
+                <label>截止時間</label>
+                <input type="datetime-local" id="gbDeadline" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 1rem;">
+            </div>
+            
+            <div style="height: 1px; background: #eee; margin: 20px 0;"></div>
+            <label style="display:block; font-size: 14px; color: var(--ly-blue); font-weight: 800; margin-bottom: 12px;"><i class="fas fa-box-open"></i> 商品列表</label>
+            
+            <div id="gbItemsContainer"></div>
+            <button class="btn-add-item" onclick="addGroupBuyItemRow()"><i class="fas fa-plus"></i> 增加一項商品</button>
+
+            <button class="btn-modal btn-confirm" id="gbSubmitBtn" style="width: 100%; padding: 15px; font-size: 1.1rem; border-radius: 8px; box-shadow: 0 4px 15px rgba(0, 49, 83, 0.2); margin-top: 20px; margin-bottom: 30px;" onclick="submitGroupBuy()">儲存訂單</button>
+        </div>
+    </div>
+
+    <div id="createConfidentialView" class="app-view" style="z-index: 86; transform: translateX(100%);">
+        <div id="cd-loading-overlay" style="display: none; position: absolute; inset: 0; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(3px); z-index: 100; flex-direction: column; justify-content: center; align-items: center;">
+            <i class="fas fa-spinner fa-spin fa-3x" style="color: var(--ly-blue); margin-bottom: 15px;"></i>
+            <span id="cd-loading-text" style="font-weight: bold; color: var(--ly-blue); font-size: 1.1rem; text-align: center; padding: 0 20px;">加密處理中...</span>
+        </div>
+        <header class="messenger-header" style="background: #2b2b2b; border-bottom: 3px solid #d93025;">
+            <div class="header-content" style="padding: 15px 20px; justify-content: space-between; align-items: center;">
+                <div class="user-profile" style="flex: unset; gap: 5px;">
+                    <button class="back-btn" onclick="closeCreateConfidentialView()" style="margin-right: 0; color: white;"><i class="fas fa-chevron-left"></i></button>
+                    <span class="user-name" style="font-size: 1.2rem; margin-right: 0; color: white;"><i class="fas fa-user-secret"></i> 傳送機密文件</span>
+                </div>
+            </div>
+        </header>
+        <div style="flex: 1; background: #f8f9fa; overflow-y: auto; padding: 20px; -webkit-overflow-scrolling: touch;">
+            <div class="modal-input-group">
+                <label>文件標題</label>
+                <input type="text" id="cd-title" placeholder="請輸入機密標題..." style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 1rem;">
+            </div>
+            <div class="modal-input-group" style="margin-bottom: 15px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 8px;">
+                    <label style="margin-bottom: 0;">指定傳遞對象 (勾選可檢視列表的成員)</label>
+                    <div style="display: flex; gap: 8px;">
+                        <button type="button" class="tag-btn" onclick="toggleAllCdMembers(true)" style="border-color: #28a745; color: #28a745; padding: 4px 12px; font-size: 0.85rem;">全選</button>
+                        <button type="button" class="tag-btn" onclick="toggleAllCdMembers(false)" style="border-color: #d93025; color: #d93025; padding: 4px 12px; font-size: 0.85rem;">清除</button>
+                    </div>
+                </div>
+                <div id="cd-recipient-list" class="user-select-list" style="background: #fff; border: 1px solid #ccc; border-radius: 8px; max-height: 180px; overflow-y: auto; padding: 10px;"></div>
+            </div>
+            <div class="modal-input-group">
+                <label>內容類別</label>
+                <div class="cd-type-tabs" style="display: flex; background: #eee; border-radius: 8px; padding: 4px; gap: 4px;">
+                    <button type="button" class="cd-tab active" data-type="file" onclick="changeConfidentialType('file')">📂 檔案傳送</button>
+                    <button type="button" class="cd-tab" data-type="link" onclick="changeConfidentialType('link')">🔗 外部連結</button>
+                    <button type="button" class="cd-tab" data-type="account" onclick="changeConfidentialType('account')">🔑 帳號密碼</button>
+                </div>
+                <input type="hidden" id="cd-type" value="file">
+            </div>
+
+            <div id="cd-dynamic-area"></div>
+
+            <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+
+            <div class="modal-input-group">
+                <label style="color: #d93025;"><i class="fas fa-lock"></i> 加密密碼 (真密碼)</label>
+                <div class="cipher-input-group">
+                    <input type="password" id="cd-true-pass" placeholder="設定解鎖密碼..." style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 1rem;">
+                    <button class="cipher-eye-btn" onmousedown="showCipherPreview('cd-true-pass')" onmouseup="hideCipherPreview('cd-true-pass')" ontouchstart="showCipherPreview('cd-true-pass')" ontouchend="hideCipherPreview('cd-true-pass')"><i class="fas fa-eye"></i></button>
+                </div>
+                <span class="cipher-hint">※ 長按眼睛查看密碼時，將以密碼學 +3 偏移顯示</span>
+            </div>
+            <div class="modal-input-group">
+                <label style="color: #666;"><i class="fas fa-mask"></i> 假密碼 (防護用)</label>
+                <input type="text" id="cd-fake-pass" placeholder="設定防護用的假密碼..." style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 1rem;">
+            </div>
+
+            <button class="btn-modal btn-confirm" id="btnSubmitConfidential" style="width: 100%; padding: 15px; font-size: 1.1rem; border-radius: 8px; background: #d93025; border: none; box-shadow: 0 4px 15px rgba(217, 48, 37, 0.2); margin-top: 10px; margin-bottom: 30px;" onclick="submitConfidential()"><i class="fas fa-paper-plane"></i> 加密傳送</button>
+        </div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
@@ -5829,7 +6101,7 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                         let totalVotes = 0;
                         Object.values(parsed.votes).forEach(uids => totalVotes += uids.length);
                         
-                        // 【新增】：判斷是否截止與計算倒數文字
+                        // 判斷是否截止與計算倒數文字
                         const isExpired = parsed.deadline && new Date(parsed.deadline).getTime() < Date.now();
                         let countdownHtml = '';
                         if (parsed.deadline) {
@@ -5845,17 +6117,43 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                             const hasVoted = voters.includes(currentUid);
                             const percentage = totalVotes === 0 ? 0 : Math.round((voters.length / totalVotes) * 100);
                             
-                            // 【新增】：過期狀態的 UI 防呆
+                            // 過期狀態的 UI 防呆
                             const cursorStyle = isExpired ? 'cursor: not-allowed; opacity: 0.7;' : 'cursor: pointer;';
-                            const clickAction = isExpired ? `alert('投票已截止！')` : `event.stopPropagation(); castVote('${msgId}', '${opt}')`;
+                            const clickAction = isExpired ? `alert('投票已截止！')` : `event.stopPropagation(); castVote('${msgId}', '${opt.replace(/'/g, "\\'")}')`;
                             
+                            // --- 【新增】：處理投票成員頭像預覽 (在卡片上顯示) ---
+                            let avatarsPreviewHtml = '<div class="vote-voter-avatars-preview" style="display: flex; align-items: center; justify-content: flex-end; flex: 1; margin: 0 5px; min-width: 0;">';
+                            const previewCount = 3; // 卡片上最多預覽 3 個頭像
+                            const previewVoters = voters.slice(0, previewCount);
+
+                            previewVoters.forEach((uid, index) => {
+                                const memberData = window.chatMembersCache[uid] || {};
+                                const mAvatar = memberData.photoURL || "https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true";
+                                const zIndex = previewCount + 1 - index; // 確保前面的大頭貼疊在上面
+                                const marginLeft = index === 0 ? '0' : '-8px'; // 頭貼重疊
+
+                                // 使用 .msg-vote-voter-avatar 這個縮小版的類名
+                                avatarsPreviewHtml += `<img src="${mAvatar}" class="msg-vote-voter-avatar" style="margin-left: ${marginLeft}; z-index: ${zIndex};">`;
+                            });
+
+                            if (voters.length > previewCount) {
+                                // 超過人數顯示 ...
+                                avatarsPreviewHtml += `<div class="msg-vote-voter-more" style="margin-left: -8px; z-index: 1;">...</div>`;
+                            }
+                            avatarsPreviewHtml += '</div>';
+                            // ----------------------------------------
+
+                            // 【修改】：將頭貼預覽插入選項文字和票數之間，並改用 display: flex; align-items: stretch;
                             optionsHtml += `
-                                <div style="margin-top: 10px; ${cursorStyle} position: relative; background: ${hasVoted ? 'rgba(207, 169, 0, 0.15)' : '#f8f9fa'}; border: 1px solid ${hasVoted ? 'var(--ly-gold)' : '#ddd'}; border-radius: 6px; overflow: hidden;"
+                                <div style="margin-top: 10px; ${cursorStyle} position: relative; background: ${hasVoted ? 'rgba(207, 169, 0, 0.15)' : '#f8f9fa'}; border: 1px solid ${hasVoted ? 'var(--ly-gold)' : '#ddd'}; border-radius: 6px; overflow: hidden; display: flex; align-items: stretch;"
                                     onclick="${clickAction}">
                                     <div style="position: absolute; top: 0; left: 0; height: 100%; width: ${percentage}%; background: ${hasVoted ? 'rgba(207, 169, 0, 0.25)' : 'rgba(0, 49, 83, 0.05)'}; z-index: 1; transition: width 0.3s;"></div>
-                                    <div style="position: relative; z-index: 2; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center;">
-                                        <span style="font-weight: ${hasVoted ? 'bold' : 'normal'}; color: var(--ly-blue);">${hasVoted ? '<i class="fas fa-check-circle" style="color:var(--ly-gold);"></i> ' : ''}${escapeHtml(opt)}</span>
-                                        <span style="font-size: 0.85rem; color: #666;">${voters.length} 票 (${percentage}%)</span>
+                                    <div style="position: relative; z-index: 2; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; flex: 1; min-width: 0;">
+                                        <span style="font-weight: ${hasVoted ? 'bold' : 'normal'}; color: var(--ly-blue); flex-shrink: 0; max-width: 45%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${hasVoted ? '<i class="fas fa-check-circle" style="color:var(--ly-gold);"></i> ' : ''}${escapeHtml(opt)}</span>
+                                        
+                                        ${avatarsPreviewHtml}
+
+                                        <span style="font-size: 0.85rem; color: #666; font-weight: bold; flex-shrink: 0; margin-left: 5px;">${voters.length} 票 (${percentage}%)</span>
                                     </div>
                                 </div>`;
                         });
@@ -6763,7 +7061,26 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         menu.style.left = `${leftPos}px`; menu.style.top = `${topPos}px`;
     }
     function closeContextMenu() { document.getElementById('contextMenu').style.display = 'none'; activeMsgId = null; }
-    document.addEventListener('click', (e) => { if (skipNextClick) { e.preventDefault(); e.stopPropagation(); return; } if (!e.target.closest('.context-menu')) closeContextMenu(); }, true); 
+    document.addEventListener('click', (e) => { 
+        if (skipNextClick) { e.preventDefault(); e.stopPropagation(); return; } 
+        if (!e.target.closest('.context-menu')) closeContextMenu(); 
+        
+        // 【新增】：點擊其他地方，自動將所有的垃圾桶恢復成點點點
+        if (!e.target.closest('.poll-option-del-wrapper')) {
+            document.querySelectorAll('.poll-dot-btn').forEach(el => el.style.display = 'flex');
+            document.querySelectorAll('.poll-trash-btn').forEach(el => el.style.display = 'none');
+        }
+    }, true); 
+
+    // 【新增】：切換點點點與垃圾桶的函式
+    window.togglePollDeleteBtn = function(btn) {
+        // 先把畫面上其他打開的垃圾桶都收起來
+        document.querySelectorAll('.poll-dot-btn').forEach(el => el.style.display = 'flex');
+        document.querySelectorAll('.poll-trash-btn').forEach(el => el.style.display = 'none');
+        // 打開當前點擊的這個
+        btn.style.display = 'none';
+        btn.nextElementSibling.style.display = 'flex';
+    };
     document.addEventListener('scroll', closeContextMenu, true);
 
     async function confirmRevoke() {
@@ -7214,6 +7531,30 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         document.getElementById('groupChatSearchInput').blur(); 
     }
 
+    // 【新增】：群組成員名單的摺疊切換引擎
+    window.toggleGroupMembersList = function() {
+        const container = document.getElementById('groupMembersCollapseContainer');
+        const chevron = document.getElementById('groupMembersChevron');
+        
+        if (container.style.display === 'none') {
+            container.style.display = 'block';
+            chevron.style.transform = 'rotate(180deg)';
+            
+            // 【關鍵修復】：展開時，重新計算並繪製樹狀圖連線 (因為 display: none 時座標為 0)
+            requestAnimationFrame(() => {
+                const grid = document.getElementById('treeGrid');
+                if (grid) {
+                    // 先清除可能殘留的舊連線，再重新繪製
+                    grid.querySelectorAll('.tree-map-line').forEach(e => e.remove());
+                    drawTreeGridLines(grid);
+                }
+            });
+        } else {
+            container.style.display = 'none';
+            chevron.style.transform = 'rotate(0deg)';
+        }
+    };
+
     async function openGroupSettings() {
         // 【修改】：改為滑動開啟
         groupSettingsViewDOM.style.transform = 'translateX(0%)'; 
@@ -7223,6 +7564,14 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         // 【新增】：重置搜尋框
         document.getElementById('groupChatSearchInput').value = '';
         document.getElementById('groupChatSearchResults').innerHTML = '<div style="text-align: center; color: #999; margin-top: 20px;">輸入關鍵字開始搜尋</div>';
+
+        // 【新增】：每次進入設定頁面時，將群組成員名單預設為「摺疊」狀態
+        const collapseContainer = document.getElementById('groupMembersCollapseContainer');
+        const chevron = document.getElementById('groupMembersChevron');
+        if (collapseContainer && chevron) {
+            collapseContainer.style.display = 'none';
+            chevron.style.transform = 'rotate(0deg)';
+        }
 
         const nameInput = document.getElementById('groupNameEdit');
         const editMembersBtn = document.getElementById('editMembersBtn');
@@ -7426,7 +7775,15 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         // 等待 HTML 渲染完畢後，啟動絕對座標計算來畫出精準連線
         if (membersData.length > 1) {
             requestAnimationFrame(() => {
-                drawTreeGridLines(document.getElementById('treeGrid'));
+                const container = document.getElementById('groupMembersCollapseContainer');
+                // 【修改】：只有在「展開狀態 (display: block)」下才畫線，否則座標會錯亂
+                if (container && container.style.display !== 'none') {
+                    const grid = document.getElementById('treeGrid');
+                    if (grid) {
+                        grid.querySelectorAll('.tree-map-line').forEach(e => e.remove());
+                        drawTreeGridLines(grid);
+                    }
+                }
             });
         }
     }
@@ -7854,7 +8211,7 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
     async function handleActivitySchedule() {
         document.getElementById('expandMenuPanel').style.display='none'; 
         document.querySelector('.expand-menu-btn').style.transform='rotate(0deg)';
-        openModal('activityScheduleModal'); 
+        activityScheduleViewDOM.style.transform = 'translateX(0%)'; // 【修改】
         const listEl = document.getElementById('activityScheduleList'); 
         listEl.innerHTML = '<div style="text-align:center; padding:20px;"><i class="fas fa-spinner fa-spin"></i> 載入中...</div>';
         
@@ -7989,12 +8346,13 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
     }
 
     // 【修改】：接收 deadlineStr 並存入 JSON 中
-    // 【修改】：接收 deadlineStr 並存入 JSON 中
     async function sendEventCard(eventId, title, timeStr, deadlineStr) {
-        if(!confirm(`發布「${title}」？`)) return; closeModal('activityScheduleModal');
+        // 【修改】：加入提示對象防呆
+        if(!confirm(`要將活動「${title}」發布到聊天室中嗎？${getChatTargetNameForConfirm()}`)) return; 
+        closeActivityScheduleView();
+        
         try {
             const batch = db.batch(), chatRef = db.collection("chats").doc(currentChatId), msgRef = chatRef.collection("messages").doc();
-            // 將 deadline 一併包進 JSON 字串存入資料庫
             batch.set(msgRef, { text: JSON.stringify({ type:'event_share', eventId:eventId, title:title, timeStr:timeStr, deadline:deadlineStr }), senderId: auth.currentUser.uid, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
             batch.update(chatRef, { lastMessage: `分享活動：${title}`, lastSenderId: auth.currentUser.uid, updatedAt: firebase.firestore.FieldValue.serverTimestamp(), [`lastReadAt.${auth.currentUser.uid}`]: firebase.firestore.FieldValue.serverTimestamp() });
             await batch.commit(); scrollToBottom(true);
@@ -8034,7 +8392,10 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             if (evSwipedItemOpen === el) evSwipedItemOpen = null;
             
             // 如果幾乎沒滑動 (當作點擊)，觸發原本的發送卡片功能
-            if (Math.abs(evSwipeCurrentX) < 10 && eventId) sendEventCard(eventId, title, timeStr, deadline);
+            if (Math.abs(evSwipeCurrentX) < 10 && eventId) {
+                if (e && e.type === 'touchend' && e.cancelable) e.preventDefault(); // 【修復】：阻擋瀏覽器補發第二次點擊
+                sendEventCard(eventId, title, timeStr, deadline);
+            }
         }
         evSwipeCurrentX = 0;
     }
@@ -8806,37 +9167,28 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
     }
 
     function openCreateEventModal() {
-        closeModal('activityScheduleModal'); // 關閉行程總覽
-        currentEditingEventId = null; // 確保是新增模式
-        document.querySelector('#createEventModal h3').innerHTML = '<i class="fas fa-calendar-plus"></i> 發起新活動';
+        closeActivityScheduleView(); // 【修改】
+        currentEditingEventId = null; 
+        document.getElementById('createEventTitle').innerHTML = '<i class="fas fa-calendar-plus"></i> 發起新活動';
         document.getElementById('btnSubmitEvent').innerHTML = '確認發布';
-
-        // 重置表單
         document.getElementById('ev-title').value = '';
         document.getElementById('ev-deadline').value = '';
         document.getElementById('dynamic-fields-container').innerHTML = '';
         document.getElementById('ev-is-private').checked = false;
         toggleEventPrivateMode(false);
-        evSelectedUIDs = [];
-        evAuthorizedUIDs = [];
-        renderEvMemberPreview(evSelectedUIDs, 'participants');
-        renderEvMemberPreview(evAuthorizedUIDs, 'authorized');
-        
-        // 【執行權限檢查】
+        evSelectedUIDs = []; evAuthorizedUIDs = [];
+        renderEvMemberPreview(evSelectedUIDs, 'participants'); renderEvMemberPreview(evAuthorizedUIDs, 'authorized');
         checkParticipantEditPermission();
-        
-        openModal('createEventModal');
+        createEventViewDOM.style.transform = 'translateX(0%)';
     }
 
     // 【新增】：讀取歷史資料進入編輯模式
     async function editEvent(eventId) {
         currentEditingEventId = eventId;
-        closeModal('activityScheduleModal'); // 關閉列表
-        
-        // 變更表單標題與按鈕
-        document.querySelector('#createEventModal h3').innerHTML = '<i class="fas fa-edit"></i> 編輯活動';
+        closeActivityScheduleView(); // 【修改】
+        document.getElementById('createEventTitle').innerHTML = '<i class="fas fa-edit"></i> 編輯活動';
         document.getElementById('btnSubmitEvent').innerHTML = '<i class="fas fa-save"></i> 儲存修改';
-        
+        /* ...其餘代碼保持不變... */
         const doc = await db.collection("events").doc(eventId).get();
         if (!doc.exists) return;
         const data = doc.data();
@@ -8880,10 +9232,8 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             }
         }
         
-        // 【執行權限檢查】
         checkParticipantEditPermission();
-        
-        openModal('createEventModal');
+        createEventViewDOM.style.transform = 'translateX(0%)';
     }
 
     // 【新增】：徹底刪除活動與雲端圖片功能
@@ -9314,7 +9664,7 @@ renderEvMemberPreview = async function(uids, type) {
                 // 【編輯模式】：更新資料，不發送新卡片
                 eventData.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
                 await db.collection("events").doc(currentEditingEventId).update(eventData);
-                closeModal('createEventModal');
+                closeCreateEventView();
                 alert("活動修改成功！");
                 handleActivitySchedule(); // 重新打開活動總覽刷新清單
             } else {
@@ -9337,7 +9687,7 @@ renderEvMemberPreview = async function(uids, type) {
                     alert("活動已成功儲存至行程總覽！（未發布至聊天室）");
                 }
                 
-                closeModal('createEventModal');
+                closeCreateEventView();
                 handleActivitySchedule(); // 自動重新打開總覽列表
             }
         } catch(e) { 
@@ -9359,18 +9709,19 @@ renderEvMemberPreview = async function(uids, type) {
     // 【新增】：打開團購清單視窗
     // 【修改】：打開團購清單視窗並支援左滑
     // 【修改】：打開團購清單視窗並支援左滑與班長特權
+    // 3. 團購系統
     async function openGroupBuyListModal() {
         document.getElementById('expandMenuPanel').style.display = 'none';
         document.querySelector('.expand-menu-btn').style.transform = 'rotate(0deg)';
+        groupBuyListViewDOM.style.transform = 'translateX(0%)'; // 【修改】
         
-        openModal('groupBuyListModal');
         const listEl = document.getElementById('groupBuyListContainer');
         listEl.innerHTML = '<div style="text-align:center; padding:30px; color:#999;"><i class="fas fa-spinner fa-spin fa-2x"></i><br><br>載入團購資料中...</div>';
         
         try {
-            // 【新增】：取得當前使用者的名稱，判斷是否擁有「班長」特權
             const myName = document.getElementById('myName').innerText.trim();
             const isMonitor = (myName === '班長');
+            const uid = auth.currentUser.uid; 
 
             const snap = await db.collection("group-orders").orderBy("createdAt", "desc").get();
             if (snap.empty) {
@@ -9378,70 +9729,55 @@ renderEvMemberPreview = async function(uids, type) {
                 return;
             }
             
-            // 【修改】：根據身分顯示對應的提示文字
-            // 【修改】：更新提示文字，加入「編輯」
             const tipText = isMonitor 
                 ? "<b>班長特權：</b>您擁有所有團購的「編輯」與「刪除」權限，向左滑動即可操作。" 
                 : "<b>小提示：</b>自己發起的團購，向左滑動即可「編輯」或「刪除」。";
 
             let html = `
-            <div style="background: #fffdf5; border: 1px solid #ffeeba; color: #856404; padding: 10px 15px; border-radius: 8px; font-size: 0.85rem; display: flex; align-items: center; gap: 10px; margin-bottom: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+            <div style="background: #fffdf5; border: 1px solid #ffeeba; color: #856404; padding: 10px 15px; border-radius: 8px; font-size: 0.85rem; display: flex; align-items: center; gap: 10px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
                 <i class="fas fa-lightbulb" style="color: var(--ly-gold); font-size: 1.2rem;"></i>
                 <span style="line-height: 1.4;">${tipText}</span>
             </div>`;
 
             snap.forEach(doc => {
                 const data = doc.data();
-                const sharedWith = data.sharedWith || [];
                 
-                // 【新增】：取得建立者名稱
-                const creatorUid = data.creator;
-                let creatorName = "未知";
-                if (creatorUid === uid) {
-                    creatorName = myName;
-                } else if (window.chatMembersCache && window.chatMembersCache[creatorUid]) {
-                    creatorName = window.chatMembersCache[creatorUid].displayName || "未知";
-                }
-
-                // 【權限過濾】：只有建立者、名單內被分享的成員、或是班長可以看見這個檔案
-                if (data.creator !== uid && !sharedWith.includes(uid) && !isMonitor) return;
-
-                const canDelete = (data.creator === uid) || isMonitor;
-                // 日期格式精簡，讓畫面更清爽
-                const dateStr = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleString('zh-TW', {month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '未知時間';
+                // 團購的發起人 UID 欄位是 initiatorId
+                const canDelete = (data.initiatorId === uid) || isMonitor;
                 
-                let typeName = '檔案傳送', iconClass = 'fas fa-folder';
-                if (data.type === 'link') { typeName = '外部連結'; iconClass = 'fas fa-link'; }
-                if (data.type === 'account') { typeName = '帳號密碼'; iconClass = 'fas fa-key'; }
+                const deadlineStr = data.deadline ? data.deadline.replace('T', ' ') : '未知';
+                const isExpired = new Date(data.deadline).getTime() < Date.now();
+                const safeTitle = escapeHtml(data.title || '').replace(/'/g, "\\'");
+                const safeInitiator = escapeHtml(data.initiatorName || '').replace(/'/g, "\\'");
+                
+                const innerContent = `
+                    <h4 class="event-mini-title" style="margin-bottom: 8px; font-size: 1.15rem; color: var(--ly-blue);"><i class="fas fa-shopping-basket"></i> ${escapeHtml(data.title)}</h4>
+                    <div class="event-mini-meta" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                        <span><i class="far fa-clock"></i> 截止：<span style="color: ${isExpired ? '#999' : '#d93025'}; font-weight: bold;">${deadlineStr}</span></span>
+                        <span style="color: var(--ly-blue); font-weight: bold; font-size: 0.8rem; background: rgba(0,49,83,0.08); padding: 2px 8px; border-radius: 12px;">代購：${escapeHtml(data.initiatorName)}</span>
+                    </div>`;
 
-                // 處理對象成員名單，如果太長就加上點點點防溢出
-                let recipients = data.recipientNames && data.recipientNames.length > 0 ? data.recipientNames.join(', ') : '未指定';
-                if (recipients.length > 15) recipients = recipients.substring(0, 15) + '...';
-
-                // 【修改】：使用支援折行的雙層排版，並加上小圖示增加識別度
-                // 【新增】：安全防呆機制！只有「檔案」才需要把網址傳遞給刪除引擎，其他類別直接傳空字串，避免 JSON 破壞 HTML 結構
-                const safeContent = data.type === 'file' ? data.content : '';
-
-                // 補回點擊呼叫 openUnlockModal 與滑動刪除的功能
                 if (canDelete) {
                     html += `
-                    <div class="swipe-container" style="background: #1a1a1a; cursor: pointer;">
-                        <div class="swipe-actions" style="width: 80px;">
-                            <button class="swipe-delete-btn" onclick="deleteConfidential('${doc.id}', '${data.type}', '${safeContent}')"><i class="fas fa-trash-alt"></i></button>
+                    <div class="swipe-container" style="margin-bottom: 12px; background: #111; border-radius: 8px;">
+                        <div class="swipe-actions-dual" style="width: 140px;">
+                            <button class="swipe-edit-btn" onclick="editGroupBuy('${doc.id}')"><i class="fas fa-edit"></i></button>
+                            <button class="swipe-delete-btn-half" onclick="deleteGroupBuy('${doc.id}')"><i class="fas fa-trash-alt"></i></button>
                         </div>
-                        <div class="swipe-content cd-swipe-content" 
-                             onmousedown="cdSwipeStart(event, this)" onmousemove="cdSwipeMove(event, this)" 
-                             onmouseup="cdSwipeEnd(event, this, '${doc.id}')" onmouseleave="cdSwipeEnd(event, this, '${doc.id}')" 
-                             ontouchstart="cdSwipeStart(event, this)" ontouchmove="cdSwipeMove(event, this)" 
-                             ontouchend="cdSwipeEnd(event, this, '${doc.id}')">
-                            ${innerHtml}
+                        <div class="swipe-content event-mini-item" style="margin-bottom: 0; border-left-color: #28a745; cursor: pointer;"
+                             onmousedown="gbSwipeStart(event, this)" onmousemove="gbSwipeMove(event, this)" 
+                             onmouseup="gbSwipeEnd(event, this, '${doc.id}', '${safeTitle}', '${safeInitiator}', '${data.deadline}')" 
+                             onmouseleave="gbSwipeEnd(event, this, '${doc.id}', '${safeTitle}', '${safeInitiator}', '${data.deadline}')" 
+                             ontouchstart="gbSwipeStart(event, this)" ontouchmove="gbSwipeMove(event, this)" 
+                             ontouchend="gbSwipeEnd(event, this, '${doc.id}', '${safeTitle}', '${safeInitiator}', '${data.deadline}')">
+                            ${innerContent}
                         </div>
                     </div>`;
                 } else {
-                    // 如果沒有刪除權限，單純套用點擊解鎖功能
-                    html += `<div style="cursor: pointer;" onclick="openUnlockModal('${doc.id}')">${innerHtml}</div>`;
+                    html += `<div class="event-mini-item" style="margin-bottom: 12px; border-left-color: #28a745; cursor: pointer;" onclick="sendGroupBuyCard('${doc.id}', '${safeTitle}', '${safeInitiator}', '${data.deadline}')">${innerContent}</div>`;
                 }
             });
+            
             listEl.innerHTML = html;
         } catch (e) {
             console.error(e);
@@ -9451,16 +9787,15 @@ renderEvMemberPreview = async function(uids, type) {
 
     // 【新增】：點擊清單中的團購，發布到聊天室
     async function sendGroupBuyCard(orderId, title, initiator, deadline) {
-        if(!confirm(`要將團購「${title}」發布到聊天室中嗎？`)) return; 
-        closeModal('groupBuyListModal');
+        // 【修改】：加入提示對象防呆
+        if(!confirm(`要將團購「${title}」發布到聊天室中嗎？${getChatTargetNameForConfirm()}`)) return; 
+        closeGroupBuyListView();
         try {
             const batch = db.batch();
             const chatRef = db.collection("chats").doc(currentChatId);
             const msgRef = chatRef.collection("messages").doc();
             
-            const payload = {
-                type: 'group_buy', orderId: orderId, title: title, initiator: initiator, deadline: deadline
-            };
+            const payload = { type: 'group_buy', orderId: orderId, title: title, initiator: initiator, deadline: deadline };
 
             batch.set(msgRef, { text: JSON.stringify(payload), senderId: auth.currentUser.uid, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
             batch.update(chatRef, { lastMessage: `發起了團購：${title}`, lastSenderId: auth.currentUser.uid, updatedAt: firebase.firestore.FieldValue.serverTimestamp(), [`lastReadAt.${auth.currentUser.uid}`]: firebase.firestore.FieldValue.serverTimestamp() });
@@ -9477,9 +9812,9 @@ renderEvMemberPreview = async function(uids, type) {
     // 【新增】：讀取舊資料並進入編輯模式
     async function editGroupBuy(orderId) {
         currentEditingGroupBuyId = orderId;
-        closeModal('groupBuyListModal');
+        closeGroupBuyListView(); // 【修改】
         
-        document.querySelector('#createGroupBuyModal h3').innerHTML = '<i class="fas fa-edit"></i> 編輯團購訂單';
+        document.getElementById('createGroupBuyTitle').innerHTML = '<i class="fas fa-edit"></i> 編輯團購訂單';
         document.getElementById('gbSubmitBtn').innerHTML = '<i class="fas fa-save"></i> 儲存修改';
 
         try {
@@ -9518,17 +9853,17 @@ renderEvMemberPreview = async function(uids, type) {
                 container.insertAdjacentHTML('beforeend', html);
             });
 
-            openModal('createGroupBuyModal');
+            createGroupBuyViewDOM.style.transform = 'translateX(0%)';
         } catch(e) { alert("讀取失敗"); }
     }
 
     // 【修改】：原本的新增團購函式，加入關閉清單視窗的動作與重置狀態
     function openCreateGroupBuyModal() {
-        currentEditingGroupBuyId = null; // 【新增】：重置編輯狀態
-        document.querySelector('#createGroupBuyModal h3').innerHTML = '<i class="fas fa-shopping-cart"></i> 發起團購訂單';
+        currentEditingGroupBuyId = null; 
+        document.getElementById('createGroupBuyTitle').innerHTML = '<i class="fas fa-shopping-cart"></i> 發起團購訂單';
         document.getElementById('gbSubmitBtn').innerHTML = '儲存訂單';
 
-        closeModal('groupBuyListModal'); 
+        closeGroupBuyListView(); // 【修改】
         document.getElementById('expandMenuPanel').style.display = 'none';
         document.querySelector('.expand-menu-btn').style.transform = 'rotate(0deg)';
         
@@ -9538,7 +9873,7 @@ renderEvMemberPreview = async function(uids, type) {
         document.getElementById('gbItemsContainer').innerHTML = '';
         gbItemCount = 0;
         addGroupBuyItemRow(); 
-        openModal('createGroupBuyModal');
+        createGroupBuyViewDOM.style.transform = 'translateX(0%)';
     }
 
     function addGroupBuyItemRow() {
@@ -9640,7 +9975,7 @@ renderEvMemberPreview = async function(uids, type) {
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 alert("✅ 團購修改成功！");
-                closeModal('createGroupBuyModal');
+                closeCreateGroupBuyView();
                 openGroupBuyListModal(); // 自動重新打開清單
             } else {
                 // 【新增模式】
@@ -9670,7 +10005,7 @@ renderEvMemberPreview = async function(uids, type) {
                 } else {
                     alert("✅ 團購已成功儲存至清單！（未發布至聊天室）");
                 }
-                closeModal('createGroupBuyModal');
+                closeCreateGroupBuyView();
                 openGroupBuyListModal();
             }
 
@@ -9905,7 +10240,6 @@ renderEvMemberPreview = async function(uids, type) {
         el.style.transition = 'transform 0.3s ease';
         
         if (gbCurrentX < -75) {
-            // 【修改】：滑動超過一半，將其固定在左側顯示兩個按鈕 (-150px)
             el.style.transform = 'translateX(-150px)';
             gbSwipedOpen = el;
         } else {
@@ -9915,6 +10249,7 @@ renderEvMemberPreview = async function(uids, type) {
             
             // 如果幾乎沒滑動 (位移 < 10px)，就當作一般點擊處理 (傳送到聊天室)
             if (Math.abs(gbCurrentX) < 10 && orderId) {
+                if (e && e.type === 'touchend' && e.cancelable) e.preventDefault(); // 【修復】：阻擋瀏覽器補發第二次點擊
                 sendGroupBuyCard(orderId, title, initiator, deadline);
             }
         }
@@ -10280,7 +10615,7 @@ renderEvMemberPreview = async function(uids, type) {
         
         // 【修改】：預設強制切換為 file 模式
         changeConfidentialType('file');
-        openModal('createConfidentialModal');
+        createConfidentialViewDOM.style.transform = 'translateX(0%)';
     }
 
     // 【新增】：動態新增檔案輸入列
@@ -10478,7 +10813,7 @@ renderEvMemberPreview = async function(uids, type) {
         
         if (!title || !truePass) return alert("「文件標題」與「加密密碼」為必填項目！");
 
-        const btnConfirm = document.querySelector('#createConfidentialModal .btn-confirm');
+        const btnConfirm = document.getElementById('btnSubmitConfidential');
         const btnCancel = document.querySelector('#createConfidentialModal .btn-cancel');
         const overlay = document.getElementById('cd-loading-overlay');
         const loadingText = document.getElementById('cd-loading-text');
@@ -10566,7 +10901,7 @@ renderEvMemberPreview = async function(uids, type) {
             batch.update(chatRef, { lastMessage: `傳送了機密文件：${title}`, lastSenderId: auth.currentUser.uid, updatedAt: firebase.firestore.FieldValue.serverTimestamp(), [`lastReadAt.${auth.currentUser.uid}`]: firebase.firestore.FieldValue.serverTimestamp() });
             
             await batch.commit();
-            closeModal('createConfidentialModal');
+            closeCreateConfidentialView();
             scrollToBottom(true);
 
         } catch (e) {
@@ -10641,10 +10976,11 @@ renderEvMemberPreview = async function(uids, type) {
     // 機密文件：列表載入、新增與左滑刪除引擎
     // ==========================================
     
+    // 4. 機密文件系統
     async function openConfidentialListModal() {
         document.getElementById('expandMenuPanel').style.display = 'none';
         document.querySelector('.expand-menu-btn').style.transform = 'rotate(0deg)';
-        openModal('confidentialListModal');
+        confidentialListViewDOM.style.transform = 'translateX(0%)'; // 【修改】
 
         const listEl = document.getElementById('confidentialListContainer');
         listEl.innerHTML = '<div style="text-align:center; padding:30px; color:#999;"><i class="fas fa-spinner fa-spin fa-2x"></i></div>';
@@ -10734,12 +11070,11 @@ renderEvMemberPreview = async function(uids, type) {
 
     // 替換原本的 openCreateConfidentialModal 以載入成員列表
     function openCreateConfidentialModal() {
-        closeModal('confidentialListModal');
+        closeConfidentialListView(); // 【修改】
         document.getElementById('cd-title').value = '';
         document.getElementById('cd-true-pass').value = '';
         document.getElementById('cd-fake-pass').value = '';
         
-        // 載入當前聊天室的成員供勾選
         const recList = document.getElementById('cd-recipient-list');
         let recHtml = '';
         window.currentGroupMembers.forEach(uid => {
@@ -10747,7 +11082,6 @@ renderEvMemberPreview = async function(uids, type) {
             const name = window.chatMembersCache[uid]?.displayName || "未知";
             const avatar = window.chatMembersCache[uid]?.photoURL || "https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true";
             
-            // 【新增】：判斷是否為單人對話 (非群組)，若是則自動加上 checked 屬性
             const isAutoChecked = !window.isCurrentChatGroup ? 'checked' : '';
 
             recHtml += `
@@ -10762,7 +11096,7 @@ renderEvMemberPreview = async function(uids, type) {
         recList.innerHTML = recHtml || '<div style="padding:10px; color:#999; text-align:center;">無其他成員可選</div>';
         
         changeConfidentialType('file');
-        openModal('createConfidentialModal');
+        createConfidentialViewDOM.style.transform = 'translateX(0%)';
     }
 
     // 修改 submitConfidential() 以抓取傳遞對象 (請放在 submitConfidential 函式中寫入 DB 的地方)
@@ -10790,7 +11124,10 @@ renderEvMemberPreview = async function(uids, type) {
             el.style.transform = 'translateX(-80px)'; cdSwipedOpen = el;
         } else {
             el.style.transform = 'translateX(0px)'; if (cdSwipedOpen === el) cdSwipedOpen = null;
-            if (Math.abs(cdCurrentX) < 10) openUnlockModal(docId); // 如果沒滑動視為點擊，開啟解鎖
+            if (Math.abs(cdCurrentX) < 10) {
+                if (e && e.type === 'touchend' && e.cancelable) e.preventDefault(); // 【修復】：阻擋瀏覽器補發第二次點擊
+                openUnlockModal(docId); // 如果沒滑動視為點擊，開啟解鎖
+            }
         }
         cdCurrentX = 0;
     }
@@ -13383,7 +13720,10 @@ renderEvMemberPreview = async function(uids, type) {
         } else {
             el.style.transform = 'translateX(0px)'; 
             if (calEvSwipedOpen === el) calEvSwipedOpen = null;
-            if (Math.abs(calEvCurrentX) < 10 && eventId) openCalEventDetail(eventId);
+            if (Math.abs(calEvCurrentX) < 10 && eventId) {
+                if (e && e.type === 'touchend' && e.cancelable) e.preventDefault(); // 【修復】：阻擋瀏覽器補發第二次點擊
+                openCalEventDetail(eventId);
+            }
         }
         calEvCurrentX = 0;
     }
@@ -15484,7 +15824,9 @@ renderEvMemberPreview = async function(uids, type) {
             };
             
             mediaRecorder.onstop = async () => {
-                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' }); 
+                // 【修正】：自動判斷系統支援的格式，解決 iOS 不支援 audio/webm 的問題
+                const mimeType = mediaRecorder.mimeType || 'audio/mp4';
+                const audioBlob = new Blob(audioChunks, { type: mimeType }); 
                 const duration = Date.now() - recordStartTime;
                 
                 // 防呆：錄音小於 1 秒視為誤觸或權限中斷，不傳送
@@ -15493,7 +15835,12 @@ renderEvMemberPreview = async function(uids, type) {
                     return;
                 }
                 
-                await uploadVoiceMessage(audioBlob);
+                // 【新增】：根據實際 MIME Type 決定正確的副檔名
+                let ext = 'webm';
+                if (mimeType.includes('mp4') || mimeType.includes('aac') || mimeType.includes('x-m4a')) ext = 'm4a';
+                else if (mimeType.includes('mpeg')) ext = 'mp3';
+                
+                await uploadVoiceMessage(audioBlob, ext);
             };
             
             mediaRecorder.start();
@@ -15545,7 +15892,8 @@ renderEvMemberPreview = async function(uids, type) {
         document.getElementById('msgInput').placeholder = "請輸入訊息...";
     }
 
-    async function uploadVoiceMessage(blob) {
+    // 【修正】：增加 ext 參數接收副檔名，預設為 webm
+    async function uploadVoiceMessage(blob, ext = 'webm') {
         if (!currentChatId || !auth.currentUser) return;
         
         // 產生虛擬處理中氣泡
@@ -15562,7 +15910,8 @@ renderEvMemberPreview = async function(uids, type) {
         scrollToBottom(true);
 
         try {
-            const fileRef = storage.ref(`chat/${currentChatId}/voice_${Date.now()}.webm`);
+            // 【修正】：使用動態副檔名存入 Storage
+            const fileRef = storage.ref(`chat/${currentChatId}/voice_${Date.now()}.${ext}`);
             await fileRef.put(blob);
             const downloadUrl = await fileRef.getDownloadURL();
             
@@ -15587,26 +15936,334 @@ renderEvMemberPreview = async function(uids, type) {
         }
     }
 
-    function openPollModal() {
+    // ==========================================
+    // 建立活動、團購、機密的滿版滑動退出引擎
+    // ==========================================
+    const createEventViewDOM = document.getElementById('createEventView');
+    let isCevSwiping = false, cevStartX = 0, cevCurrentX = 0;
+    createEventViewDOM.addEventListener('touchstart', (e) => { if (e.touches[0].clientX < 40) { isCevSwiping = true; cevStartX = e.touches[0].clientX; createEventViewDOM.style.transition = 'none'; } }, {passive: true});
+    createEventViewDOM.addEventListener('touchmove', (e) => { if (!isCevSwiping) return; cevCurrentX = e.touches[0].clientX - cevStartX; if (cevCurrentX > 0) { if (e.cancelable) e.preventDefault(); createEventViewDOM.style.transform = `translateX(${cevCurrentX}px)`; } }, { passive: false });
+    createEventViewDOM.addEventListener('touchend', () => { if (!isCevSwiping) return; isCevSwiping = false; createEventViewDOM.style.transition = 'transform 0.3s ease'; if (cevCurrentX > window.innerWidth / 3 || cevCurrentX > 30) closeCreateEventView(); else createEventViewDOM.style.transform = 'translateX(0%)'; cevCurrentX = 0; });
+    function closeCreateEventView() { createEventViewDOM.style.transform = 'translateX(100%)'; }
+
+    const createGroupBuyViewDOM = document.getElementById('createGroupBuyView');
+    let isCgbSwiping = false, cgbStartX = 0, cgbCurrentX = 0;
+    createGroupBuyViewDOM.addEventListener('touchstart', (e) => { if (e.touches[0].clientX < 40) { isCgbSwiping = true; cgbStartX = e.touches[0].clientX; createGroupBuyViewDOM.style.transition = 'none'; } }, {passive: true});
+    createGroupBuyViewDOM.addEventListener('touchmove', (e) => { if (!isCgbSwiping) return; cgbCurrentX = e.touches[0].clientX - cgbStartX; if (cgbCurrentX > 0) { if (e.cancelable) e.preventDefault(); createGroupBuyViewDOM.style.transform = `translateX(${cgbCurrentX}px)`; } }, { passive: false });
+    createGroupBuyViewDOM.addEventListener('touchend', () => { if (!isCgbSwiping) return; isCgbSwiping = false; createGroupBuyViewDOM.style.transition = 'transform 0.3s ease'; if (cgbCurrentX > window.innerWidth / 3 || cgbCurrentX > 30) closeCreateGroupBuyView(); else createGroupBuyViewDOM.style.transform = 'translateX(0%)'; cgbCurrentX = 0; });
+    function closeCreateGroupBuyView() { createGroupBuyViewDOM.style.transform = 'translateX(100%)'; }
+
+    const createConfidentialViewDOM = document.getElementById('createConfidentialView');
+    let isCcfSwiping = false, ccfStartX = 0, ccfCurrentX = 0;
+    createConfidentialViewDOM.addEventListener('touchstart', (e) => { if (e.touches[0].clientX < 40) { isCcfSwiping = true; ccfStartX = e.touches[0].clientX; createConfidentialViewDOM.style.transition = 'none'; } }, {passive: true});
+    createConfidentialViewDOM.addEventListener('touchmove', (e) => { if (!isCcfSwiping) return; ccfCurrentX = e.touches[0].clientX - ccfStartX; if (ccfCurrentX > 0) { if (e.cancelable) e.preventDefault(); createConfidentialViewDOM.style.transform = `translateX(${ccfCurrentX}px)`; } }, { passive: false });
+    createConfidentialViewDOM.addEventListener('touchend', () => { if (!isCcfSwiping) return; isCcfSwiping = false; createConfidentialViewDOM.style.transition = 'transform 0.3s ease'; if (ccfCurrentX > window.innerWidth / 3 || ccfCurrentX > 30) closeCreateConfidentialView(); else createConfidentialViewDOM.style.transform = 'translateX(0%)'; ccfCurrentX = 0; });
+    function closeCreateConfidentialView() { createConfidentialViewDOM.style.transform = 'translateX(100%)'; }
+
+    // ==========================================
+    // 投票系統：滿版滑動與清單引擎
+    // ==========================================
+    const pollListViewDOM = document.getElementById('pollListView');
+    let isPlSwiping = false, plStartX = 0, plCurrentX = 0;
+
+    pollListViewDOM.addEventListener('touchstart', (e) => {
+        if (e.touches[0].clientX < 40) { isPlSwiping = true; plStartX = e.touches[0].clientX; pollListViewDOM.style.transition = 'none'; }
+    }, {passive: true});
+    pollListViewDOM.addEventListener('touchmove', (e) => {
+        if (!isPlSwiping) return;
+        plCurrentX = e.touches[0].clientX - plStartX;
+        if (plCurrentX > 0) { if (e.cancelable) e.preventDefault(); pollListViewDOM.style.transform = `translateX(${plCurrentX}px)`; }
+    }, { passive: false });
+    pollListViewDOM.addEventListener('touchend', () => {
+        if (!isPlSwiping) return;
+        isPlSwiping = false;
+        pollListViewDOM.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
+        if (plCurrentX > window.innerWidth / 3 || plCurrentX > 30) closePollList();
+        else pollListViewDOM.style.transform = 'translateX(0%)';
+        plCurrentX = 0;
+    });
+
+    function closePollList() {
+        pollListViewDOM.style.transform = 'translateX(100%)';
+    }
+
+    async function openPollList() {
         document.getElementById('expandMenuPanel').style.display = 'none';
         document.querySelector('.expand-menu-btn').style.transform = 'rotate(0deg)';
-        document.getElementById('pollQuestion').value = '';
-        document.getElementById('pollDeadline').value = ''; // 【新增】：清空時間
-        document.getElementById('pollOptionsContainer').innerHTML = `
-            <input type="text" class="poll-option-input" placeholder="選項 1" style="padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
-            <input type="text" class="poll-option-input" placeholder="選項 2" style="padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
-        `;
-        openModal('createPollModal');
+        pollListViewDOM.style.transform = 'translateX(0%)';
+        
+        const listEl = document.getElementById('pollListContainer');
+        listEl.innerHTML = '<div style="text-align:center; padding:30px; color:#999;"><i class="fas fa-spinner fa-spin fa-2x"></i><br><br>載入投票資料中...</div>';
+        
+        try {
+            const myName = document.getElementById('myName').innerText.trim();
+            const isMonitor = (myName === '班長');
+            const uid = auth.currentUser.uid;
+
+            // 這裡我們把發起投票的資料儲存在 "polls" 集合中，方便統一管理
+            const snap = await db.collection("polls").orderBy("createdAt", "desc").get();
+            if (snap.empty) {
+                listEl.innerHTML = '<div class="event-empty-state">尚無投票，點擊右上角新增。</div>';
+                return;
+            }
+
+            const tipText = isMonitor 
+                ? "<b>班長特權：</b>您擁有所有投票的「編輯」與「刪除」權限，向左滑動即可操作。" 
+                : "<b>小提示：</b>自己發起的投票，向左滑動即可「編輯」或「刪除」。";
+
+            let html = `
+            <div style="background: #fffdf5; border: 1px solid #ffeeba; color: #856404; padding: 10px 15px; border-radius: 8px; font-size: 0.85rem; display: flex; align-items: center; gap: 10px; margin-bottom: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+                <i class="fas fa-lightbulb" style="color: var(--ly-gold); font-size: 1.2rem;"></i>
+                <span style="line-height: 1.4;">${tipText}</span>
+            </div>`;
+
+            snap.forEach(doc => {
+                const data = doc.data();
+                const canDelete = (data.creatorUid === uid) || isMonitor;
+                
+                const deadlineStr = data.deadline ? data.deadline.replace('T', ' ') : '無期限';
+                const isExpired = data.deadline && new Date(data.deadline).getTime() < Date.now();
+                const safeTitle = escapeHtml(data.question || '').replace(/'/g, "\\'");
+                const creatorName = escapeHtml(data.creatorName || '');
+                const timeStr = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleString('zh-TW', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).replace(/\//g,'-') : '';
+
+                const innerContent = `
+                    <h4 class="event-mini-title" style="margin-bottom: 8px; font-size: 1.15rem; color: var(--ly-blue);"><i class="fas fa-poll"></i> ${safeTitle}</h4>
+                    <div class="event-mini-meta" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                        <span><i class="far fa-clock"></i> 截止：<span style="color: ${isExpired ? '#999' : '#d93025'}; font-weight: bold;">${deadlineStr}</span></span>
+                        <span style="color: var(--ly-blue); font-weight: bold; font-size: 0.8rem; background: rgba(0,49,83,0.08); padding: 2px 8px; border-radius: 12px;">建立人：${creatorName}</span>
+                    </div>`;
+
+                if (canDelete) {
+                    html += `
+                    <div class="swipe-container" style="background: #111; border-radius: 8px;">
+                        <div class="swipe-actions-dual" style="width: 140px;">
+                            <button class="swipe-edit-btn" onclick="editPoll('${doc.id}')"><i class="fas fa-edit"></i></button>
+                            <button class="swipe-delete-btn-half" onclick="deletePoll('${doc.id}')"><i class="fas fa-trash-alt"></i></button>
+                        </div>
+                        <div class="swipe-content event-mini-item" style="margin-bottom: 0; border-left-color: var(--ly-blue); cursor: pointer;"
+                             onmousedown="pollSwipeStart(event, this)" onmousemove="pollSwipeMove(event, this)" 
+                             onmouseup="pollSwipeEnd(event, this, '${doc.id}')" 
+                             onmouseleave="pollSwipeEnd(event, this, '${doc.id}')" 
+                             ontouchstart="pollSwipeStart(event, this)" ontouchmove="pollSwipeMove(event, this)" 
+                             ontouchend="pollSwipeEnd(event, this, '${doc.id}')">
+                            ${innerContent}
+                        </div>
+                    </div>`;
+                } else {
+                    html += `<div class="event-mini-item" style="border-left-color: var(--ly-blue); cursor: pointer;" onclick="sendPollCard('${doc.id}')">${innerContent}</div>`;
+                }
+            });
+            listEl.innerHTML = html;
+        } catch (e) {
+            console.error(e);
+            listEl.innerHTML = '<div style="text-align:center; padding:20px; color:red;">載入失敗，請檢查網路狀態。</div>';
+        }
     }
+
+    // ==========================================
+    // 【新增】：取得當前聊天室對象的名稱 (發送前確認用)
+    // ==========================================
+    function getChatTargetNameForConfirm() {
+        const chatName = document.getElementById('chatTitle').innerText;
+        return `\n\n此內容會分享給 ${chatName}`;
+    }
+
+    // ==========================================
+    // 滿版頁面：活動/團購/機密 左滑退出物理引擎
+    // ==========================================
+    const activityScheduleViewDOM = document.getElementById('activityScheduleView');
+    let isAsSwiping = false, asStartX = 0, asCurrentX = 0;
+    activityScheduleViewDOM.addEventListener('touchstart', (e) => { if (e.touches[0].clientX < 40) { isAsSwiping = true; asStartX = e.touches[0].clientX; activityScheduleViewDOM.style.transition = 'none'; } }, {passive: true});
+    activityScheduleViewDOM.addEventListener('touchmove', (e) => { if (!isAsSwiping) return; asCurrentX = e.touches[0].clientX - asStartX; if (asCurrentX > 0) { if (e.cancelable) e.preventDefault(); activityScheduleViewDOM.style.transform = `translateX(${asCurrentX}px)`; } }, { passive: false });
+    activityScheduleViewDOM.addEventListener('touchend', () => { if (!isAsSwiping) return; isAsSwiping = false; activityScheduleViewDOM.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)'; if (asCurrentX > window.innerWidth / 3 || asCurrentX > 30) closeActivityScheduleView(); else activityScheduleViewDOM.style.transform = 'translateX(0%)'; asCurrentX = 0; });
+    function closeActivityScheduleView() { activityScheduleViewDOM.style.transform = 'translateX(100%)'; }
+
+    const groupBuyListViewDOM = document.getElementById('groupBuyListView');
+    let isGblSwiping = false, gblStartX = 0, gblCurrentX = 0;
+    groupBuyListViewDOM.addEventListener('touchstart', (e) => { if (e.touches[0].clientX < 40) { isGblSwiping = true; gblStartX = e.touches[0].clientX; groupBuyListViewDOM.style.transition = 'none'; } }, {passive: true});
+    groupBuyListViewDOM.addEventListener('touchmove', (e) => { if (!isGblSwiping) return; gblCurrentX = e.touches[0].clientX - gblStartX; if (gblCurrentX > 0) { if (e.cancelable) e.preventDefault(); groupBuyListViewDOM.style.transform = `translateX(${gblCurrentX}px)`; } }, { passive: false });
+    groupBuyListViewDOM.addEventListener('touchend', () => { if (!isGblSwiping) return; isGblSwiping = false; groupBuyListViewDOM.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)'; if (gblCurrentX > window.innerWidth / 3 || gblCurrentX > 30) closeGroupBuyListView(); else groupBuyListViewDOM.style.transform = 'translateX(0%)'; gblCurrentX = 0; });
+    function closeGroupBuyListView() { groupBuyListViewDOM.style.transform = 'translateX(100%)'; }
+
+    const confidentialListViewDOM = document.getElementById('confidentialListView');
+    let isCdlSwiping = false, cdlStartX = 0, cdlCurrentX = 0;
+    confidentialListViewDOM.addEventListener('touchstart', (e) => { if (e.touches[0].clientX < 40) { isCdlSwiping = true; cdlStartX = e.touches[0].clientX; confidentialListViewDOM.style.transition = 'none'; } }, {passive: true});
+    confidentialListViewDOM.addEventListener('touchmove', (e) => { if (!isCdlSwiping) return; cdlCurrentX = e.touches[0].clientX - cdlStartX; if (cdlCurrentX > 0) { if (e.cancelable) e.preventDefault(); confidentialListViewDOM.style.transform = `translateX(${cdlCurrentX}px)`; } }, { passive: false });
+    confidentialListViewDOM.addEventListener('touchend', () => { if (!isCdlSwiping) return; isCdlSwiping = false; confidentialListViewDOM.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)'; if (cdlCurrentX > window.innerWidth / 3 || cdlCurrentX > 30) closeConfidentialListView(); else confidentialListViewDOM.style.transform = 'translateX(0%)'; cdlCurrentX = 0; });
+    function closeConfidentialListView() { confidentialListViewDOM.style.transform = 'translateX(100%)'; }
+
+    // ==========================================
+    // 替換各系統開啟、傳送與建立的按鈕邏輯
+    // ==========================================
+    // 1. 投票系統
+    async function sendPollCard(pollId) {
+        try {
+            const doc = await db.collection("polls").doc(pollId).get();
+            if (!doc.exists) return alert("找不到該投票");
+            const data = doc.data();
+            
+            // 【修改】：加入提示對象防呆
+            if(!confirm(`要將投票「${data.question}」發布到聊天室中嗎？${getChatTargetNameForConfirm()}`)) return; 
+            closePollList();
+
+            const batch = db.batch();
+            const chatRef = db.collection("chats").doc(currentChatId);
+            const msgRef = chatRef.collection("messages").doc();
+            
+            let votesMap = {};
+            let optionCreators = {}; 
+            data.options.forEach(opt => {
+                votesMap[opt] = [];
+                optionCreators[opt] = auth.currentUser.uid;
+            });
+
+            const payload = {
+                type: 'poll', question: data.question, content: data.content || '', options: data.options,
+                votes: votesMap, deadline: data.deadline || '', allowAddOptions: data.allowAddOptions || false, optionCreators: optionCreators 
+            };
+
+            batch.set(msgRef, { text: JSON.stringify(payload), senderId: auth.currentUser.uid, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+            batch.update(chatRef, { lastMessage: `📊 發起了投票：${data.question}`, lastSenderId: auth.currentUser.uid, updatedAt: firebase.firestore.FieldValue.serverTimestamp(), [`lastReadAt.${auth.currentUser.uid}`]: firebase.firestore.FieldValue.serverTimestamp() });
+            
+            await batch.commit();
+            scrollToBottom(true);
+        } catch(e) { alert("發布失敗"); }
+    }
+
+    // 左滑引擎 (投票)
+    let pollStartX = 0, pollCurrentX = 0, isPollSwiping = false, pollSwipedOpen = null;
+
+    function pollSwipeStart(e, el) {
+        if (pollSwipedOpen && pollSwipedOpen !== el) { pollSwipedOpen.style.transform = 'translateX(0px)'; pollSwipedOpen = null; }
+        pollStartX = e.type.includes('mouse') ? e.pageX : e.touches[0].clientX;
+        pollCurrentX = 0; isPollSwiping = true; el.style.transition = 'none';
+    }
+    
+    function pollSwipeMove(e, el) {
+        if (!isPollSwiping) return;
+        const x = e.type.includes('mouse') ? e.pageX : e.touches[0].clientX;
+        pollCurrentX = x - pollStartX;
+        if (pollCurrentX < 0 && pollCurrentX > -150) el.style.transform = `translateX(${pollCurrentX}px)`;
+    }
+    
+    function pollSwipeEnd(e, el, pollId) {
+        if (!isPollSwiping) return;
+        isPollSwiping = false; el.style.transition = 'transform 0.3s ease';
+        if (pollCurrentX < -75) {
+            el.style.transform = 'translateX(-140px)'; pollSwipedOpen = el;
+        } else {
+            el.style.transform = 'translateX(0px)'; if (pollSwipedOpen === el) pollSwipedOpen = null;
+            if (Math.abs(pollCurrentX) < 10 && pollId) {
+                if (e && e.type === 'touchend' && e.cancelable) e.preventDefault(); // 【修復】：阻擋瀏覽器補發第二次點擊
+                sendPollCard(pollId); // 點擊發送
+            }
+        }
+        pollCurrentX = 0;
+    }
+
+    // 刪除投票主檔
+    async function deletePoll(pollId) {
+        if (!confirm("確定要刪除此投票設定嗎？\n(注意：已經發布到聊天室的投票訊息不會消失，但此處的範本將被移除)")) return;
+        try {
+            await db.collection("polls").doc(pollId).delete();
+            alert("投票已刪除！");
+            openPollList(); // 重新整理
+        } catch(e) { alert("刪除失敗"); }
+    }
+
+    // ==========================================
+    // 建立/編輯 投票視窗引擎
+    // ==========================================
+    const createPollViewDOM = document.getElementById('createPollView');
+    let isCp2Swiping = false, cp2StartX = 0, cp2CurrentX = 0;
+    let currentEditingPollId = null;
+
+    createPollViewDOM.addEventListener('touchstart', (e) => {
+        if (e.touches[0].clientX < 40) { isCp2Swiping = true; cp2StartX = e.touches[0].clientX; createPollViewDOM.style.transition = 'none'; }
+    }, {passive: true});
+    createPollViewDOM.addEventListener('touchmove', (e) => {
+        if (!isCp2Swiping) return;
+        cp2CurrentX = e.touches[0].clientX - cp2StartX;
+        if (cp2CurrentX > 0) { if (e.cancelable) e.preventDefault(); createPollViewDOM.style.transform = `translateX(${cp2CurrentX}px)`; }
+    }, { passive: false });
+    createPollViewDOM.addEventListener('touchend', () => {
+        if (!isCp2Swiping) return;
+        isCp2Swiping = false;
+        createPollViewDOM.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
+        if (cp2CurrentX > window.innerWidth / 3 || cp2CurrentX > 30) closeCreatePollView();
+        else createPollViewDOM.style.transform = 'translateX(0%)';
+        cp2CurrentX = 0;
+    });
+
+    function closeCreatePollView() {
+        createPollViewDOM.style.transform = 'translateX(100%)';
+    }
+
+    function openCreatePollView() {
+        currentEditingPollId = null;
+        document.getElementById('createPollTitle').innerText = "發起新投票";
+        document.getElementById('btnSubmitPoll').innerHTML = '<i class="fas fa-paper-plane"></i> 儲存並發布';
+        
+        document.getElementById('pollQuestion').value = '';
+        document.getElementById('pollContent').value = '';
+        document.getElementById('pollDeadline').value = '';
+        document.getElementById('pollAllowAdd').checked = false;
+        
+        const container = document.getElementById('pollOptionsContainer');
+        container.innerHTML = `
+            <div style="display:flex; gap:8px;"><input type="text" class="poll-option-input" placeholder="選項 1" style="flex:1; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size:1rem;"><button onclick="this.parentElement.remove()" style="background:none; border:none; color:#ff4d4d; cursor:pointer;"><i class="fas fa-times"></i></button></div>
+            <div style="display:flex; gap:8px;"><input type="text" class="poll-option-input" placeholder="選項 2" style="flex:1; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size:1rem;"><button onclick="this.parentElement.remove()" style="background:none; border:none; color:#ff4d4d; cursor:pointer;"><i class="fas fa-times"></i></button></div>
+        `;
+        
+        createPollViewDOM.style.transform = 'translateX(0%)';
+    }
+
+    async function editPoll(pollId) {
+        currentEditingPollId = pollId;
+        document.getElementById('createPollTitle').innerText = "編輯投票";
+        document.getElementById('btnSubmitPoll').innerHTML = '<i class="fas fa-save"></i> 儲存修改';
+
+        try {
+            const doc = await db.collection("polls").doc(pollId).get();
+            if (!doc.exists) return alert("找不到資料");
+            const data = doc.data();
+
+            document.getElementById('pollQuestion').value = data.question || '';
+            document.getElementById('pollContent').value = data.content || '';
+            document.getElementById('pollDeadline').value = data.deadline || '';
+            document.getElementById('pollAllowAdd').checked = !!data.allowAddOptions;
+
+            const container = document.getElementById('pollOptionsContainer');
+            container.innerHTML = '';
+            const opts = data.options || [];
+            opts.forEach((opt, idx) => {
+                container.insertAdjacentHTML('beforeend', `
+                    <div style="display:flex; gap:8px;">
+                        <input type="text" class="poll-option-input" placeholder="選項 ${idx+1}" value="${escapeHtml(opt)}" style="flex:1; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size:1rem;">
+                        <button onclick="this.parentElement.remove()" style="background:none; border:none; color:#ff4d4d; cursor:pointer;"><i class="fas fa-times"></i></button>
+                    </div>`);
+            });
+
+            createPollViewDOM.style.transform = 'translateX(0%)';
+        } catch(e) { alert("讀取失敗"); }
+    }
+
     function addPollOption() {
         const container = document.getElementById('pollOptionsContainer');
         const count = container.children.length + 1;
-        container.insertAdjacentHTML('beforeend', `<input type="text" class="poll-option-input" placeholder="選項 ${count}" style="padding: 10px; border: 1px solid #ddd; border-radius: 6px;">`);
+        container.insertAdjacentHTML('beforeend', `
+            <div style="display:flex; gap:8px;">
+                <input type="text" class="poll-option-input" placeholder="選項 ${count}" style="flex:1; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size:1rem;">
+                <button onclick="this.parentElement.remove()" style="background:none; border:none; color:#ff4d4d; cursor:pointer;"><i class="fas fa-times"></i></button>
+            </div>`);
     }
 
     async function submitPoll() {
         const question = document.getElementById('pollQuestion').value.trim();
-        const deadline = document.getElementById('pollDeadline').value; // 【新增】：抓取時間
+        const content = document.getElementById('pollContent').value.trim();
+        const deadline = document.getElementById('pollDeadline').value; 
+        const allowAdd = document.getElementById('pollAllowAdd').checked; 
         const optionInputs = document.querySelectorAll('.poll-option-input');
         let options = [];
         optionInputs.forEach(input => {
@@ -15615,40 +16272,117 @@ renderEvMemberPreview = async function(uids, type) {
         
         if (!question) return alert("請輸入投票主題！");
         if (options.length < 2) return alert("至少需要兩個選項！");
-        
+
+        let shouldSendToChat = false;
+        if (currentEditingPollId) {
+            if (!confirm("確定要儲存此投票的修改嗎？")) return;
+        } else {
+            shouldSendToChat = confirm("投票準備建立！\n\n請問是否要立即將此投票「發布到目前的聊天室」？\n\n▶ 按【確定】：儲存，並發布\n▶ 按【取消】：僅儲存，稍後再發布");
+        }
+
+        const btn = document.getElementById('btnSubmitPoll');
+        btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 處理中...';
+
         try {
-            const batch = db.batch();
-            const chatRef = db.collection("chats").doc(currentChatId);
-            const msgRef = chatRef.collection("messages").doc();
-            
-            let votesMap = {};
-            options.forEach(opt => votesMap[opt] = []);
-            
-            const payload = {
-                type: 'poll',
-                question: question,
-                options: options,
-                votes: votesMap,
-                deadline: deadline // 【新增】：寫入時間
+            let myName = document.getElementById('myName').innerText.trim();
+            if (!myName || myName === "載入中...") myName = auth.currentUser.displayName || "未知";
+
+            const pollData = {
+                question, content, options, deadline, allowAddOptions: allowAdd,
+                creatorUid: auth.currentUser.uid,
+                creatorName: myName,
             };
 
-            batch.set(msgRef, { 
-                text: JSON.stringify(payload), 
-                senderId: auth.currentUser.uid, 
-                timestamp: firebase.firestore.FieldValue.serverTimestamp() 
-            });
-            batch.update(chatRef, { 
-                lastMessage: `📊 發起了投票：${question}`, 
-                lastSenderId: auth.currentUser.uid, 
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                [`lastReadAt.${auth.currentUser.uid}`]: firebase.firestore.FieldValue.serverTimestamp()
-            });
+            let finalPollId = currentEditingPollId;
+
+            if (currentEditingPollId) {
+                // 更新模式
+                pollData.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
+                await db.collection("polls").doc(currentEditingPollId).update(pollData);
+                alert("投票修改成功！");
+            } else {
+                // 新增模式
+                pollData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+                const newDoc = await db.collection("polls").add(pollData);
+                finalPollId = newDoc.id;
+
+                if (shouldSendToChat && currentChatId) {
+                    await sendPollCard(finalPollId); // 直接呼叫發布函式
+                } else {
+                    alert("投票已成功儲存至清單！");
+                }
+            }
             
-            await batch.commit();
-            closeModal('createPollModal');
-            scrollToBottom(true);
-        } catch(e) {
-            alert("投票發布失敗");
+            closeCreatePollView();
+            openPollList(); // 刷新清單
+        } catch(e) { 
+            alert("儲存失敗：" + e.message); 
+        } finally {
+            btn.disabled = false; 
+            btn.innerHTML = currentEditingPollId ? '<i class="fas fa-save"></i> 儲存修改' : '<i class="fas fa-paper-plane"></i> 儲存並發布';
+        }
+    }
+
+    // 【新增】：在投票詳情中新增選項
+    async function addOptionToPoll(msgId) {
+        const inputEl = document.getElementById('newPollOptionInput');
+        const newOpt = inputEl.value.trim();
+        if (!newOpt) return alert("選項不能為空！");
+        if (!currentChatId || !auth.currentUser) return;
+        
+        try {
+            const msgRef = db.collection("chats").doc(currentChatId).collection("messages").doc(msgId);
+            await db.runTransaction(async (transaction) => {
+                const msgDoc = await transaction.get(msgRef);
+                if (!msgDoc.exists) throw "投票不存在";
+                
+                let data = msgDoc.data();
+                let parsed = JSON.parse(data.text);
+                
+                if (parsed.options.includes(newOpt)) throw "此選項已經存在了！";
+                if (parsed.deadline && new Date(parsed.deadline).getTime() < Date.now()) throw "投票已截止！";
+                
+                parsed.options.push(newOpt);
+                parsed.votes[newOpt] = [];
+                if (!parsed.optionCreators) parsed.optionCreators = {};
+                parsed.optionCreators[newOpt] = auth.currentUser.uid;
+                
+                transaction.update(msgRef, { text: JSON.stringify(parsed) });
+            });
+            inputEl.value = '';
+            // 短暫延遲後刷新畫面
+            setTimeout(() => openPollDetail(msgId), 300);
+        } catch (e) {
+            if (typeof e === 'string') alert(e);
+        }
+    }
+
+    // 【新增】：刪除投票選項
+    async function deletePollOption(msgId, optionText) {
+        if (!confirm(`確定要刪除選項「${optionText}」嗎？\n\n(若已有成員投票，相關票數將一併消失)`)) return;
+        if (!currentChatId || !auth.currentUser) return;
+
+        try {
+            const msgRef = db.collection("chats").doc(currentChatId).collection("messages").doc(msgId);
+            await db.runTransaction(async (transaction) => {
+                const msgDoc = await transaction.get(msgRef);
+                if (!msgDoc.exists) throw "投票不存在";
+                
+                let data = msgDoc.data();
+                let parsed = JSON.parse(data.text);
+                
+                // 陣列移除
+                parsed.options = parsed.options.filter(opt => opt !== optionText);
+                // 刪除票數紀錄
+                if (parsed.votes && parsed.votes[optionText] !== undefined) delete parsed.votes[optionText];
+                // 刪除建立者紀錄
+                if (parsed.optionCreators && parsed.optionCreators[optionText] !== undefined) delete parsed.optionCreators[optionText];
+                
+                transaction.update(msgRef, { text: JSON.stringify(parsed) });
+            });
+            setTimeout(() => openPollDetail(msgId), 300);
+        } catch (e) {
+            if (typeof e === 'string') alert(e);
         }
     }
 
@@ -15700,6 +16434,8 @@ renderEvMemberPreview = async function(uids, type) {
         
         const data = msgDoc.data();
         const parsed = JSON.parse(data.text);
+        const myUid = auth.currentUser.uid;
+        const isPollCreator = data.senderId === myUid; // 發起人
         
         const senderCache = window.chatMembersCache[data.senderId] || {};
         const creatorName = senderCache.displayName || "未知成員";
@@ -15709,42 +16445,123 @@ renderEvMemberPreview = async function(uids, type) {
         let totalVotes = 0;
         Object.values(parsed.votes).forEach(uids => totalVotes += uids.length);
 
-        // 【新增】：截止時間運算
         const isExpired = parsed.deadline && new Date(parsed.deadline).getTime() < Date.now();
         const cdText = parsed.deadline ? getCardCountdownText(parsed.deadline) : '';
-        const deadlineHtml = parsed.deadline ? `<div style="margin-top: 6px;"><strong><i class="fas fa-hourglass-end" style="color:var(--ly-gold);"></i> 結束時間：</strong>${parsed.deadline.replace('T', ' ')} <span style="color:${isExpired ? '#999' : '#d93025'}; font-weight:bold;">(${cdText})</span></div>` : '';
+        const deadlineTimeHtml = parsed.deadline ? `<div style="white-space: nowrap;"><strong><i class="fas fa-hourglass-half fa-fw" style="color:var(--ly-gold);"></i> 結束時間：</strong>${parsed.deadline.replace('T', ' ')}</div>` : '';
+        const countdownRightHtml = parsed.deadline ? `<div style="color: ${isExpired ? '#999' : '#d93025'}; font-weight: bold; font-size: 1rem; letter-spacing: 1px; white-space: nowrap; text-align: right; flex-shrink: 0;">(${cdText})</div>` : '';
 
         let optionsHtml = '';
         parsed.options.forEach(opt => {
             const voters = parsed.votes[opt] || [];
-            const hasVoted = voters.includes(auth.currentUser.uid);
+            const hasVoted = voters.includes(myUid);
             const percentage = totalVotes === 0 ? 0 : Math.round((voters.length / totalVotes) * 100);
 
-            // 【新增】：過期狀態防呆
+            // 權限判定：建立此投票的人，或是建立此選項的人，可以刪除該選項
+            const optCreatorUid = parsed.optionCreators ? parsed.optionCreators[opt] : data.senderId;
+            const canDeleteOption = isPollCreator || (optCreatorUid === myUid);
+            
             const cursorStyle = isExpired ? 'cursor: not-allowed; opacity: 0.7;' : 'cursor: pointer;';
-            const clickAction = isExpired ? `alert('投票已截止！')` : `castVote('${msgId}', '${opt}'); setTimeout(() => openPollDetail('${msgId}'), 200);`;
+            const clickAction = isExpired ? `alert('投票已截止！')` : `castVote('${msgId}', '${opt.replace(/'/g, "\\'")}'); setTimeout(() => openPollDetail('${msgId}'), 200);`;
+
+            let trashBtnHtml = '';
+            if (canDeleteOption && !isExpired) {
+                const toggleId = 'del-toggle-' + Math.random().toString(36).substr(2, 9);
+                trashBtnHtml = `
+                <div class="poll-option-del-wrapper" style="display:flex; align-items:center; z-index: 10;" onclick="event.stopPropagation();">
+                    <div id="dot-${toggleId}" class="poll-dot-btn" style="padding: 10px; color: #999; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 35px;" onclick="togglePollDeleteBtn(this)">
+                        <i class="fas fa-ellipsis-v"></i>
+                    </div>
+                    <div id="trash-${toggleId}" class="poll-trash-btn" style="padding: 10px; color: #ff4d4d; cursor: pointer; display: none; align-items: center; justify-content: center; width: 35px;" onclick="deletePollOption('${msgId}', '${opt.replace(/'/g, "\\'")}')">
+                        <i class="fas fa-trash-alt"></i>
+                    </div>
+                </div>`;
+            }
+
+            // --- 【新增】：處理投票成員頭像預覽 ---
+            let avatarsHtml = '<div style="display: flex; align-items: center; margin: 0 10px; flex: 1; justify-content: flex-end;">';
+            const previewVoters = voters.slice(0, 3); // 最多顯示 3 個頭像
+            previewVoters.forEach((uid, index) => {
+                const mCache = window.chatMembersCache[uid] || {};
+                const mAvatar = mCache.photoURL || "https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true";
+                const zIndex = 5 - index; // 確保前面的大頭貼疊在上面
+                const marginLeft = index === 0 ? '0' : '-8px';
+                avatarsHtml += `<img src="${mAvatar}" class="poll-voter-avatar" style="margin-left: ${marginLeft}; z-index: ${zIndex};">`;
+            });
+            if (voters.length > 3) {
+                // 超過3人顯示 ...
+                avatarsHtml += `<div class="poll-voter-more" style="margin-left: -8px; z-index: 1;">...</div>`;
+            }
+            avatarsHtml += '</div>';
+            // ----------------------------------------
 
             optionsHtml += `
-                <div style="margin-top: 12px; ${cursorStyle} position: relative; background: ${hasVoted ? 'rgba(207, 169, 0, 0.15)' : '#f8f9fa'}; border: 1px solid ${hasVoted ? 'var(--ly-gold)' : '#ddd'}; border-radius: 8px; overflow: hidden;"
+                <div style="margin-top: 12px; ${cursorStyle} position: relative; background: ${hasVoted ? 'rgba(207, 169, 0, 0.15)' : '#f8f9fa'}; border: 1px solid ${hasVoted ? 'var(--ly-gold)' : '#ddd'}; border-radius: 8px; overflow: hidden; display: flex; align-items: stretch;"
                      onclick="${clickAction}">
                     <div style="position: absolute; top: 0; left: 0; height: 100%; width: ${percentage}%; background: ${hasVoted ? 'rgba(207, 169, 0, 0.25)' : 'rgba(0, 49, 83, 0.05)'}; z-index: 1; transition: width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);"></div>
-                    <div style="position: relative; z-index: 2; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-weight: ${hasVoted ? 'bold' : 'normal'}; color: var(--ly-blue); font-size: 1.05rem;">${hasVoted ? '<i class="fas fa-check-circle" style="color:var(--ly-gold);"></i> ' : ''}${escapeHtml(opt)}</span>
-                        <span style="font-size: 0.9rem; color: #666; font-weight: bold;">${voters.length} 票 (${percentage}%)</span>
+                    <div style="position: relative; z-index: 2; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; flex: 1; min-width: 0;">
+                        <span style="font-weight: ${hasVoted ? 'bold' : 'normal'}; color: var(--ly-blue); font-size: 1.05rem; word-break: break-all; flex-shrink: 0; max-width: 45%;">${hasVoted ? '<i class="fas fa-check-circle" style="color:var(--ly-gold);"></i> ' : ''}${escapeHtml(opt)}</span>
+                        
+                        ${avatarsHtml}
+                        
+                        <span style="font-size: 0.9rem; color: #666; font-weight: bold; flex-shrink: 0; margin-left: 5px;">${voters.length} 票 (${percentage}%)</span>
                     </div>
+                    ${trashBtnHtml}
                 </div>`;
         });
 
-        document.getElementById('pollDetailBody').innerHTML = `
-            <div style="font-size: 0.95rem; color: #555; margin-bottom: 20px; background: #fffdf5; padding: 15px; border-radius: 8px; border: 1px solid #eee;">
-                <div style="margin-bottom: 6px;"><strong><i class="fas fa-user-edit" style="color:var(--ly-gold);"></i> 建立人：</strong>${creatorName}</div>
-                <div><strong><i class="far fa-clock" style="color:var(--ly-gold);"></i> 建立時間：</strong>${timeStr}</div>
-                ${deadlineHtml}
+        // 判斷是否顯示新增選項區域
+        let addOptionSection = '';
+        if (parsed.allowAddOptions && !isExpired) {
+            addOptionSection = `
+                <div style="margin-top: 25px; display: flex; gap: 10px; border-top: 1px dashed #ccc; padding-top: 20px;">
+                    <input type="text" id="newPollOptionInput" placeholder="輸入自訂選項..." style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 1rem;">
+                    <button onclick="addOptionToPoll('${msgId}')" style="background: transparent; border: 1px solid #ccc; color: #888; padding: 0 20px; border-radius: 8px; cursor: pointer; transition: 0.2s;"><i class="fas fa-plus"></i></button>
+                </div>
+            `;
+        }
+
+        // 投票內容文字轉換換行
+        const pollContentHtml = parsed.content ? `<div class="poll-detail-content-text" style="font-size: 1rem; color: #444; margin-bottom: 20px; line-height: 1.6; word-break: break-word;">${escapeHtml(parsed.content).replace(/\n/g, '<br>')}</div>` : '';
+
+        // --- 【新增】：把原本在底部的按鈕移至此處 (選項下方) ---
+        const viewMembersBtnHtml = `
+            <div style="margin-top: 15px;">
+                <button class="btn-modal btn-confirm" style="width: 100%; background: #13222c; box-shadow: 0 4px 10px rgba(0, 49, 83, 0.2); padding: 12px; border-radius: 8px; font-size: 1.05rem;" onclick="openPollVoters()">
+                    <i class="fas fa-users"></i> 查看投票成員
+                </button>
             </div>
-            <h2 style="color: var(--ly-blue); font-size: 1.3rem; margin-top: 0; margin-bottom: 25px; border-left: 5px solid var(--ly-gold); padding-left: 12px; line-height: 1.4;">${escapeHtml(parsed.question)}</h2>
-            <div>${optionsHtml}</div>
         `;
-        openModal('pollDetailModal');
+
+        document.getElementById('pollDetailBody').innerHTML = `
+            <h2 style="color: var(--ly-blue); font-size: 1.3rem; margin-top: 0; margin-bottom: ${parsed.content ? '10px' : '25px'}; border-left: 5px solid var(--ly-gold); padding-left: 12px; line-height: 1.4;">${escapeHtml(parsed.question)}</h2>
+            ${pollContentHtml}
+            <div>${optionsHtml}</div>
+            
+            ${viewMembersBtnHtml}
+            ${addOptionSection}
+            
+            <div style="font-size: 0.85rem; color: #555; margin-top: 30px; background: #fffdf5; padding: 15px; border-radius: 8px; border: 1px solid #eee; display: flex; justify-content: space-between; align-items: flex-end; gap: 8px; flex-wrap: wrap;">
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                    <div style="white-space: nowrap;"><strong><i class="fas fa-user-edit fa-fw" style="color:var(--ly-gold);"></i> 建立人：</strong>${creatorName}</div>
+                    <div style="white-space: nowrap;"><strong><i class="far fa-clock fa-fw" style="color:var(--ly-gold);"></i> 建立時間：</strong>${timeStr}</div>
+                    ${deadlineTimeHtml}
+                </div>
+                ${countdownRightHtml}
+            </div>
+        `;
+        
+        // 保險起見：萬一使用者忘記刪除舊版的 HTML 固定底部，我們在此動態把它隱藏掉
+        const staticFooter = document.querySelector('#pollDetailView > div:last-child');
+        if (staticFooter && staticFooter.id !== 'pollDetailBody') {
+            staticFooter.style.display = 'none';
+            document.getElementById('pollDetailBody').style.paddingBottom = '30px';
+        }
+
+        document.getElementById('pollDetailView').style.transform = 'translateX(0%)';
+    }
+    
+    function closePollDetailView() {
+        document.getElementById('pollDetailView').style.transform = 'translateX(100%)';
     }
 
     async function openPollVoters() {
@@ -15753,7 +16570,6 @@ renderEvMemberPreview = async function(uids, type) {
         if (!msgDoc) return;
         const parsed = JSON.parse(msgDoc.data().text);
 
-        // 整理群組所有成員 (計算已投與未投)
         const allMembers = window.currentGroupMembers || [];
         let votedMembers = new Set();
         let votedBreakdown = {}; 
@@ -15765,7 +16581,6 @@ renderEvMemberPreview = async function(uids, type) {
 
         let unvotedMembers = allMembers.filter(uid => !votedMembers.has(uid));
 
-        // 產生【已投票】的 HTML (按選項分區)
         let votedHtml = '<div style="padding: 15px;">';
         parsed.options.forEach(opt => {
             const uids = votedBreakdown[opt];
@@ -15785,10 +16600,9 @@ renderEvMemberPreview = async function(uids, type) {
                 votedHtml += `</div>`;
             }
         });
-        if (votedMembers.size === 0) votedHtml += '<div style="text-align:center; color:#999; margin-top: 30px;"><i class="fas fa-box-open fa-2x"></i><br><br>尚未有人投票</div>';
+        if (votedMembers.size === 0) votedHtml += '<div style="text-align:center; color:#999; margin-top: 50px;"><i class="fas fa-box-open fa-2x"></i><br><br>尚未有人投票</div>';
         votedHtml += '</div>';
 
-        // 產生【未投票】的 HTML
         let unvotedHtml = '<div style="padding: 15px; display: grid; grid-template-columns: repeat(auto-fill, minmax(65px, 1fr)); gap: 12px;">';
         if (unvotedMembers.length > 0) {
             unvotedMembers.forEach(uid => {
@@ -15802,14 +16616,18 @@ renderEvMemberPreview = async function(uids, type) {
                     </div>`;
             });
         } else {
-            unvotedHtml = '<div style="grid-column: 1 / -1; text-align:center; color:var(--ly-blue); margin-top: 30px; font-weight: bold;"><i class="fas fa-check-circle fa-2x" style="color: var(--ly-gold); margin-bottom:10px;"></i><br>全員皆已完成投票！</div>';
+            unvotedHtml = '<div style="grid-column: 1 / -1; text-align:center; color:var(--ly-blue); margin-top: 50px; font-weight: bold;"><i class="fas fa-check-circle fa-2x" style="color: var(--ly-gold); margin-bottom:10px;"></i><br>全員皆已完成投票！</div>';
         }
         unvotedHtml += '</div>';
 
         window.pollVotersContent = { voted: votedHtml, unvoted: unvotedHtml };
         
-        openModal('pollVotersModal');
+        document.getElementById('pollVotersView').style.transform = 'translateX(0%)';
         switchPollTab('voted');
+    }
+
+    function closePollVotersView() {
+        document.getElementById('pollVotersView').style.transform = 'translateX(100%)';
     }
 
     function switchPollTab(tab) {
@@ -15823,6 +16641,49 @@ renderEvMemberPreview = async function(uids, type) {
             document.getElementById('pollVotersBody').innerHTML = window.pollVotersContent.unvoted;
         }
     }
+
+    // ==========================================
+    // 投票系統：滿版側滑退出引擎 (Swipe to close)
+    // ==========================================
+    const pollDetailViewDOM = document.getElementById('pollDetailView');
+    let isPollDetailSwiping = false, pdVxStartX = 0, pdVxCurrentX = 0;
+
+    pollDetailViewDOM.addEventListener('touchstart', (e) => {
+        if (e.touches[0].clientX < 40) { isPollDetailSwiping = true; pdVxStartX = e.touches[0].clientX; pollDetailViewDOM.style.transition = 'none'; }
+    }, {passive: true});
+    pollDetailViewDOM.addEventListener('touchmove', (e) => {
+        if (!isPollDetailSwiping) return;
+        pdVxCurrentX = e.touches[0].clientX - pdVxStartX;
+        if (pdVxCurrentX > 0) { if (e.cancelable) e.preventDefault(); pollDetailViewDOM.style.transform = `translateX(${pdVxCurrentX}px)`; }
+    }, { passive: false });
+    pollDetailViewDOM.addEventListener('touchend', () => {
+        if (!isPollDetailSwiping) return;
+        isPollDetailSwiping = false;
+        pollDetailViewDOM.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
+        if (pdVxCurrentX > window.innerWidth / 3 || pdVxCurrentX > 30) closePollDetailView();
+        else pollDetailViewDOM.style.transform = 'translateX(0%)';
+        pdVxCurrentX = 0;
+    });
+
+    const pollVotersViewDOM = document.getElementById('pollVotersView');
+    let isPollVotersSwiping = false, pvStartX = 0, pvCurrentX = 0;
+
+    pollVotersViewDOM.addEventListener('touchstart', (e) => {
+        if (e.touches[0].clientX < 40) { isPollVotersSwiping = true; pvStartX = e.touches[0].clientX; pollVotersViewDOM.style.transition = 'none'; }
+    }, {passive: true});
+    pollVotersViewDOM.addEventListener('touchmove', (e) => {
+        if (!isPollVotersSwiping) return;
+        pvCurrentX = e.touches[0].clientX - pvStartX;
+        if (pvCurrentX > 0) { if (e.cancelable) e.preventDefault(); pollVotersViewDOM.style.transform = `translateX(${pvCurrentX}px)`; }
+    }, { passive: false });
+    pollVotersViewDOM.addEventListener('touchend', () => {
+        if (!isPollVotersSwiping) return;
+        isPollVotersSwiping = false;
+        pollVotersViewDOM.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
+        if (pvCurrentX > window.innerWidth / 3 || pvCurrentX > 30) closePollVotersView();
+        else pollVotersViewDOM.style.transform = 'translateX(0%)';
+        pvCurrentX = 0;
+    });
 
     // ==========================================
     // 聊天室 (chatView) 左側邊緣滑動退出引擎
