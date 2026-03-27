@@ -261,20 +261,32 @@
 
         
 
+        /* 尋找並替換原本的 #msgInput 樣式 */
         #msgInput { 
             flex: 1; 
-            height: 36px; /* 【微調】：降低 2px */
-            min-height: 36px;
-            max-height: 100px; 
-            padding: 7px 16px; /* 微調內距讓文字維持置中 */
-            border: 1.5px solid #eee; border-radius: 20px; outline: none; 
+            height: 40px; 
+            min-height: 40px;
+            max-height: 40px; /* 【修改】：強制固定高度，不隨字數長高 */
+            padding: 10px 15px; 
+            border: 1.5px solid #eee; 
+            border-radius: 20px; 
+            outline: none; 
             font-size: 15px; 
-            background: #f8f9fa; transition: border-color 0.3s; 
-            resize: none; /* 禁止手動拉大框框 */
-            font-family: inherit; /* 確保字體和原本一樣 */
-            line-height: 1.4;
-            overflow-y: auto; /* 超過最大高度時顯示捲軸 */
+            background: #f8f9fa; 
+            transiStion: border-color 0.3s; 
+            resize: none; 
+            font-family: inherit; 
+            line-height: 20px; 
             box-sizing: border-box;
+            /* --- 【核心：強制不換行】 --- */
+            white-space: nowrap; 
+            overflow-x: auto; /* 允許橫向滑動文字 */
+            overflow-y: hidden; /* 禁止垂直溢出 */
+        }
+
+        /* 隱藏橫向捲動條，保持畫面整潔 (iOS Safari 適用) */
+        #msgInput::-webkit-scrollbar {
+            display: none;
         }
         #msgInput:focus { border-color: var(--ly-gold); background: #fff; }
 
@@ -350,7 +362,37 @@
         .reply-snippet { font-size: 0.75rem; color: #666; background: rgba(0, 0, 0, 0.05); padding: 4px 8px; border-radius: 4px; border-left: 3px solid var(--ly-blue); margin-bottom: 5px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; display: block; }
         .msg.mine .reply-snippet { background: rgba(255, 255, 255, 0.2); color: #f1f1f1; border-left: 3px solid var(--ly-gold); }
 
-        .expand-menu-panel { display: none; position: absolute; bottom: 100%; left: 0; width: 100%; background: var(--bg-gray); border-top: 1px solid #dee2e6; box-shadow: 0 -4px 15px rgba(0,0,0,0.05); padding: 20px; z-index: 10; gap: 25px; flex-direction: row; justify-content: flex-start; animation: slideUp 0.3s ease-out; box-sizing: border-box; }
+        /* 修改：讓選單內的功能圖示水平居中對齊 */
+        .expand-menu-panel { 
+            display: none; 
+            position: absolute; 
+            bottom: 100%; 
+            left: 0; 
+            width: 100%; 
+            background: var(--bg-gray); 
+            border-top: 1.5px solid #dee2e6; 
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.05); 
+            padding: 25px 15px; 
+            z-index: 10; 
+            /* --- 【核心修改：置中對齊】 --- */
+            flex-direction: row; 
+            justify-content: center; /* 水平居中 */
+            align-items: center; 
+            gap: 15px; /* 縮小一點間距避免超出螢幕 */
+            animation: slideUp 0.3s ease-out; 
+            box-sizing: border-box; 
+        }
+
+        /* 確保小螢幕下按鈕不會擠在一起 */
+        .expand-menu-item { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            gap: 10px; 
+            cursor: pointer; 
+            width: 80px; /* 固定寬度幫助對齊 */
+        }
+        
         @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .expand-menu-item { display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; }
         .expand-menu-item .icon-circle { width: 55px; height: 55px; background: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.4rem; color: var(--ly-blue); box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: 0.2s; }
@@ -434,9 +476,20 @@
         .picker-search-wrapper { position: relative; flex: 1; min-width: 150px; }
         .picker-search-wrapper i { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #aaa; }
         .picker-search-wrapper input { width: 100%; padding: 8px 10px 8px 30px; border-radius: 20px; border: 1px solid #ddd; font-size: 16px; appearance: none; box-sizing: border-box; }
-        .modal-input-group { margin-bottom: 20px; }
-        .modal-input-group label { display: block; font-size: 13px; color: var(--ly-blue); font-weight: 700; margin-bottom: 8px; text-align: left;}
-        .modal-input-group input { width: 100%; padding: 12px 15px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 16px; outline: none; box-sizing: border-box; appearance: none;}        .modal-input-group input:focus { border-color: var(--ly-gold); }
+        .expand-menu-panel { display: none; position: absolute; bottom: 100%; left: 0; width: 100%; background: var(--bg-gray); border-top: 1.5px solid #dee2e6; box-shadow: 0 -4px 15px rgba(0,0,0,0.05); padding: 25px 15px; z-index: 10; flex-direction: row; justify-content: center; align-items: center; gap: 15px; animation: slideUp 0.3s ease-out; box-sizing: border-box; }
+        .expand-menu-item { display: flex; flex-direction: column; align-items: center; gap: 10px; cursor: pointer; width: 80px; }
+        .expand-icon { width: 55px; height: 55px; background: #fff; color: #555; border-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 24px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: 0.2s; border: 1px solid #eee; }
+        .expand-menu-item:hover .expand-icon { background: #f0f0f0; transform: translateY(-2px); }
+        .expand-menu-item:hover span { color: var(--ly-blue); }
+        .expand-menu-item span { font-size: 13px; color: #666; font-weight: 500; transition: color 0.2s; }
+
+        #cd-file-inputs-container { margin-bottom: 10px; }
+        .cd-file-row { display: flex; align-items: center; gap: 10px; border: 1px solid #eee; padding: 10px; border-radius: 8px; background: #fcfcfc; }
+        .cd-file-input { flex: 1; font-size: 14px; }
+        .cd-row-delete { background: rgba(220,53,69,0.1); color: #dc3545; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; }
+        .swipe-actions-dual { position: absolute; top: 0; right: 0; bottom: 0; background: #1a1a1a; display: flex; }
+        .swipe-edit-btn { height: 100%; width: 70px; border: none; font-size: 1.3rem; background: var(--ly-blue); color: white; cursor: pointer; }
+        .swipe-delete-btn-half { height: 100%; width: 70px; border: none; font-size: 1.3rem; background: #dc3545; color: white; cursor: pointer; }
         .modal-footer { flex-shrink: 0; padding: 15px 20px; background: #f8f9fa; display: flex; justify-content: flex-end; gap: 12px; }
         .btn-modal { padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; border: none; transition: 0.3s;}
         .btn-confirm { background: #13222c; color: white; }
@@ -3263,7 +3316,7 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                     <button class="attach-btn" id="voiceRecordBtn" 
                         onmousedown="startRecording(event)" onmouseup="stopRecording(event)" onmouseleave="cancelRecording(event)"
                         ontouchstart="startRecording(event)" ontouchend="stopRecording(event)" ontouchcancel="cancelRecording(event)"
-                        style="color: var(--ly-blue); transition: 0.2s;">
+                        style="color: #888; transition: 0.2s;">
                         <i class="fas fa-microphone"></i>
                     </button>
                 </div>
@@ -4670,20 +4723,22 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         <div style="flex: 1; display: block; height: 100%; background: var(--bg-gray); -webkit-overflow-scrolling: touch; overflow-y: auto; padding-bottom: 30px;">
             
             <div class="ps-member-card" style="padding: 30px 20px; background: white; display: flex; flex-direction: column; align-items: center; border-bottom: 1px solid var(--border-color); flex-shrink: 0;">
-                <div style="display: flex; flex-direction: column; align-items: center;">
-                    <img id="psMyAvatar" src="" style="width: 65px; height: 65px; border-radius: 50%; object-fit: cover; border: 2px solid var(--ly-gold); box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-                    <span id="psMyName" style="font-weight: 800; font-size: 1.1rem; margin-top: 10px; color: var(--ly-blue);">自己</span>
+                <div style="display: flex; flex-direction: row; align-items: center; justify-content: center; width: 100%; max-width: 300px;">
+                    <img id="psMyAvatar" src="" style="width: 65px; height: 65px; border-radius: 50%; object-fit: cover; border: 2px solid var(--ly-gold); box-shadow: 0 4px 10px rgba(0,0,0,0.1); flex-shrink: 0;">
+                    
+                    <div style="display: flex; flex-direction: row; align-items: center; justify-content: center; flex: 1; padding: 0 10px;">
+                        <div style="flex: 1; height: 2px; background: var(--border-color); min-width: 15px;"></div>
+                        <i class="fas fa-link" style="color: #999; font-size: 1.4rem; margin: 0 10px;"></i>
+                        <div style="flex: 1; height: 2px; background: var(--border-color); min-width: 15px;"></div>
+                    </div>
+                    
+                    <img id="psTargetAvatar" src="" style="width: 65px; height: 65px; border-radius: 50%; object-fit: cover; border: 2px solid var(--ly-blue); box-shadow: 0 4px 10px rgba(0,0,0,0.1); flex-shrink: 0;">
                 </div>
                 
-                <div style="display: flex; flex-direction: column; align-items: center; margin: 10px 0;">
-                    <div style="width: 2px; height: 15px; background: #ddd;"></div>
-                    <i class="fas fa-link" style="color: #ccc; font-size: 1rem; margin: 5px 0;"></i>
-                    <div style="width: 2px; height: 15px; background: #ddd;"></div>
-                </div>
-                
-                <div style="display: flex; flex-direction: column; align-items: center;">
-                    <img id="psTargetAvatar" src="" style="width: 65px; height: 65px; border-radius: 50%; object-fit: cover; border: 2px solid var(--ly-blue); box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-                    <span id="psTargetName" style="font-weight: 800; font-size: 1.1rem; margin-top: 10px; color: var(--ly-blue);">對方</span>
+                <div style="display: flex; flex-direction: row; align-items: flex-start; justify-content: space-between; width: 100%; max-width: 300px; margin-top: 12px;">
+                    <span id="psMyName" style="font-weight: 800; font-size: 1.1rem; color: var(--ly-blue); text-align: center; width: 65px; word-break: break-all;">自己</span>
+                    <div style="flex: 1;"></div>
+                    <span id="psTargetName" style="font-weight: 800; font-size: 1.1rem; color: var(--ly-blue); text-align: center; width: 65px; word-break: break-all;">對方</span>
                 </div>
             </div>
 
@@ -5170,9 +5225,10 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             <div class="modal-input-group">
                 <label>內容類別</label>
                 <div class="cd-type-tabs" style="display: flex; background: #eee; border-radius: 8px; padding: 4px; gap: 4px;">
-                    <button type="button" class="cd-tab active" data-type="file" onclick="changeConfidentialType('file')">📂 檔案傳送</button>
-                    <button type="button" class="cd-tab" data-type="link" onclick="changeConfidentialType('link')">🔗 外部連結</button>
-                    <button type="button" class="cd-tab" data-type="account" onclick="changeConfidentialType('account')">🔑 帳號密碼</button>
+                    <button type="button" class="cd-tab active" data-type="file" onclick="changeConfidentialType('file')">📂 檔案</button>
+                    <button type="button" class="cd-tab" data-type="doc" onclick="changeConfidentialType('doc')">📝 文件</button> 
+                    <button type="button" class="cd-tab" data-type="link" onclick="changeConfidentialType('link')">🔗 連結</button>
+                    <button type="button" class="cd-tab" data-type="account" onclick="changeConfidentialType('account')">🔑 帳密</button>
                 </div>
                 <input type="hidden" id="cd-type" value="file">
             </div>
@@ -5610,6 +5666,10 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
     }
 
     function closeChatRoom() {
+        // 【新增】：離開聊天室時，強制解除畫面鎖定，並瞬間將畫面移動到最新訊息的位置
+        window.preserveScrollPosition = false;
+        scrollToBottom(false);
+
         chatViewDOM.style.transform = 'translateX(100%)';
         
         isTyping = false;
@@ -5633,7 +5693,7 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         const msgInput = document.getElementById('msgInput');
         if (msgInput) {
             msgInput.value = '';
-            msgInput.style.height = '36px'; // 恢復預設高度
+            msgInput.style.height = '40px'; // 恢復預設高度
             msgInput.blur(); // 強制失去焦點，收起鍵盤
         }
         
@@ -6018,8 +6078,11 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         const loader = document.getElementById('historyLoader');
         if (loader) loader.remove();
 
-        // 【新增這行】：記錄渲染前的高度，用來把畫面推回原本的相對位置
+        // 【新增這行】：記錄渲染前的高度與捲動位置，用來把畫面推回原本的精確位置
         const oldScrollHeight = list.scrollHeight;
+        const oldScrollTop = list.scrollTop; 
+        
+        // 放寬置底判斷區間
         
         // 放寬置底判斷區間
         const isAtBottom = list.scrollHeight - list.scrollTop - list.clientHeight < 150;
@@ -6318,8 +6381,12 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         updateReadStatusUI();
         renderTypingUI(); // 【新增】：在重新渲染訊息列表後，補回正在輸入的動畫
         
+        // 【終極修復】：如果是點擊投票或表情符號等互動操作，強制維持在原本的精確位置，絕對不亂跳！
+        if (window.preserveScrollPosition) {
+            list.scrollTop = oldScrollTop;
+        }
         // 【新增】：如果是往上拉載入舊訊息，把卷軸推回原本的相對位置，不要置底
-        if (isFetchingOlder) {
+        else if (isFetchingOlder) {
             setTimeout(() => {
                 list.scrollTop = list.scrollHeight - oldScrollHeight;
                 isFetchingOlder = false; // 恢復狀態
@@ -6538,7 +6605,7 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         clearTypingState();
         
         input.value = "";
-        input.style.height = '38px'; // 【新增】：送出後將高度歸位
+        input.style.height = '40px'; // 【新增】：送出後將高度歸位
         scrollToBottom(true);
         
         // 【新增】：送出訊息後，重置左側收縮選單
@@ -6598,23 +6665,23 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
     }
 
     // 輸入文字時，自動調整高度，並發送「正在輸入中」狀態
+    // 尋找 msgInputDOM.addEventListener('input', function() { ... }) 並替換
     msgInputDOM.addEventListener('input', function() {
-        this.style.height = '36px'; 
-        const newHeight = Math.min(this.scrollHeight, 100); 
-        this.style.height = newHeight + 'px';
+        // 【移除】：不再動態調整 height，保持 CSS 固定的 40px
 
-        // 【新增】：收縮左側功能列邏輯
+        // 處理左側選單收縮
         const container = document.getElementById('chatInputContainer');
         if (this.value.length > 0) { 
             if (!window.isLeftMenuForcedOpen && container) container.classList.add('typing-mode');
         } else {
             if (container) container.classList.remove('typing-mode');
-            window.isLeftMenuForcedOpen = false; // 清空時重置
+            window.isLeftMenuForcedOpen = false;
         }
 
         if (!currentChatId || !auth.currentUser) return;
         const text = this.value.trim();
         
+        // 正在輸入狀態同步
         if (text.length > 0 && !isTyping) {
             isTyping = true;
             db.collection("chats").doc(currentChatId).update({ [`typing.${auth.currentUser.uid}`]: Date.now() }).catch(()=>{});
@@ -6623,15 +6690,8 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             clearTypingState();
         }
         
-        // 每次打字就重置計時器，停下 3 秒則視為停止輸入
         clearTimeout(typingTimer);
         if (isTyping) {
-            // 每 2.5 秒更新一次時間戳，確保長篇大論時不會被判定過期
-            if (Date.now() - (window.lastTypingSync || 0) > 2500) {
-                window.lastTypingSync = Date.now();
-                db.collection("chats").doc(currentChatId).update({ [`typing.${auth.currentUser.uid}`]: Date.now() }).catch(()=>{});
-            }
-
             typingTimer = setTimeout(() => {
                 isTyping = false;
                 clearTypingState();
@@ -10517,25 +10577,26 @@ renderEvMemberPreview = async function(uids, type) {
     async function sendReaction(emoji) {
         if (!activeMsgId || !currentChatId) return;
         const uid = auth.currentUser.uid;
+        window.preserveScrollPosition = true; // 鎖住畫面
         try {
             const msgRef = db.collection("chats").doc(currentChatId).collection("messages").doc(activeMsgId);
             const msgDoc = await msgRef.get();
             const currentReactions = msgDoc.data().reactions || {};
             
             if (currentReactions[uid] === emoji) {
-                // 如果已經按過一樣的表情，就收回刪除
                 await msgRef.update({ [`reactions.${uid}`]: firebase.firestore.FieldValue.delete() });
             } else {
-                // 否則新增或切換成新的表情
                 await msgRef.update({ [`reactions.${uid}`]: emoji });
             }
         } catch(e) { console.error("Reaction Error:", e); }
         closeContextMenu();
+        setTimeout(() => { window.preserveScrollPosition = false; }, 1500); // 解除鎖定
     }
 
     async function toggleReaction(msgId, emoji) {
         if (!currentChatId || !auth.currentUser) return;
         const uid = auth.currentUser.uid;
+        window.preserveScrollPosition = true; // 鎖住畫面
         try {
             const msgRef = db.collection("chats").doc(currentChatId).collection("messages").doc(msgId);
             const msgDoc = await msgRef.get();
@@ -10547,6 +10608,7 @@ renderEvMemberPreview = async function(uids, type) {
                 await msgRef.update({ [`reactions.${uid}`]: emoji });
             }
         } catch(e) {}
+        setTimeout(() => { window.preserveScrollPosition = false; }, 1500); // 解除鎖定
     }
 
     // ==========================================
@@ -10649,22 +10711,27 @@ renderEvMemberPreview = async function(uids, type) {
         document.getElementById('cd-type').value = type;
         
         document.querySelectorAll('.cd-tab').forEach(btn => {
-            if (btn.getAttribute('data-type') === type) btn.classList.add('active');
-            else btn.classList.remove('active');
+            btn.classList.toggle('active', btn.getAttribute('data-type') === type);
         });
 
         const area = document.getElementById('cd-dynamic-area');
         area.innerHTML = '';
-        accRowCount = 0;
 
-        if (type === 'file') {
-            // 【修改】：支援動態多檔案欄位
+        if (type === 'doc') {
+            // 【新增】：文件類別，包含多行文字輸入與檔案上傳
             area.innerHTML = `
                 <div class="modal-input-group" style="margin-top:15px;">
-                    <label>上傳機密檔案 (可多選，系統將自動壓縮優化)</label>
+                    <label>文件內容 (支援換行)</label>
+                    <textarea id="cd-doc-text" placeholder="請輸入文件內容..." style="width: 100%; min-height: 150px; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; font-size: 1rem;"></textarea>
+                </div>
+                <div class="modal-input-group">
+                    <label>附加檔案 (選填)</label>
                     <div id="cd-file-inputs-container"></div>
                 </div>`;
-            addCdFileInputRow(); // 預先產生第一組輸入框
+            addCdFileInputRow();
+        } else if (type === 'file') {
+            area.innerHTML = `<div class="modal-input-group" style="margin-top:15px;"><label>上傳機密檔案</label><div id="cd-file-inputs-container"></div></div>`;
+            addCdFileInputRow();
         } else if (type === 'link') {
             area.innerHTML = `
                 <div class="modal-input-group" style="margin-top:15px;">
@@ -10734,28 +10801,44 @@ renderEvMemberPreview = async function(uids, type) {
 
     function renderConfidentialContent(data) {
         const viewBody = document.getElementById('cd-view-content');
-        let html = `<h2 style="color:var(--ly-blue); margin-top:0;">${data.title}</h2><hr style="border:0; border-top:1px dashed #ccc; margin: 15px 0;">`;
+        
+        // --- 1. 產生真實的內容 HTML (原本的邏輯) ---
+        let realHtml = `<h2 style="color:var(--ly-blue); margin-top:0;">${escapeHtml(data.title)}</h2><hr style="border:0; border-top:1px dashed #ccc; margin: 15px 0;">`;
 
         if (data.type === 'file') {
-            html += `<p>附檔已成功解密：</p><div style="display:flex; flex-direction:column; gap:12px;">`;
+            realHtml += `<p>附檔已成功解密：</p><div style="display:flex; flex-direction:column; gap:12px;">`;
             let urls = [];
-            try { 
-                urls = JSON.parse(data.content); 
-                if (!Array.isArray(urls)) urls = [data.content]; // 相容舊版單一字串
-            } catch(e) { urls = [data.content]; } // 相容舊版單一字串
-            
+            try { urls = JSON.parse(data.content); if (!Array.isArray(urls)) urls = [data.content]; } catch(e) { urls = [data.content]; } 
             urls.forEach((url, idx) => {
                 const numStr = urls.length > 1 ? ` (${idx + 1})` : '';
-                html += `<a href="${url}" target="_blank" style="display:inline-block; background:var(--ly-blue); color:white; padding:12px 20px; border-radius:8px; text-decoration:none; font-weight:bold; text-align:center;"><i class="fas fa-download"></i> 點擊下載/檢視檔案${numStr}</a>`;
+                realHtml += `<a href="${url}" target="_blank" style="display:inline-block; background:var(--ly-blue); color:white; padding:12px 20px; border-radius:8px; text-decoration:none; font-weight:bold; text-align:center;"><i class="fas fa-download"></i> 點擊下載/檢視檔案${numStr}</a>`;
             });
-            html += `</div>`;
+            realHtml += `</div>`;
+            
+        } else if (data.type === 'doc') {
+            let parsed = { text: "", files: [] };
+            try { parsed = JSON.parse(data.content); } catch(e) { parsed.text = data.content; }
+
+            if (parsed.text) {
+                realHtml += `<div style="background:#f8f9fa; padding:15px; border-radius:8px; border:1px solid #ddd; margin-bottom:15px; white-space:pre-wrap; word-break:break-all;">${escapeHtml(parsed.text)}</div>`;
+            }
+
+            if (parsed.files && parsed.files.length > 0) {
+                realHtml += `<p style="margin-bottom:8px; font-weight:bold; color:var(--ly-blue);">附加檔案：</p><div style="display:flex; flex-direction:column; gap:12px;">`;
+                parsed.files.forEach((url, idx) => {
+                    const numStr = parsed.files.length > 1 ? ` (${idx + 1})` : '';
+                    realHtml += `<a href="${url}" target="_blank" style="display:inline-block; background:var(--ly-blue); color:white; padding:12px 20px; border-radius:8px; text-decoration:none; font-weight:bold; text-align:center;"><i class="fas fa-download"></i> 點擊下載/檢視附加檔案${numStr}</a>`;
+                });
+                realHtml += `</div>`;
+            }
+            
         } else if (data.type === 'link') {
-            html += `<p>機密連結已解密：</p><a href="${data.content}" target="_blank" style="word-break:break-all; color:#d93025; font-weight:bold; font-size:1.1rem; text-decoration:underline;">${data.content}</a>`;
+            realHtml += `<p>機密連結已解密：</p><a href="${data.content}" target="_blank" style="word-break:break-all; color:#d93025; font-weight:bold; font-size:1.1rem; text-decoration:underline;">${data.content}</a>`;
         } else if (data.type === 'account') {
             const accounts = JSON.parse(data.content);
             accounts.forEach((acc, idx) => {
                 const cUser = cipherPlus3(acc.user); 
-                html += `
+                realHtml += `
                 <div style="background:#f8f9fa; border:1px solid #ddd; border-left:4px solid var(--ly-gold); padding:15px; margin-bottom:15px; border-radius:8px;">
                     <h4 style="margin:0 0 10px 0; color:#333;">${acc.sysTitle}</h4>
                     
@@ -10793,17 +10876,85 @@ renderEvMemberPreview = async function(uids, type) {
                             
                             <strong style="color: var(--ly-blue); font-family: 'Noto Sans TC', sans-serif;">【大寫英文字母】</strong><br>
                             A→D, B→E, C→F, D→G, E→H, F→I, G→J, H→K, I→L, J→M, K→N, L→O, M→P, N→Q, O→R, P→S, Q→T, R→U, S→V, T→W, U→X, V→Y, W→Z, X→A, Y→B, Z→C<br><br>
-                            
                             <span style="color:#d93025; font-size:0.7rem; font-family: 'Noto Sans TC', sans-serif;">※ 中文與特殊符號保持不變</span>
                         </div>
                     </div>
                 </div>`;
             });
         }
-        viewBody.innerHTML = html;
+
+        // --- 2. 產生假亂碼 HTML (+3 偏移) ---
+        let rawStringToGarble = "Confidential Data:\n" + (data.title || "") + "\n" + (data.content || "");
+        // 把所有的字元往上 +3 (包含中文) 產生逼真的亂碼視覺
+        let garbledString = rawStringToGarble.split('').map(char => String.fromCharCode(char.charCodeAt(0) + 3)).join('');
+
+        // 恢復一般模態窗背景 (避免被假密碼全黑覆蓋)
+        viewBody.parentElement.style.background = ''; 
+
+        // --- 3. 組合 HTML 輸出 ---
+        // --- 3. 組合 HTML 輸出 ---
+        viewBody.innerHTML = `
+            <div id="cd-encrypted-view" style="font-family: monospace; padding: 0; position: relative;">
+                <div style="background: #232f3c; border: 1px solid #33475b; border-radius: 8px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+                    <div style="font-weight: 900; color: #ff4d4d; margin-bottom: 12px; border-bottom: 1px dashed #556; padding-bottom: 12px; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-lock"></i> 內容已受 +3 偏移加密保護
+                    </div>
+                    <div style="line-height: 1.6; font-size: 1.1rem; color: #a8b2bd; word-break: break-all; letter-spacing: 1px;">
+                        ${escapeHtml(garbledString).replace(/\n/g, '<br>')}
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 0px; font-size: 1rem; letter-spacing: 6px; font-weight: 900; color: #fff; cursor: pointer; user-select: none;" 
+                     onclick="document.getElementById('cd-encrypted-view').style.display='none'; document.getElementById('cd-real-view').style.display='block';">
+                    ...
+                </div>
+            </div>
+
+            <div id="cd-real-view" style="display: none;">
+                ${realHtml}
+            </div>
+        `;
+        
+// 深色模式防護 (已移除原本多餘的防護，因我們已經強制採用終端機深藍底色)
         openModal('viewConfidentialModal');
+    } // <--- 【修復】：就是少了這個右括號！
+
+    let currentEditingCdId = null; // 記錄目前正在編輯的 ID
+
+    // 讀取舊資料並進入編輯模式
+    async function editConfidentialDoc(docId) {
+        currentEditingCdId = docId;
+        try {
+            const docSnap = await db.collection("confidential-docs").doc(docId).get();
+            if (!docSnap.exists) return alert("找不到資料");
+            const data = docSnap.data();
+
+            openCreateConfidentialModal(); // 打開側滑視窗
+            document.getElementById('cd-title').value = data.title;
+            document.getElementById('cd-true-pass').value = data.truePass;
+            document.getElementById('cd-fake-pass').value = data.fakePass || '';
+            
+            // 強制切換到文件模式
+            changeConfidentialType('doc'); 
+            
+            // 將原本儲存的 JSON 文字解開並填入
+            let parsedContent = { text: "" };
+            try { parsedContent = JSON.parse(data.content); } 
+            catch(e) { parsedContent = { text: data.content }; }
+            
+            // 如果原本輸入框還沒準備好，延遲一下下填入
+            setTimeout(() => {
+                const docTextEl = document.getElementById('cd-doc-text');
+                if (docTextEl) docTextEl.value = parsedContent.text || '';
+            }, 100);
+            
+            document.getElementById('btnSubmitConfidential').innerHTML = '<i class="fas fa-save"></i> 儲存修改';
+        } catch(e) { 
+            alert("讀取失敗：" + e.message); 
+        }
     }
 
+    // 送出機密資料 (包含壓縮、多檔案與遮罩鎖定)
     // 送出機密資料 (包含壓縮、多檔案與遮罩鎖定)
     async function submitConfidential() {
         const title = document.getElementById('cd-title').value.trim();
@@ -10814,12 +10965,11 @@ renderEvMemberPreview = async function(uids, type) {
         if (!title || !truePass) return alert("「文件標題」與「加密密碼」為必填項目！");
 
         const btnConfirm = document.getElementById('btnSubmitConfidential');
-        const btnCancel = document.querySelector('#createConfidentialModal .btn-cancel');
         const overlay = document.getElementById('cd-loading-overlay');
         const loadingText = document.getElementById('cd-loading-text');
         
-        // 【鎖定 UI 與啟動遮罩】
-        btnConfirm.disabled = true; btnCancel.disabled = true;
+        // 鎖定 UI 與啟動遮罩
+        btnConfirm.disabled = true;
         if (overlay) overlay.style.display = 'flex';
 
         try {
@@ -10829,11 +10979,11 @@ renderEvMemberPreview = async function(uids, type) {
                 const inputs = document.querySelectorAll('.cd-file-input');
                 const files = [];
                 inputs.forEach(input => { if (input.files && input.files[0]) files.push(input.files[0]); });
-                if (files.length === 0) throw new Error("請選擇至少一個檔案");
+                
+                // 若為新增模式且沒選檔案則報錯
+                if (!currentEditingCdId && files.length === 0) throw new Error("請選擇至少一個檔案");
                 
                 const uploadUrls = [];
-                
-                // 依序處理每個檔案 (支援壓縮)
                 for (let i = 0; i < files.length; i++) {
                     let file = files[i];
                     const isVideo = file.type.startsWith('video/');
@@ -10842,14 +10992,12 @@ renderEvMemberPreview = async function(uids, type) {
                     
                     if (isVideo) {
                         if (loadingText) loadingText.innerText = `影片極致壓縮中 (${i+1}/${files.length})...`;
-                        // 若裝置支援且檔案大於 2MB 則進行壓縮
                         if (typeof SharedArrayBuffer !== 'undefined' && file.size > 2 * 1024 * 1024) {
                             try { file = await compressVideoClientSide(file, loadingText); } 
                             catch(e) { console.warn("影片壓縮跳過", e); }
                         }
                     } else if (isImage && !isGif) {
                         if (loadingText) loadingText.innerText = `圖片優化壓縮中 (${i+1}/${files.length})...`;
-                        // 將圖片壓縮至 4.5MB 以下
                         file = await compressImageClientSide(file, 4.5);
                     }
 
@@ -10859,9 +11007,46 @@ renderEvMemberPreview = async function(uids, type) {
                     const url = await snap.ref.getDownloadURL();
                     uploadUrls.push(url);
                 }
-                // 將多個網址打包成 JSON 陣列字串
-                payloadContent = JSON.stringify(uploadUrls);
                 
+                // 編輯模式若沒選新檔案，繼承舊檔案
+                if (currentEditingCdId && uploadUrls.length === 0) {
+                    const oldDoc = await db.collection("confidential-docs").doc(currentEditingCdId).get();
+                    payloadContent = oldDoc.data().content;
+                } else {
+                    payloadContent = JSON.stringify(uploadUrls);
+                }
+                
+            } else if (type === 'doc') {
+                if (loadingText) loadingText.innerText = `處理文件內容中...`;
+                const docText = document.getElementById('cd-doc-text') ? document.getElementById('cd-doc-text').value.trim() : '';
+
+                // 處理附加檔案
+                const inputs = document.querySelectorAll('.cd-file-input');
+                const files = [];
+                inputs.forEach(input => { if (input.files && input.files[0]) files.push(input.files[0]); });
+
+                const uploadUrls = [];
+                for (let i = 0; i < files.length; i++) {
+                    let file = files[i];
+                    if (loadingText) loadingText.innerText = `附加檔案上傳中 (${i+1}/${files.length})...`;
+                    const path = `chat/confidential_documents/${title}/${Date.now()}_${i}_${file.name}`;
+                    const snap = await storage.ref(path).put(file);
+                    const url = await snap.ref.getDownloadURL();
+                    uploadUrls.push(url);
+                }
+
+                let finalUrls = uploadUrls;
+                if (currentEditingCdId && uploadUrls.length === 0) {
+                    const oldDoc = await db.collection("confidential-docs").doc(currentEditingCdId).get();
+                    try {
+                        const oldParsed = JSON.parse(oldDoc.data().content);
+                        if (oldParsed.files) finalUrls = oldParsed.files;
+                    } catch(e) {}
+                }
+
+                // 組合文字與檔案
+                payloadContent = JSON.stringify({ text: docText, files: finalUrls });
+
             } else if (type === 'link') {
                 if (loadingText) loadingText.innerText = `資料加密中...`;
                 const link = document.getElementById('cd-link-input').value.trim();
@@ -10886,30 +11071,43 @@ renderEvMemberPreview = async function(uids, type) {
             const sharedWithUids = Array.from(checkedBoxes).map(cb => cb.value); 
             const sharedWithNames = Array.from(checkedBoxes).map(cb => cb.getAttribute('data-name')); 
 
-            if (loadingText) loadingText.innerText = `建立機密索引...`;
-            const docRef = await db.collection("confidential-docs").add({
-                title: title, type: type, truePass: truePass, fakePass: fakePass, content: payloadContent, creator: auth.currentUser.uid,
-                sharedWith: sharedWithUids, recipientNames: sharedWithNames, createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
+            if (loadingText) loadingText.innerText = `寫入資料庫...`;
 
-            const batch = db.batch();
-            const chatRef = db.collection("chats").doc(currentChatId);
-            const msgRef = chatRef.collection("messages").doc();
-            
-            const msgPayload = { type: 'confidential', docId: docRef.id, title: title };
-            batch.set(msgRef, { text: JSON.stringify(msgPayload), senderId: auth.currentUser.uid, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
-            batch.update(chatRef, { lastMessage: `傳送了機密文件：${title}`, lastSenderId: auth.currentUser.uid, updatedAt: firebase.firestore.FieldValue.serverTimestamp(), [`lastReadAt.${auth.currentUser.uid}`]: firebase.firestore.FieldValue.serverTimestamp() });
-            
-            await batch.commit();
-            closeCreateConfidentialView();
-            scrollToBottom(true);
+            if (currentEditingCdId) {
+                // 【修改模式】：純更新不發送訊息
+                await db.collection("confidential-docs").doc(currentEditingCdId).update({
+                    title: title, type: type, truePass: truePass, fakePass: fakePass, content: payloadContent,
+                    sharedWith: sharedWithUids, recipientNames: sharedWithNames, updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                alert("文件修改成功！");
+                currentEditingCdId = null; 
+                closeCreateConfidentialView();
+                openConfidentialListModal(); // 自動重整列表
+            } else {
+                // 【新增模式】：發送新訊息到聊天室
+                const docRef = await db.collection("confidential-docs").add({
+                    title: title, type: type, truePass: truePass, fakePass: fakePass, content: payloadContent, creator: auth.currentUser.uid,
+                    sharedWith: sharedWithUids, recipientNames: sharedWithNames, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                const batch = db.batch();
+                const chatRef = db.collection("chats").doc(currentChatId);
+                const msgRef = chatRef.collection("messages").doc();
+                
+                const msgPayload = { type: 'confidential', docId: docRef.id, title: title };
+                batch.set(msgRef, { text: JSON.stringify(msgPayload), senderId: auth.currentUser.uid, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+                batch.update(chatRef, { lastMessage: `傳送了機密文件：${title}`, lastSenderId: auth.currentUser.uid, updatedAt: firebase.firestore.FieldValue.serverTimestamp(), [`lastReadAt.${auth.currentUser.uid}`]: firebase.firestore.FieldValue.serverTimestamp() });
+                
+                await batch.commit();
+                closeCreateConfidentialView();
+                scrollToBottom(true);
+            }
 
         } catch (e) {
             alert(e.message || "處理失敗");
         } finally {
-            // 【解除鎖定與關閉遮罩】
             if (overlay) overlay.style.display = 'none';
-            btnConfirm.disabled = false; btnCancel.disabled = false;
+            btnConfirm.disabled = false;
             btnConfirm.innerHTML = '<i class="fas fa-paper-plane"></i> 加密傳送';
         }
     }
@@ -10958,17 +11156,22 @@ renderEvMemberPreview = async function(uids, type) {
     
 
     // 假密碼導向的立法院介紹
+    // 假密碼導向的立法院介紹
     function showFakeContent() {
         const viewBody = document.getElementById('cd-view-content');
+        
+        // 為了完美還原假密碼畫面的全黑質感與排版
         viewBody.innerHTML = `
-            <div class="fake-content-paper" style="font-family: 'Times New Roman', serif; text-align: justify;">
-                <h2 style="text-align:center; color:#003153; border-bottom:2px solid #cfa900; padding-bottom:10px;">The Legislature Family</h2>
-                <p>Welcome to the Legislature Communication System. We are more than just a legislative body; we are a family dedicated to serving the public and shaping the future of our nation.</p>
-                <p>Our members work tirelessly across various committees, engaging in profound debates and crafting policies that ensure every voice is heard. This system embodies our core values: professionalism, transparency, and a warm, collaborative environment.</p>
-                <p>Behind these walls, decades of history merge with modern innovation, driving our mission forward. Thank you for your continued dedication to our shared cause.</p>
-                <div style="text-align:right; margin-top:20px; font-style:italic; color:#666;">- System Administrator</div>
+            <div class="fake-content-paper" style="font-family: 'Times New Roman', Times, serif; text-align: justify; background: #000; padding: 25px; border-radius: 8px; color: #eaeaea; line-height: 1.8; border: 1px solid #111;">
+                <h2 style="text-align:center; color:#cfa900; border-bottom:2px solid #cfa900; padding-bottom:15px; margin-top:0; font-size: 1.8rem; font-weight: bold;">The Legislature Family</h2>
+                <p style="margin-top: 20px; font-size: 1.15rem;">Welcome to the Legislature Communication System. We are more than just a legislative body; we are a family dedicated to serving the public and shaping the future of our nation.</p>
+                <p style="font-size: 1.15rem;">Our members work tirelessly across various committees, engaging in profound debates and crafting policies that ensure every voice is heard. This system embodies our core values: professionalism, transparency, and a warm, collaborative environment.</p>
+                <p style="font-size: 1.15rem;">Behind these walls, decades of history merge with modern innovation, driving our mission forward. Thank you for your continued dedication to our shared cause.</p>
+                <div style="text-align:right; margin-top:30px; font-style:italic; color:#ccc; font-size: 1.1rem;">- System Administrator</div>
             </div>
         `;
+        // 將外層模態窗的底色也強制抹黑
+        viewBody.parentElement.style.background = '#000';
         openModal('viewConfidentialModal');
     }
 
@@ -11035,20 +11238,42 @@ renderEvMemberPreview = async function(uids, type) {
                     </div>`;
 
                 // 【修復關鍵】：補回點擊呼叫 openUnlockModal 與滑動刪除的功能
+                // 【修復關鍵】：補回點擊呼叫 openUnlockModal 與滑動刪除的功能
                 if (canDelete) {
-                    html += `
-                    <div class="swipe-container" style="background: #1a1a1a; cursor: pointer;">
-                        <div class="swipe-actions" style="width: 80px;">
-                            <button class="swipe-delete-btn" onclick="deleteConfidential('${doc.id}')"><i class="fas fa-trash-alt"></i></button>
-                        </div>
-                        <div class="swipe-content cd-swipe-content" 
-                             onmousedown="cdSwipeStart(event, this)" onmousemove="cdSwipeMove(event, this)" 
-                             onmouseup="cdSwipeEnd(event, this, '${doc.id}')" onmouseleave="cdSwipeEnd(event, this, '${doc.id}')" 
-                             ontouchstart="cdSwipeStart(event, this)" ontouchmove="cdSwipeMove(event, this)" 
-                             ontouchend="cdSwipeEnd(event, this, '${doc.id}')">
-                            ${innerHtml}
-                        </div>
-                    </div>`;
+                    const isDocType = data.type === 'doc'; // 判斷是否為文件
+                    
+                    if (isDocType) {
+                        // 如果是文件，顯示 [修改] 與 [刪除] 雙按鈕
+                        html += `
+                        <div class="swipe-container" style="background: #1a1a1a; cursor: pointer;">
+                            <div class="swipe-actions-dual" style="width: 140px;">
+                                <button class="swipe-edit-btn" onclick="editConfidentialDoc('${doc.id}')"><i class="fas fa-edit"></i></button>
+                                <button class="swipe-delete-btn-half" onclick="deleteConfidential('${doc.id}')"><i class="fas fa-trash-alt"></i></button>
+                            </div>
+                            <div class="swipe-content cd-swipe-content" 
+                                 onmousedown="cdSwipeStart(event, this)" onmousemove="cdSwipeMove(event, this)" 
+                                 onmouseup="cdSwipeEnd(event, this, '${doc.id}')" onmouseleave="cdSwipeEnd(event, this, '${doc.id}')" 
+                                 ontouchstart="cdSwipeStart(event, this)" ontouchmove="cdSwipeMove(event, this)" 
+                                 ontouchend="cdSwipeEnd(event, this, '${doc.id}')">
+                                ${innerHtml}
+                            </div>
+                        </div>`;
+                    } else {
+                        // 否則維持原本只有 [刪除] 的單按鈕
+                        html += `
+                        <div class="swipe-container" style="background: #1a1a1a; cursor: pointer;">
+                            <div class="swipe-actions" style="width: 80px;">
+                                <button class="swipe-delete-btn" onclick="deleteConfidential('${doc.id}')"><i class="fas fa-trash-alt"></i></button>
+                            </div>
+                            <div class="swipe-content cd-swipe-content" 
+                                 onmousedown="cdSwipeStart(event, this)" onmousemove="cdSwipeMove(event, this)" 
+                                 onmouseup="cdSwipeEnd(event, this, '${doc.id}')" onmouseleave="cdSwipeEnd(event, this, '${doc.id}')" 
+                                 ontouchstart="cdSwipeStart(event, this)" ontouchmove="cdSwipeMove(event, this)" 
+                                 ontouchend="cdSwipeEnd(event, this, '${doc.id}')">
+                                ${innerHtml}
+                            </div>
+                        </div>`;
+                    }
                 } else {
                     // 如果沒有刪除權限，單純套用點擊解鎖功能
                     html += `<div style="cursor: pointer;" onclick="openUnlockModal('${doc.id}')">${innerHtml}</div>`;
@@ -11115,18 +11340,24 @@ renderEvMemberPreview = async function(uids, type) {
         if (!isCdSwiping) return;
         const x = e.type.includes('mouse') ? e.pageX : e.touches[0].clientX;
         cdCurrentX = x - cdStartX;
-        if (cdCurrentX < 0 && cdCurrentX > -90) el.style.transform = `translateX(${cdCurrentX}px)`;
+        // 【修改】：將 -90 改為 -150，容納雙按鈕
+        if (cdCurrentX < 0 && cdCurrentX > -150) el.style.transform = `translateX(${cdCurrentX}px)`;
     }
     function cdSwipeEnd(e, el, docId) {
         if (!isCdSwiping) return;
         isCdSwiping = false; el.style.transition = 'transform 0.3s ease';
+        
+        // 【修改】：判斷底下的按鈕寬度，決定停在哪裡
+        const hasDualActions = el.parentElement.querySelector('.swipe-actions-dual');
+        const targetWidth = hasDualActions ? -140 : -80;
+
         if (cdCurrentX < -45) {
-            el.style.transform = 'translateX(-80px)'; cdSwipedOpen = el;
+            el.style.transform = `translateX(${targetWidth}px)`; cdSwipedOpen = el;
         } else {
             el.style.transform = 'translateX(0px)'; if (cdSwipedOpen === el) cdSwipedOpen = null;
             if (Math.abs(cdCurrentX) < 10) {
-                if (e && e.type === 'touchend' && e.cancelable) e.preventDefault(); // 【修復】：阻擋瀏覽器補發第二次點擊
-                openUnlockModal(docId); // 如果沒滑動視為點擊，開啟解鎖
+                if (e && e.type === 'touchend' && e.cancelable) e.preventDefault(); 
+                openUnlockModal(docId); 
             }
         }
         cdCurrentX = 0;
@@ -16118,8 +16349,9 @@ renderEvMemberPreview = async function(uids, type) {
                 optionCreators[opt] = auth.currentUser.uid;
             });
 
+            // 【修改】：加入 pollId 欄位，讓系統追蹤這是哪一則投票
             const payload = {
-                type: 'poll', question: data.question, content: data.content || '', options: data.options,
+                type: 'poll', pollId: pollId, question: data.question, content: data.content || '', options: data.options,
                 votes: votesMap, deadline: data.deadline || '', allowAddOptions: data.allowAddOptions || false, optionCreators: optionCreators 
             };
 
@@ -16265,6 +16497,7 @@ renderEvMemberPreview = async function(uids, type) {
         const deadline = document.getElementById('pollDeadline').value; 
         const allowAdd = document.getElementById('pollAllowAdd').checked; 
         const optionInputs = document.querySelectorAll('.poll-option-input');
+        
         let options = [];
         optionInputs.forEach(input => {
             if (input.value.trim()) options.push(input.value.trim());
@@ -16274,40 +16507,99 @@ renderEvMemberPreview = async function(uids, type) {
         if (options.length < 2) return alert("至少需要兩個選項！");
 
         let shouldSendToChat = false;
-        if (currentEditingPollId) {
-            if (!confirm("確定要儲存此投票的修改嗎？")) return;
-        } else {
-            shouldSendToChat = confirm("投票準備建立！\n\n請問是否要立即將此投票「發布到目前的聊天室」？\n\n▶ 按【確定】：儲存，並發布\n▶ 按【取消】：僅儲存，稍後再發布");
+        if (!currentEditingPollId) {
+            shouldSendToChat = confirm("投票準備建立！\n\n請問是否要立即將此投票「發布到目前的聊天室」？\n\n▶ 按【確定】：儲存，並發送卡片到聊天室\n▶ 按【取消】：僅儲存，等一下再發送");
         }
 
         const btn = document.getElementById('btnSubmitPoll');
-        btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 處理中...';
+        btn.disabled = true; 
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 處理中...';
 
         try {
-            let myName = document.getElementById('myName').innerText.trim();
-            if (!myName || myName === "載入中...") myName = auth.currentUser.displayName || "未知";
-
             const pollData = {
-                question, content, options, deadline, allowAddOptions: allowAdd,
+                question: question,
+                content: content,
+                deadline: deadline,
+                allowAddOptions: allowAdd,
+                options: options,
                 creatorUid: auth.currentUser.uid,
-                creatorName: myName,
+                creatorName: document.getElementById('myName').innerText.trim() || auth.currentUser.displayName || "未知"
             };
 
-            let finalPollId = currentEditingPollId;
-
             if (currentEditingPollId) {
-                // 更新模式
+                // 【更新模式】：更新資料庫內的投票範本
                 pollData.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
                 await db.collection("polls").doc(currentEditingPollId).update(pollData);
-                alert("投票修改成功！");
+                
+                // 【終極修復】：同步更新目前聊天室中，所有關聯這則投票的卡片內容！
+                if (currentChatId) {
+                    const msgsSnap = await db.collection("chats").doc(currentChatId).collection("messages").get();
+                    const syncBatch = db.batch();
+                    let syncCount = 0;
+                    
+                    msgsSnap.forEach(mDoc => {
+                        const mData = mDoc.data();
+                        if (mData.text && mData.text.includes('"type":"poll"')) {
+                            try {
+                                let parsed = JSON.parse(mData.text);
+                                
+                                // 相容舊資料，若沒有 pollId 就用標題去配對
+                                if (parsed.pollId === currentEditingPollId || parsed.question === pollData.question) {
+                                    
+                                    parsed.pollId = currentEditingPollId; // 補上 ID 確保後續追蹤
+                                    parsed.question = pollData.question;
+                                    parsed.content = pollData.content;
+                                    parsed.deadline = pollData.deadline;
+                                    parsed.allowAddOptions = pollData.allowAddOptions;
+                                    
+                                    // 處理選項的增減 (保留舊有票數)
+                                    let newOptions = [...pollData.options];
+                                    
+                                    // 判斷原本是否有成員自行新增的選項，如果有則保留
+                                    parsed.options.forEach(oldOpt => {
+                                        if (!newOptions.includes(oldOpt)) {
+                                            // 檢查這個舊選項是不是發起人建的，如果不是，代表是成員後來加的，予以保留
+                                            if (parsed.optionCreators && parsed.optionCreators[oldOpt] && parsed.optionCreators[oldOpt] !== pollData.creatorUid) {
+                                                newOptions.push(oldOpt);
+                                            }
+                                        }
+                                    });
+
+                                    parsed.options = newOptions;
+
+                                    parsed.options.forEach(opt => {
+                                        if (!parsed.votes) parsed.votes = {};
+                                        if (!parsed.votes[opt]) parsed.votes[opt] = [];
+                                        
+                                        if (!parsed.optionCreators) parsed.optionCreators = {};
+                                        if (!parsed.optionCreators[opt]) parsed.optionCreators[opt] = auth.currentUser.uid;
+                                    });
+                                    
+                                    syncBatch.update(mDoc.ref, { text: JSON.stringify(parsed) });
+                                    syncCount++;
+                                }
+                            } catch(e) {}
+                        }
+                    });
+                    
+                    if (syncCount > 0) {
+                        await syncBatch.commit();
+                        // 順便更新聊天室首頁最後一則訊息的預覽文字
+                        await db.collection("chats").doc(currentChatId).update({
+                            lastMessage: `📊 發起了投票：${pollData.question}`,
+                            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                    }
+                }
+
+                alert("投票修改成功，聊天室卡片已同步！");
             } else {
-                // 新增模式
+                // 【新增模式】
                 pollData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
                 const newDoc = await db.collection("polls").add(pollData);
-                finalPollId = newDoc.id;
 
                 if (shouldSendToChat && currentChatId) {
-                    await sendPollCard(finalPollId); // 直接呼叫發布函式
+                    await sendPollCard(newDoc.id); 
                 } else {
                     alert("投票已成功儲存至清單！");
                 }
@@ -16390,6 +16682,9 @@ renderEvMemberPreview = async function(uids, type) {
         if (!currentChatId || !auth.currentUser) return;
         const uid = auth.currentUser.uid;
         
+        // 【新增】：標記正在互動，鎖住畫面捲動，避免重新渲染時跳到底部
+        window.preserveScrollPosition = true;
+        
         try {
             const msgRef = db.collection("chats").doc(currentChatId).collection("messages").doc(msgId);
             
@@ -16417,8 +16712,10 @@ renderEvMemberPreview = async function(uids, type) {
             });
         } catch (e) {
             console.error("投票失敗", e);
-            // 【新增】：顯示錯誤訊息給使用者看
             if (typeof e === 'string') alert(e); 
+        } finally {
+            // 【新增】：1.5 秒後解除鎖定，確保資料庫回傳的渲染已完全結束
+            setTimeout(() => { window.preserveScrollPosition = false; }, 1500);
         }
     }
 
