@@ -151,15 +151,70 @@
             position: relative; /* 【關鍵新增】 */
         }
 
-        /* --- 強制統一首頁聊天列表的大頭貼尺寸 (不受頂部 Header 影響) --- */
-        /* --- 聊天列表大頭貼 --- */
-        .chat-item .user-avatar {
-            width: 55px;  /* 群組預設為 55px */
-            height: 55px;
-            margin-right: 15px;
-            border-radius: 50%;
+        /* ==========================================
+           【修改】：聊天列表頭貼的迷你主題外框特效
+           ========================================== */
+        /* 1. 先修改原本的 .chat-item .user-avatar 為通用尺寸 */
+        .chat-item .user-avatar, .chat-item .chat-avatar-wrapper {
+            width: 55px; height: 55px; margin-right: 15px; flex-shrink: 0;
+            border-radius: 50%; /* 【修復：補回群組頭貼的圓角設定】 */
             object-fit: cover;
-            flex-shrink: 0;
+        }
+        
+        /* 2. 定義聊天列表專用的頭貼包裝器 */
+        .chat-item .chat-avatar-wrapper {
+            position: relative; display: inline-flex; justify-content: center; align-items: center;
+            border-radius: 50%; border: 1px solid rgba(0,0,0,0.1); /* 預設細框，防止頭貼與背景融合 */
+            box-sizing: border-box; overflow: visible; /* 讓特效如皇冠可以超出 */
+        }
+        .chat-item .chat-avatar-wrapper img.user-avatar {
+            width: 100% !important; height: 100% !important; margin-right: 0 !important;
+            border-radius: 50% !important; object-fit: cover; box-sizing: border-box;
+        }
+
+        /* 3. 各主題特效 - 單人聊天列表專用 (基於 55px 尺寸微調) */
+        
+        /* 公主主題 */
+        .chat-item .chat-avatar-wrapper.theme-princess {
+            border: 2.5px solid #ffb7c5;
+            box-shadow: 0 3px 8px rgba(216, 112, 147, 0.4);
+        }
+        .chat-item .chat-avatar-wrapper.theme-princess img.user-avatar {
+            border: 1.5px solid #fff;
+        }
+        
+        .chat-item .chat-avatar-wrapper .chat-theme-crown {
+            position: absolute; top: -16px; left: 50%; transform: translateX(-50%) rotate(-5deg);
+            color: #ffcc00; font-size: 18px; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3)); z-index: 15;
+            animation: crownPulse 3s infinite ease-in-out;
+        }
+        .chat-item .chat-avatar-wrapper .chat-theme-sakura {
+            position: absolute; width: 10px; height: 10px; background: #ffb7c5;
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+            z-index: 12; animation: sakuraFloat 3s infinite ease-in-out;
+        }
+        .chat-item .chat-avatar-wrapper .sakura-1 { top: -2px; right: -2px; }
+        .chat-item .chat-avatar-wrapper .sakura-2 { bottom: 0px; left: -3px; animation-delay: 1.5s; }
+
+        /* 科技主題 */
+        .chat-item .chat-avatar-wrapper.theme-tech {
+            border: 2px solid #00f2fe; box-shadow: 0 0 10px rgba(0, 242, 254, 0.7);
+        }
+        .chat-item .chat-avatar-wrapper .chat-theme-tech-ring {
+            position: absolute; inset: -6px; border-radius: 50%;
+            border: 1.5px solid transparent; border-top-color: #00f2fe; animation: tech-rotate 5s linear infinite;
+        }
+        
+        /* 中二主題 */
+        .chat-item .chat-avatar-wrapper.theme-chuuni {
+            border: 2px solid #b71c1c; box-shadow: 0 0 12px rgba(183, 28, 28, 1);
+        }
+        .chat-item .chat-avatar-wrapper .chat-theme-chuuni-rune {
+            position: absolute; inset: -5px; border-radius: 50%;
+            background: repeating-conic-gradient(#b71c1c 0 5deg, transparent 5deg 10deg);
+            mask: radial-gradient(circle, transparent 24px, black 25px);
+            -webkit-mask: radial-gradient(circle, transparent 24px, black 25px);
+            animation: chuuni-pulse 3s linear infinite;
         }
         .chat-item:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.08); border-color: #ffffff; }
         .chat-info { 
@@ -1976,7 +2031,8 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
            修復：標題列強制靠左與連續標籤無縫接軌
            ========================================== */
         /* 1. 解除所有子視窗 41px 的干擾，完美貼齊左側 */
-        .app-view:not(#messengerView):not(#chatView) .header-content {
+        .app-view:not(#messengerView):not(#chatView) .header-content,
+        #calendarView .header-content {
             padding-left: 15px !important;
             padding-right: 15px !important;
         }
@@ -2016,10 +2072,13 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             display: flex;
             overflow-x: auto;
             scroll-snap-type: x mandatory;
-            scrollbar-width: none; /* 隱藏 Firefox 卷軸 */
-            -ms-overflow-style: none; /* 隱藏 IE 卷軸 */
+            scrollbar-width: none; 
+            -ms-overflow-style: none; 
             scroll-behavior: smooth;
-            -webkit-overflow-scrolling: touch; /* 確保 iOS 順暢滾動 */
+            -webkit-overflow-scrolling: touch; 
+            /* 【終極修復】：約束容器高度，使其強制產生內部捲動軸 */
+            min-height: 0;
+            height: 100%;
         }
 
         .calendar-scroll-container::-webkit-scrollbar {
@@ -3336,6 +3395,51 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             border-color: var(--ly-gold);
         }
 
+        /* --- 修改：底部頭像同步主題外框特效 --- */
+        .center-circle.theme-tech {
+            border-color: #00f2fe !important;
+            box-shadow: 0 0 10px rgba(0, 242, 254, 0.6);
+        }
+        .center-circle.theme-chuuni {
+            border-color: #b71c1c !important;
+            box-shadow: 0 0 10px rgba(183, 28, 28, 0.8);
+        }
+        .center-circle.theme-princess {
+            border-color: transparent !important;
+            padding: 0px;
+            background: linear-gradient(45deg, #ffd700, #ffb7c5, #ffd700);
+            box-shadow: 0 4px 10px rgba(216, 112, 147, 0.4);
+        }
+        .center-circle.theme-princess img {
+            border: 1.2px solid #fff;
+        }
+        
+        /* 共用特效定位 */
+        .center-circle .chat-theme-crown {
+            position: absolute; left: 50%; transform: translateX(-50%) rotate(-5deg);
+            color: #ffcc00; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3)); z-index: 15;
+            animation: crownPulse 3s infinite ease-in-out;
+        }
+        .center-circle .chat-theme-sakura {
+            position: absolute; width: 8px; height: 8px; background: #ffb7c5;
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+            z-index: 12; animation: sakuraFloat 3s infinite ease-in-out;
+        }
+        .center-circle .sakura-1 { top: -2px; right: -2px; }
+        .center-circle .sakura-2 { bottom: 0px; left: -3px; animation-delay: 1.5s; }
+
+        .center-circle .chat-theme-tech-ring {
+            position: absolute; inset: -4px; border-radius: 50%; pointer-events: none;
+            border: 1px solid transparent; border-top-color: #00f2fe; animation: tech-rotate 5s linear infinite;
+        }
+        .center-circle .chat-theme-chuuni-rune {
+            position: absolute; inset: -3px; border-radius: 50%; pointer-events: none;
+            background: repeating-conic-gradient(#b71c1c 0 5deg, transparent 5deg 10deg);
+            mask: radial-gradient(circle, transparent 20px, black 21px);
+            -webkit-mask: radial-gradient(circle, transparent 20px, black 21px);
+            animation: chuuni-pulse 3s linear infinite;
+        }
+
         /* 墊高懸浮按鈕避免被導覽列遮擋 */
         .fab { bottom: calc(85px + env(safe-area-inset-bottom)) !important; }
 
@@ -3589,6 +3693,53 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         }
 
         /* ==========================================
+           【新增】：聊天室內頭貼的迷你主題外框特效
+           ========================================== */
+        .chat-avatar-wrapper {
+            position: relative; display: inline-flex; justify-content: center; align-items: center;
+            width: 35px; height: 35px; flex-shrink: 0; margin: 0;
+        }
+        .chat-avatar-wrapper.theme-princess {
+            padding: 2px; background: linear-gradient(45deg, #ffd700, #ffb7c5, #ffd700);
+            border-radius: 50%; box-shadow: 0 2px 5px rgba(216, 112, 147, 0.4); box-sizing: border-box;
+        }
+        .chat-avatar-wrapper.theme-princess img {
+            border: 1.5px solid #fff; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; box-sizing: border-box;
+        }
+        body.dark-mode .chat-avatar-wrapper.theme-princess img { border-color: #2a0010; }
+        
+        .chat-avatar-wrapper .chat-theme-crown {
+            position: absolute; top: -12px; left: 50%; transform: translateX(-50%) rotate(-5deg);
+            color: #ffcc00; font-size: 13px; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3)); z-index: 15;
+            animation: crownPulse 3s infinite ease-in-out;
+        }
+        .chat-avatar-wrapper .chat-theme-sakura {
+            position: absolute; width: 7px; height: 7px; background: #ffb7c5;
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+            z-index: 12; animation: sakuraFloat 3s infinite ease-in-out;
+        }
+        .chat-avatar-wrapper .sakura-1 { top: -2px; right: -2px; }
+        .chat-avatar-wrapper .sakura-2 { bottom: 0px; left: -3px; animation-delay: 1.5s; }
+
+        .chat-avatar-wrapper.theme-tech {
+            border: 1.5px solid #00f2fe; border-radius: 50%; box-shadow: 0 0 6px rgba(0, 242, 254, 0.6);
+        }
+        .chat-avatar-wrapper .chat-theme-tech-ring {
+            position: absolute; inset: -4px; border-radius: 50%;
+            border: 1px solid transparent; border-top-color: #00f2fe; animation: tech-rotate 5s linear infinite;
+        }
+        
+        .chat-avatar-wrapper.theme-chuuni {
+            border-radius: 50%; box-shadow: 0 0 8px rgba(183, 28, 28, 0.8);
+        }
+        .chat-avatar-wrapper .chat-theme-chuuni-rune {
+            position: absolute; inset: -3px; border-radius: 50%;
+            background: repeating-conic-gradient(#b71c1c 0 5deg, transparent 5deg 10deg);
+            mask: radial-gradient(circle, transparent 15px, black 16px);
+            -webkit-mask: radial-gradient(circle, transparent 15px, black 16px);
+            animation: chuuni-pulse 3s linear infinite;
+        }
+        /* ==========================================
         全域 UI 色彩聯動 (Header、聊天列表與選單)
         ========================================= */
 
@@ -3602,11 +3753,6 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         .chat-item h4, .chat-item .chat-name {
             color: var(--ly-blue) !important; /* 聊天對象名稱 */
             transition: color 0.4s;
-        }
-
-        .chat-item img {
-            border: 2px solid var(--ly-gold) !important; /* 聊天對象大頭貼外框 */
-            transition: border-color 0.4s;
         }
 
         /* 未讀提示點 / 標籤聯動 */
@@ -3625,6 +3771,34 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         .messenger-header .header-actions button {
             color: #ffffff !important; 
         }
+
+        /* ==========================================
+        新增：三種純圖片外框風格 (不改主題色)
+        ========================================== */
+        /* 大頭貼主畫面的圖片外框定位 */
+        .custom-frame-overlay {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -55%) scale(1.8); /* 放大 1.35 倍以覆蓋在圓形頭像外圍，可視情況微調 */
+            width: 100%;
+            height: 100%;
+            z-index: 20;
+            pointer-events: none;
+            object-fit: contain;
+        }
+
+        .avatar-frame-container.style1-theme .custom-frame-overlay,
+        .avatar-frame-container.style2-theme .custom-frame-overlay,
+        .avatar-frame-container.style3-theme .custom-frame-overlay {
+            display: block;
+        }
+
+        /* 聊天列表、對話氣泡的小頭貼、底部導覽列的 ::after 偽元素覆蓋 */
+        .chat-avatar-wrapper.theme-style1::after, .center-circle.theme-style1::after { content:''; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%) scale(1.7); width:100%; height:100%; background:url('https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/01.png?raw=true') center/contain no-repeat; z-index:15; pointer-events:none; }
+        .chat-avatar-wrapper.theme-style2::after, .center-circle.theme-style2::after { content:''; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%) scale(1.7); width:100%; height:100%; background:url('https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/02.png?raw=true') center/contain no-repeat; z-index:15; pointer-events:none; }
+        .chat-avatar-wrapper.theme-style3::after, .center-circle.theme-style3::after { content:''; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%) scale(1.7); width:100%; height:100%; background:url('https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/03.png?raw=true') center/contain no-repeat; z-index:15; pointer-events:none; }
     </style>
 
     <script>
@@ -3690,7 +3864,9 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                 <div style="position: relative;">
                 <div id="avatarFrameContainer" class="avatar-frame-container avatar-frame-default">
                     <img id="aboutMeAvatar" src="" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; z-index: 5;">
-                    
+                
+                    <img id="customFrameImg" class="custom-frame-overlay" src="">
+
                     <div class="princess-crown princess-theme-only"><i class="fas fa-crown"></i></div>
                     <div class="princess-sakura sakura-1 princess-theme-only"></div>
                     <div class="princess-sakura sakura-2 princess-theme-only"></div>
@@ -3719,14 +3895,6 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                     <span><i class="fas fa-magic" style="color: var(--ly-gold);"></i> 變換外框與主題</span>
                     <i class="fas fa-chevron-right" style="color: #ccc;"></i>
                  </button>
-                 <button onclick="openCalendarView()">
-                    <span><i class="fas fa-calendar-alt" style="color: #5ba4d6;"></i> 個人行事曆</span>
-                    <i class="fas fa-chevron-right" style="color: #ccc;"></i>
-                 </button>
-                 <button onclick="openGuide()">
-                    <span><i class="fas fa-book-open" style="color: #ccc;"></i> 系統操作說明</span>
-                    <i class="fas fa-chevron-right" style="color: #ccc;"></i>
-                 </button>
             </div>
             
             <button class="btn-modal btn-danger" style="width: 90%; max-width: 400px; margin-top: 15px; padding: 15px; border-radius: 12px; font-size: 1.05rem; box-shadow: 0 4px 15px rgba(255, 77, 77, 0.2);" onclick="handleLogout()">
@@ -3745,6 +3913,8 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                         <div id="frame-preview-container" style="display: flex; flex-direction: column; align-items: center; gap: 20px; margin-bottom: 30px;">
                         <div id="avatarFramePreview" class="avatar-frame-container avatar-frame-default">
                             <img id="aboutMeAvatarPreview" src="" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; z-index: 5;">
+                            
+                            <img id="customFramePreviewImg" class="custom-frame-overlay" src="">
                             
                             <div class="princess-crown princess-theme-only"><i class="fas fa-crown"></i></div>
                             <div class="princess-sakura sakura-1 princess-theme-only"></div>
@@ -3779,13 +3949,50 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                             <div class="theme-swatch" style="background: linear-gradient(135deg, #4a148c, #b71c1c);"></div>
                             <span>中二風格 (紅紫)</span>
                         </div>
+                        <div class="theme-option-item" onclick="changeThemeFrame('style1', this)">
+                            <div class="theme-swatch" style="background: url('https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/01.png?raw=true') center/contain no-repeat, var(--bg-gray);"></div>
+                            <span>風格一</span>
+                        </div>
+                        <div class="theme-option-item" onclick="changeThemeFrame('style2', this)">
+                            <div class="theme-swatch" style="background: url('https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/02.png?raw=true') center/contain no-repeat, var(--bg-gray);"></div>
+                            <span>風格二</span>
+                        </div>
+                        <div class="theme-option-item" onclick="changeThemeFrame('style3', this)">
+                            <div class="theme-swatch" style="background: url('https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/03.png?raw=true') center/contain no-repeat, var(--bg-gray);"></div>
+                            <span>風格三</span>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
         <main id="homeView" style="display: none; flex: 1; align-items: center; justify-content: center; color: #999; padding-bottom: 100px;">首頁功能建置中...</main>
-        <main id="otherView" style="display: none; flex: 1; align-items: center; justify-content: center; color: #999; padding-bottom: 100px;">其他功能建置中...</main>
+        <main id="otherView" style="display: none; flex: 1; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 40px; background: var(--bg-gray); width: 100%; overflow-y: auto; padding-bottom: 100px;">
+            <div style="width: 90%; max-width: 400px; display: flex; flex-direction: column; gap: 15px;">
+                
+                <div id="darkModeContainer" onclick="toggleDarkModeWithAnim()" style="width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #f8f9fa; border-radius: 12px; border: 1px solid #eee; box-sizing: border-box; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                    <span style="font-weight: bold; color: var(--ly-blue); font-size: 1.05rem;"><i class="fas fa-palette"></i> 外觀模式切換</span>
+                    <i class="fas fa-sun" id="darkModeToggleIcon" style="font-size: 1.5rem; color: #e67e22; transition: transform 0.3s ease, color 0.3s ease;"></i>
+                </div>
+
+                <div id="languageContainer" onclick="toggleLanguageWithAnim()" style="width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #f8f9fa; border-radius: 12px; border: 1px solid #eee; box-sizing: border-box; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                    <span id="langLabelText" style="font-weight: bold; color: var(--ly-blue); font-size: 1.05rem;"><i class="fas fa-globe"></i> 言語切替</span>
+                    <span id="languageToggleIcon" style="font-size: 1.1rem; font-weight: 900; color: var(--ly-gold); transition: transform 0.3s ease;">JP <i class="fas fa-exchange-alt" style="margin-left:4px;"></i></span>
+                </div>
+
+                <button class="btn-modal btn-cancel" style="width: 100%; padding: 15px; border-radius: 12px; font-size: 1.05rem; color: #5ba4d6; border: 1px solid #5ba4d6; font-weight: bold; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.05);" onclick="openSlidingCalendar()">
+                    <i class="fas fa-calendar-alt"></i> 個人行事曆
+                </button>
+
+                <button class="btn-modal btn-cancel" style="width: 100%; padding: 15px; border-radius: 12px; font-size: 1.05rem; color: var(--ly-blue); border: 1px solid var(--ly-blue); font-weight: bold; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.05);" onclick="openGuide()">
+                    <i class="fas fa-book-open"></i> 系統操作說明
+                </button>
+
+                <button class="btn-modal btn-cancel" style="width: 100%; padding: 15px; border-radius: 12px; font-size: 1.05rem; color: var(--ly-gold); border: 1px solid var(--ly-gold); font-weight: bold; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.05);" onclick="openReleaseNotes()">
+                    <i class="fas fa-history"></i> 版本更新內容
+                </button>
+            </div>
+        </main>
 
         <main id="activityScheduleView" style="display: none; flex: 1; flex-direction: column; background: var(--bg-gray); padding-bottom: 100px; width: 100%;">
             <div style="padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); background: white;">
@@ -3813,7 +4020,7 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                 <span id="navCenterName">關於我</span>
             </div>
 
-            <div class="nav-item" onclick="switchMainTab('activity', this)"><i class="fas fa-calendar-alt"></i><span>活動</span></div>
+            <div class="nav-item" onclick="switchMainTab('calendar', this)"><i class="fas fa-calendar-alt"></i><span>日曆</span></div>
             <div class="nav-item" onclick="switchMainTab('other', this)"><i class="fas fa-ellipsis-h"></i><span>其他</span></div>
         </nav>
     </div>
@@ -4382,17 +4589,6 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             <p id="settingsEmail" style="color: #666; font-size: 1rem; margin: 0 0 5px 0; text-align: center; width: 100%;">載入中...</p>
             <p id="settingsUid" style="color: #aaa; font-size: 0.8rem; margin: 0 0 25px 0; font-family: monospace; text-align: center; width: 100%;">UID: ...</p>
             
-
-            <div id="darkModeContainer" onclick="toggleDarkModeWithAnim()" style="width: 100%; max-width: 300px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 12px 15px; background: #f8f9fa; border-radius: 8px; border: 1px solid #eee; box-sizing: border-box; cursor: pointer; transition: 0.2s;">
-                <span style="font-weight: bold; color: var(--ly-blue);"><i class="fas fa-palette"></i> 外觀模式切換</span>
-                <i class="fas fa-sun" id="darkModeToggleIcon" style="font-size: 1.5rem; color: #e67e22; transition: transform 0.3s ease, color 0.3s ease;"></i>
-            </div>
-
-            <div id="languageContainer" onclick="toggleLanguageWithAnim()" style="width: 100%; max-width: 300px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 12px 15px; background: #f8f9fa; border-radius: 8px; border: 1px solid #eee; box-sizing: border-box; cursor: pointer; transition: 0.2s;">
-                <span id="langLabelText" style="font-weight: bold; color: var(--ly-blue);"><i class="fas fa-globe"></i> 言語切替</span>
-                <span id="languageToggleIcon" style="font-size: 1.1rem; font-weight: 900; color: var(--ly-gold); transition: transform 0.3s ease;">JP <i class="fas fa-exchange-alt" style="margin-left:4px;"></i></span>
-            </div>
-
             <div style="width: 100%; max-width: 300px; display: flex; gap: 10px; margin-bottom: 15px;">
                 <button class="btn-modal btn-cancel" style="flex: 1; padding: 10px; border-radius: 8px; font-size: 0.9rem;" onclick="handleChangeEmail()"><i class="fas fa-envelope"></i> 修改信箱</button>
                 <button class="btn-modal btn-cancel" style="flex: 1; padding: 10px; border-radius: 8px; font-size: 0.9rem;" onclick="handleChangePassword()"><i class="fas fa-key"></i> 修改密碼</button>
@@ -4623,8 +4819,8 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             </div>
         </div>
 
-        <div style="flex: 1; background: var(--bg-gray); display: flex; flex-direction: column; overflow: hidden;">
-            <div style="flex: 1; background: var(--bg-gray); display: flex; flex-direction: column; overflow: hidden;">
+        <div style="flex: 1; min-height: 0; background: var(--bg-gray); display: flex; flex-direction: column; overflow: hidden;">
+            <div style="flex: 1; min-height: 0; background: var(--bg-gray); display: flex; flex-direction: column; overflow: hidden;">
                 <div class="calendar-weekdays" id="calendarWeekdays" style="z-index: 10;">
                     <div class="sunday">日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div class="saturday">六</div>
                 </div>
@@ -4860,10 +5056,23 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             <div class="release-timeline">
                 <div class="release-item latest">
                     <div class="version-title" style="cursor: pointer; user-select: none;" onclick="toggleReleaseContent(this)">
-                        <span class="v-badge latest">v 1.1.10</span>
-                        <span class="v-date">介面重構與深色模式修復</span>
+                        <span class="v-badge latest">v 1.1.13</span>
+                        <span class="v-date">新增客製化頭像外框風格</span>
                     </div>
                     <div class="v-content" style="display: block;">
+                        <ul>
+                            <li><b>【視覺升級】</b>新增三款全新的專屬頭像外框風格（風格一、二、三），套用時僅改變大頭貼外框圖片，不影響系統整體的主題配色。</li>
+                            <li><b>【介面微調】</b>優化自訂外框圖片的顯示比例（放大至 1.35 倍以上）與微調中心點偏移位置，使外框能更完美地包覆大頭貼邊緣。</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="release-item">
+                    <div class="version-title" style="cursor: pointer; user-select: none;" onclick="toggleReleaseContent(this)">
+                        <span class="v-badge">v 1.1.10</span>
+                        <span class="v-date">介面重構與深色模式修復</span>
+                    </div>
+                    <div class="v-content" style="display: none;">
                         <ul>
                             <li><b>【體驗重構】</b>淘汰傳統小型彈跳視窗 (Modal)，將「發起新活動」、「發起團購訂單」、「傳送機密文件」全面升級為「滿版側滑頁面 (App View)」，提供與系統一致的沉浸式操作手感，並完整支援邊緣左滑返回手勢。</li>
                             <li><b>【深色適配】</b>修復發布頁面在深色模式下的顯示異常。針對「設為私人活動」、「允許新增選項」等特殊設定區塊，導入高質感暗色系透明底與高亮文字適配，提升視覺辨識度。</li>
@@ -5972,6 +6181,35 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
     // 0. 系統初始化與深色模式
     // ==========================================
     document.addEventListener("DOMContentLoaded", () => {
+        // 【新增】：自動將行事曆轉移到主畫面內，並完美變為 Tab 分頁模式
+        const calView = document.getElementById('calendarView');
+        const messengerView = document.getElementById('messengerView');
+        const bottomNav = document.querySelector('.bottom-nav-bar');
+        if (calView && messengerView && bottomNav) {
+            messengerView.insertBefore(calView, bottomNav);
+            calView.classList.remove('app-view');
+            calView.style.position = 'relative';
+            calView.style.transform = 'none';
+            calView.style.display = 'none';
+            calView.style.zIndex = '1';
+            
+            calView.style.paddingBottom = 'calc(60px + env(safe-area-inset-bottom))'; 
+            calView.style.transition = 'none';
+            
+            // 補回失去 app-view 後缺少的排版屬性，確保高度 100% 且垂直排列
+            calView.style.flex = '1';
+            calView.style.flexDirection = 'column';
+            calView.style.width = '100%';
+            calView.style.background = 'var(--bg-gray)';
+            
+            // 【終極防線】：確保外層 calView 絕對不會被 3000 個按鈕撐破，把高度限制在手機螢幕內
+            calView.style.minHeight = '0'; 
+            calView.style.overflow = 'hidden';
+            
+            const calMainBackBtn = calView.querySelector('.header-content .back-btn');
+            if (calMainBackBtn) calMainBackBtn.style.display = 'none';
+        }
+
         const savedDarkMode = localStorage.getItem('darkMode');
         const systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
         
@@ -6399,6 +6637,11 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                     const navCenterAvatar = document.getElementById('navCenterAvatar');
                     if (navCenterName) navCenterName.innerText = data.displayName || "關於我";
                     if (navCenterAvatar) navCenterAvatar.src = data.photoURL || 'https://via.placeholder.com/45';
+
+                    // 【新增：啟動時讀取並套用主題】
+                    if (data.userTheme) {
+                        applyThemeVisuals(data.userTheme);
+                    }
                     
                     // 【請新增這段】：同步更新「關於我」頁面的大頭貼與名字
                     const aboutMeName = document.getElementById('aboutMeName');
@@ -6460,6 +6703,7 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             const chat = doc.data(), chatId = doc.id;
             let title = "", avatar = "", avatarStyle = "";
 
+            let targetTheme = 'default'; // 【新增：記錄對方主題】
             if (chat.isGroup) {
                 title = chat.groupName || "未命名群組";
                 avatar = chat.groupAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(title)}&background=003153&color=fff`;
@@ -6471,6 +6715,7 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                 }
                 const targetData = userCache[targetUid] || { displayName: "未知成員", photoURL: "https://via.placeholder.com/45" };
                 title = targetData.displayName; avatar = targetData.photoURL;
+                targetTheme = targetData.userTheme || 'default'; // 【新增：取得對方設定的主題】
                 avatarStyle = "width: 60px; height: 60px; margin-right: 10px;"; 
             }
 
@@ -6526,10 +6771,27 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                 else timeStr = `${msgTime.getFullYear()}/${(msgTime.getMonth() + 1).toString().padStart(2,'0')}/${msgTime.getDate().toString().padStart(2,'0')}`;
             }
 
+            // 【新增】：處理大頭貼，單人聊天套用主題特效外框
+            let avatarHtml = `<img class="user-avatar" src="${avatar}" style="${avatarStyle}">`;
+            if (!chat.isGroup && targetTheme && targetTheme !== 'default') {
+                const themeClass = `theme-${targetTheme}`;
+                // 將樣式轉移到外層 wrapper，內層 img 設為 100% 填滿
+                avatarHtml = `<div class="chat-avatar-wrapper ${themeClass}" style="${avatarStyle}">
+                                  <img class="user-avatar" src="${avatar}" style="width: 100%; height: 100%; border: 1.5px solid #fff;">`;
+                if (targetTheme === 'princess') {
+                    avatarHtml += `<div class="chat-theme-crown"><i class="fas fa-crown"></i></div><div class="chat-theme-sakura sakura-1"></div><div class="chat-theme-sakura sakura-2"></div>`;
+                } else if (targetTheme === 'tech') {
+                    avatarHtml += `<div class="chat-theme-tech-ring"></div><div class="chat-theme-tech-ring inner" style="inset:-6px; animation-duration: 7s; animation-direction: reverse;"></div>`;
+                } else if (targetTheme === 'chuuni') {
+                    avatarHtml += `<div class="chat-theme-chuuni-rune"></div>`;
+                }
+                avatarHtml += `</div>`;
+            }
+
             // 2. 重構 HTML：將 pinIcon 獨立拉出來，並確保 h4 標題乾淨
             return `
                 <div class="chat-item ${unreadClass}" onclick="openChatRoom('${chatId}')">
-                    ${pinIcon} <img class="user-avatar" src="${avatar}" style="${avatarStyle}">
+                    ${pinIcon} ${avatarHtml}
                     <div class="chat-info">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <h4>${title}</h4> <span class="chat-time">${timeStr}</span>
@@ -6729,11 +6991,25 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                 const senderCache = window.chatMembersCache[msg.senderId] || {};
                 const senderAvatar = senderCache.photoURL || "https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true";
                 const senderName = senderCache.displayName || "成員";
+                const senderTheme = senderCache.userTheme || 'default'; // 抓取對方主題
+
+                let avatarHtml = `<img src="${senderAvatar}" class="msg-avatar">`;
+                if (senderTheme === 'princess') {
+                    avatarHtml = `<div class="chat-avatar-wrapper theme-princess">${avatarHtml}<div class="chat-theme-crown"><i class="fas fa-crown"></i></div><div class="chat-theme-sakura sakura-1"></div><div class="chat-theme-sakura sakura-2"></div></div>`;
+                } else if (senderTheme === 'tech') {
+                    avatarHtml = `<div class="chat-avatar-wrapper theme-tech">${avatarHtml}<div class="chat-theme-tech-ring"></div><div class="chat-theme-tech-ring inner" style="inset:-2px; animation-duration: 7s; animation-direction: reverse;"></div></div>`;
+                } else if (senderTheme === 'chuuni') {
+                    avatarHtml = `<div class="chat-avatar-wrapper theme-chuuni">${avatarHtml}<div class="chat-theme-chuuni-rune"></div></div>`;
+                } 
+                // 👇 新增這段：套用三種圖片外框到聊天氣泡頭貼
+                else if (senderTheme === 'style1' || senderTheme === 'style2' || senderTheme === 'style3') {
+                    avatarHtml = `<div class="chat-avatar-wrapper theme-${senderTheme}">${avatarHtml}</div>`;
+                }
 
                 if (window.isCurrentChatGroup) {
-                    html += `<div class="msg-avatar-container" style="visibility: ${avatarVisibility}"><img src="${senderAvatar}" class="msg-avatar"><span class="msg-avatar-name">${senderName}</span></div>`;
+                    html += `<div class="msg-avatar-container" style="visibility: ${avatarVisibility}">${avatarHtml}<span class="msg-avatar-name">${senderName}</span></div>`;
                 } else {
-                    html += `<img src="${senderAvatar}" class="msg-avatar" style="visibility: ${avatarVisibility}">`;
+                    html += avatarHtml.replace('class="msg-avatar"', `class="msg-avatar" style="visibility: ${avatarVisibility}"`).replace('class="chat-avatar-wrapper', `class="chat-avatar-wrapper" style="visibility: ${avatarVisibility}"`);
                 }
             }
 
@@ -7045,20 +7321,34 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             const senderCache = window.chatMembersCache[uid] || {};
             const avatar = senderCache.photoURL || "https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true";
             const name = senderCache.displayName || "成員";
+            const senderTheme = senderCache.userTheme || 'default'; // 抓取對方主題
             
+            let avatarHtml = `<img src="${avatar}" class="msg-avatar">`;
+            if (senderTheme === 'princess') {
+                avatarHtml = `<div class="chat-avatar-wrapper theme-princess">${avatarHtml}<div class="chat-theme-crown"><i class="fas fa-crown"></i></div><div class="chat-theme-sakura sakura-1"></div><div class="chat-theme-sakura sakura-2"></div></div>`;
+            } else if (senderTheme === 'tech') {
+                avatarHtml = `<div class="chat-avatar-wrapper theme-tech">${avatarHtml}<div class="chat-theme-tech-ring"></div><div class="chat-theme-tech-ring inner" style="inset:-2px; animation-duration: 7s; animation-direction: reverse;"></div></div>`;
+            } else if (senderTheme === 'chuuni') {
+                avatarHtml = `<div class="chat-avatar-wrapper theme-chuuni">${avatarHtml}<div class="chat-theme-chuuni-rune"></div></div>`;
+            } 
+            // 👇 新增這段：套用三種圖片外框到「正在輸入」狀態的頭貼
+            else if (senderTheme === 'style1' || senderTheme === 'style2' || senderTheme === 'style3') {
+                avatarHtml = `<div class="chat-avatar-wrapper theme-${senderTheme}">${avatarHtml}</div>`;
+            }
+
             html += `<div class="msg-wrapper theirs" style="margin-bottom: 4px;">`;
             
             if (isGroup) {
                 // 群組顯示：圖片 + 名稱 + 輸入框 (頂部對齊)
                 html += `<div class="msg-row theirs" style="align-items: flex-start;">
                             <div class="msg-avatar-container" style="visibility: visible;">
-                                <img src="${avatar}" class="msg-avatar">
+                                ${avatarHtml}
                                 <span class="msg-avatar-name">${name}</span>
                             </div>`;
             } else {
                 // 單人顯示：圖片 + 輸入框 (底部對齊)
                 html += `<div class="msg-row theirs" style="align-items: flex-end;">
-                            <img src="${avatar}" class="msg-avatar" style="visibility: visible;">`;
+                            ${avatarHtml.replace('class="msg-avatar"', 'class="msg-avatar" style="visibility: visible;"').replace('class="chat-avatar-wrapper', 'class="chat-avatar-wrapper" style="visibility: visible;"')}`;
             }
             
             // 跳動動畫氣泡
@@ -8042,33 +8332,41 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
     // 底部導覽列切換邏輯 (修復標題列 DOM 遺失問題)
     // ==========================================
     function switchMainTab(tabName, btnEl) {
+        // 【新增防呆】：如果正在日曆頁面要切換走，檢查是否有未儲存狀態
+        const calView = document.getElementById('calendarView');
+        if (calView && calView.style.display === 'flex' && tabName !== 'calendar') {
+            if (typeof checkCalendarUnsavedEdits === 'function' && !checkCalendarUnsavedEdits()) return;
+            const addMenu = document.getElementById('addEventMenu');
+            if (addMenu) addMenu.style.display = 'none';
+        }
+
         document.querySelectorAll('.bottom-nav-bar .nav-item').forEach(el => el.classList.remove('active'));
         if (btnEl) btnEl.classList.add('active');
         
         // 隱藏所有的主視圖
-        const views = ['chatList', 'aboutMeView', 'homeView', 'otherView', 'activityScheduleView'];
-        views.forEach(id => document.getElementById(id).style.display = 'none');
+        const views = ['chatList', 'aboutMeView', 'homeView', 'otherView', 'activityScheduleView', 'calendarView'];
+        views.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.display = 'none';
+        });
         
         const fab = document.getElementById('chatFab');
         const header = document.getElementById('mainHeader');
         
-        // 取得大頭貼與名字元素
-        const myAvatar = document.getElementById('myAvatar');
-        const myName = document.getElementById('myName');
-        
-        // 動態取得或建立用來替換的標題標籤
-        let pageTitle = document.getElementById('pageTitle');
-        if (!pageTitle && header) {
-            pageTitle = document.createElement('span');
-            pageTitle.id = 'pageTitle';
-            pageTitle.className = 'user-name';
-            pageTitle.style.fontSize = '1.2rem';
-            pageTitle.style.display = 'none';
-            header.querySelector('.user-profile').appendChild(pageTitle);
-        }
-        
-        // 預設恢復頂部標題列的正常樣式 (顯示大頭貼、名字、功能按鈕)
+        // 預設恢復頂部標題列的正常樣式
         if (header) {
+            header.style.display = 'block'; // 【修復】：改回 block，避免破壞內部的 flex 排版
+            const myAvatar = document.getElementById('myAvatar');
+            const myName = document.getElementById('myName');
+            let pageTitle = document.getElementById('pageTitle');
+            if (!pageTitle) {
+                pageTitle = document.createElement('span');
+                pageTitle.id = 'pageTitle';
+                pageTitle.className = 'user-name';
+                pageTitle.style.fontSize = '1.2rem';
+                pageTitle.style.display = 'none';
+                header.querySelector('.user-profile').appendChild(pageTitle);
+            }
             if (myAvatar) myAvatar.style.display = 'block';
             if (myName) myName.style.display = 'block';
             if (pageTitle) pageTitle.style.display = 'none';
@@ -8082,35 +8380,27 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         else if (tabName === 'activity') {
             document.getElementById('activityScheduleView').style.display = 'flex';
             if (fab) fab.style.display = 'none';
-            
-            // 變更標題列為活動樣式 (隱藏原本的大頭貼與名字，顯示純文字標題)
             if (header) {
+                const myAvatar = document.getElementById('myAvatar');
+                const myName = document.getElementById('myName');
+                const pageTitle = document.getElementById('pageTitle');
                 if (myAvatar) myAvatar.style.display = 'none';
                 if (myName) myName.style.display = 'none';
-                if (pageTitle) {
-                    pageTitle.innerText = '活動';
-                    pageTitle.style.display = 'block';
-                }
+                if (pageTitle) { pageTitle.innerText = '活動'; pageTitle.style.display = 'block'; }
                 header.querySelector('.header-actions').style.display = 'none';
             }
-            
-            // 如果還沒載入過資料，就載入一次
-            if (document.getElementById('activityScheduleList').innerHTML.trim() === '') {
-                handleActivitySchedule();
-            }
+            if (document.getElementById('activityScheduleList').innerHTML.trim() === '') handleActivitySchedule();
         }
         else if (tabName === 'about') {
             document.getElementById('aboutMeView').style.display = 'flex';
             if (fab) fab.style.display = 'none';
-            
-            // 切換到關於我時，隱藏大頭貼與名字
             if (header) {
+                const myAvatar = document.getElementById('myAvatar');
+                const myName = document.getElementById('myName');
+                const pageTitle = document.getElementById('pageTitle');
                 if (myAvatar) myAvatar.style.display = 'none';
                 if (myName) myName.style.display = 'none';
-                if (pageTitle) {
-                    pageTitle.innerText = '關於我';
-                    pageTitle.style.display = 'block';
-                }
+                if (pageTitle) { pageTitle.innerText = '關於我'; pageTitle.style.display = 'block'; }
                 header.querySelector('.header-actions').style.display = 'none';
             }
         } 
@@ -8121,7 +8411,73 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         else if (tabName === 'other') {
             document.getElementById('otherView').style.display = 'flex';
             if (fab) fab.style.display = 'none';
+            if (header) {
+                const myAvatar = document.getElementById('myAvatar');
+                const myName = document.getElementById('myName');
+                const pageTitle = document.getElementById('pageTitle');
+                if (myAvatar) myAvatar.style.display = 'none';
+                if (myName) myName.style.display = 'none';
+                if (pageTitle) { pageTitle.innerText = '其他'; pageTitle.style.display = 'block'; }
+                header.querySelector('.header-actions').style.display = 'none';
+            }
         }
+        else if (tabName === 'calendar') {
+            if (calView) {
+                calView.classList.remove('app-view');
+                calView.style.position = 'relative';
+                calView.style.zIndex = '1';
+                calView.style.paddingBottom = 'calc(60px + env(safe-area-inset-bottom))';
+                calView.style.transform = 'none';
+                calView.style.transition = 'none';
+                calView.style.display = 'flex';
+                
+                const calMainBackBtn = calView.querySelector('.header-content .back-btn');
+                if (calMainBackBtn) calMainBackBtn.style.display = 'none';
+                window.isSlidingCalendarMode = false;
+            }
+            if (header) header.style.display = 'none'; // 日曆有自己的 Header，隱藏主 Header
+            if (fab) fab.style.display = 'none';
+            
+            if (!window.hasInitCalendarTab) {
+                window.hasInitCalendarTab = true;
+                openCalendarView();
+            }
+        }
+    }
+
+    function openCalendarView() {
+        needsCalTagAnimation = true; 
+        currentCalDate = new Date(); 
+        calMode = 'days';
+        document.getElementById('calendarWeekdays').style.display = 'grid'; 
+        
+        // 【終極修復】：確保每次從其他分頁切換回來時，強制重置為橫向滑動，消除年份選擇器殘留的垂直排列屬性
+        const container = document.getElementById('calendarScrollContainer');
+        if (container) {
+            container.style.display = 'flex'; 
+            container.style.overflowY = 'hidden'; 
+            container.style.overflowX = 'auto';
+            container.style.scrollSnapType = 'x mandatory';
+            container.style.scrollBehavior = 'smooth';
+            // 【關鍵解除封印】：把觸控權限改回「允許左右滑動」
+            container.style.touchAction = 'pan-x'; 
+        }
+
+        // 【修改】：如果是側滑模式，絕對不要觸發底部的 Tab 切換！
+        if (!window.isSlidingCalendarMode) {
+            const calTabBtn = document.querySelectorAll('.bottom-nav-bar .nav-item')[3];
+            if (calTabBtn && !calTabBtn.classList.contains('active')) {
+                switchMainTab('calendar', calTabBtn);
+            }
+        }
+        
+        // 關閉可能開啟的設定頁面
+        const settingsView = document.getElementById('settingsView');
+        if (settingsView && settingsView.style.transform === 'translateX(0%)') {
+            settingsView.style.transform = 'translateX(100%)';
+        }
+        
+        initNativeScrollCalendar(currentCalDate);
     }
 
     async function handleStartChat() {
@@ -12425,25 +12781,55 @@ renderEvMemberPreview = async function(uids, type) {
     let calMode = 'days'; // 狀態機： 'days' (看日期), 'months' (看月份), 'years' (看年份)
     let selectorYear = new Date().getFullYear();
 
+    // 【新增】：從其他頁面側滑呼叫行事曆的雙模式引擎
+    function openSlidingCalendar() {
+        const calView = document.getElementById('calendarView');
+        if (!calView) return;
+
+        // 轉換為側滑頁面模式
+        calView.classList.add('app-view');
+        calView.style.position = 'fixed';
+        calView.style.top = '0';
+        calView.style.left = '0';
+        calView.style.zIndex = '200';
+        calView.style.paddingBottom = '0'; // 滿版不需要避開底部導覽列
+        calView.style.transform = 'translateX(100%)';
+        calView.style.display = 'flex';
+        
+        // 顯示返回鍵
+        const calMainBackBtn = calView.querySelector('.header-content .back-btn');
+        if (calMainBackBtn) calMainBackBtn.style.display = 'flex';
+
+        window.isSlidingCalendarMode = true;
+
+        // 觸發滑入動畫
+        setTimeout(() => {
+            calView.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
+            calView.style.transform = 'translateX(0%)';
+        }, 10);
+        
+        // 初始化內容
+        if (!window.hasInitCalendarTab) window.hasInitCalendarTab = true;
+        openCalendarView();
+    }
+
     // 1. 返回鍵滿版滑動退出 (左側邊緣滑動)
     let isCalPageSwiping = false, calPageStartX = 0, calPageCurrentX = 0;
     
     calendarViewDOM.addEventListener('touchstart', (e) => {
-        document.getElementById('addEventMenu').style.display = 'none'; // 【新增】：觸控畫面時立刻收起選單
+        document.getElementById('addEventMenu').style.display = 'none'; 
         if (e.touches[0].clientX < 40) { 
             isCalPageSwiping = true; 
             calPageStartX = e.touches[0].clientX; 
-            // 【修復】：如果是共享模式，不移除動畫，因為我們根本不打算移動畫面
-            if (!isSharedCalMode) calendarViewDOM.style.transition = 'none'; 
+            if (!isSharedCalMode && window.isSlidingCalendarMode) calendarViewDOM.style.transition = 'none'; 
         }
     }, {passive: true});
 
     calendarViewDOM.addEventListener('touchmove', (e) => {
-        if (!isCalPageSwiping) return;
+        if (!isCalPageSwiping || !window.isSlidingCalendarMode) return;
         calPageCurrentX = e.touches[0].clientX - calPageStartX;
         if (calPageCurrentX > 0) { 
             if (e.cancelable) e.preventDefault(); 
-            // 【修復】：只有在「個人模式」下，才讓畫面跟隨手指右移
             if (!isSharedCalMode) calendarViewDOM.style.transform = `translateX(${calPageCurrentX}px)`; 
         }
     }, { passive: false });
@@ -12452,11 +12838,11 @@ renderEvMemberPreview = async function(uids, type) {
         if (!isCalPageSwiping) return;
         isCalPageSwiping = false;
         
-        // 【修復】：只有個人模式需要恢復動畫設定
+        if (!window.isSlidingCalendarMode) return;
+
         if (!isSharedCalMode) calendarViewDOM.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
         
         if (calPageCurrentX > window.innerWidth / 3 || calPageCurrentX > 30) {
-            // 滑動返回時也觸發防呆攔截
             if (!checkCalendarUnsavedEdits()) {
                 if (!isSharedCalMode) calendarViewDOM.style.transform = 'translateX(0%)';
                 calPageCurrentX = 0;
@@ -12464,19 +12850,43 @@ renderEvMemberPreview = async function(uids, type) {
             }
 
             if (isSharedCalMode) {
-                // 【關鍵】：如果是共享模式，畫面鎖死在原地，並觸發內部退回動畫
                 exitSharedCalMode();
                 calendarViewDOM.style.transform = 'translateX(0%)';
             } else {
-                // 個人模式：關閉整個行事曆
                 closeCalendarView();
             }
         } else {
-            // 滑動距離不夠，彈回原位
             if (!isSharedCalMode) calendarViewDOM.style.transform = 'translateX(0%)';
         }
         calPageCurrentX = 0;
     });
+
+    function closeCalendarView() {
+        if (!checkCalendarUnsavedEdits()) return; 
+        document.getElementById('addEventMenu').style.display = 'none'; 
+        
+        if (window.isSlidingCalendarMode) {
+            const calView = document.getElementById('calendarView');
+            calView.style.transform = 'translateX(100%)';
+            
+            // 退出後，把行事曆恢復成原本的 Tab 隱藏狀態，這樣從底層導覽列依然可以開啟
+            setTimeout(() => {
+                calView.classList.remove('app-view');
+                calView.style.position = 'relative';
+                calView.style.zIndex = '1';
+                calView.style.paddingBottom = 'calc(60px + env(safe-area-inset-bottom))';
+                calView.style.display = 'none';
+                calView.style.transition = 'none';
+                
+                const calMainBackBtn = calView.querySelector('.header-content .back-btn');
+                if (calMainBackBtn) calMainBackBtn.style.display = 'none';
+                
+                window.isSlidingCalendarMode = false;
+            }, 300);
+        } else {
+            document.getElementById('calendarView').style.display = 'none';
+        }
+    }
 
     function toggleCalendarMode() {
         if (!checkCalendarUnsavedEdits()) return; // 【新增】：防呆攔截
@@ -12807,24 +13217,6 @@ renderEvMemberPreview = async function(uids, type) {
     let calObserver = null;
     const CAL_RANGE = 12; // 一次預載前後 12 個月 (共 25 個月)，確保滑動無縫
 
-    // 1. 初始化進入行事曆 (加入容器復原機制)
-    function openCalendarView() {
-        needsCalTagAnimation = true; // 【新增】：初次載入需要動畫
-        currentCalDate = new Date(); 
-        calMode = 'days';
-        document.getElementById('calendarWeekdays').style.display = 'grid'; 
-        calendarViewDOM.style.transform = 'translateX(0%)';
-        
-        const container = document.getElementById('calendarScrollContainer');
-        // 確保進入行事曆時，容器是【橫向滑動】狀態
-        container.style.display = 'flex'; 
-        container.style.overflowY = 'hidden'; 
-        container.style.overflowX = 'auto';
-        container.style.scrollSnapType = 'x mandatory';
-        
-        initNativeScrollCalendar(currentCalDate);
-    }
-
     // ==========================================
     // 全域防呆：未儲存/編輯中 狀態攔截引擎
     // ==========================================
@@ -12874,12 +13266,6 @@ renderEvMemberPreview = async function(uids, type) {
         return true; // 安全，允許切換功能
     }
 
-    function closeCalendarView() {
-        if (!checkCalendarUnsavedEdits()) return; // 防呆攔截
-        document.getElementById('addEventMenu').style.display = 'none'; // 【新增】：收起新增選單
-        calendarViewDOM.style.transform = 'translateX(100%)';
-    }
-
     // 2. 渲染月份選擇器
     function renderMonthSelector() {
         document.getElementById('calendarTitle').innerHTML = `${selectorYear}年 <i class="fas fa-caret-down" style="font-size:0.8em; margin-left:2px; color:#aaa;"></i>`;
@@ -12887,11 +13273,15 @@ renderEvMemberPreview = async function(uids, type) {
         
         const container = document.getElementById('calendarScrollContainer');
         
-        // 【關鍵修復】：暫時將容器改為【直向捲動】，解除橫向限制
         container.style.display = 'block'; 
         container.style.overflowY = 'auto'; 
         container.style.overflowX = 'hidden';
         container.style.scrollSnapType = 'none';
+        container.style.minHeight = '0'; 
+        container.style.height = '100%'; 
+        container.style.scrollBehavior = 'auto'; 
+        container.style.WebkitOverflowScrolling = 'touch'; 
+        container.style.touchAction = 'pan-y';
 
         let html = '<div class="cal-selector-grid">';
         for (let i = 0; i < 12; i++) {
@@ -12907,31 +13297,33 @@ renderEvMemberPreview = async function(uids, type) {
         document.getElementById('calendarTitle').innerHTML = `選擇年份 <i class="fas fa-caret-down" style="font-size:0.8em; margin-left:2px; color:#aaa;"></i>`;
         const container = document.getElementById('calendarScrollContainer');
 
-        // 切換為【直向捲動】模式
         container.style.display = 'block'; 
         container.style.overflowY = 'auto'; 
         container.style.overflowX = 'hidden';
         container.style.scrollSnapType = 'none';
+        container.style.minHeight = '0'; 
+        container.style.height = '100%';
+        container.style.scrollBehavior = 'auto'; 
+        container.style.WebkitOverflowScrolling = 'touch'; // 確保 iOS 原生順暢滾動
+        container.style.touchAction = 'pan-y'; // 解除觸控封印，明確允許上下滑動
 
         let html = '<div class="cal-selector-grid">';
         
-        // 產生從 1970 到 2050 的大範圍年份
-        for (let i = 1970; i <= 2050; i++) {
+        for (let i = 1970; i <= 3000; i++) {
             const isCurrent = (i === selectorYear) ? 'current' : '';
             html += `<div class="cal-selector-item ${isCurrent}" id="year-item-${i}" onclick="selectCalYear(${i})">${i}</div>`;
         }
         html += '</div>';
         container.innerHTML = html;
         
-        // 渲染完畢後，瞬間自動捲動到目前的年份位置
+        // 渲染完畢後，精準計算座標並瞬間置中跳轉
         setTimeout(() => {
             const target = document.getElementById(`year-item-${selectorYear}`);
-            if (target) {
-                target.scrollIntoView({ behavior: 'auto', block: 'center' });
+            if (target && container) {
+                container.scrollTop = target.offsetTop - (container.clientHeight / 2) + (target.clientHeight / 2);
             }
-        }, 0);
+        }, 10);
     }
-
     // 4. 點擊月份後，返回網格視圖
     function selectCalMonth(m) {
         currentCalDate.setFullYear(selectorYear);
@@ -12941,11 +13333,16 @@ renderEvMemberPreview = async function(uids, type) {
         
         const container = document.getElementById('calendarScrollContainer');
         
-        // 【關鍵修復】：恢復【橫向原生滑動】模式
+        // 恢復【橫向原生滑動】模式
         container.style.display = 'flex'; 
         container.style.overflowY = 'hidden'; 
         container.style.overflowX = 'auto';
         container.style.scrollSnapType = 'x mandatory';
+        container.style.minHeight = '0'; 
+        container.style.height = '100%'; 
+        container.style.scrollBehavior = 'smooth'; 
+        // 【關鍵解除封印】：把觸控權限改回「允許左右滑動」
+        container.style.touchAction = 'pan-x'; 
 
         initNativeScrollCalendar(currentCalDate); // 重新初始化滑動網格
     }
@@ -17825,23 +18222,55 @@ renderEvMemberPreview = async function(uids, type) {
         const avatarFrameContainer = document.getElementById('avatarFrameContainer');
         if (!avatarFrameContainer) return;
         
-        // 先移除所有主題與外框 class，避免互相干擾
-        document.body.classList.remove('tech-theme', 'chuuni-theme', 'princess-theme');
-        avatarFrameContainer.className = 'avatar-frame-container'; // 重置關於我主頁面
+        const navCenterCircle = document.querySelector('.center-circle');
+        
+        // 移除所有主題與外框 class
+        document.body.classList.remove('tech-theme', 'chuuni-theme', 'princess-theme', 'style1-theme', 'style2-theme', 'style3-theme');
+        avatarFrameContainer.className = 'avatar-frame-container'; 
+        
+        if (navCenterCircle) {
+            navCenterCircle.classList.remove('theme-tech', 'theme-chuuni', 'theme-princess', 'theme-style1', 'theme-style2', 'theme-style3');
+            navCenterCircle.querySelectorAll('.chat-theme-crown, .chat-theme-sakura, .chat-theme-tech-ring, .chat-theme-chuuni-rune').forEach(el => el.remove());
+        }
 
-        // 套用選定主題
+        // 處理新增的外框圖片
+        const customFrameImg = document.getElementById('customFrameImg');
+        if (customFrameImg) customFrameImg.style.display = 'none';
+
         if (themeName === 'tech') { 
             document.body.classList.add('tech-theme'); 
+            if (navCenterCircle) {
+                navCenterCircle.classList.add('theme-tech');
+                navCenterCircle.insertAdjacentHTML('beforeend', `<div class="chat-theme-tech-ring"></div><div class="chat-theme-tech-ring inner" style="inset:-2px; animation-duration: 7s; animation-direction: reverse;"></div>`);
+            }
         } 
         else if (themeName === 'chuuni') { 
             document.body.classList.add('chuuni-theme'); 
+            if (navCenterCircle) {
+                navCenterCircle.classList.add('theme-chuuni');
+                navCenterCircle.insertAdjacentHTML('beforeend', `<div class="chat-theme-chuuni-rune"></div>`);
+            }
         } 
         else if (themeName === 'princess') { 
-            // 【修復】：正式套用公主魔幻風格
             document.body.classList.add('princess-theme'); 
+            if (navCenterCircle) {
+                navCenterCircle.classList.add('theme-princess');
+                navCenterCircle.insertAdjacentHTML('beforeend', `<div class="chat-theme-crown" style="top: -16px; font-size: 16px;"><i class="fas fa-crown"></i></div><div class="chat-theme-sakura sakura-1"></div><div class="chat-theme-sakura sakura-2"></div>`);
+            }
         } 
+        // ===== 新增的 3 個風格處理 (只改樣式，不套用背景顏色變數) =====
+        else if (themeName === 'style1' || themeName === 'style2' || themeName === 'style3') {
+            avatarFrameContainer.classList.add(themeName + '-theme');
+            if (navCenterCircle) navCenterCircle.classList.add('theme-' + themeName);
+            
+            if (customFrameImg) {
+                customFrameImg.style.display = 'block';
+                if (themeName === 'style1') customFrameImg.src = 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/01.png?raw=true';
+                if (themeName === 'style2') customFrameImg.src = 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/02.png?raw=true';
+                if (themeName === 'style3') customFrameImg.src = 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/03.png?raw=true';
+            }
+        }
         else {
-            // 預設 (金色) 需要特定的 class 來畫邊框
             avatarFrameContainer.classList.add('avatar-frame-default');
         }
     }
@@ -17850,23 +18279,34 @@ renderEvMemberPreview = async function(uids, type) {
         const currentAvatar = document.getElementById('aboutMeAvatar').src || 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true';
         document.getElementById('aboutMeAvatarPreview').src = currentAvatar;
         
-        const currentClasses = Array.from(document.body.classList);
+        const currentClasses = Array.from(document.getElementById('avatarFrameContainer').classList);
         let currentTheme = 'default';
         let currentBtnIndex = 0;
 
-        // 判定目前所在的主題
-        if (currentClasses.includes('tech-theme')) { currentTheme = 'tech'; currentBtnIndex = 2; }
-        else if (currentClasses.includes('chuuni-theme')) { currentTheme = 'chuuni'; currentBtnIndex = 3; }
-        else if (currentClasses.includes('princess-theme')) { currentTheme = 'princess'; currentBtnIndex = 1; }
+        if (document.body.classList.contains('tech-theme')) { currentTheme = 'tech'; currentBtnIndex = 2; }
+        else if (document.body.classList.contains('chuuni-theme')) { currentTheme = 'chuuni'; currentBtnIndex = 3; }
+        else if (document.body.classList.contains('princess-theme')) { currentTheme = 'princess'; currentBtnIndex = 1; }
+        // 新增的風格
+        else if (currentClasses.includes('style1-theme')) { currentTheme = 'style1'; currentBtnIndex = 4; }
+        else if (currentClasses.includes('style2-theme')) { currentTheme = 'style2'; currentBtnIndex = 5; }
+        else if (currentClasses.includes('style3-theme')) { currentTheme = 'style3'; currentBtnIndex = 6; }
 
-        // 更新 Modal 預覽區樣式 (連動顯示特效)
         const framePreviewFrame = document.getElementById('avatarFramePreview');
+        const previewImg = document.getElementById('customFramePreviewImg');
+        if (previewImg) previewImg.style.display = 'none';
+
         framePreviewFrame.className = 'avatar-frame-container';
         if(currentTheme === 'default') { 
             framePreviewFrame.classList.add('avatar-frame-default'); 
         } else {
-            // 將主題 class 加在預覽區，讓裡面的特效能亮起來
             framePreviewFrame.classList.add(currentTheme + '-theme'); 
+            
+            if (currentTheme.startsWith('style') && previewImg) {
+                previewImg.style.display = 'block';
+                if (currentTheme === 'style1') previewImg.src = 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/01.png?raw=true';
+                if (currentTheme === 'style2') previewImg.src = 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/02.png?raw=true';
+                if (currentTheme === 'style3') previewImg.src = 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/03.png?raw=true';
+            }
         }
         
         document.querySelectorAll('#frameModal .theme-option-item').forEach(el => el.classList.remove('active'));
@@ -17884,24 +18324,30 @@ renderEvMemberPreview = async function(uids, type) {
     }
 
     function changeThemeFrame(themeName, btnEl) {
-        // 1. 更新選單高亮狀態
         document.querySelectorAll('#frameModal .theme-option-item').forEach(el => el.classList.remove('active'));
         if (btnEl) btnEl.classList.add('active');
         
-        // 2. 更新預覽區的名字
         const themeText = btnEl ? btnEl.querySelector('span').innerText : "預設 (金色)";
         document.getElementById('frameNamePreview').innerText = themeText;
         
-        // 3. 更新預覽區的樣式 (讓點擊當下預覽區就能看到特效)
         const framePreviewFrame = document.getElementById('avatarFramePreview');
+        const previewImg = document.getElementById('customFramePreviewImg');
+        if (previewImg) previewImg.style.display = 'none';
+
         framePreviewFrame.className = 'avatar-frame-container';
         if (themeName === 'default') { 
             framePreviewFrame.classList.add('avatar-frame-default'); 
         } else {
             framePreviewFrame.classList.add(themeName + '-theme');
+            
+            if (themeName.startsWith('style') && previewImg) {
+                previewImg.style.display = 'block';
+                if (themeName === 'style1') previewImg.src = 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/01.png?raw=true';
+                if (themeName === 'style2') previewImg.src = 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/02.png?raw=true';
+                if (themeName === 'style3') previewImg.src = 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/03.png?raw=true';
+            }
         }
 
-        // 4. 【關鍵修正】：將主題儲存至 Firebase 資料庫，並套用到主畫面！
         if (auth.currentUser) {
             db.collection("act").doc(auth.currentUser.uid).set({ 
                 userTheme: themeName 
