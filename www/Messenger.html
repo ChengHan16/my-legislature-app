@@ -37,10 +37,17 @@
             will-change: transform;
         }
 
+        /* 當側滑頁面被完全推到右側隱藏時，自動沒收陰影，防止黑邊滲透到當前畫面 */
+        /* 攔截所有 JS 關閉視窗的動作，強制把畫面推到 110% 螢幕外，連同陰影一起藏起來 */
+        .app-view[style*="translateX(100%)"] {
+            transform: translateX(110%) !important;
+            /* 原本的 box-shadow: none !important; 可以直接刪除，我們改用位移解決 */
+        }
+
         #messengerView { z-index: 10; transform: translateX(0%); }
         #chatView { 
             z-index: 20; 
-            transform: translateX(100%); 
+            transform: translateX(110%); /* <--- 從 100% 改為 110% */
             box-shadow: -5px 0 25px rgba(0,0,0,0.15);
         }
 
@@ -457,6 +464,56 @@
         .modal-header h3 { margin: 0; font-size: 1.1rem; }
         .modal-body { flex: 1; padding: 20px; overflow-x: hidden; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: none; width: 100%; box-sizing: border-box; }
 
+        /* ==========================================
+        基礎輸入框與表單美化 (包含群組名稱、搜尋對象等)
+        ========================================== */
+        .modal-input-group { 
+            margin-bottom: 15px; 
+            width: 100%; 
+            box-sizing: border-box; 
+        }
+
+        .modal-input-group label { 
+            display: block; 
+            font-size: 0.9rem; 
+            color: var(--ly-blue); 
+            font-weight: bold; 
+            margin-bottom: 8px; 
+        }
+
+        .modal-input-group input[type="text"],
+        .modal-input-group input[type="email"],
+        .modal-input-group input[type="password"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            background: #f8f9fa;
+            color: #333;
+            box-sizing: border-box;
+            outline: none;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            font-family: inherit;
+        }
+
+        /* 點擊輸入時的高亮動態效果 */
+        .modal-input-group input[type="text"]:focus,
+        .modal-input-group input[type="email"]:focus,
+        .modal-input-group input[type="password"]:focus {
+            border-color: var(--ly-gold);
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(207, 169, 0, 0.15);
+        }
+
+        /* 深色模式下的聚焦光暈適配 */
+        body.dark-mode .modal-input-group input[type="text"]:focus,
+        body.dark-mode .modal-input-group input[type="email"]:focus,
+        body.dark-mode .modal-input-group input[type="password"]:focus {
+            background: #1c1c1e !important;
+            border-color: var(--ly-gold) !important;
+            box-shadow: 0 0 0 3px rgba(207, 169, 0, 0.25) !important;
+        }
         /* --- 新增活動 (Event) 專用樣式 --- */
         .field-adder-bar { display: flex; flex-wrap: wrap; gap: 8px; margin: 15px 0; padding: 10px; background: #f8f9fa; border-radius: 8px; border: 1px solid #eee; width: 100%; box-sizing: border-box; }
         .tag-btn { background: white; border: 1.5px solid var(--ly-blue); color: var(--ly-blue); padding: 5px 12px; border-radius: 20px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; font-weight: bold; }
@@ -682,9 +739,36 @@
         .photo-stack-item img { width: 100%; height: 100%; object-fit: cover; }
         .photo-stack-item:nth-child(1) { z-index: 5; transform: rotate(-3deg); } .photo-stack-item:nth-child(2) { z-index: 4; transform: rotate(4deg) translate(4px, 4px); } .photo-stack-item:nth-child(3) { z-index: 3; transform: rotate(-5deg) translate(-4px, 6px); }
         .voter-grid { display: flex; flex-wrap: wrap; gap: 15px; margin-top: 15px; justify-content: center; }
-        .voter-box { text-align: center; width: 60px; }
-        .voter-box img { width: 50px; height: 50px; border-radius: 50%; border: 2px solid var(--ly-gold); object-fit: cover; }
-        .voter-box span { display: block; font-size: 0.75rem; margin-top: 5px; font-weight: bold; color: #444; }
+        /* 強制使用 Flexbox 垂直排列並絕對置中，杜絕跑版 */
+        .voter-box { 
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: flex-start !important;
+            width: 60px; 
+        }
+
+        .voter-box img { 
+            width: 50px; 
+            height: 50px; 
+            border-radius: 50%; 
+            border: 2px solid var(--ly-gold); 
+            object-fit: cover; 
+            margin: 0 0 5px 0 !important; /* 因為外層已經 Flex 置中了，這邊把 margin auto 拿掉 */
+        }
+
+        .voter-box span { 
+            display: block; 
+            width: 100%;
+            text-align: center; 
+            font-size: 0.75rem; 
+            font-weight: bold; 
+            color: #444; 
+            /* 加入文字防爆設定，名字太長自動變 ... */
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+        }
 
         .slider-container { flex-grow: 1; width: 100%; overflow: hidden; display: flex; align-items: center; position: relative; cursor: grab; }
         .slider-container:active { cursor: grabbing; }
@@ -3172,6 +3256,375 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         body.dark-mode #createConfidentialView .cipher-hint { color: #ff4d4d; }
         body.dark-mode #createConfidentialView .cd-file-row input { background-color: #1c1c1e !important; border-color: #333 !important; color: #fff !important; }
         body.dark-mode #cd-loading-overlay { background: rgba(0, 0, 0, 0.85) !important; }
+
+        /* 1. 預設所有側滑頁面都沒有陰影，徹底防堵隱藏時的黑邊滲透 */
+        .app-view {
+            box-shadow: none !important;
+        }
+
+        /* 2. 只有當頁面被「打開」(translateX 數值為 0) 時，才賦予陰影 */
+        /* 3. 【關鍵】：使用 -10px 的負擴散半徑，讓陰影只往左邊延伸，絕對不往右跑 */
+        .app-view[style*="translateX(0)"] {
+            box-shadow: -15px 0 25px -10px rgba(0, 0, 0, 0.15) !important;
+        }
+
+        /* 深色模式下的立體感適配 */
+        body.dark-mode .app-view[style*="translateX(0)"] {
+            box-shadow: -15px 0 25px -10px rgba(0, 0, 0, 0.4) !important;
+        }
+
+        /* ==========================================
+        底部導覽列與關於我 (Bottom Navigation & About Me)
+        ========================================== */
+        /* ==========================================
+        底部導覽列與關於我 (Bottom Navigation & About Me)
+        ========================================== */
+        .bottom-nav-bar {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            display: flex; justify-content: space-around; align-items: center;
+            padding: 10px 0 calc(10px + env(safe-area-inset-bottom)) 0;
+            z-index: 100; box-shadow: 0 -4px 15px rgba(0,0,0,0.05);
+            border-top: none; /* 移除預設邊框，改用以下自訂線條 */
+        }
+
+        /* 繪製左、右兩側的水平線 */
+        .bottom-nav-bar::before, .bottom-nav-bar::after {
+            content: ''; position: absolute; top: 0; 
+            width: calc(50% - 32px); height: 1.5px; 
+            background: var(--ly-blue);
+        }
+        .bottom-nav-bar::before { left: 0; }
+        .bottom-nav-bar::after { right: 0; }
+
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: #999; font-size: 0.75rem; font-weight: bold; cursor: pointer; transition: 0.2s; flex: 1;
+        }
+        .nav-item i { font-size: 1.35rem; margin-bottom: 4px; transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1), color 0.2s; }
+        .nav-item.active { color: var(--ly-blue); }
+        .nav-item.active i { transform: scale(1.15) translateY(-2px); color: var(--ly-blue); }
+
+        /* --- 中央懸浮按鈕專屬樣式 --- */
+        .nav-item-center {
+            position: relative; flex: 1; display: flex; flex-direction: column; 
+            align-items: center; justify-content: flex-end;
+        }
+        .nav-item-center span {
+            margin-top: 26px; /* 為了配合左右圖示高度往下推 */
+            transition: color 0.2s;
+        }
+        /* 完美半圓弧線 */
+        .center-arc {
+            position: absolute; top: -32px; left: 50%; transform: translateX(-50%);
+            width: 64px; height: 64px; border-radius: 50%;
+            border: 1.5px solid transparent; border-top-color: var(--ly-blue);
+            pointer-events: none;
+        }
+        /* 中央凸起頭像圈 */
+        .center-circle {
+            position: absolute; top: -24px; left: 50%; transform: translateX(-50%);
+            width: 48px; height: 48px; background: var(--bg-gray); border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border: 3px solid white; /* 用白色邊框阻斷背景線條 */
+            z-index: 10; transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1), border-color 0.2s;
+        }
+        .nav-item-center.active .center-circle {
+            transform: translateX(-50%) scale(1.1); /* 點擊時微放大 */
+            border-color: var(--ly-gold);
+        }
+
+        /* 墊高懸浮按鈕避免被導覽列遮擋 */
+        .fab { bottom: calc(85px + env(safe-area-inset-bottom)) !important; }
+
+        /* ... (原本的 .about-me-menu 樣式保留) ... */
+        .nav-item i { 
+            font-size: 1.35rem; margin-bottom: 4px; 
+            transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1), color 0.2s; 
+        }
+        .nav-item.active { color: var(--ly-blue); }
+        .nav-item.active i { transform: scale(1.15) translateY(-2px); color: var(--ly-blue); }
+
+        /* 墊高懸浮按鈕避免被導覽列遮擋 */
+        .fab { bottom: calc(85px + env(safe-area-inset-bottom)) !important; }
+
+        /* 關於我的選單樣式 */
+        .about-me-menu { 
+            width: 90%; max-width: 400px; background: white; border-radius: 12px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03); padding: 5px 15px; 
+            display: flex; flex-direction: column; box-sizing: border-box;
+        }
+        .about-me-menu button { 
+            background: transparent; border: none; padding: 18px 0; text-align: left; 
+            font-size: 1.05rem; font-weight: bold; color: #444; 
+            border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; 
+            align-items: center; cursor: pointer; transition: 0.2s; 
+        }
+        .about-me-menu button:last-child { border-bottom: none; }
+        .about-me-menu button:active { transform: scale(0.98); opacity: 0.7; }
+        .about-me-menu button i:first-child { width: 25px; text-align: center; margin-right: 10px; font-size: 1.2rem; }
+
+        /* 深色模式適配 */
+        body.dark-mode .bottom-nav-bar { background: rgba(0, 0, 0, 0.85); border-top-color: #1c1c1e; }
+        body.dark-mode .nav-item { color: #666; }
+        body.dark-mode .nav-item.active { color: var(--ly-gold); }
+        body.dark-mode .nav-item.active i { color: var(--ly-gold); }
+        body.dark-mode .about-me-menu { background: #1c1c1e; border: 1px solid #2c2c2e; box-shadow: none; }
+        body.dark-mode .about-me-menu button { color: #e0e0e0; border-bottom-color: #2c2c2e; }
+
+        /* ==========================================
+        全新升級：主題色彩與頭貼外框 (Themes & Frames)
+        ========================================= */
+
+        /* --- 基礎頭貼外框容器 (Common Avatar Frame Wrapper) --- */
+        .avatar-frame-container {
+            width: 110px; height: 110px; border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            position: relative; box-shadow: 0 8px 20px rgba(0,0,0,0.15); transition: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); z-index: 10;
+        }
+
+        /* 預設 (金色) 外框 */
+        .avatar-frame-default {
+            border: 4px solid var(--ly-gold);
+        }
+
+        /* 控制主題特殊元素的顯示/隱藏 */
+        .tech-theme-only, .chuuni-theme-only { display: none; pointer-events: none; position: absolute; }
+
+
+        /* --- 1. 未來科技 (Tech) 主題與外框 (基於 image_2d4c49.jpg) --- */
+        body.tech-theme {
+            --ly-blue: #00bcd4; /* 深藍 -> 藍綠 */
+            --ly-gold: #00e5ff; /* 金色 -> 亮青 */
+            --bg-gray: #f0fbfc; /* 背景灰 -> 藍灰 */
+            --border-color: #d1f3f7;
+        }
+        body.dark-mode.tech-theme {
+            --ly-blue: #1de9b6; /* 亮綠 */
+            --ly-gold: #00e5ff; /* 亮青 */
+            background: #001015 !important; /* OLED 純黑 -> 極深科技藍 */
+        }
+
+        /* Tech 頭貼外框 */
+        .tech-theme .avatar-frame-container {
+            border: 2px solid #00f2fe; background: transparent; 
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.6), inset 0 0 10px rgba(0, 242, 254, 0.4);
+        }
+        .tech-theme .tech-theme-only { display: block; }
+        /* 未來科技：軌道環 */
+        .tech-ring {
+            top: -12px; left: -12px; right: -12px; bottom: -12px; border-radius: 50%;
+            border: 1.5px solid transparent; border-top-color: #00f2fe;
+            box-shadow: 0 0 5px rgba(0, 242, 254, 0.3); animation: tech-rotate 10s linear infinite;
+        }
+        .tech-ring.inner { top: -6px; left: -6px; right: -6px; bottom: -6px; animation: tech-rotate-reverse 15s linear infinite; }
+        /* 未來科技：刻度點 */
+        .tech-markers {
+            top: -5px; left: -5px; right: -5px; bottom: -5px; border-radius: 50%;
+            background: radial-gradient(circle at 50% 1%, #00f2fe 3px, transparent 3px),
+                        radial-gradient(circle at 1% 50%, #00f2fe 3px, transparent 3px),
+                        radial-gradient(circle at 50% 99%, #00f2fe 3px, transparent 3px),
+                        radial-gradient(circle at 99% 50%, #00f2fe 3px, transparent 3px);
+        }
+
+        /* --- 2. 中二風格 (Chuuni) 主題與外框 (深紅咒文) --- */
+        body.chuuni-theme {
+            --ly-blue: #4a148c; /* 深藍 -> 深紫 */
+            --ly-gold: #b71c1c; /* 金色 -> 深紅 */
+            --bg-gray: #fce4ec; /* 背景灰 -> 淺紅灰 */
+            --border-color: #f8bbd0;
+        }
+        body.dark-mode.chuuni-theme {
+            --ly-blue: #7e57c2; /* 亮紫 */
+            --ly-gold: #b71c1c; /* 深紅 */
+            background: #1a0110 !important; /* OLED 純黑 -> 極深暗紅黑 */
+        }
+
+        /* Chuuni 頭貼外框 */
+        .chuuni-theme .avatar-frame-container {
+            border: none; background: transparent; 
+            box-shadow: 0 0 25px rgba(183, 28, 28, 0.8);
+        }
+        .chuuni-theme .chuuni-theme-only { display: block; }
+        /* 中二風格：鋸齒狀 glowing 邊框 */
+        .chuuni-rune-glowing {
+            top: -10px; left: -10px; right: -10px; bottom: -10px; border-radius: 50%;
+            background: repeating-conic-gradient(#b71c1c 0 5deg, transparent 5deg 10deg);
+            mask: radial-gradient(circle, transparent 60px, black 61px); -webkit-mask: radial-gradient(circle, transparent 60px, black 61px);
+            box-shadow: 0 0 15px rgba(183, 28, 28, 1); animation: chuuni-pulse 3s linear infinite;
+        }
+        /* 中二風格：惡魔角 (代碼繪製簡化版) */
+        .chuuni-horn {
+            width: 25px; height: 35px; background: #b71c1c; top: -25px; filter: drop-shadow(0 0 5px rgba(183, 28, 28, 0.8));
+        }
+        .chuuni-horn.left {
+            left: 10px; transform: rotate(-30deg);
+            clip-path: polygon(100% 0, 0 100%, 100% 100%);
+        }
+        .chuuni-horn.right {
+            right: 10px; transform: rotate(30deg);
+            clip-path: polygon(0 0, 0 100%, 100% 100%);
+        }
+        /* 中二風格：古老咒文環 (svg placeholder) */
+        .chuuni-runes-ring {
+            top: -15px; left: -15px; right: -15px; bottom: -15px; border-radius: 50%;
+            border: 2px solid transparent; border-top-color: #b71c1c; border-bottom-color: #4a148c;
+            background: radial-gradient(circle at 10% 10%, rgba(183,28,28,0.2) 20px, transparent 20px),
+                        radial-gradient(circle at 90% 90%, rgba(74,20,140,0.2) 20px, transparent 20px),
+                        radial-gradient(circle at 10% 90%, rgba(183,28,28,0.2) 20px, transparent 20px),
+                        radial-gradient(circle at 90% 10%, rgba(74,20,140,0.2) 20px, transparent 20px);
+            animation: chuuni-pulse 5s linear infinite; opacity: 0.5;
+        }
+
+        /* ==========================================
+        主題選擇 Modal 專屬樣式
+        ========================================= */
+        .theme-options-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px;
+        }
+        .theme-option-item {
+            border: 2px solid transparent; border-radius: 12px; padding: 10px; cursor: pointer; transition: 0.2s;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+        }
+        .theme-option-item.active { border-color: var(--ly-gold); background: var(--bg-gray); }
+        .theme-swatch {
+            width: 50px; height: 50px; border-radius: 50%; margin-bottom: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            position: relative; border: 3px solid white;
+        }
+        .theme-swatch::after {
+            content: ''; position: absolute; top: -5px; left: -5px; right: -5px; bottom: -5px; border-radius: 50%; border: 2px solid #ddd;
+        }
+        .theme-option-item.active .theme-swatch::after { border-color: var(--ly-gold); }
+
+        /* ==========================================
+        修正版：公主風格 (Princess) 完美對齊與還原
+        ========================================= */
+
+        /* 確保所有公主專屬元素預設隱藏 */
+        .princess-theme-only { display: none; pointer-events: none; position: absolute; }
+
+        /* 【關鍵修正 1】：讓主畫面 (body) 與預覽區 (.avatar-frame-container) 都能正確對應 class 並顯示 */
+        body.princess-theme .princess-theme-only,
+        .avatar-frame-container.princess-theme .princess-theme-only {
+            display: block;
+        }
+
+        /* 1. 公主風格色彩定義 (櫻花粉 & 皇冠金) */
+        body.princess-theme {
+            --ly-blue: #d87093; 
+            --ly-gold: #ffcc00; 
+            --bg-gray: #fff0f5; 
+            --border-color: #ffdae0;
+        }
+        body.dark-mode.princess-theme {
+            --ly-blue: #ffb7c5; 
+            --ly-gold: #ffd700; 
+            background: #2a0010 !important; /* 極深粉黑背景 */
+        }
+
+        /* 2. Princess 頭貼外框 (金粉漸層雙框設計) */
+        body.princess-theme .avatar-frame-container,
+        .avatar-frame-container.princess-theme {
+            border: none !important;
+            padding: 6px; /* 漸層金粉外框厚度 */
+            background: linear-gradient(45deg, #ffd700, #ffb7c5, #ffd700);
+            box-shadow: 0 5px 15px rgba(216, 112, 147, 0.4);
+            box-sizing: border-box !important; /* 【關鍵修正 2】：避免 padding 撐破原本的 110px 圓形，防止位移 */
+            z-index: 10;
+        }
+
+        /* 圖片加入白色內嵌框 */
+        body.princess-theme .avatar-frame-container img,
+        .avatar-frame-container.princess-theme img {
+            border: 3px solid #fff;
+            box-sizing: border-box !important; /* 【關鍵修正 3】：確保圖片在有粗框線時維持完美圓形不變形 */
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        /* 深色模式內框適配 */
+        body.dark-mode.princess-theme .avatar-frame-container img,
+        body.dark-mode .avatar-frame-container.princess-theme img {
+            border-color: #1a000a;
+        }
+
+        /* 3. Princess 頂部皇冠 (精準對齊) */
+        .princess-crown {
+            position: absolute; 
+            top: -18px; /* 針對 110px 頭像微調的高度 */
+            left: 50%; 
+            transform: translateX(-50%) rotate(-5deg);
+            color: #ffcc00; 
+            font-size: 30px; 
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); 
+            z-index: 15;
+            animation: crownPulse 3s infinite ease-in-out;
+        }
+        @keyframes crownPulse {
+            0%, 100% { transform: translateX(-50%) rotate(-5deg) scale(1); }
+            50% { transform: translateX(-50%) rotate(5deg) scale(1.1); }
+        }
+
+        /* 4. Princess 櫻花裝飾物 (精準對齊) */
+        .princess-sakura {
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            background: #ffb7c5;
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+            opacity: 0.9;
+            z-index: 12;
+            animation: sakuraFloat 3s infinite ease-in-out;
+            filter: drop-shadow(0 2px 4px rgba(216, 112, 147, 0.4));
+        }
+        .sakura-1 { top: 8%; right: -5px; animation-delay: 0s; }
+        .sakura-2 { bottom: 8%; left: -5px; animation-delay: 1.5s; }
+
+        @keyframes sakuraFloat {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-5px) rotate(15deg); }
+        }
+
+        /* ==========================================
+        全域 UI 色彩聯動 (Header、聊天列表與選單)
+        ========================================= */
+
+        /* 1. 頂部標題列背景變色 */
+        .messenger-header {
+            background-color: var(--ly-blue) !important;
+            transition: background-color 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        /* 2. 聊天列表 (Chat Item) 變色聯動 */
+        .chat-item h4, .chat-item .chat-name {
+            color: var(--ly-blue) !important; /* 聊天對象名稱 */
+            transition: color 0.4s;
+        }
+
+        .chat-item img {
+            border: 2px solid var(--ly-gold) !important; /* 聊天對象大頭貼外框 */
+            transition: border-color 0.4s;
+        }
+
+        /* 未讀提示點 / 標籤聯動 */
+        .unread-badge, .chat-unread-dot {
+            background-color: var(--ly-gold) !important;
+        }
+
+        /* 3. 聊天室內「+」號展開選單的圖示顏色 */
+        .expand-menu-item .icon-circle {
+            color: var(--ly-blue) !important;
+            transition: color 0.4s;
+        }
+
+        /* 4. 返回按鈕與頂部操作按鈕 (確保在亮色主題下仍清楚可見) */
+        .messenger-header .back-btn,
+        .messenger-header .header-actions button {
+            color: #ffffff !important; 
+        }
     </style>
 
     <script>
@@ -3217,7 +3670,7 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
     </div>
 
     <div id="messengerView" class="app-view">
-        <header class="messenger-header">
+        <header class="messenger-header" id="mainHeader">
             <div class="header-content">
                 <div class="user-profile">
                     <img id="myAvatar" class="user-avatar" src="https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true" alt="Profile" onclick="openSettings()" style="cursor: pointer; width: 60px; height: 60px;">
@@ -3230,11 +3683,139 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             </div>
         </header>
 
-        <main class="chat-list" id="chatList"></main>
+        <main class="chat-list" id="chatList" style="display: block; padding-bottom: 100px;"></main>
 
-        <button class="fab" onclick="startNewChat()" title="快速發起聊天">
+        <main id="aboutMeView" style="display: none; flex: 1; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 40px; background: var(--bg-gray); width: 100%; overflow-y: auto; padding-bottom: 100px;">
+            <div style="position: relative;">
+                <div style="position: relative;">
+                <div id="avatarFrameContainer" class="avatar-frame-container avatar-frame-default">
+                    <img id="aboutMeAvatar" src="" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; z-index: 5;">
+                    
+                    <div class="princess-crown princess-theme-only"><i class="fas fa-crown"></i></div>
+                    <div class="princess-sakura sakura-1 princess-theme-only"></div>
+                    <div class="princess-sakura sakura-2 princess-theme-only"></div>
+
+                    <div class="tech-ring tech-theme-only"></div>
+                    <div class="tech-ring inner tech-theme-only"></div>
+                    <div class="tech-markers tech-theme-only"></div>
+                    
+                    <div class="chuuni-rune-glowing chuuni-theme-only"></div>
+                    <div class="chuuni-horn left chuuni-theme-only"></div>
+                    <div class="chuuni-horn right chuuni-theme-only"></div>
+                    <div class="chuuni-runes-ring chuuni-theme-only"></div>
+                </div>
+            </div>
+                <div style="position: absolute; bottom: -5px; right: -5px; background: var(--ly-blue); color: white; width: 34px; height: 34px; border-radius: 50%; display: flex; justify-content: center; align-items: center; border: 3px solid var(--bg-gray); cursor: pointer; z-index: 20;" onclick="openSettings()"><i class="fas fa-cog"></i></div>
+            </div>
+            <h2 id="aboutMeName" style="color: var(--ly-blue); font-size: 1.5rem; font-weight: 900; margin: 15px 0 5px 0;">載入中...</h2>
+            <p style="color: #888; font-size: 0.95rem; margin: 0 0 25px 0;">立法院通訊系統成員</p>
+
+            <div class="about-me-menu">
+                 <button onclick="openSettings()">
+                    <span><i class="fas fa-user-cog" style="color: var(--ly-blue);"></i> 帳號設定</span>
+                    <i class="fas fa-chevron-right" style="color: #ccc;"></i>
+                 </button>
+                 <button onclick="openFrameModal()">
+                    <span><i class="fas fa-magic" style="color: var(--ly-gold);"></i> 變換外框與主題</span>
+                    <i class="fas fa-chevron-right" style="color: #ccc;"></i>
+                 </button>
+                 <button onclick="openCalendarView()">
+                    <span><i class="fas fa-calendar-alt" style="color: #5ba4d6;"></i> 個人行事曆</span>
+                    <i class="fas fa-chevron-right" style="color: #ccc;"></i>
+                 </button>
+                 <button onclick="openGuide()">
+                    <span><i class="fas fa-book-open" style="color: #ccc;"></i> 系統操作說明</span>
+                    <i class="fas fa-chevron-right" style="color: #ccc;"></i>
+                 </button>
+            </div>
+            
+            <button class="btn-modal btn-danger" style="width: 90%; max-width: 400px; margin-top: 15px; padding: 15px; border-radius: 12px; font-size: 1.05rem; box-shadow: 0 4px 15px rgba(255, 77, 77, 0.2);" onclick="handleLogout()">
+                <i class="fas fa-sign-out-alt"></i> 登出系統
+            </button>
+        </main>
+        
+        <div id="frameModal" class="modal-overlay" style="z-index: 6000;" onclick="if(event.target === this) closeFrameModal()">
+            <div class="modal-card" style="max-width: 450px;">
+                <div class="modal-header">
+                    <h3><i class="fas fa-magic"></i> 選擇您的主題外框</h3>
+                    <span style="cursor:pointer;" onclick="closeFrameModal()">&times;</span>
+                </div>
+                <div class="modal-body" style="padding: 20px;">
+                    <div id="frame-preview-container" style="display: flex; flex-direction: column; align-items: center; gap: 20px; margin-bottom: 30px;">
+                        <div id="frame-preview-container" style="display: flex; flex-direction: column; align-items: center; gap: 20px; margin-bottom: 30px;">
+                        <div id="avatarFramePreview" class="avatar-frame-container avatar-frame-default">
+                            <img id="aboutMeAvatarPreview" src="" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; z-index: 5;">
+                            
+                            <div class="princess-crown princess-theme-only"><i class="fas fa-crown"></i></div>
+                            <div class="princess-sakura sakura-1 princess-theme-only"></div>
+                            <div class="princess-sakura sakura-2 princess-theme-only"></div>
+
+                            <div class="tech-ring tech-theme-only"></div>
+                            <div class="tech-ring inner tech-theme-only"></div>
+                            <div class="tech-markers tech-theme-only"></div>
+                            
+                            <div class="chuuni-rune-glowing chuuni-theme-only"></div>
+                            <div class="chuuni-horn left chuuni-theme-only"></div>
+                            <div class="chuuni-horn right chuuni-theme-only"></div>
+                            <div class="chuuni-runes-ring chuuni-theme-only"></div>
+                        </div>
+                    </div>
+                        <div style="font-weight: bold; font-size: 1.1rem; color: var(--ly-blue);" id="frameNamePreview">預設 (金色)</div>
+                    </div>
+                    <div class="theme-options-grid">
+                        <div class="theme-option-item active" onclick="changeThemeFrame('default', this)">
+                            <div class="theme-swatch" style="background: linear-gradient(135deg, #003153, #cfa900);"></div>
+                            <span>預設 (金色)</span>
+                        </div>
+                        <div class="theme-option-item" onclick="changeThemeFrame('princess', this)">
+                            <div class="theme-swatch" style="background: linear-gradient(135deg, #ec407a, #fbc02d);"></div>
+                            <span>公主風格 (紅黃)</span>
+                        </div>
+                        <div class="theme-option-item" onclick="changeThemeFrame('tech', this)">
+                            <div class="theme-swatch" style="background: linear-gradient(135deg, #00f2fe, #4facfe);"></div>
+                            <span>未來科技 (藍青)</span>
+                        </div>
+                        <div class="theme-option-item" onclick="changeThemeFrame('chuuni', this)">
+                            <div class="theme-swatch" style="background: linear-gradient(135deg, #4a148c, #b71c1c);"></div>
+                            <span>中二風格 (紅紫)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <main id="homeView" style="display: none; flex: 1; align-items: center; justify-content: center; color: #999; padding-bottom: 100px;">首頁功能建置中...</main>
+        <main id="otherView" style="display: none; flex: 1; align-items: center; justify-content: center; color: #999; padding-bottom: 100px;">其他功能建置中...</main>
+
+        <main id="activityScheduleView" style="display: none; flex: 1; flex-direction: column; background: var(--bg-gray); padding-bottom: 100px; width: 100%;">
+            <div style="padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); background: white;">
+                <h2 style="margin: 0; font-size: 1.2rem; color: var(--ly-blue);"><i class="fas fa-calendar-check"></i> 活動行程總覽</h2>
+                <div style="display: flex; gap: 15px; align-items: center;">
+                    <i class="fas fa-globe" id="scheduleToggleIcon" style="font-size: 1.3rem; cursor: pointer; transition: 0.3s; color: var(--ly-blue);" onclick="toggleScheduleMode()" title="切換私人/公開模式"></i>
+                </div>
+            </div>
+            <div id="activityScheduleList" class="event-mini-list" style="flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px;"></div>
+        </main>
+
+        <button class="fab" id="chatFab" onclick="startNewChat()" title="快速發起聊天">
             <i class="fas fa-comment-dots"></i>
         </button>
+
+        <nav class="bottom-nav-bar">
+            <div class="nav-item" onclick="switchMainTab('home', this)"><i class="fas fa-home"></i><span>首頁</span></div>
+            <div class="nav-item active" onclick="switchMainTab('chat', this)"><i class="fas fa-comment-dots"></i><span>聊天</span></div>
+            
+            <div class="nav-item nav-item-center" onclick="switchMainTab('about', this)">
+                <div class="center-arc"></div>
+                <div class="center-circle">
+                    <img id="navCenterAvatar" src="https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+                </div>
+                <span id="navCenterName">關於我</span>
+            </div>
+
+            <div class="nav-item" onclick="switchMainTab('activity', this)"><i class="fas fa-calendar-alt"></i><span>活動</span></div>
+            <div class="nav-item" onclick="switchMainTab('other', this)"><i class="fas fa-ellipsis-h"></i><span>其他</span></div>
+        </nav>
     </div>
 
     <div id="chatView" class="app-view">
@@ -3280,7 +3861,7 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                     <div class="icon-circle" style="color: #003153;"><i class="fas fa-poll"></i></div>
                     <span>發起投票</span>
                 </div>
-                <div class="expand-menu-item" onclick="resetScheduleHeader(); handleActivitySchedule()">
+                <div class="expand-menu-item" onclick="resetScheduleHeader(true); handleActivitySchedule(true)">
                     <div class="icon-circle" style="color: #003153;"><i class="fas fa-calendar-alt"></i></div>
                     <span>活動行程</span>
                 </div>
@@ -3333,7 +3914,22 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             <span id="selectCountText" style="font-weight: 800; color: var(--ly-blue); font-size: 1.1rem;">已選擇 0 項</span>
             <button onclick="confirmMultiRevoke()" style="background: #ff4d4d; border: none; color: white; padding: 10px 20px; border-radius: 25px; font-weight: bold; cursor: pointer; font-size: 1rem; box-shadow: 0 4px 10px rgba(255, 77, 77, 0.3);"><i class="fas fa-trash-alt"></i> 收回</button>
         </div>
+    </div>
 
+    <div id="chatActivityScheduleView" class="app-view" style="z-index: 35; transform: translateX(110%);">
+        <header class="messenger-header">
+            <div class="header-content" style="padding: 15px 20px; justify-content: space-between; align-items: center;">
+                <div class="user-profile" style="flex: unset; gap: 5px;">
+                    <button class="back-btn" onclick="closeChatActivitySchedule()"><i class="fas fa-chevron-left"></i></button>
+                    <span class="user-name" style="font-size: 1.2rem; margin-right: 0;"><i class="fas fa-calendar-check"></i> 活動行程</span>
+                </div>
+                <div style="display: flex; gap: 15px; align-items: center;">
+                    <i class="fas fa-globe" id="chatScheduleToggleIcon" style="font-size: 1.3rem; cursor: pointer; transition: 0.3s; color: white;" onclick="toggleScheduleMode(true)" title="切換私人/公開模式"></i>
+                    <button title="新增活動" onclick="openCreateEventModal()" style="background: none; border: none; color: var(--ly-gold); font-size: 1.4rem; cursor: pointer;"><i class="fas fa-plus"></i></button>
+                </div>
+            </div>
+        </header>
+        <div id="chatActivityScheduleList" class="event-mini-list" style="flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; background: var(--bg-gray); -webkit-overflow-scrolling: touch;"></div>
     </div>
 
     <div id="newChatModal" class="modal-overlay">
@@ -5043,23 +5639,7 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         </div>
     </div>
 
-    <div id="activityScheduleView" class="app-view" style="z-index: 85; transform: translateX(100%);">
-        <header class="messenger-header">
-            <div class="header-content" style="padding: 15px 20px; justify-content: space-between; align-items: center;">
-                <div class="user-profile" style="flex: unset; gap: 5px;">
-                    <button class="back-btn" onclick="closeActivityScheduleView()" style="margin-right: 0;"><i class="fas fa-chevron-left"></i></button>
-                    <span class="user-name" id="scheduleModalTitle" style="font-size: 1.2rem; margin-right: 0;"><i class="fas fa-calendar-check"></i> 活動行程總覽</span>
-                </div>
-                <div class="header-actions" style="display: flex; gap: 15px; align-items: center;">
-                    <i class="fas fa-globe" id="scheduleToggleIcon" style="font-size: 1.3rem; cursor: pointer; transition: transform 0.3s ease, color 0.3s ease; color: white;" onclick="toggleScheduleMode()" title="切換私人/公開模式"></i>
-                    <button title="新增活動" onclick="openCreateEventModal()" style="background: none; border: none; color: var(--ly-gold); font-size: 1.4rem; cursor: pointer;">
-                        <i class="fas fa-plus"></i>
-                    </button>
-                </div>
-            </div>
-        </header>
-        <div id="activityScheduleList" class="event-mini-list" style="flex: 1; background: var(--bg-gray); overflow-y: auto; padding: 20px; -webkit-overflow-scrolling: touch; display: flex; flex-direction: column; gap: 15px;"></div>
-    </div>
+
 
     <div id="groupBuyListView" class="app-view" style="z-index: 85; transform: translateX(100%);">
         <header class="messenger-header">
@@ -5666,48 +6246,53 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
     }
 
     function closeChatRoom() {
-        // 【新增】：離開聊天室時，強制解除畫面鎖定，並瞬間將畫面移動到最新訊息的位置
-        window.preserveScrollPosition = false;
-        scrollToBottom(false);
+        // 【修改】：移除關閉時強制置底的邏輯，保留使用者目前查看的位置，讓畫面平滑向右收起
+        // window.preserveScrollPosition = false;
+        // scrollToBottom(false);
 
         chatViewDOM.style.transform = 'translateX(100%)';
         
         isTyping = false;
         clearTimeout(typingTimer);
         clearTypingState();
+        
         // 取消 Firebase 監聽器
         if (chatSnapshotUnsubscribe) { chatSnapshotUnsubscribe(); chatSnapshotUnsubscribe = null; }
         if (messagesSnapshotUnsubscribe) { messagesSnapshotUnsubscribe(); messagesSnapshotUnsubscribe = null; }
         
-        // 【新增】：徹底清除狀態與資料，確保下次進來一定是全新的狀態
+        // 【修改】：不要立刻清空 messagesDocsData，以免畫面在收起過程突然變空白
         currentChatId = null;
         currentSubscribeMessages = null;
-        messagesDocsData = []; 
         
         updateMyStatus(false);
         cancelReply();
         closeContextMenu(); 
         cancelSelectMode();
 
-        // 【新增】：離開時清空輸入框並強制收起手機鍵盤
+        // 離開時清空輸入框並強制收起手機鍵盤
         const msgInput = document.getElementById('msgInput');
         if (msgInput) {
             msgInput.value = '';
-            msgInput.style.height = '40px'; // 恢復預設高度
-            msgInput.blur(); // 強制失去焦點，收起鍵盤
+            msgInput.style.height = '40px'; 
+            msgInput.blur(); 
         }
         
-        // 【新增】：離開聊天室時，重置左側收縮選單
+        // 【新增】：離開聊天室時，強制將最新訊息按鈕隱藏
+        const scrollBtn = document.getElementById('scrollBottomBtn');
+        if (scrollBtn) scrollBtn.style.display = 'none';
+
+        // 離開聊天室時，重置左側收縮選單
         window.isLeftMenuForcedOpen = false;
         const container = document.getElementById('chatInputContainer');
         if (container) container.classList.remove('typing-mode');
 
-        // 【終極修復】：在畫面完全滑出後 (300ms)，徹底清空聊天畫面並強制重置捲軸，確保下次進入時絕不亂跳
+        // 【終極修復】：在畫面完全滑出後 (300ms) 再徹底清空聊天畫面。
+        // 移除了重新設定 scroll 到頂部的動作，避免誘發下次進入時的誤判
         setTimeout(() => {
+            messagesDocsData = []; 
             const list = document.getElementById('messageList');
             if (list) {
                 list.innerHTML = "";
-                list.scrollTo({ top: list.scrollHeight, behavior: 'auto' });
             }
         }, 300);
     }
@@ -5808,6 +6393,19 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                     // 只有真的有名字時才更新，否則顯示提示
                     if (nameEl) nameEl.innerText = data.displayName || "身分未設定";
                     if (avatarEl) avatarEl.src = data.photoURL || 'https://via.placeholder.com/45';
+                    
+                    // 同步更新底部導覽列的中央頭像與名稱
+                    const navCenterName = document.getElementById('navCenterName');
+                    const navCenterAvatar = document.getElementById('navCenterAvatar');
+                    if (navCenterName) navCenterName.innerText = data.displayName || "關於我";
+                    if (navCenterAvatar) navCenterAvatar.src = data.photoURL || 'https://via.placeholder.com/45';
+                    
+                    // 【請新增這段】：同步更新「關於我」頁面的大頭貼與名字
+                    const aboutMeName = document.getElementById('aboutMeName');
+                    const aboutMeAvatar = document.getElementById('aboutMeAvatar');
+                    if (aboutMeName) aboutMeName.innerText = data.displayName || "身分未設定";
+                    if (aboutMeAvatar) aboutMeAvatar.src = data.photoURL || 'https://via.placeholder.com/45';
+                    // 👆 新增結束
                     
                     // --- 2. 確定有身分資料後，才啟動推播註冊 ---
                     // --- 2. 確定有身分資料後，才啟動推播註冊 ---
@@ -6550,7 +7148,12 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
     // ==========================================
     function scrollToBottom(smooth = false) {
         const list = document.getElementById('messageList');
-        if (list) list.scrollTo({ top: list.scrollHeight, behavior: smooth ? 'smooth' : 'auto' });
+        if (list) {
+            list.scrollTo({ top: list.scrollHeight, behavior: smooth ? 'smooth' : 'auto' });
+            // 【修改】：強制置底時，立刻隱藏最新訊息按鈕，防止殘留
+            const btn = document.getElementById('scrollBottomBtn');
+            if (btn) btn.style.display = 'none';
+        }
     }
 
     // 【新增】：智慧圖片/影片載入防跳動處理
@@ -6569,15 +7172,20 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             scrollToBottom(false);
         }
     };
+
     // --- 監聽訊息清單捲動，控制按鈕與載入歷史紀錄 ---
     document.getElementById('messageList').addEventListener('scroll', function() {
         // 【關鍵修復】：初次載入或已離開聊天室時，忽略捲動事件，避免誤判為往上滑！
         if (window.isFirstChatLoad || !currentChatId) return; 
         
+        // 【終極防呆】：進入聊天室的最初 1 秒內，絕對禁止觸發向上捲動載入舊訊息。
+        // 這是因為載入圖片或渲染排版時，可能會導致捲動軸瞬間歸零而產生誤判！
+        if (window.chatOpenTime && (Date.now() - window.chatOpenTime < 1000)) return;
+
         const btn = document.getElementById('scrollBottomBtn');
         btn.style.display = (this.scrollHeight - this.scrollTop - this.clientHeight > 150) ? 'flex' : 'none';
 
-        // 【新增】：當捲動到最頂部 (scrollTop === 0) 且可能還有舊訊息時，觸發載入
+        // 【新增】：當捲動到最頂部 (scrollTop < 10) 且可能還有舊訊息時，觸發載入
         if (this.scrollTop < 10 && !isFetchingOlder && messagesDocsData.length >= currentMessageLimit) {
             isFetchingOlder = true;
             currentMessageLimit += 15; // 往上滑一次，多載入 15 則舊訊息
@@ -7429,6 +8037,93 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         } catch(e){ listEl.innerHTML="載入失敗"; }
     }
 
+    // ==========================================
+    // 底部導覽列切換邏輯 (結合標題列動態變換)
+    // 底部導覽列切換邏輯 (修復標題列 DOM 遺失問題)
+    // ==========================================
+    function switchMainTab(tabName, btnEl) {
+        document.querySelectorAll('.bottom-nav-bar .nav-item').forEach(el => el.classList.remove('active'));
+        if (btnEl) btnEl.classList.add('active');
+        
+        // 隱藏所有的主視圖
+        const views = ['chatList', 'aboutMeView', 'homeView', 'otherView', 'activityScheduleView'];
+        views.forEach(id => document.getElementById(id).style.display = 'none');
+        
+        const fab = document.getElementById('chatFab');
+        const header = document.getElementById('mainHeader');
+        
+        // 取得大頭貼與名字元素
+        const myAvatar = document.getElementById('myAvatar');
+        const myName = document.getElementById('myName');
+        
+        // 動態取得或建立用來替換的標題標籤
+        let pageTitle = document.getElementById('pageTitle');
+        if (!pageTitle && header) {
+            pageTitle = document.createElement('span');
+            pageTitle.id = 'pageTitle';
+            pageTitle.className = 'user-name';
+            pageTitle.style.fontSize = '1.2rem';
+            pageTitle.style.display = 'none';
+            header.querySelector('.user-profile').appendChild(pageTitle);
+        }
+        
+        // 預設恢復頂部標題列的正常樣式 (顯示大頭貼、名字、功能按鈕)
+        if (header) {
+            if (myAvatar) myAvatar.style.display = 'block';
+            if (myName) myName.style.display = 'block';
+            if (pageTitle) pageTitle.style.display = 'none';
+            header.querySelector('.header-actions').style.display = 'flex';
+        }
+
+        if (tabName === 'chat') {
+            document.getElementById('chatList').style.display = 'block';
+            if (fab) fab.style.display = 'flex';
+        } 
+        else if (tabName === 'activity') {
+            document.getElementById('activityScheduleView').style.display = 'flex';
+            if (fab) fab.style.display = 'none';
+            
+            // 變更標題列為活動樣式 (隱藏原本的大頭貼與名字，顯示純文字標題)
+            if (header) {
+                if (myAvatar) myAvatar.style.display = 'none';
+                if (myName) myName.style.display = 'none';
+                if (pageTitle) {
+                    pageTitle.innerText = '活動';
+                    pageTitle.style.display = 'block';
+                }
+                header.querySelector('.header-actions').style.display = 'none';
+            }
+            
+            // 如果還沒載入過資料，就載入一次
+            if (document.getElementById('activityScheduleList').innerHTML.trim() === '') {
+                handleActivitySchedule();
+            }
+        }
+        else if (tabName === 'about') {
+            document.getElementById('aboutMeView').style.display = 'flex';
+            if (fab) fab.style.display = 'none';
+            
+            // 切換到關於我時，隱藏大頭貼與名字
+            if (header) {
+                if (myAvatar) myAvatar.style.display = 'none';
+                if (myName) myName.style.display = 'none';
+                if (pageTitle) {
+                    pageTitle.innerText = '關於我';
+                    pageTitle.style.display = 'block';
+                }
+                header.querySelector('.header-actions').style.display = 'none';
+            }
+        } 
+        else if (tabName === 'home') {
+            document.getElementById('homeView').style.display = 'flex';
+            if (fab) fab.style.display = 'none';
+        } 
+        else if (tabName === 'other') {
+            document.getElementById('otherView').style.display = 'flex';
+            if (fab) fab.style.display = 'none';
+        }
+    }
+
     async function handleStartChat() {
         const targetName = document.getElementById('targetUserName').value.trim(); if (!targetName) return;
         try {
@@ -7948,19 +8643,44 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
     // ==========================================
     function toggleExpandMenu(e) {
         const panel = document.getElementById('expandMenuPanel'), btn = e.currentTarget;
-        if(panel.style.display==='flex') { panel.style.display='none'; btn.style.transform='rotate(0deg)'; }
-        else { panel.style.display='flex'; btn.style.transform='rotate(45deg)'; }
+        const scrollBtn = document.getElementById('scrollBottomBtn');
+        const list = document.getElementById('messageList');
+        
+        if(panel.style.display==='flex') { 
+            panel.style.display='none'; 
+            btn.style.transform='rotate(0deg)'; 
+            // 【修改】：關閉選單時，判斷是否距離底部大於 150px，是的話才重新顯示按鈕
+            if (list && scrollBtn) {
+                scrollBtn.style.display = (list.scrollHeight - list.scrollTop - list.clientHeight > 150) ? 'flex' : 'none';
+            }
+        } else { 
+            panel.style.display='flex'; 
+            btn.style.transform='rotate(45deg)'; 
+            // 【修改】：打開選單時，強制隱藏最新訊息按鈕，避免擋住選單
+            if (scrollBtn) scrollBtn.style.display = 'none';
+        }
     }
     document.addEventListener('click', (e) => {
         const p = document.getElementById('expandMenuPanel'), b = document.querySelector('.expand-menu-btn');
         const sp = document.getElementById('stickerPanel'), sb = document.querySelector('.sticker-btn');
+        const scrollBtn = document.getElementById('scrollBottomBtn');
+        const list = document.getElementById('messageList');
         
+        let menuClosed = false;
+
         if(p && p.style.display==='flex' && !p.contains(e.target) && !b.contains(e.target)) { 
             p.style.display='none'; b.style.transform='rotate(0deg)'; 
+            menuClosed = true;
         }
         // 如果點擊在貼圖面板與按鈕以外的地方，就關閉貼圖面板
         if(sp && sp.style.display==='flex' && !sp.contains(e.target) && !sb.contains(e.target)) {
             sp.style.display='none';
+            menuClosed = true;
+        }
+
+        // 【修改】：如果是因為點擊其他地方而關閉了選單，重新判斷是否要顯示最新訊息按鈕
+        if (menuClosed && list && scrollBtn) {
+            scrollBtn.style.display = (list.scrollHeight - list.scrollTop - list.clientHeight > 150) ? 'flex' : 'none';
         }
     }, true);
 
@@ -8014,6 +8734,8 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         const panel = document.getElementById('stickerPanel');
         const expandPanel = document.getElementById('expandMenuPanel');
         const expandBtn = document.querySelector('.expand-menu-btn');
+        const scrollBtn = document.getElementById('scrollBottomBtn');
+        const list = document.getElementById('messageList');
         
         if (expandPanel.style.display === 'flex') {
             expandPanel.style.display = 'none';
@@ -8022,10 +8744,16 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
 
         if (panel.style.display === 'flex') {
             panel.style.display = 'none';
+            // 【修改】：關閉貼圖面板時，判斷是否需要恢復顯示最新訊息按鈕
+            if (list && scrollBtn) {
+                scrollBtn.style.display = (list.scrollHeight - list.scrollTop - list.clientHeight > 150) ? 'flex' : 'none';
+            }
         } else {
             panel.style.display = 'flex';
-            const tabsContainer = document.getElementById('stickerTabs');
+            // 【修改】：打開貼圖面板時，隱藏最新訊息按鈕
+            if (scrollBtn) scrollBtn.style.display = 'none';
             
+            const tabsContainer = document.getElementById('stickerTabs');
             // 如果還沒載入過，先顯示轉圈圈並抓資料
             if (tabsContainer.innerHTML.trim() === '') {
                 tabsContainer.innerHTML = '<div style="padding:12px 20px; color:#999; font-size:0.9rem;"><i class="fas fa-spinner fa-spin"></i> 載入貼圖中...</div>';
@@ -8222,57 +8950,58 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
     // ==========================================
     let isSchedulePrivateMode = false;
 
-    function resetScheduleHeader() {
+    // 1. 重設與切換上方標題模式
+    function resetScheduleHeader(isFromChat = false) {
         isSchedulePrivateMode = false;
-        const icon = document.getElementById('scheduleToggleIcon');
-        const title = document.getElementById('scheduleModalTitle');
-        if (icon && title) {
+        const iconId = isFromChat ? 'chatScheduleToggleIcon' : 'scheduleToggleIcon';
+        const icon = document.getElementById(iconId);
+        if (icon) {
             icon.className = 'fas fa-globe';
-            icon.style.color = 'white';
+            icon.style.color = isFromChat ? 'white' : 'var(--ly-blue)';
             icon.style.transform = 'rotate(0deg) scale(1)';
-            title.innerHTML = '<i class="fas fa-calendar-check"></i> 活動行程總覽';
         }
     }
 
-    function toggleScheduleMode() {
+    function toggleScheduleMode(isFromChat = false) {
         isSchedulePrivateMode = !isSchedulePrivateMode;
-        const icon = document.getElementById('scheduleToggleIcon');
-        const title = document.getElementById('scheduleModalTitle');
-        
-        // 1. 縮小並旋轉 (消失感)
-        icon.style.transform = 'scale(0.1) rotate(180deg)';
-        
-        setTimeout(() => {
-            if (isSchedulePrivateMode) {
-                // 切換為私人模式 (紅色 user-secret)
-                icon.className = 'fas fa-user-secret';
-                icon.style.color = '#d93025'; 
-                title.innerHTML = '<i class="fas fa-user-secret" style="color: #d93025;"></i> 私人活動行程';
-            } else {
-                // 切換回公開模式 (白色 globe)
-                icon.className = 'fas fa-globe';
-                icon.style.color = 'white';
-                title.innerHTML = '<i class="fas fa-calendar-check"></i> 活動行程總覽';
-            }
-            
-            // 2. 放大並轉回來 (彈出感)
-            icon.style.transform = 'scale(1.2) rotate(360deg)';
-            
-            setTimeout(() => {
-                icon.style.transform = 'scale(1) rotate(360deg)';
-            }, 150);
-            
-        }, 150);
+        const iconId = isFromChat ? 'chatScheduleToggleIcon' : 'scheduleToggleIcon';
+        const icon = document.getElementById(iconId);
 
-        // 重新載入列表
-        handleActivitySchedule();
+        if (icon) icon.style.transform = 'scale(0.1) rotate(180deg)';
+
+        setTimeout(() => {
+            if (icon) {
+                if (isSchedulePrivateMode) {
+                    icon.className = 'fas fa-user-secret';
+                    icon.style.color = '#d93025';
+                } else {
+                    icon.className = 'fas fa-globe';
+                    icon.style.color = isFromChat ? 'white' : 'var(--ly-blue)';
+                }
+                icon.style.transform = 'scale(1.2) rotate(360deg)';
+                setTimeout(() => { icon.style.transform = 'scale(1) rotate(360deg)'; }, 150);
+            }
+        }, 150);
+        handleActivitySchedule(isFromChat);
     }
 
-    async function handleActivitySchedule() {
+    // 2. 雙軌讀取引擎
+    async function handleActivitySchedule(isFromChat = false) {
         document.getElementById('expandMenuPanel').style.display='none'; 
         document.querySelector('.expand-menu-btn').style.transform='rotate(0deg)';
-        activityScheduleViewDOM.style.transform = 'translateX(0%)'; // 【修改】
-        const listEl = document.getElementById('activityScheduleList'); 
+        
+        let listEl;
+        // 判斷是從聊天室來，還是底部首頁選單來
+        if (isFromChat) {
+            const chatActivityView = document.getElementById('chatActivityScheduleView');
+            if (chatActivityView) chatActivityView.style.transform = 'translateX(0%)';
+            listEl = document.getElementById('chatActivityScheduleList');
+        } else {
+            document.getElementById('activityScheduleView').style.display = 'flex';
+            listEl = document.getElementById('activityScheduleList');
+        }
+
+        if (!listEl) return;
         listEl.innerHTML = '<div style="text-align:center; padding:20px;"><i class="fas fa-spinner fa-spin"></i> 載入中...</div>';
         
         try {
@@ -8280,32 +9009,24 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             const currentEmail = currentUser ? currentUser.email : '';
             const currentUid = currentUser ? currentUser.uid : '';
 
-            // 【新增】：取得當前使用者的名稱，判斷是否擁有「班長」特權
             const myName = document.getElementById('myName').innerText.trim();
             const isMonitor = (myName === '班長');
 
             const snap = await db.collection("events").get(); 
             let events = [];
 
-            // 【修改】：使用 Promise.all 來安全地非同步抓取「建立人名稱」
             const promises = snap.docs.map(async doc => {
                 const ev = doc.data(); 
-                
                 const isCreator = (ev.creator === currentEmail && currentEmail !== '') || 
                                   (ev.creatorUid === currentUid && currentUid !== '') || 
                                   (ev.creator === currentUid && currentUid !== '');
-
-                // 【新增】：判斷是否有編輯與刪除權限 (建立者本人 或 班長)
                 const canEditDelete = isCreator || isMonitor;
 
-                // 【分類邏輯】：根據當前的模式過濾清單
                 if (isSchedulePrivateMode) {
-                    // 私人模式：只抓取 isPrivate=true，且你有權限看的 (班長擁有最高檢視權)
                     if (!ev.isPrivate) return null;
                     const authMembers = ev.authorizedMembers || [];
                     if (!isCreator && !isMonitor && !authMembers.includes(currentUid)) return null; 
                 } else {
-                    // 公開模式：只抓取公開的 (過濾掉所有 isPrivate=true 的)
                     if (ev.isPrivate) return null;
                 }
 
@@ -8317,7 +9038,6 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                     sortDate = ev.createdAt.toDate();
                 }
 
-                // 【新增】：抓取發起人名稱 (優先看快取，沒有就讀取資料庫)
                 let creatorName = "未知";
                 if (ev.creatorUid) {
                     if (window.chatMembersCache && window.chatMembersCache[ev.creatorUid]) {
@@ -8333,13 +9053,12 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                         } catch(e) {}
                     }
                 } else if (ev.creator) {
-                    creatorName = ev.creator.split('@')[0]; // 兼容舊資料
+                    creatorName = ev.creator.split('@')[0];
                 }
 
                 return { id: doc.id, ...ev, sortDate, canEditDelete, creatorName };
             });
 
-            // 等待所有名稱都抓取完畢，並過濾掉 null 的項目
             const resolvedEvents = await Promise.all(promises);
             events = resolvedEvents.filter(ev => ev !== null);
             
@@ -8350,7 +9069,6 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                 return; 
             }
             
-            // 【修改】：根據身分顯示對應的提示文字
             const tipText = isMonitor 
                 ? "<b>班長特權：</b>您擁有所有活動的「編輯」與「刪除」權限，向左滑動即可操作。" 
                 : "<b>小提示：</b>自己建立的活動，向左滑動即可「編輯」或「刪除」。";
@@ -8368,11 +9086,8 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                 const timeStr = ev.sortDate.toLocaleString('zh-TW', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).replace(/\//g,'-');
                 const safeTitle = (ev.title||'').replace(/'/g, "\\'").replace(/"/g, '&quot;');
                 const deadlineStr = ev.deadline || '';
-                
-                // 私人活動顯示鎖頭
                 const lockIcon = ev.isPrivate ? '<i class="fas fa-lock" style="color:#d93025; margin-right:5px;" title="私人活動"></i>' : '';
                 
-                // 【修改】：卡片內部排版，將建立人靠右對齊並加上精緻背景標籤
                 const innerContent = `
                     <h4 class="event-mini-title">${lockIcon}${ev.title}</h4>
                     <div class="event-mini-meta" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
@@ -8380,43 +9095,46 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                         <span style="color: var(--ly-blue); font-weight: bold; font-size: 0.8rem; background: rgba(0,49,83,0.08); padding: 2px 8px; border-radius: 12px;">建立人：${ev.creatorName}</span>
                     </div>`;
 
-                // 【修改】：判斷條件從 isCreator 改為 canEditDelete
                 if (ev.canEditDelete) {
                     html += `
                     <div class="swipe-container">
                         <div class="swipe-actions-dual">
                             <button class="swipe-edit-btn" onclick="editEvent('${ev.id}')"><i class="fas fa-edit"></i></button>
-                            <button class="swipe-delete-btn-half" onclick="deleteEvent('${ev.id}')"><i class="fas fa-trash-alt"></i></button>
+                            <button class="swipe-delete-btn-half" onclick="deleteEvent('${ev.id}', ${isFromChat})"><i class="fas fa-trash-alt"></i></button>
                         </div>
                         <div class="swipe-content event-mini-item" style="margin-bottom: 0;"
                              onmousedown="evSwipeStart(event, this)" onmousemove="evSwipeMove(event, this)" 
-                             onmouseup="evSwipeEnd(event, this, '${ev.id}', '${safeTitle}', '${timeStr}', '${deadlineStr}')" 
-                             onmouseleave="evSwipeEnd(event, this, '${ev.id}', '${safeTitle}', '${timeStr}', '${deadlineStr}')" 
+                             onmouseup="evSwipeEnd(event, this, '${ev.id}', '${safeTitle}', '${timeStr}', '${deadlineStr}', ${isFromChat})" 
+                             onmouseleave="evSwipeEnd(event, this, '${ev.id}', '${safeTitle}', '${timeStr}', '${deadlineStr}', ${isFromChat})" 
                              ontouchstart="evSwipeStart(event, this)" ontouchmove="evSwipeMove(event, this)" 
-                             ontouchend="evSwipeEnd(event, this, '${ev.id}', '${safeTitle}', '${timeStr}', '${deadlineStr}')">
+                             ontouchend="evSwipeEnd(event, this, '${ev.id}', '${safeTitle}', '${timeStr}', '${deadlineStr}', ${isFromChat})">
                             ${innerContent}
                         </div>
                     </div>`;
                 } else {
-                    html += `<div class="event-mini-item" onclick="sendEventCard('${ev.id}', '${safeTitle}', '${timeStr}', '${deadlineStr}')">${innerContent}</div>`;
+                    html += `<div class="event-mini-item" onclick="sendEventCard('${ev.id}', '${safeTitle}', '${timeStr}', '${deadlineStr}', ${isFromChat})">${innerContent}</div>`;
                 }
             }); 
             listEl.innerHTML = html;
         } catch(e){ listEl.innerHTML="<div style='text-align:center; color:red; padding:20px;'>載入失敗，請檢查網路</div>"; console.error(e); }
     }
 
-    // 【修改】：接收 deadlineStr 並存入 JSON 中
-    async function sendEventCard(eventId, title, timeStr, deadlineStr) {
-        // 【修改】：加入提示對象防呆
+    // 3. 發送卡片至聊天室 (防呆機制)
+    async function sendEventCard(eventId, title, timeStr, deadlineStr, isFromChat = false) {
+        if (!isFromChat) {
+            alert("💡 小提示：\n請先進入特定的聊天室後，點擊左下角「+」選單內的「活動行程」來發布喔！");
+            return;
+        }
+
         if(!confirm(`要將活動「${title}」發布到聊天室中嗎？${getChatTargetNameForConfirm()}`)) return; 
-        closeActivityScheduleView();
+        closeChatActivitySchedule();
         
         try {
             const batch = db.batch(), chatRef = db.collection("chats").doc(currentChatId), msgRef = chatRef.collection("messages").doc();
             batch.set(msgRef, { text: JSON.stringify({ type:'event_share', eventId:eventId, title:title, timeStr:timeStr, deadline:deadlineStr }), senderId: auth.currentUser.uid, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
             batch.update(chatRef, { lastMessage: `分享活動：${title}`, lastSenderId: auth.currentUser.uid, updatedAt: firebase.firestore.FieldValue.serverTimestamp(), [`lastReadAt.${auth.currentUser.uid}`]: firebase.firestore.FieldValue.serverTimestamp() });
             await batch.commit(); scrollToBottom(true);
-        } catch(e){ alert("失敗"); }
+        } catch(e){ alert("發送失敗"); }
     }
 
     // ==========================================
@@ -8438,23 +9156,21 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         if (evSwipeCurrentX < 0 && evSwipeCurrentX > -160) el.style.transform = `translateX(${evSwipeCurrentX}px)`;
     }
     
-    function evSwipeEnd(e, el, eventId, title, timeStr, deadline) {
+    // 4. 卡片滑動判定傳遞參數
+    function evSwipeEnd(e, el, eventId, title, timeStr, deadline, isFromChat = false) {
         if (!isEvItemSwiping) return;
         isEvItemSwiping = false; el.style.transition = 'transform 0.3s ease';
         
         if (evSwipeCurrentX < -75) {
-            // 滑超過一半，固定展開兩個按鈕 (總寬度150px)
             el.style.transform = 'translateX(-150px)';
             evSwipedItemOpen = el;
         } else {
-            // 回彈
             el.style.transform = 'translateX(0px)';
             if (evSwipedItemOpen === el) evSwipedItemOpen = null;
             
-            // 如果幾乎沒滑動 (當作點擊)，觸發原本的發送卡片功能
             if (Math.abs(evSwipeCurrentX) < 10 && eventId) {
-                if (e && e.type === 'touchend' && e.cancelable) e.preventDefault(); // 【修復】：阻擋瀏覽器補發第二次點擊
-                sendEventCard(eventId, title, timeStr, deadline);
+                if (e && e.type === 'touchend' && e.cancelable) e.preventDefault(); 
+                sendEventCard(eventId, title, timeStr, deadline, isFromChat);
             }
         }
         evSwipeCurrentX = 0;
@@ -9296,13 +10012,12 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         createEventViewDOM.style.transform = 'translateX(0%)';
     }
 
-    // 【新增】：徹底刪除活動與雲端圖片功能
-    async function deleteEvent(eventId) {
+    // 5. 刪除與新增行程時的智慧刷新
+    async function deleteEvent(eventId, isFromChat = false) {
         if (!confirm("確定要刪除此活動嗎？\n(若有上傳照片也會一併從雲端清除)")) return;
         try {
             const doc = await db.collection("events").doc(eventId).get();
             if (doc.exists && doc.data().fields) {
-                // 清理圖片 Storage
                 doc.data().fields.forEach(f => {
                     if(f.type === 'image_upload' && f.content) {
                         try{ storage.refFromURL(f.content).delete(); } catch(e){}
@@ -9311,7 +10026,7 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             }
             await db.collection("events").doc(eventId).delete();
             alert("活動已刪除！");
-            handleActivitySchedule(); // 重新整理清單
+            handleActivitySchedule(isFromChat); 
         } catch(e) { alert("刪除失敗: " + e.message); }
     }
 
@@ -9724,9 +10439,19 @@ renderEvMemberPreview = async function(uids, type) {
                 // 【編輯模式】：更新資料，不發送新卡片
                 eventData.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
                 await db.collection("events").doc(currentEditingEventId).update(eventData);
+                
                 closeCreateEventView();
+                
+                // 自動判斷目前開啟的是哪個活動視窗，來決定如何刷新
+                if (document.getElementById('chatActivityScheduleView') && document.getElementById('chatActivityScheduleView').style.transform === 'translateX(0%)') {
+                    handleActivitySchedule(true);
+                } else {
+                    handleActivitySchedule(false);
+                }
+                
                 alert("活動修改成功！");
-                handleActivitySchedule(); // 重新打開活動總覽刷新清單
+                // 【修正】：把這邊原本多餘的 handleActivitySchedule(); 刪除
+                
             } else {
                 // 【新增模式】：寫入集合
                 eventData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
@@ -9748,7 +10473,14 @@ renderEvMemberPreview = async function(uids, type) {
                 }
                 
                 closeCreateEventView();
-                handleActivitySchedule(); // 自動重新打開總覽列表
+                
+                // 自動判斷目前開啟的是哪個活動視窗，來決定如何刷新
+                if (document.getElementById('chatActivityScheduleView') && document.getElementById('chatActivityScheduleView').style.transform === 'translateX(0%)') {
+                    handleActivitySchedule(true);
+                } else {
+                    handleActivitySchedule(false);
+                }
+                // 【修正】：把這邊原本多餘的 handleActivitySchedule(); 刪除
             }
         } catch(e) { 
             alert("操作失敗: " + e.message); 
@@ -17031,6 +17763,156 @@ renderEvMemberPreview = async function(uids, type) {
             }
         });
     }, 60000);
+
+    // ==========================================
+    // 聊天室專屬：活動清單左滑退出引擎
+    // ==========================================
+    const chatActivityScheduleViewDOM = document.getElementById('chatActivityScheduleView');
+    let isCasSwiping = false, casStartX = 0, casCurrentX = 0;
+
+    if (chatActivityScheduleViewDOM) {
+        chatActivityScheduleViewDOM.addEventListener('touchstart', (e) => {
+            if (e.touches[0].clientX < 40) {
+                isCasSwiping = true; casStartX = e.touches[0].clientX; chatActivityScheduleViewDOM.style.transition = 'none';
+            }
+        }, {passive: true});
+        chatActivityScheduleViewDOM.addEventListener('touchmove', (e) => {
+            if (!isCasSwiping) return;
+            casCurrentX = e.touches[0].clientX - casStartX;
+            if (casCurrentX > 0) { if (e.cancelable) e.preventDefault(); chatActivityScheduleViewDOM.style.transform = `translateX(${casCurrentX}px)`; }
+        }, { passive: false });
+        chatActivityScheduleViewDOM.addEventListener('touchend', () => {
+            if (!isCasSwiping) return;
+            isCasSwiping = false;
+            chatActivityScheduleViewDOM.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
+            if (casCurrentX > window.innerWidth / 3 || casCurrentX > 30) closeChatActivitySchedule();
+            else chatActivityScheduleViewDOM.style.transform = 'translateX(0%)';
+            casCurrentX = 0;
+        });
+    }
+
+    function closeChatActivitySchedule() {
+        if (chatActivityScheduleViewDOM) chatActivityScheduleViewDOM.style.transform = 'translateX(110%)';
+    }
+
+    // ==========================================
+    // 圖片輪播視窗：點擊畫面切換全螢幕/顯示 UI
+    // ==========================================
+    window.handleViewerClick = function(e) {
+        const viewerModal = document.getElementById('image-viewer-modal');
+        if (viewerModal) {
+            // 切換 user-idle class 來淡入/淡出頭部與底部的縮圖選單
+            viewerModal.classList.toggle('user-idle');
+        }
+    };
+
+    // ==========================================
+    // 變換外框與主題 (Frame & Theme Change)
+    // ==========================================
+    const frameModal = document.getElementById('frameModal');
+    const avatarFrameContainer = document.getElementById('avatarFrameContainer');
+    const framePreviewContainer = document.getElementById('frame-preview-container');
+    const framePreviewFrame = document.getElementById('avatarFramePreview');
+    const framePreviewAvatar = document.getElementById('aboutMeAvatarPreview');
+    const framePreviewName = document.getElementById('frameNamePreview');
+
+    // ==========================================
+    // 變換外框與主題 (Frame & Theme Change) - 終極完整版
+    // ==========================================
+    
+    // 主題記憶核心：單純更新畫面視覺
+    function applyThemeVisuals(themeName) {
+        const avatarFrameContainer = document.getElementById('avatarFrameContainer');
+        if (!avatarFrameContainer) return;
+        
+        // 先移除所有主題與外框 class，避免互相干擾
+        document.body.classList.remove('tech-theme', 'chuuni-theme', 'princess-theme');
+        avatarFrameContainer.className = 'avatar-frame-container'; // 重置關於我主頁面
+
+        // 套用選定主題
+        if (themeName === 'tech') { 
+            document.body.classList.add('tech-theme'); 
+        } 
+        else if (themeName === 'chuuni') { 
+            document.body.classList.add('chuuni-theme'); 
+        } 
+        else if (themeName === 'princess') { 
+            // 【修復】：正式套用公主魔幻風格
+            document.body.classList.add('princess-theme'); 
+        } 
+        else {
+            // 預設 (金色) 需要特定的 class 來畫邊框
+            avatarFrameContainer.classList.add('avatar-frame-default');
+        }
+    }
+
+    function openFrameModal() {
+        const currentAvatar = document.getElementById('aboutMeAvatar').src || 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true';
+        document.getElementById('aboutMeAvatarPreview').src = currentAvatar;
+        
+        const currentClasses = Array.from(document.body.classList);
+        let currentTheme = 'default';
+        let currentBtnIndex = 0;
+
+        // 判定目前所在的主題
+        if (currentClasses.includes('tech-theme')) { currentTheme = 'tech'; currentBtnIndex = 2; }
+        else if (currentClasses.includes('chuuni-theme')) { currentTheme = 'chuuni'; currentBtnIndex = 3; }
+        else if (currentClasses.includes('princess-theme')) { currentTheme = 'princess'; currentBtnIndex = 1; }
+
+        // 更新 Modal 預覽區樣式 (連動顯示特效)
+        const framePreviewFrame = document.getElementById('avatarFramePreview');
+        framePreviewFrame.className = 'avatar-frame-container';
+        if(currentTheme === 'default') { 
+            framePreviewFrame.classList.add('avatar-frame-default'); 
+        } else {
+            // 將主題 class 加在預覽區，讓裡面的特效能亮起來
+            framePreviewFrame.classList.add(currentTheme + '-theme'); 
+        }
+        
+        document.querySelectorAll('#frameModal .theme-option-item').forEach(el => el.classList.remove('active'));
+        const targetBtn = document.querySelectorAll('#frameModal .theme-option-item')[currentBtnIndex];
+        if (targetBtn) {
+            targetBtn.classList.add('active');
+            document.getElementById('frameNamePreview').innerText = targetBtn.querySelector('span').innerText;
+        }
+        
+        document.getElementById('frameModal').style.display = 'flex';
+    }
+
+    function closeFrameModal() {
+        document.getElementById('frameModal').style.display = 'none';
+    }
+
+    function changeThemeFrame(themeName, btnEl) {
+        // 1. 更新選單高亮狀態
+        document.querySelectorAll('#frameModal .theme-option-item').forEach(el => el.classList.remove('active'));
+        if (btnEl) btnEl.classList.add('active');
+        
+        // 2. 更新預覽區的名字
+        const themeText = btnEl ? btnEl.querySelector('span').innerText : "預設 (金色)";
+        document.getElementById('frameNamePreview').innerText = themeText;
+        
+        // 3. 更新預覽區的樣式 (讓點擊當下預覽區就能看到特效)
+        const framePreviewFrame = document.getElementById('avatarFramePreview');
+        framePreviewFrame.className = 'avatar-frame-container';
+        if (themeName === 'default') { 
+            framePreviewFrame.classList.add('avatar-frame-default'); 
+        } else {
+            framePreviewFrame.classList.add(themeName + '-theme');
+        }
+
+        // 4. 【關鍵修正】：將主題儲存至 Firebase 資料庫，並套用到主畫面！
+        if (auth.currentUser) {
+            db.collection("act").doc(auth.currentUser.uid).set({ 
+                userTheme: themeName 
+            }, { merge: true }).then(() => {
+                console.log("主題儲存成功: " + themeName);
+                applyThemeVisuals(themeName);
+            }).catch(e => { alert("儲存失敗: " + e.message); });
+        } else {
+            applyThemeVisuals(themeName);
+        }
+    }
 </script>
 </body>
     
