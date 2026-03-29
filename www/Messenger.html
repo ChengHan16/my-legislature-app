@@ -328,28 +328,38 @@
             flex: 1; 
             height: 40px; 
             min-height: 40px;
-            max-height: 40px; /* 【修改】：強制固定高度，不隨字數長高 */
+            max-height: 120px; /* 【修改】：最多顯示 5 行 (行高20px * 5行 + 上下內距20px) */
             padding: 10px 15px; 
             border: 1.5px solid #eee; 
             border-radius: 20px; 
             outline: none; 
             font-size: 15px; 
             background: #f8f9fa; 
-            transiStion: border-color 0.3s; 
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); /* 【修復】：修正錯字並加上平滑動畫 */
             resize: none; 
             font-family: inherit; 
             line-height: 20px; 
             box-sizing: border-box;
-            /* --- 【核心：強制不換行】 --- */
-            white-space: nowrap; 
-            overflow-x: auto; /* 允許橫向滑動文字 */
-            overflow-y: hidden; /* 禁止垂直溢出 */
+            /* --- 【修改：恢復多行與垂直捲動】 --- */
+            white-space: pre-wrap; 
+            word-wrap: break-word;
+            overflow-x: hidden; 
+            overflow-y: auto; 
         }
 
-        /* 隱藏橫向捲動條，保持畫面整潔 (iOS Safari 適用) */
+        /* 隱藏捲動條，保持畫面整潔 (iOS Safari 適用) */
         #msgInput::-webkit-scrollbar {
             display: none;
         }
+        
+        /* 👇 請在這裡新增這段：強制輸入框的提示文字絕對不換行 👇 */
+        #msgInput::placeholder {
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+        }
+        /* 👆 新增結束 👆 */
+
         #msgInput:focus { border-color: var(--ly-gold); background: #fff; }
 
         .send-btn { 
@@ -2088,6 +2098,7 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         .calendar-month-panel {
             flex: 0 0 100%;
             width: 100%;
+            height: 100%; /* 【關鍵修復】：解決 iOS Safari 網格高度塌陷、無法貼齊底部的 Bug */
             scroll-snap-align: start;
             display: flex;
             flex-direction: column;
@@ -3799,7 +3810,9 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         .chat-avatar-wrapper.theme-style1::after, .center-circle.theme-style1::after { content:''; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%) scale(1.7); width:100%; height:100%; background:url('https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/01.png?raw=true') center/contain no-repeat; z-index:15; pointer-events:none; }
         .chat-avatar-wrapper.theme-style2::after, .center-circle.theme-style2::after { content:''; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%) scale(1.7); width:100%; height:100%; background:url('https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/02.png?raw=true') center/contain no-repeat; z-index:15; pointer-events:none; }
         .chat-avatar-wrapper.theme-style3::after, .center-circle.theme-style3::after { content:''; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%) scale(1.7); width:100%; height:100%; background:url('https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/03.png?raw=true') center/contain no-repeat; z-index:15; pointer-events:none; }
-    
+        .chat-avatar-wrapper.theme-style4::after, .center-circle.theme-style4::after { content:''; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%) scale(1.7); width:100%; height:100%; background:url('https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/04.png?raw=true') center/contain no-repeat; z-index:15; pointer-events:none; }
+        .chat-avatar-wrapper.theme-style5::after, .center-circle.theme-style5::after { content:''; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%) scale(1.7); width:100%; height:100%; background:url('https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/05.png?raw=true') center/contain no-repeat; z-index:15; pointer-events:none; }
+        .chat-avatar-wrapper.theme-style6::after, .center-circle.theme-style6::after { content:''; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%) scale(1.7); width:100%; height:100%; background:url('https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/06.png?raw=true') center/contain no-repeat; z-index:15; pointer-events:none; }
         /* ==========================================
            扭蛋抽卡系統專屬樣式 (包含極致大獎破框設計)
            ========================================== */
@@ -3904,52 +3917,40 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
            扭蛋機主畫面：大獎海報展示區 (Banner Showcase)
            ========================================== */
         /* 修改容器：改為置中排版，脫離 absolute */
+        /* ================== 扭蛋展示區樣式 (完美的皇冠形結構排版) ================== */
         .gacha-showcase-container {
-            width: 100%;
-            flex: 1; /* 佔滿剩餘空間 */
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            pointer-events: none; 
-            z-index: 2;
-            margin-bottom: 20px; /* 與下方文字的間距 */
+            width: 100%; flex: 1; min-height: 320px;
+            position: relative; /* 作為子元素絕對定位的基準 */
+            display: flex; justify-content: center; align-items: center; /* 幫助主要框架置中 */
+            pointer-events: none; z-index: 2; margin-bottom: 20px;
+            padding: 0 10px; box-sizing: border-box;
         }
         
-        .gacha-showcase-img {
-            position: absolute; object-fit: contain;
-            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.8));
-        }
-        
-        /* 主打大獎 (風格一：置中偏下) */
-        .gacha-showcase-img.main-prize {
-            width: 180px; height: 180px;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -20%);
-            z-index: 3;
-            animation: floatGachaMain 4s ease-in-out infinite;
-        }
-        
-        /* 次要大獎 (風格二：左上) */
-        .gacha-showcase-img.sub-prize-1 {
-            width: 130px; height: 130px;
-            top: 10%; left: 10%;
-            z-index: 2; opacity: 0.9;
-            animation: floatGachaSub 5s ease-in-out infinite 1s;
-        }
-        
-        /* 次要大獎 (風格三：右上) */
-        .gacha-showcase-img.sub-prize-2 {
-            width: 130px; height: 130px;
-            top: 10%; right: 10%;
-            z-index: 1; opacity: 0.9;
-            animation: floatGachaSub 6s ease-in-out infinite 2s;
-        }
+        /* 統一設定所有展示圖片為絕對定位，並加上基本漂浮動畫 */
+        .gacha-showcase-img { position: absolute; object-fit: contain; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.8)); }
 
-        /* 呼吸懸浮動畫 (需配合 translate) */
-        @keyframes floatGachaMain {
-            0%, 100% { transform: translate(-50%, -20%) translateY(0); }
-            50% { transform: translate(-50%, -20%) translateY(-10px); }
+        /* 🔥 主要框架 (showcase-main)：較大，在中央下方，自帶金光 */
+        .gacha-showcase-img.showcase-main { 
+            width: 200px; height: 200px; /* 大框架 */
+            bottom: 8%; left: 50%;
+            transform: translateX(-50%); /* 完美置中 */
+            z-index: 5; /* 在最上層 */
+            filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.9)); /* 強烈金光 */
+            animation: floatGachaMain 4s ease-in-out infinite; 
+        }
+        
+        /* 🔥 左上方框架 (showcase-sub-left)：較小 */
+        .gacha-showcase-img.showcase-sub-left { 
+            width: 120px; height: 120px; /* 小框架 */
+            top: 15%; right: calc(50% + 50px); /* 在中央偏左 */
+            z-index: 4; animation: floatGachaSub 5s ease-in-out infinite 1s; 
+        }
+        
+        /* 🔥 右上方框架 (showcase-sub-right)：較小 */
+        .gacha-showcase-img.showcase-sub-right { 
+            width: 120px; height: 120px; /* 小框架 */
+            top: 15%; left: calc(50% + 50px); /* 在中央偏右 */
+            z-index: 4; animation: floatGachaSub 5.5s ease-in-out infinite 1.5s; 
         }
         @keyframes floatGachaSub {
             0%, 100% { transform: translateY(0); }
@@ -3957,34 +3958,39 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         }
 
         /* ================== 單抽/連續展演 破框設計 ================== */
-        /* 演出容器 (發光基座) */
+        /* ================== 單抽/連續展演 破框設計 ================== */
+        /* 演出容器基座 */
         .gacha-result-item {
             width: 160px; height: 160px; border-radius: 50%;
-            background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.4) 100%);
-            position: relative; /* 圖片絕對定位的基準 */
-            box-shadow: 0 0 50px rgba(255, 215, 0, 0.8), inset 0 0 20px rgba(255,215,0,0.5);
+            position: relative;
             animation: gachaPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-            margin-bottom: 30px; border: 4px solid var(--ly-gold);
+            margin-bottom: 30px; 
         }
 
-        /* 圖片絕對定位，徹底脫離圓圈限制 */
-        .gacha-result-item img {
+        /* 中獎時，將基座的背景與實體邊框完全透明化，避免從圖片中間露出來 */
+        .gacha-result-item.win {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+
+        /* 圖片絕對定位，完美置中，並將發光特效直接打在 PNG 圖片上 */
+        .gacha-result-item.win img {
             position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%) scale(1.4);
+            transform: translate(-50%, -50%) scale(1.6); /* 完美置中與調整大小 */
             width: 100%; height: 100%; object-fit: contain; pointer-events: none;
+            filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.6)); /* 小獎的基本金光 */
         }
 
-        /* 🔥 大獎演出專屬 (取消實體邊框，改為巨大光暈) */
+        /* 🔥 大獎演出專屬 */
         .gacha-result-item.grand-prize {
-            border: none;
-            background: radial-gradient(circle, rgba(255,215,0,0.6) 0%, rgba(0,0,0,0) 70%); 
-            box-shadow: 0 0 100px rgba(255, 215, 0, 0.8);
             margin-bottom: 60px;
         }
 
-        /* 🔥 大獎圖片強力破框 (修正：回歸絕對置中，並縮小至適合的霸氣比例) */
+        /* 🔥 大獎圖片強力破框 */
         .gacha-result-item.grand-prize img {
-            transform: translate(-50%, -50%) scale(1.8); /* 把 -55% 改回 -50% 置中，放大倍率從 2.5 降到 1.8 */
+            transform: translate(-50%, -50%) scale(1.85); /* 大獎放大 */
+            filter: drop-shadow(0 0 35px rgba(255, 215, 0, 1)); /* 大獎強烈金光 */
             z-index: 10;
         }
 
@@ -4020,41 +4026,56 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
 
         .gacha-summary-item { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 10px; }
 
-        /* 縮小總結卡片基座尺寸，避免 5 顆擠爆螢幕 */
+        /* 縮小總結卡片容器尺寸 */
         .gacha-summary-avatar {
-            width: 52px; height: 52px; border-radius: 50%; background: #222; border: 3px solid #444; 
-            position: relative; box-shadow: 0 0 10px rgba(0,0,0,0.5); 
-            display: flex; justify-content: center; align-items: center; color: #555; font-size: 20px; 
+            width: 52px; height: 52px; border-radius: 50%; 
+            position: relative; 
+            display: flex; justify-content: center; align-items: center; 
         }
 
-        /* 圖片絕對定位破框 (稍微調大 scale 彌補基座縮小的比例) */
-        .gacha-summary-avatar img {
+        /* 抽中外框時，背景透明化且無實體邊框 */
+        .gacha-summary-avatar.win {
+            background: transparent !important; 
+            border: none !important; 
+            box-shadow: none !important;
+        }
+
+        /* 圖片絕對定位破框，使用 drop-shadow 取代外框發光 */
+        .gacha-summary-avatar.win img {
             position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%) scale(1.8); /* 放大比例彌補基底縮小 */
+            transform: translate(-50%, -50%) scale(1.95); /* 完美置中，放大 */
             width: 100%; height: 100%; object-fit: contain; pointer-events: none;
+            filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.6));
         }
 
-        /* 🔥 大獎總結卡片基座 */
-        .gacha-summary-avatar.win.grand-prize {
-            background: radial-gradient(circle, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.2) 100%);
-            border-color: var(--ly-gold); box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
-        }
-        /* 🔥 大獎總結卡片圖片 (讓大獎更霸氣破框) */
+        /* 🔥 大獎總結卡片圖片 */
         .gacha-summary-avatar.win.grand-prize img { 
-            transform: translate(-50%, -50%) scale(2.2); 
+            transform: translate(-50%, -50%) scale(2.05); /* 大獎再稍微大一點點 */
+            filter: drop-shadow(0 0 12px rgba(255, 215, 0, 1));
             z-index: 10; 
         }
 
-        /* 中獎時一般金框 */
-        .gacha-summary-avatar.win { border-color: var(--ly-gold); box-shadow: 0 0 15px rgba(255, 215, 0, 0.7); }
-        /* 落選 */
-        .gacha-summary-avatar.blank { border-color: #444; box-shadow: none; background: #222; color: #555; font-size: 20px; }
+        /* 銘謝惠顧(落選)時的實體底色與邊框 */
+        .gacha-summary-avatar.blank { 
+            background: #222; border: 3px solid #444; box-shadow: none; 
+            color: #555; font-size: 20px; 
+        }
 
         /* "New" 標籤 */
         .gacha-summary-new { position: absolute; top: -10px; right: -10px; background: red; color: white; font-size: 10px; font-weight: bold; padding: 2px 5px; border-radius: 8px; border: 1px solid white; text-transform: uppercase; z-index: 20; box-shadow: 0 2px 4px rgba(0,0,0,0.5); }
         
         /* 總結畫面按鈕 */
         .gacha-summary-buttons { display: none; gap: 15px; margin-top: 30px; animation: fadeIn 1s 0.3s both; justify-content: center; width: 100%;}
+
+        /* ==========================================
+           修復：日曆底部與導覽列的無縫融合
+           ========================================== */
+        #calendarView > div[style*="background: var(--bg-gray)"] {
+            background: white !important;
+        }
+        body.dark-mode #calendarView > div[style*="background: var(--bg-gray)"] {
+            background: #000000 !important;
+        }
     </style>
 
     <script>
@@ -4152,10 +4173,6 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                     <i class="fas fa-chevron-right" style="color: #ccc;"></i>
                  </button>
             </div>
-
-            <button class="btn-modal btn-danger" style="width: 90%; max-width: 400px; margin-top: 15px; padding: 15px; border-radius: 12px; font-size: 1.05rem; box-shadow: 0 4px 15px rgba(255, 77, 77, 0.2);" onclick="handleLogout()">
-                <i class="fas fa-sign-out-alt"></i> 登出系統
-            </button>
         </main>
         
         <div id="frameModal" class="modal-overlay" style="z-index: 6000;" onclick="if(event.target === this) closeFrameModal()">
@@ -4216,6 +4233,18 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                         <div class="theme-option-item" onclick="changeThemeFrame('style3', this)">
                             <div class="theme-swatch" style="background: url('https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/03.png?raw=true') center/contain no-repeat, var(--bg-gray);"></div>
                             <span>風格三</span>
+                        </div>
+                        <div class="theme-option-item" onclick="changeThemeFrame('style4', this)">
+                            <div class="theme-swatch" style="background: url('https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/04.png?raw=true') center/contain no-repeat, var(--bg-gray);"></div>
+                            <span>英雄風格</span>
+                        </div>
+                        <div class="theme-option-item" onclick="changeThemeFrame('style5', this)">
+                            <div class="theme-swatch" style="background: url('https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/05.png?raw=true') center/contain no-repeat, var(--bg-gray);"></div>
+                            <span>風格五</span>
+                        </div>
+                        <div class="theme-option-item" onclick="changeThemeFrame('style6', this)">
+                            <div class="theme-swatch" style="background: url('https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/06.png?raw=true') center/contain no-repeat, var(--bg-gray);"></div>
+                            <span>風格六</span>
                         </div>
                     </div>
                 </div>
@@ -6321,7 +6350,7 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                     <span class="user-name" style="color: white; font-size: 1.1rem;">封印召喚</span>
                 </div>
                 <div class="header-actions">
-                    <button style="background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.3); font-size: 0.9rem; width: 30px; height: 30px; display: flex; justify-content: center; align-items: center; border-radius: 50%;" onclick="alert('【機率明細】\n風格一：15%\n風格二：5%\n風格三：5%\n一般：75%')">
+                    <button style="background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.3); font-size: 0.9rem; width: 30px; height: 30px; display: flex; justify-content: center; align-items: center; border-radius: 50%;" onclick="alert('【機率明細】\n風格四(傳說)：0.2%\n風格六(傳說)：0.2%\n風格二(大獎)：1%\n風格三(大獎)：1%\n風格一(小獎)：48.8%\n風格五(小獎)：48.8%')">
                         <i class="fas fa-question"></i>
                     </button>
                 </div>
@@ -6334,9 +6363,11 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         
         <div class="gacha-content-area">
             <div class="gacha-showcase-container">
-                <img src="https://raw.githubusercontent.com/ChengHan16/Other_File/refs/heads/master/Legislature/photo/avatar/02.png" class="gacha-showcase-img main-prize">
-                <img src="https://raw.githubusercontent.com/ChengHan16/Other_File/refs/heads/master/Legislature/photo/avatar/03.png" class="gacha-showcase-img sub-prize-1">
-                <img src="https://raw.githubusercontent.com/ChengHan16/Other_File/refs/heads/master/Legislature/photo/avatar/01.png" class="gacha-showcase-img sub-prize-2">
+                <img src="https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/04.png?raw=true" class="gacha-showcase-img showcase-main">
+                
+                <img src="https://raw.githubusercontent.com/ChengHan16/Other_File/refs/heads/master/Legislature/photo/avatar/02.png" class="gacha-showcase-img showcase-sub-left">
+                
+                <img src="https://raw.githubusercontent.com/ChengHan16/Other_File/refs/heads/master/Legislature/photo/avatar/03.png" class="gacha-showcase-img showcase-sub-right">
             </div>
 
             <p style="color: #777; text-align: center; margin-bottom: 30px; line-height: 1.6; font-size: 0.9rem; z-index: 5; position: relative;">
@@ -6372,7 +6403,7 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
 
             <div id="gachaSummaryButtons" class="gacha-summary-buttons">
                 <button class="btn-modal btn-default" onclick="closeModal('gachaResultModal')" style="padding: 12px 30px;">確定</button>
-                <button class="btn-modal btn-primary" onclick="rollGacha(10)" style="background: var(--ly-blue); border-color: var(--ly-blue); padding: 12px 30px;">再次十連召喚 <i class="fas fa-gem"></i></button>
+                <button class="btn-modal btn-primary" onclick="rollGacha(10)" style="background: linear-gradient(135deg, #f9e27d, #d4af37, #b8860b); color: #000; border: none; font-weight: 900; padding: 12px 30px; box-shadow: 0 4px 15px rgba(207, 169, 0, 0.4); text-shadow: 0 1px 1px rgba(255,255,255,0.5);">再次十連召喚 <i class="fas fa-gem" style="color: #000;"></i></button>
             </div>
         </div>
     </div>
@@ -6527,7 +6558,7 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             calView.style.display = 'none';
             calView.style.zIndex = '1';
             
-            calView.style.paddingBottom = 'calc(90px + env(safe-area-inset-bottom))';
+            calView.style.paddingBottom = 'calc(58px + env(safe-area-inset-bottom))';
             calView.style.transition = 'none';
             
             // 補回失去 app-view 後缺少的排版屬性，確保高度 100% 且垂直排列
@@ -7006,7 +7037,10 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             db.collection("chats")
             .where("members", "array-contains", user.uid)
             .orderBy("updatedAt", "desc")
-            .onSnapshot(renderChatList);
+            .onSnapshot(snap => {
+                window.lastChatsSnapshot = snap; // 【新增】：儲存快照供即時刷新使用
+                renderChatList(snap);
+            });
             
             // --- 4. 監聽上下線 ---
             window.addEventListener('focus', () => updateMyStatus(true));
@@ -7043,13 +7077,48 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                 avatar = chat.groupAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(title)}&background=003153&color=fff`;
             } else {
                 const targetUid = chat.members.find(uid => uid !== currentUser.uid);
-                if (targetUid && !userCache[targetUid]) {
-                    const userDoc = await db.collection("act").doc(targetUid).get();
-                    if (userDoc.exists) userCache[targetUid] = userDoc.data();
+                
+                // === 【關鍵修改：加入即時監聽對方 act 資料】 ===
+                if (!window.actListenersAttached) window.actListenersAttached = {};
+                if (targetUid && !window.actListenersAttached[targetUid]) {
+                    window.actListenersAttached[targetUid] = true;
+                    // 即時監聽對方的主題、頭像與名字變更
+                    db.collection("act").doc(targetUid).onSnapshot(userDoc => {
+                        if (userDoc.exists) {
+                            const data = userDoc.data();
+                            userCache[targetUid] = data;
+                            window.chatMembersCache[targetUid] = data; // 同步聊天室內的快取
+                            
+                            // 觸發首頁聊天清單重新渲染 (加入防抖，避免瞬間多次刷新)
+                            if (window.lastChatsSnapshot) {
+                                clearTimeout(window.actUpdateTimer);
+                                window.actUpdateTimer = setTimeout(() => {
+                                    renderChatList(window.lastChatsSnapshot);
+                                }, 300);
+                            }
+                            // 若正在聊天室內，也一併刷新聊天室畫面
+                            if (currentChatId) {
+                                clearTimeout(window.chatRoomUpdateTimer);
+                                window.chatRoomUpdateTimer = setTimeout(() => {
+                                    renderChatUI();
+                                    renderTypingUI();
+                                }, 300);
+                            }
+                        }
+                    });
+                    
+                    // 初次讀取，若快取沒資料先 await get 擋著，避免第一秒畫面空白
+                    if (!userCache[targetUid]) {
+                        const userDoc = await db.collection("act").doc(targetUid).get();
+                        if (userDoc.exists) userCache[targetUid] = userDoc.data();
+                    }
                 }
+                // ===========================================
+
                 const targetData = userCache[targetUid] || { displayName: "未知成員", photoURL: "https://via.placeholder.com/45" };
-                title = targetData.displayName; avatar = targetData.photoURL;
-                targetTheme = targetData.userTheme || 'default'; // 【新增：取得對方設定的主題】
+                title = targetData.displayName; 
+                avatar = targetData.photoURL;
+                targetTheme = targetData.userTheme || 'default'; 
                 avatarStyle = "width: 60px; height: 60px; margin-right: 10px;"; 
             }
 
@@ -7160,7 +7229,6 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         messagesDocsData = [];
         document.getElementById('messageList').innerHTML = "<div style='text-align:center; padding:20px; color:#999; font-size:14px;'><i class='fas fa-spinner fa-spin'></i> 載入對話中...</div>";
         document.getElementById('chatTitle').innerText = "載入中...";
-        window.chatMembersCache = {};
         
         const chatRef = db.collection("chats").doc(chatId);
         updateMyStatus(true);
@@ -7196,13 +7264,35 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             window.currentTypingData = data.typing || {};
             renderTypingUI();
 
-            // 快取成員資料
+            // 快取成員資料 (即時監聽版)
             window.currentGroupMembers.forEach(uid => {
+                if (!window.actListenersAttached) window.actListenersAttached = {};
+                if (!window.actListenersAttached[uid]) {
+                    window.actListenersAttached[uid] = true;
+                    db.collection("act").doc(uid).onSnapshot(uDoc => {
+                        if (uDoc.exists) {
+                            const data = uDoc.data();
+                            window.chatMembersCache[uid] = data;
+                            userCache[uid] = data;
+                            
+                            if (window.lastChatsSnapshot) {
+                                clearTimeout(window.actUpdateTimer);
+                                window.actUpdateTimer = setTimeout(() => renderChatList(window.lastChatsSnapshot), 300);
+                            }
+                            if (currentChatId) {
+                                clearTimeout(window.chatRoomUpdateTimer);
+                                window.chatRoomUpdateTimer = setTimeout(() => {
+                                    renderChatUI();
+                                    renderTypingUI();
+                                }, 300);
+                            }
+                        }
+                    });
+                }
+                
+                // 初次沒資料給個預設
                 if (!window.chatMembersCache[uid]) {
                     window.chatMembersCache[uid] = { displayName: "載入中", photoURL: "https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true" };
-                    db.collection("act").doc(uid).get().then(uDoc => {
-                        if (uDoc.exists) { window.chatMembersCache[uid] = uDoc.data(); renderChatUI(); }
-                    });
                 }
             });
 
@@ -7471,8 +7561,8 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                                 </div>
                             </div>`;
                     }
-                    else safeText = msg.text.replace(/"/g, '&quot;').replace(/'/g, "\\'");
-                } catch (e) { safeText = msg.text.replace(/"/g, '&quot;').replace(/'/g, "\\'"); }
+                    else safeText = msg.text.replace(/"/g, '&quot;').replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, '');
+                } catch (e) { safeText = msg.text.replace(/"/g, '&quot;').replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, ''); }
             }
 
             if (msg.replyToId) contentHtml += `<div class="reply-snippet" onclick="scrollToOriginalMsg('${msg.replyToId}')"><i class="fas fa-reply"></i> ${msg.replyToText}</div>`;
@@ -7898,8 +7988,13 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
 
     // 輸入文字時，自動調整高度，並發送「正在輸入中」狀態
     // 尋找 msgInputDOM.addEventListener('input', function() { ... }) 並替換
+    // 輸入文字時，自動調整高度，並發送「正在輸入中」狀態
     msgInputDOM.addEventListener('input', function() {
-        // 【移除】：不再動態調整 height，保持 CSS 固定的 40px
+        // 【恢復】：動態調整 height，最多長到 5 行 (配合 CSS 的 max-height)
+        this.style.height = '40px'; // 先瞬間歸零以重新計算真實內容高度
+        let newHeight = this.scrollHeight;
+        if (newHeight > 120) newHeight = 120; // 限制最大高度為 120px (5行)
+        this.style.height = newHeight + 'px'; // 賦予新高度，觸發平滑過渡動畫
 
         // 處理左側選單收縮
         const container = document.getElementById('chatInputContainer');
@@ -7913,7 +8008,7 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         if (!currentChatId || !auth.currentUser) return;
         const text = this.value.trim();
         
-        // 正在輸入狀態同步
+        // 正在輸入狀態同步 (以下保持原樣)
         if (text.length > 0 && !isTyping) {
             isTyping = true;
             db.collection("chats").doc(currentChatId).update({ [`typing.${auth.currentUser.uid}`]: Date.now() }).catch(()=>{});
@@ -8760,7 +8855,7 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                 calView.classList.remove('app-view');
                 calView.style.position = 'relative';
                 calView.style.zIndex = '1';
-                calView.style.paddingBottom = 'calc(90px + env(safe-area-inset-bottom))';
+                calView.style.paddingBottom = 'calc(58px + env(safe-area-inset-bottom))';
                 calView.style.transform = 'none';
                 calView.style.transition = 'none';
                 calView.style.display = 'flex';
@@ -9774,7 +9869,7 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                 const year = ev.sortDate.getFullYear(); 
                 if(year!==currentYear){ currentYear=year; html+=`<div class="event-year-title">${year} 年度</div>`; }
                 const timeStr = ev.sortDate.toLocaleString('zh-TW', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).replace(/\//g,'-');
-                const safeTitle = (ev.title||'').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                const safeTitle = (ev.title||'').replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, '\\n').replace(/\r/g, '');
                 const deadlineStr = ev.deadline || '';
                 const lockIcon = ev.isPrivate ? '<i class="fas fa-lock" style="color:#d93025; margin-right:5px;" title="私人活動"></i>' : '';
                 
@@ -11229,8 +11324,8 @@ renderEvMemberPreview = async function(uids, type) {
                 
                 const deadlineStr = data.deadline ? data.deadline.replace('T', ' ') : '未知';
                 const isExpired = new Date(data.deadline).getTime() < Date.now();
-                const safeTitle = escapeHtml(data.title || '').replace(/'/g, "\\'");
-                const safeInitiator = escapeHtml(data.initiatorName || '').replace(/'/g, "\\'");
+                const safeTitle = escapeHtml(data.title || '').replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, '');
+                const safeInitiator = escapeHtml(data.initiatorName || '').replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, '');
                 
                 const innerContent = `
                     <h4 class="event-mini-title" style="margin-bottom: 8px; font-size: 1.15rem; color: var(--ly-blue);"><i class="fas fa-shopping-basket"></i> ${escapeHtml(data.title)}</h4>
@@ -13208,7 +13303,7 @@ renderEvMemberPreview = async function(uids, type) {
                 calView.classList.remove('app-view');
                 calView.style.position = 'relative';
                 calView.style.zIndex = '1';
-                calView.style.paddingBottom = 'calc(90px + env(safe-area-inset-bottom))';
+                calView.style.paddingBottom = 'calc(58px + env(safe-area-inset-bottom))';
                 calView.style.display = 'none';
                 calView.style.transition = 'none';
                 
@@ -17717,7 +17812,7 @@ renderEvMemberPreview = async function(uids, type) {
                 
                 const deadlineStr = data.deadline ? data.deadline.replace('T', ' ') : '無期限';
                 const isExpired = data.deadline && new Date(data.deadline).getTime() < Date.now();
-                const safeTitle = escapeHtml(data.question || '').replace(/'/g, "\\'");
+                const safeTitle = escapeHtml(data.question || '').replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, '');
                 const creatorName = escapeHtml(data.creatorName || '');
                 const timeStr = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleString('zh-TW', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).replace(/\//g,'-') : '';
 
@@ -18221,7 +18316,7 @@ renderEvMemberPreview = async function(uids, type) {
             const canDeleteOption = isPollCreator || (optCreatorUid === myUid);
             
             const cursorStyle = isExpired ? 'cursor: not-allowed; opacity: 0.7;' : 'cursor: pointer;';
-            const clickAction = isExpired ? `alert('投票已截止！')` : `castVote('${msgId}', '${opt.replace(/'/g, "\\'")}'); setTimeout(() => openPollDetail('${msgId}'), 200);`;
+            const clickAction = isExpired ? `alert('投票已截止！')` : `castVote('${msgId}', '${opt.replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, '')}'); setTimeout(() => openPollDetail('${msgId}'), 200);`;
 
             let trashBtnHtml = '';
             if (canDeleteOption && !isExpired) {
@@ -18559,12 +18654,13 @@ renderEvMemberPreview = async function(uids, type) {
         const navCenterCircle = document.querySelector('.center-circle');
         const navCenterArc = document.querySelector('.center-arc'); // 【新增】：抓取那條半圓弧線
         
-        // 移除所有主題與外框 class
-        document.body.classList.remove('tech-theme', 'chuuni-theme', 'princess-theme', 'style1-theme', 'style2-theme', 'style3-theme');
+        // 修改這裡：加上 'style4-theme'
+        document.body.classList.remove('tech-theme', 'chuuni-theme', 'princess-theme', 'style1-theme', 'style2-theme', 'style3-theme', 'style4-theme', 'style5-theme', 'style6-theme');
         avatarFrameContainer.className = 'avatar-frame-container'; 
         
         if (navCenterCircle) {
-            navCenterCircle.classList.remove('theme-tech', 'theme-chuuni', 'theme-princess', 'theme-style1', 'theme-style2', 'theme-style3');
+            // 修正：確實移除 navCenterCircle 身上的舊外框，避免疊加卡死
+            navCenterCircle.classList.remove('theme-tech', 'theme-chuuni', 'theme-princess', 'theme-style1', 'theme-style2', 'theme-style3', 'theme-style4', 'theme-style5', 'theme-style6');
             navCenterCircle.querySelectorAll('.chat-theme-crown, .chat-theme-sakura, .chat-theme-tech-ring, .chat-theme-chuuni-rune').forEach(el => el.remove());
         }
 
@@ -18596,16 +18692,19 @@ renderEvMemberPreview = async function(uids, type) {
             }
         } 
         // ===== 新增的 3 個風格處理 (只改樣式，不套用背景顏色變數) =====
-        else if (themeName === 'style1' || themeName === 'style2' || themeName === 'style3') {
+        else if (themeName.startsWith('style')) {
             avatarFrameContainer.classList.add(themeName + '-theme');
             if (navCenterCircle) navCenterCircle.classList.add('theme-' + themeName);
-            if (navCenterArc) navCenterArc.style.display = 'none'; // 【新增】：如果是這三個大獎外框，就把半圓弧線隱藏！
+            if (navCenterArc) navCenterArc.style.display = 'none';
             
             if (customFrameImg) {
                 customFrameImg.style.display = 'block';
                 if (themeName === 'style1') customFrameImg.src = 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/01.png?raw=true';
                 if (themeName === 'style2') customFrameImg.src = 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/02.png?raw=true';
                 if (themeName === 'style3') customFrameImg.src = 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/03.png?raw=true';
+                if (themeName === 'style4') customFrameImg.src = 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/04.png?raw=true';
+                if (themeName === 'style5') customFrameImg.src = 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/05.png?raw=true';
+                if (themeName === 'style6') customFrameImg.src = 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/06.png?raw=true';
             }
         }
         else {
@@ -18628,6 +18727,9 @@ renderEvMemberPreview = async function(uids, type) {
         else if (currentClasses.includes('style1-theme')) { currentTheme = 'style1'; currentBtnIndex = 4; }
         else if (currentClasses.includes('style2-theme')) { currentTheme = 'style2'; currentBtnIndex = 5; }
         else if (currentClasses.includes('style3-theme')) { currentTheme = 'style3'; currentBtnIndex = 6; }
+        else if (currentClasses.includes('style4-theme')) { currentTheme = 'style4'; currentBtnIndex = 7; }
+        else if (currentClasses.includes('style5-theme')) { currentTheme = 'style5'; currentBtnIndex = 8; }
+        else if (currentClasses.includes('style6-theme')) { currentTheme = 'style6'; currentBtnIndex = 9; }
 
         const framePreviewFrame = document.getElementById('avatarFramePreview');
         const previewImg = document.getElementById('customFramePreviewImg');
@@ -18644,6 +18746,9 @@ renderEvMemberPreview = async function(uids, type) {
                 if (currentTheme === 'style1') previewImg.src = 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/01.png?raw=true';
                 if (currentTheme === 'style2') previewImg.src = 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/02.png?raw=true';
                 if (currentTheme === 'style3') previewImg.src = 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/03.png?raw=true';
+                if (currentTheme === 'style4') previewImg.src = 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/04.png?raw=true';
+                if (currentTheme === 'style5') previewImg.src = 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/05.png?raw=true';
+                if (currentTheme === 'style6') previewImg.src = 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/06.png?raw=true';
             }
         }
         
@@ -18683,6 +18788,9 @@ renderEvMemberPreview = async function(uids, type) {
                 if (themeName === 'style1') previewImg.src = 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/01.png?raw=true';
                 if (themeName === 'style2') previewImg.src = 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/02.png?raw=true';
                 if (themeName === 'style3') previewImg.src = 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/03.png?raw=true';
+                if (themeName === 'style4') previewImg.src = 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/04.png?raw=true';
+                if (themeName === 'style5') previewImg.src = 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/05.png?raw=true';
+                if (themeName === 'style6') previewImg.src = 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/06.png?raw=true';
             }
         }
 
@@ -18735,10 +18843,12 @@ renderEvMemberPreview = async function(uids, type) {
 
     // 3. 抽卡核心邏輯 (機率池)
     const gachaPool = [
-        { id: 'style1', name: '風格一 (限定外框)', img: 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/01.png?raw=true', rate: 15 },
-        { id: 'style2', name: '風格二 (限定外框)', img: 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/02.png?raw=true', rate: 5 },
-        { id: 'style3', name: '風格三 (限定外框)', img: 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/03.png?raw=true', rate: 5 },
-        { id: 'blank', name: '銘謝惠顧', img: '', rate: 85 }
+        { id: 'style4', name: '風格四 (傳說)', img: 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/04.png?raw=true', rate: 0.2 },
+        { id: 'style6', name: '風格六 (傳說)', img: 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/06.png?raw=true', rate: 0.2 },
+        { id: 'style2', name: '風格二 (大獎)', img: 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/02.png?raw=true', rate: 1 },
+        { id: 'style3', name: '風格三 (大獎)', img: 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/03.png?raw=true', rate: 1 },
+        { id: 'style1', name: '風格一 (小獎)', img: 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/01.png?raw=true', rate: 48.8 },
+        { id: 'style5', name: '風格五 (小獎)', img: 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/05.png?raw=true', rate: 48.8 }
     ];
 
     // ==========================================
@@ -18840,7 +18950,7 @@ renderEvMemberPreview = async function(uids, type) {
             textDiv.style.animation = `fadeIn ${animTime}`;
 
             // 🔴【核心修改】：判斷是否為大獎 (風格一、二、三)，並套用專屬設計樣式
-            const isGrandPrize = (pull.id === 'style1' || pull.id === 'style2' || pull.id === 'style3');
+            const isGrandPrize = (pull.id === 'style2' || pull.id === 'style3' || pull.id === 'style4' || pull.id === 'style6');
 
             if (pull.id === 'blank') {
                 // 🔴【修改】：銘謝惠顧保持原本樣式，並移除 grand-prize class
@@ -18884,7 +18994,7 @@ renderEvMemberPreview = async function(uids, type) {
                 let itemHtml = '<div class="gacha-summary-item">';
                 
                 // 🔴【核心修改】：在總結網格卡片也套用 grand-prize 大獎設計 (移除全圖裁剪限制)
-                const isGrandPrize = (pull.id === 'style1' || pull.id === 'style2' || pull.id === 'style3');
+                const isGrandPrize = (pull.id === 'style2' || pull.id === 'style3' || pull.id === 'style4' || pull.id === 'style6');
 
                 if (pull.id === 'blank') {
                     // 🔴【修改】：銘謝惠顧總結樣式 (移除 grand-prize class)
@@ -18933,7 +19043,7 @@ renderEvMemberPreview = async function(uids, type) {
 
         // 幫選項加上 locked class
         const optionItems = document.querySelectorAll('#frameModal .theme-option-item');
-        const frameIds = ['default', 'princess', 'tech', 'chuuni', 'style1', 'style2', 'style3'];
+        const frameIds = ['default', 'princess', 'tech', 'chuuni', 'style1', 'style2', 'style3', 'style4', 'style5', 'style6'];
         
         optionItems.forEach((el, index) => {
             const fId = frameIds[index];
