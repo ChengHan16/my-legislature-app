@@ -3790,7 +3790,7 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         .custom-frame-overlay {
             display: none;
             position: absolute;
-            top: 50%;
+            top: 46%;
             left: 50%;
             transform: translate(-50%, -55%) scale(1.8); /* 放大 1.35 倍以覆蓋在圓形頭像外圍，可視情況微調 */
             width: 90%;
@@ -5924,13 +5924,12 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
 
     <div id="imageModal" class="image-modal" onclick="if(event.target === this) closeMediaModal()">
         <div style="position: absolute; top: calc(20px + env(safe-area-inset-top)); right: 25px; display: flex; gap: 25px; align-items: center; z-index: 100001;">
-            <button id="mediaDownloadBtn" onclick="downloadCurrentMedia()" style="background: none; border: none; color: white; font-size: 22px; cursor: pointer; text-shadow: 0 2px 5px rgba(0,0,0,0.5);" title="下載檔案"><i id="mediaDownloadIcon" class="fas fa-download"></i></button>
+            <button onclick="downloadCurrentMedia()" style="background: none; border: none; color: white; font-size: 22px; cursor: pointer; text-shadow: 0 2px 5px rgba(0,0,0,0.5);" title="下載檔案"><i id="mediaDownloadIcon" class="fas fa-download"></i></button>
             <button onclick="closeMediaModal()" style="background: none; border: none; color: white; font-size: 35px; cursor: pointer; text-shadow: 0 2px 5px rgba(0,0,0,0.5);" title="關閉">&times;</button>
         </div>
         
         <img class="image-modal-content" id="expandedImg" style="display: none;">
         <video class="image-modal-content" id="expandedVideo" controls style="display: none; max-width: 95%; max-height: 90%; outline: none;"></video>
-        <iframe class="image-modal-content" id="expandedIframe" allow="autoplay; fullscreen; encrypted-media" style="display: none; width: 95%; max-width: 500px; height: 85dvh; border: none; background: transparent; border-radius: 8px;"></iframe>
     </div>
 
     <div id="image-viewer-modal" onclick="handleViewerClick(event)" style="display: none; position: fixed; z-index: 20000; left: 0; top: 0; width: 100vw; height: 100dvh; background-color: rgba(0, 0, 0, 0.95); flex-direction: column; overflow: hidden;">
@@ -6396,11 +6395,11 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         
         <div class="gacha-content-area">
             <div class="gacha-showcase-container">
-                <img src="https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/04.png?raw=true" class="gacha-showcase-img showcase-main">
+                <img src="https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/Gacha%20Ver1.0/04.png?raw=true" class="gacha-showcase-img showcase-main">
                 
-                <img src="https://raw.githubusercontent.com/ChengHan16/Other_File/refs/heads/master/Legislature/photo/avatar/02.png" class="gacha-showcase-img showcase-sub-left">
+                <img src="https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/Gacha%20Ver1.0/02.png?raw=true" class="gacha-showcase-img showcase-sub-left">
                 
-                <img src="https://raw.githubusercontent.com/ChengHan16/Other_File/refs/heads/master/Legislature/photo/avatar/03.png" class="gacha-showcase-img showcase-sub-right">
+                <img src="https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/Gacha%20Ver1.0/03.png?raw=true" class="gacha-showcase-img showcase-sub-right">
             </div>
 
             <p style="color: #777; text-align: center; margin-bottom: 30px; line-height: 1.6; font-size: 0.9rem; z-index: 5; position: relative;">
@@ -6776,13 +6775,11 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                 const height = isShorts ? '420' : '200';
                 const maxWidth = isShorts ? '240px' : '350px';
                 
-                // 【修改】：加入透明遮罩攔截點擊，並呼叫 openMediaModal，同時啟動 YouTube 自動播放 (autoplay=1)
-                const embedUrl = `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&playsinline=1&autoplay=1`;
-                return `<div style="position: relative; display: inline-block; width: 100%; max-width: ${maxWidth}; margin-top: 5px; border-radius: 8px; overflow: hidden; background: #000; cursor: pointer;" onclick="openMediaModal('${embedUrl}', 'iframe')">
-                            <iframe width="100%" height="${height}" src="https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&playsinline=1" style="border: none; background: #000; pointer-events: none;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; display: flex; justify-content: center; align-items: center; background: rgba(0,0,0,0.15);">
-                                <i class="fas fa-play-circle" style="color: rgba(255,255,255,0.9); font-size: 50px; text-shadow: 0 2px 10px rgba(0,0,0,0.5);"></i>
-                            </div>
+                // 【修復】：
+                // 1. 網址加入 &enablejsapi=1&origin=https://www.youtube.com 騙過官方防護，完美解決 Error 153
+                // 2. 補齊 WebView 內部所需的完整 allow 播放權限
+                return `<div style="position: relative; display: inline-block; width: 100%; max-width: ${maxWidth}; margin-top: 5px; border-radius: 8px; overflow: hidden; background: #000;">
+                            <iframe width="100%" height="${height}" src="https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&playsinline=1&enablejsapi=1&origin=https%3A%2F%2Fwww.youtube.com" style="border: none; background: #000;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen" allowfullscreen></iframe>
                         </div>`;
             }
 
@@ -6791,13 +6788,11 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             if (igMatch && igMatch[1]) {
                 const igId = igMatch[1];
                 
-                // 【修改】：加入透明遮罩攔截點擊，並呼叫 openMediaModal 進行滿版動畫播放
-                const embedUrl = `https://www.instagram.com/p/${igId}/embed/?hidecaption=true`;
-                return `<div style="position: relative; display: inline-block; width: 100%; max-width: 320px; height: 346px; margin-top: 5px; border-radius: 8px; overflow: hidden; background: #000; cursor: pointer;" onclick="openMediaModal('${embedUrl}', 'iframe')">
-                            <iframe src="${embedUrl}" sandbox="allow-scripts allow-same-origin allow-presentation" width="100%" height="400" frameborder="0" scrolling="no" style="border: none; background: transparent; margin-top: -54px; pointer-events: none;" allow="encrypted-media" allowfullscreen></iframe>
-                            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; display: flex; justify-content: center; align-items: center; background: rgba(0,0,0,0.15);">
-                                <i class="fas fa-play-circle" style="color: rgba(255,255,255,0.9); font-size: 50px; text-shadow: 0 2px 10px rgba(0,0,0,0.5);"></i>
-                            </div>
+                // 【修復】：
+                // 1. sandbox 中補上 allow-popups 避免 IG 腳本因為被過度限制而死機
+                // 2. 在 allow 屬性中強力寫入 autoplay 與 fullscreen 權限，解鎖沙盒狀態下的點擊播放能力
+                return `<div style="position: relative; display: inline-block; width: 100%; max-width: 320px; height: 346px; margin-top: 5px; border-radius: 8px; overflow: hidden; background: #000;">
+                            <iframe src="https://www.instagram.com/p/${igId}/embed/?hidecaption=true" sandbox="allow-scripts allow-same-origin allow-presentation allow-popups" width="100%" height="400" frameborder="0" scrolling="no" style="border: none; background: transparent; margin-top: -54px;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen" allowfullscreen></iframe>
                         </div>`;
             }
 
@@ -7687,8 +7682,25 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             if (msg.text && !isEventCard) contentHtml += (msg.fileUrl ? '<br>' : '') + highlightMentions(linkifyAndPreview(escapeHtml(msg.text)));
             
             // 【新增】：嚴格判斷文字是否「純粹只有一個圖片/影片/社群媒體網址」(不含其他文字)
+            // 【新增】：嚴格判斷文字內容是否為純粹的媒體連結
             const textTrimmed = msg.text ? msg.text.trim() : "";
+            
+            // 1. 是否純為圖片網址
             const isOnlyImageLink = /^https?:\/\/[^\s]+\.(jpeg|jpg|gif|png|webp)(\?[^\s]*)?$/i.test(textTrimmed);
+            
+            // 2. 是否純為 YouTube 網址 (包含 Shorts 與一般影片)
+            const isOnlyYoutubeLink = /^https?:\/\/(?:www\.)?(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)[a-zA-Z0-9_-]{11}(?:\S*)?$/i.test(textTrimmed);
+            
+            // 3. 是否純為 Instagram 網址 (包含 Reels 與貼文)
+            const isOnlyInstagramLink = /^https?:\/\/(?:www\.)?instagram\.com\/(?:p|reel|tv)\/[a-zA-Z0-9_-]+\/?(?:\S*)?$/i.test(textTrimmed);
+
+            // 【修復溢出 bug】：滿足以下任一條件即套用 media-only，徹底去除氣泡外框：
+            // A. 活動卡片
+            // B. 純粹的上傳檔案訊息（無回覆、無文字）
+            // C. 訊息只有「純圖/影連結」或「純 YT/IG 連結」，且無回覆
+            if (isEventCard || (msg.fileUrl && !msg.replyToId && !msg.text) || ((isOnlyImageLink || isOnlyYoutubeLink || isOnlyInstagramLink) && !msg.replyToId)) {
+                isMediaOnly = true;
+            }
             const isOnlyVideoLink = /^https?:\/\/[^\s]+\.(mp4|mov|webm|ogg)(\?[^\s]*)?$/i.test(textTrimmed);
             // 判斷是否為純 YT 或 IG 網址
             const isOnlySocialLink = /^https?:\/\/(?:www\.)?(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/|instagram\.com\/(?:p|reel|tv)\/)[a-zA-Z0-9_-]+(?:\/.*|\?.*)?$/i.test(textTrimmed);
@@ -7724,8 +7736,7 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                         const senderCache = window.chatMembersCache[uid] || {};
                         const avatarUrl = senderCache.photoURL || "https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true";
                         const zIndex = 3 - index;
-                        // 【修復】：加上 flex-shrink: 0; 徹底防止頭像在 flex 容器中被擠壓變形
-                        avatarsHtml += `<img src="${avatarUrl}" style="width: 16px; height: 16px; min-width: 16px; min-height: 16px; border-radius: 50%; border: 1.5px solid ${hasMe ? '#fffdf5' : '#fff'}; margin-left: -6px; object-fit: cover; position: relative; z-index: ${zIndex}; flex-shrink: 0;">`;
+                        avatarsHtml += `<img src="${avatarUrl}" style="width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid ${hasMe ? '#fffdf5' : '#fff'}; margin-left: -6px; object-fit: cover; position: relative; z-index: ${zIndex};">`;
                     });
 
                     const countText = uids.length > 1 ? `<span style="margin-left: 4px; font-weight: bold; color: #555;">${uids.length}</span>` : '';
@@ -10253,23 +10264,13 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         currentMediaForDownload = { url: src, type: type };
         const imgEl = document.getElementById('expandedImg');
         const vidEl = document.getElementById('expandedVideo');
-        const iframeEl = document.getElementById('expandedIframe');
-        const dlBtn = document.getElementById('mediaDownloadBtn');
         
-        // 先將所有元素隱藏並暫停
-        if(imgEl) { imgEl.style.display = 'none'; imgEl.src = ''; }
-        if(vidEl) { vidEl.style.display = 'none'; vidEl.pause(); vidEl.src = ''; }
-        if(iframeEl) { iframeEl.style.display = 'none'; iframeEl.src = ''; }
-        
-        // 若為 IG/YT 連結，隱藏下載按鈕 (版權保護無法直接抓檔)
-        if(dlBtn) { dlBtn.style.display = (type === 'iframe') ? 'none' : 'block'; }
-
         if (type === 'video') {
+            imgEl.style.display = 'none'; imgEl.src = '';
             vidEl.style.display = 'block'; vidEl.src = src;
-            vidEl.play().catch(()=>{});
-        } else if (type === 'iframe') {
-            iframeEl.style.display = 'block'; iframeEl.src = src;
+            vidEl.play().catch(()=>{}); // 打開時自動播放
         } else {
+            vidEl.style.display = 'none'; vidEl.pause(); vidEl.src = '';
             imgEl.style.display = 'block'; imgEl.src = src;
         }
         openModal('imageModal');
@@ -10278,9 +10279,7 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
     function closeMediaModal() {
         closeModal('imageModal');
         const vidEl = document.getElementById('expandedVideo');
-        if (vidEl) { vidEl.pause(); vidEl.src = ''; }
-        const iframeEl = document.getElementById('expandedIframe');
-        if (iframeEl) { iframeEl.src = ''; } // 關閉時清空網址，停止影片聲音
+        if (vidEl) { vidEl.pause(); vidEl.src = ''; } // 關閉時停止播放
     }
 
     async function downloadCurrentMedia() {
@@ -16568,7 +16567,6 @@ renderEvMemberPreview = async function(uids, type) {
             await new Promise(resolve => setTimeout(resolve, 800));
 
             const mockFlightDB = {
-                // 中華航空 (China Airlines)
                 'CI126': { from: '高雄', to: '東京成田', depTime: '12:55', note: '起飛航廈: I (登機門 31), 降落航廈: 2' }, // 👈 新增這行
                 'CI223': { from: '東京羽田', to: '台北松山', depTime: '07:55', note: '起飛航廈: 3 (登機門 143), 降落航廈: 1' },
                 'CI107': { from: '東京成田', to: '台北桃園', depTime: '09:20', note: '起飛航廈: 2, 降落航廈: 2 (登機門 D5)' },
