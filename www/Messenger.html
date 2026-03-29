@@ -5924,12 +5924,13 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
 
     <div id="imageModal" class="image-modal" onclick="if(event.target === this) closeMediaModal()">
         <div style="position: absolute; top: calc(20px + env(safe-area-inset-top)); right: 25px; display: flex; gap: 25px; align-items: center; z-index: 100001;">
-            <button onclick="downloadCurrentMedia()" style="background: none; border: none; color: white; font-size: 22px; cursor: pointer; text-shadow: 0 2px 5px rgba(0,0,0,0.5);" title="下載檔案"><i id="mediaDownloadIcon" class="fas fa-download"></i></button>
+            <button id="mediaDownloadBtn" onclick="downloadCurrentMedia()" style="background: none; border: none; color: white; font-size: 22px; cursor: pointer; text-shadow: 0 2px 5px rgba(0,0,0,0.5);" title="下載檔案"><i id="mediaDownloadIcon" class="fas fa-download"></i></button>
             <button onclick="closeMediaModal()" style="background: none; border: none; color: white; font-size: 35px; cursor: pointer; text-shadow: 0 2px 5px rgba(0,0,0,0.5);" title="關閉">&times;</button>
         </div>
         
         <img class="image-modal-content" id="expandedImg" style="display: none;">
         <video class="image-modal-content" id="expandedVideo" controls style="display: none; max-width: 95%; max-height: 90%; outline: none;"></video>
+        <iframe class="image-modal-content" id="expandedIframe" allow="autoplay; fullscreen; encrypted-media" style="display: none; width: 95%; max-width: 500px; height: 85dvh; border: none; background: transparent; border-radius: 8px;"></iframe>
     </div>
 
     <div id="image-viewer-modal" onclick="handleViewerClick(event)" style="display: none; position: fixed; z-index: 20000; left: 0; top: 0; width: 100vw; height: 100dvh; background-color: rgba(0, 0, 0, 0.95); flex-direction: column; overflow: hidden;">
@@ -6775,9 +6776,13 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                 const height = isShorts ? '420' : '200';
                 const maxWidth = isShorts ? '240px' : '350px';
                 
-                // 【修復】：移除點擊攔截，讓 YT 可以直接在氣泡內點擊播放！
-                return `<div style="position: relative; display: inline-block; width: 100%; max-width: ${maxWidth}; margin-top: 5px; border-radius: 8px; overflow: hidden; background: #000;">
-                            <iframe width="100%" height="${height}" src="https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1" style="border: none; background: #000;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                // 【修改】：加入透明遮罩攔截點擊，並呼叫 openMediaModal，同時啟動 YouTube 自動播放 (autoplay=1)
+                const embedUrl = `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&playsinline=1&autoplay=1`;
+                return `<div style="position: relative; display: inline-block; width: 100%; max-width: ${maxWidth}; margin-top: 5px; border-radius: 8px; overflow: hidden; background: #000; cursor: pointer;" onclick="openMediaModal('${embedUrl}', 'iframe')">
+                            <iframe width="100%" height="${height}" src="https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&playsinline=1" style="border: none; background: #000; pointer-events: none;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; display: flex; justify-content: center; align-items: center; background: rgba(0,0,0,0.15);">
+                                <i class="fas fa-play-circle" style="color: rgba(255,255,255,0.9); font-size: 50px; text-shadow: 0 2px 10px rgba(0,0,0,0.5);"></i>
+                            </div>
                         </div>`;
             }
 
@@ -6786,9 +6791,13 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             if (igMatch && igMatch[1]) {
                 const igId = igMatch[1];
                 
-                // 【修復】：移除點擊攔截，保留 CSS 裁切，讓 IG 可以直接在氣泡內點擊播放！
-                return `<div style="position: relative; display: inline-block; width: 100%; max-width: 320px; height: 346px; margin-top: 5px; border-radius: 8px; overflow: hidden; background: #000;">
-                            <iframe src="https://www.instagram.com/p/${igId}/embed/?hidecaption=true" width="100%" height="400" frameborder="0" scrolling="no" style="border: none; background: white; margin-top: -54px;" allow="encrypted-media" allowfullscreen></iframe>
+                // 【修改】：加入透明遮罩攔截點擊，並呼叫 openMediaModal 進行滿版動畫播放
+                const embedUrl = `https://www.instagram.com/p/${igId}/embed/?hidecaption=true`;
+                return `<div style="position: relative; display: inline-block; width: 100%; max-width: 320px; height: 346px; margin-top: 5px; border-radius: 8px; overflow: hidden; background: #000; cursor: pointer;" onclick="openMediaModal('${embedUrl}', 'iframe')">
+                            <iframe src="${embedUrl}" sandbox="allow-scripts allow-same-origin allow-presentation" width="100%" height="400" frameborder="0" scrolling="no" style="border: none; background: transparent; margin-top: -54px; pointer-events: none;" allow="encrypted-media" allowfullscreen></iframe>
+                            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; display: flex; justify-content: center; align-items: center; background: rgba(0,0,0,0.15);">
+                                <i class="fas fa-play-circle" style="color: rgba(255,255,255,0.9); font-size: 50px; text-shadow: 0 2px 10px rgba(0,0,0,0.5);"></i>
+                            </div>
                         </div>`;
             }
 
@@ -7715,7 +7724,8 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                         const senderCache = window.chatMembersCache[uid] || {};
                         const avatarUrl = senderCache.photoURL || "https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true";
                         const zIndex = 3 - index;
-                        avatarsHtml += `<img src="${avatarUrl}" style="width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid ${hasMe ? '#fffdf5' : '#fff'}; margin-left: -6px; object-fit: cover; position: relative; z-index: ${zIndex};">`;
+                        // 【修復】：加上 flex-shrink: 0; 徹底防止頭像在 flex 容器中被擠壓變形
+                        avatarsHtml += `<img src="${avatarUrl}" style="width: 16px; height: 16px; min-width: 16px; min-height: 16px; border-radius: 50%; border: 1.5px solid ${hasMe ? '#fffdf5' : '#fff'}; margin-left: -6px; object-fit: cover; position: relative; z-index: ${zIndex}; flex-shrink: 0;">`;
                     });
 
                     const countText = uids.length > 1 ? `<span style="margin-left: 4px; font-weight: bold; color: #555;">${uids.length}</span>` : '';
@@ -10243,13 +10253,23 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         currentMediaForDownload = { url: src, type: type };
         const imgEl = document.getElementById('expandedImg');
         const vidEl = document.getElementById('expandedVideo');
+        const iframeEl = document.getElementById('expandedIframe');
+        const dlBtn = document.getElementById('mediaDownloadBtn');
         
+        // 先將所有元素隱藏並暫停
+        if(imgEl) { imgEl.style.display = 'none'; imgEl.src = ''; }
+        if(vidEl) { vidEl.style.display = 'none'; vidEl.pause(); vidEl.src = ''; }
+        if(iframeEl) { iframeEl.style.display = 'none'; iframeEl.src = ''; }
+        
+        // 若為 IG/YT 連結，隱藏下載按鈕 (版權保護無法直接抓檔)
+        if(dlBtn) { dlBtn.style.display = (type === 'iframe') ? 'none' : 'block'; }
+
         if (type === 'video') {
-            imgEl.style.display = 'none'; imgEl.src = '';
             vidEl.style.display = 'block'; vidEl.src = src;
-            vidEl.play().catch(()=>{}); // 打開時自動播放
+            vidEl.play().catch(()=>{});
+        } else if (type === 'iframe') {
+            iframeEl.style.display = 'block'; iframeEl.src = src;
         } else {
-            vidEl.style.display = 'none'; vidEl.pause(); vidEl.src = '';
             imgEl.style.display = 'block'; imgEl.src = src;
         }
         openModal('imageModal');
@@ -10258,7 +10278,9 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
     function closeMediaModal() {
         closeModal('imageModal');
         const vidEl = document.getElementById('expandedVideo');
-        if (vidEl) { vidEl.pause(); vidEl.src = ''; } // 關閉時停止播放
+        if (vidEl) { vidEl.pause(); vidEl.src = ''; }
+        const iframeEl = document.getElementById('expandedIframe');
+        if (iframeEl) { iframeEl.src = ''; } // 關閉時清空網址，停止影片聲音
     }
 
     async function downloadCurrentMedia() {
@@ -16547,10 +16569,14 @@ renderEvMemberPreview = async function(uids, type) {
 
             const mockFlightDB = {
                 // 中華航空 (China Airlines)
+                'CI126': { from: '高雄', to: '東京成田', depTime: '12:55', note: '起飛航廈: I (登機門 31), 降落航廈: 2' }, // 👈 新增這行
                 'CI223': { from: '東京羽田', to: '台北松山', depTime: '07:55', note: '起飛航廈: 3 (登機門 143), 降落航廈: 1' },
                 'CI107': { from: '東京成田', to: '台北桃園', depTime: '09:20', note: '起飛航廈: 2, 降落航廈: 2 (登機門 D5)' },
                 'CI222': { from: '台北松山', to: '東京羽田', depTime: '18:25', note: '起飛航廈: 1, 降落航廈: 3' },
                 'CI104': { from: '台北桃園', to: '東京成田', depTime: '12:35', note: '起飛航廈: 2 (登機門 D1), 降落航廈: 2 (登機門 67A)' },
+                
+                // 長榮航空 (EVA Air)
+                'BR191': { from: '東京羽田', to: '台北松山', depTime: '12:40', note: '起飛航廈: 3 (登機門 111), 降落航廈: 1' }, // 👈 新增這行
                 
                 // 日本航空 (JAL)
                 'JL307': { from: '東京羽田', to: '福岡', depTime: '08:00', note: '起飛航廈: 1 (登機門 12), 降落航廈: D' },
@@ -16876,10 +16902,14 @@ renderEvMemberPreview = async function(uids, type) {
             let autoData = null;
             if (fNo) {
                 const flightDB = {
+                    'CI126': { from: '高雄', to: '東京成田', codeFrom: 'KHH', codeTo: 'NRT', depTime: '12:55', arrTime: '17:35', duration: '3h 40m', termFrom: 'I', termTo: '2', gateFrom: '31', gateTo: '-', airline: '中華航空' }, // 👈 新增這行
                     'CI223': { from: '東京羽田', to: '台北松山', codeFrom: 'HND', codeTo: 'TSA', depTime: '07:55', arrTime: '10:55', duration: '4h 0m', termFrom: '3', termTo: '1', gateFrom: '143', gateTo: '-', airline: '中華航空' },
                     'CI107': { from: '東京成田', to: '台北桃園', codeFrom: 'NRT', codeTo: 'TPE', depTime: '09:20', arrTime: '12:30', duration: '4h 10m', termFrom: '2', termTo: '2', gateFrom: '-', gateTo: 'D5', airline: '中華航空' },
                     'CI222': { from: '台北松山', to: '東京羽田', codeFrom: 'TSA', codeTo: 'HND', depTime: '18:25', arrTime: '22:15', duration: '2h 50m', termFrom: '1', termTo: '3', gateFrom: '-', gateTo: '-', airline: '中華航空' },
                     'CI104': { from: '台北桃園', to: '東京成田', codeFrom: 'TPE', codeTo: 'NRT', depTime: '12:35', arrTime: '16:35', duration: '3h 0m', termFrom: '2', termTo: '2', gateFrom: 'D1', gateTo: '67A', airline: '中華航空' },
+                    
+                    'BR191': { from: '東京羽田', to: '台北松山', codeFrom: 'HND', codeTo: 'TSA', depTime: '12:40', arrTime: '15:05', duration: '3h 25m', termFrom: '3', termTo: '1', gateFrom: '111', gateTo: '-', airline: '長榮航空' }, // 👈 新增這行
+                    
                     'JL307': { from: '東京羽田', to: '福岡', codeFrom: 'HND', codeTo: 'FUK', depTime: '08:00', arrTime: '10:00', duration: '2h 0m', termFrom: '1', termTo: 'D', gateFrom: '12', gateTo: '-', airline: '日本航空' },
                     'JL309': { from: '東京羽田', to: '福岡', codeFrom: 'HND', codeTo: 'FUK', depTime: '09:05', arrTime: '11:05', duration: '2h 0m', termFrom: '1', termTo: 'D', gateFrom: '10', gateTo: '-', airline: '日本航空' },
                     'JL511': { from: '東京羽田', to: '札幌新千歲', codeFrom: 'HND', codeTo: 'CTS', depTime: '10:20', arrTime: '11:55', duration: '1h 35m', termFrom: '1', termTo: 'D', gateFrom: '-', gateTo: '-', airline: '日本航空' },
