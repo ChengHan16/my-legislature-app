@@ -3811,12 +3811,14 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         }
 
         /* 聊天列表、對話氣泡的小頭貼、底部導覽列的 ::after 偽元素覆蓋 */
-        .chat-avatar-wrapper.theme-style1::after, .center-circle.theme-style1::after { content:''; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%) scale(1.7); width:100%; height:100%; background:url('https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/01.png?raw=true') center/contain no-repeat; z-index:15; pointer-events:none; }
-        .chat-avatar-wrapper.theme-style2::after, .center-circle.theme-style2::after { content:''; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%) scale(1.7); width:100%; height:100%; background:url('https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/02.png?raw=true') center/contain no-repeat; z-index:15; pointer-events:none; }
-        .chat-avatar-wrapper.theme-style3::after, .center-circle.theme-style3::after { content:''; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%) scale(1.7); width:100%; height:100%; background:url('https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/03.png?raw=true') center/contain no-repeat; z-index:15; pointer-events:none; }
-        .chat-avatar-wrapper.theme-style4::after, .center-circle.theme-style4::after { content:''; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%) scale(1.7); width:100%; height:100%; background:url('https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/04.png?raw=true') center/contain no-repeat; z-index:15; pointer-events:none; }
-        .chat-avatar-wrapper.theme-style5::after, .center-circle.theme-style5::after { content:''; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%) scale(1.7); width:100%; height:100%; background:url('https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/05.png?raw=true') center/contain no-repeat; z-index:15; pointer-events:none; }
-        .chat-avatar-wrapper.theme-style6::after, .center-circle.theme-style6::after { content:''; position:absolute; top:45%; left:50%; transform:translate(-50%, -50%) scale(1.7); width:100%; height:100%; background:url('https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/06.png?raw=true') center/contain no-repeat; z-index:15; pointer-events:none; }
+        /* 風格一 ~ 五的基本外框大小 (縮小至 1.45 倍，維持 top: 50%) */
+        .chat-avatar-wrapper.theme-style1::after, .center-circle.theme-style1::after { content:''; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%) scale(1.45); width:100%; height:100%; background:url('https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/01.png?raw=true') center/contain no-repeat; z-index:15; pointer-events:none; }
+        .chat-avatar-wrapper.theme-style2::after, .center-circle.theme-style2::after { content:''; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%) scale(1.45); width:100%; height:100%; background:url('https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/02.png?raw=true') center/contain no-repeat; z-index:15; pointer-events:none; }
+        .chat-avatar-wrapper.theme-style3::after, .center-circle.theme-style3::after { content:''; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%) scale(1.45); width:100%; height:100%; background:url('https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/03.png?raw=true') center/contain no-repeat; z-index:15; pointer-events:none; }
+        .chat-avatar-wrapper.theme-style4::after, .center-circle.theme-style4::after { content:''; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%) scale(1.45); width:100%; height:100%; background:url('https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/04.png?raw=true') center/contain no-repeat; z-index:15; pointer-events:none; }
+        .chat-avatar-wrapper.theme-style5::after, .center-circle.theme-style5::after { content:''; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%) scale(1.45); width:100%; height:100%; background:url('https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/05.png?raw=true') center/contain no-repeat; z-index:15; pointer-events:none; }
+        /* 單獨微調風格六 (06.png) 的位置 (縮小至 1.45 倍，維持 top: 45%) */
+        .chat-avatar-wrapper.theme-style6::after, .center-circle.theme-style6::after { content:''; position:absolute; top:45%; left:50%; transform:translate(-50%, -50%) scale(1.45); width:100%; height:100%; background:url('https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/06.png?raw=true') center/contain no-repeat; z-index:15; pointer-events:none; }
         /* ==========================================
            扭蛋抽卡系統專屬樣式 (包含極致大獎破框設計)
            ========================================== */
@@ -6748,19 +6750,79 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
 
     // 工具函式
     function escapeHtml(str) { return str ? str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;") : ""; }
-    // 工具函式：網址轉換與圖片/GIF預覽
+    // 工具函式：網址轉換與多媒體 (圖片/影片/YT/IG) 預覽
     function linkifyAndPreview(text) {
         if (!text) return "";
         const urlRegex = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
         return text.replace(urlRegex, function(url) {
             const cleanUrl = url.replace(/&amp;/g, '&'); 
-            // 偵測是否為圖片或 GIF 結尾
+            
+            // 1. 圖片/GIF
             if (cleanUrl.match(/\.(jpeg|jpg|gif|png|webp)(\?.*)?$/i)) {
-                // 【修改】：替換為智慧載入機制 handleImageLoad
                 return `<img src="${cleanUrl}" class="msg-media" onclick="if(!skipNextClick) openImageModal(this.src)" onload="handleImageLoad(this)">`;
             }
+            
+            // 2. 原生影片檔 (.mp4, .mov 等)
+            if (cleanUrl.match(/\.(mp4|mov|webm|ogg)(\?.*)?$/i)) {
+                return `<video src="${cleanUrl}" class="msg-media" controls playsinline preload="metadata" onloadeddata="handleImageLoad(this)" style="border-radius: 8px; outline: none; max-height: 350px; margin-top: 5px; width: 100%;"></video>`;
+            }
+
+            // 3. YouTube (包含一般影片與 Shorts)
+            const ytMatch = cleanUrl.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/i);
+            if (ytMatch && ytMatch[1]) {
+                const videoId = ytMatch[1];
+                const isShorts = cleanUrl.includes('/shorts/');
+                const height = isShorts ? '420' : '200';
+                const maxWidth = isShorts ? '240px' : '350px';
+                
+                // 【修復】：移除點擊攔截，讓 YT 可以直接在氣泡內點擊播放！
+                return `<div style="position: relative; display: inline-block; width: 100%; max-width: ${maxWidth}; margin-top: 5px; border-radius: 8px; overflow: hidden; background: #000;">
+                            <iframe width="100%" height="${height}" src="https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1" style="border: none; background: #000;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                        </div>`;
+            }
+
+            // 4. Instagram (包含貼文與 Reels)
+            const igMatch = cleanUrl.match(/https?:\/\/(?:www\.)?instagram\.com\/(?:p|reel|tv)\/([a-zA-Z0-9_-]+)/i);
+            if (igMatch && igMatch[1]) {
+                const igId = igMatch[1];
+                
+                // 【修復】：移除點擊攔截，保留 CSS 裁切，讓 IG 可以直接在氣泡內點擊播放！
+                return `<div style="position: relative; display: inline-block; width: 100%; max-width: 320px; height: 346px; margin-top: 5px; border-radius: 8px; overflow: hidden; background: #000;">
+                            <iframe src="https://www.instagram.com/p/${igId}/embed/?hidecaption=true" width="100%" height="400" frameborder="0" scrolling="no" style="border: none; background: white; margin-top: -54px;" allow="encrypted-media" allowfullscreen></iframe>
+                        </div>`;
+            }
+
+            // 5. 一般網址
             return `<a href="${cleanUrl}" target="_blank" style="color: inherit; text-decoration: underline; word-break: break-all;">${url}</a>`;
         });
+    }
+
+    // ==========================================
+    // 內建網頁瀏覽器 (In-App Browser) 控制邏輯
+    // ==========================================
+    function openInAppBrowser(url, title = "網頁瀏覽器") {
+        const browserView = document.getElementById('inAppBrowserView');
+        const iframe = document.getElementById('inAppIframe');
+        const titleEl = document.getElementById('inAppBrowserTitle');
+
+        if (titleEl) titleEl.textContent = title;
+        if (iframe) iframe.src = url;
+        
+        // 右向左滑入顯示
+        if (browserView) browserView.style.transform = 'translateX(0)';
+    }
+
+    function closeInAppBrowser() {
+        const browserView = document.getElementById('inAppBrowserView');
+        const iframe = document.getElementById('inAppIframe');
+
+        // 向右滑出隱藏
+        if (browserView) browserView.style.transform = 'translateX(100%)';
+        
+        // 等待滑出動畫結束後，清空網址，避免影片在背景繼續發出聲音
+        setTimeout(() => {
+            if (iframe) iframe.src = ''; 
+        }, 300);
     }
     function highlightMentions(text) { return text ? text.replace(/@([^\s]+)/g, '<span class="mention-highlight">@$1</span>') : ""; }
     function formatChatDate(timestamp) {
@@ -7599,10 +7661,8 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
 
             if (msg.fileUrl) {
                 if (msg.fileType === 'video') {
-                    contentHtml += `<div style="position: relative; display: inline-block; cursor: pointer;" onclick="if(!skipNextClick) openMediaModal('${msg.fileUrl}', 'video')">
-                                        <video src="${msg.fileUrl}" class="msg-media" onloadeddata="handleImageLoad(this)" style="pointer-events: none;"></video>
-                                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: rgba(255,255,255,0.9); font-size: 40px; text-shadow: 0 2px 10px rgba(0,0,0,0.5);"><i class="fas fa-play-circle"></i></div>
-                                    </div>`;
+                    // 【修改】：移除彈出視窗與假按鈕，直接啟用系統原生 controls (控制條) 與 playsinline (允許網頁內播放)
+                    contentHtml += `<video src="${msg.fileUrl}" class="msg-media" controls playsinline preload="metadata" onloadeddata="handleImageLoad(this)" style="border-radius: 8px; outline: none; max-height: 350px;"></video>`;
                 } else if (msg.fileType === 'sticker') {
                     // 【新增】：貼圖專屬渲染，不用加上 onclick 預覽，且套用 msg-sticker 樣式
                     contentHtml += `<img src="${msg.fileUrl}" class="msg-sticker" onload="handleImageLoad(this)">`;
@@ -7617,12 +7677,15 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             
             if (msg.text && !isEventCard) contentHtml += (msg.fileUrl ? '<br>' : '') + highlightMentions(linkifyAndPreview(escapeHtml(msg.text)));
             
-            // 【新增】：嚴格判斷文字是否「純粹只有一個圖片/GIF網址」(不含其他文字)
+            // 【新增】：嚴格判斷文字是否「純粹只有一個圖片/影片/社群媒體網址」(不含其他文字)
             const textTrimmed = msg.text ? msg.text.trim() : "";
             const isOnlyImageLink = /^https?:\/\/[^\s]+\.(jpeg|jpg|gif|png|webp)(\?[^\s]*)?$/i.test(textTrimmed);
+            const isOnlyVideoLink = /^https?:\/\/[^\s]+\.(mp4|mov|webm|ogg)(\?[^\s]*)?$/i.test(textTrimmed);
+            // 判斷是否為純 YT 或 IG 網址
+            const isOnlySocialLink = /^https?:\/\/(?:www\.)?(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/|instagram\.com\/(?:p|reel|tv)\/)[a-zA-Z0-9_-]+(?:\/.*|\?.*)?$/i.test(textTrimmed);
 
-            // 【修復溢出 bug】：活動卡片、純上傳圖片、以及「純圖片網址」都套用 media-only，徹底去除氣泡外框
-            if (isEventCard || (msg.fileUrl && !msg.replyToId && !msg.text) || (isOnlyImageLink && !msg.replyToId)) {
+            // 【修復溢出 bug】：活動卡片、純媒體檔案、以及「純圖/影/社群網址」都套用 media-only，徹底去除氣泡外框
+            if (isEventCard || (msg.fileUrl && !msg.replyToId && !msg.text) || ((isOnlyImageLink || isOnlyVideoLink || isOnlySocialLink) && !msg.replyToId)) {
                 isMediaOnly = true;
             }
 
