@@ -3793,7 +3793,7 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -55%) scale(1.8); /* 放大 1.35 倍以覆蓋在圓形頭像外圍，可視情況微調 */
-            width: 100%;
+            width: 90%;
             height: 100%;
             z-index: 20;
             pointer-events: none;
@@ -3805,6 +3805,10 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         .avatar-frame-container.style3-theme .custom-frame-overlay {
             display: block;
         }
+        /* 單獨微調風格六 (06.png) 的 Y 軸位置 */
+        .avatar-frame-container.style6-theme .custom-frame-overlay {
+            top: 45%;
+        }
 
         /* 聊天列表、對話氣泡的小頭貼、底部導覽列的 ::after 偽元素覆蓋 */
         .chat-avatar-wrapper.theme-style1::after, .center-circle.theme-style1::after { content:''; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%) scale(1.7); width:100%; height:100%; background:url('https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/01.png?raw=true') center/contain no-repeat; z-index:15; pointer-events:none; }
@@ -3812,7 +3816,7 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         .chat-avatar-wrapper.theme-style3::after, .center-circle.theme-style3::after { content:''; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%) scale(1.7); width:100%; height:100%; background:url('https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/03.png?raw=true') center/contain no-repeat; z-index:15; pointer-events:none; }
         .chat-avatar-wrapper.theme-style4::after, .center-circle.theme-style4::after { content:''; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%) scale(1.7); width:100%; height:100%; background:url('https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/04.png?raw=true') center/contain no-repeat; z-index:15; pointer-events:none; }
         .chat-avatar-wrapper.theme-style5::after, .center-circle.theme-style5::after { content:''; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%) scale(1.7); width:100%; height:100%; background:url('https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/05.png?raw=true') center/contain no-repeat; z-index:15; pointer-events:none; }
-        .chat-avatar-wrapper.theme-style6::after, .center-circle.theme-style6::after { content:''; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%) scale(1.7); width:100%; height:100%; background:url('https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/06.png?raw=true') center/contain no-repeat; z-index:15; pointer-events:none; }
+        .chat-avatar-wrapper.theme-style6::after, .center-circle.theme-style6::after { content:''; position:absolute; top:45%; left:50%; transform:translate(-50%, -50%) scale(1.7); width:100%; height:100%; background:url('https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/06.png?raw=true') center/contain no-repeat; z-index:15; pointer-events:none; }
         /* ==========================================
            扭蛋抽卡系統專屬樣式 (包含極致大獎破框設計)
            ========================================== */
@@ -3835,7 +3839,7 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         .gacha-banner-simple {
             width: 100%; 
             height: 15vh; /* 【再次縮小高度】：從 25vh 降為 15vh，把空間讓給大獎圖片 */
-            margin-top: calc(60px + env(safe-area-inset-top)); 
+            /* 移除 margin-top，讓它與標題列自然無縫堆疊 */
             background: radial-gradient(80% 80% at top left, #8c4c14 0%, transparent 60%),
                         radial-gradient(100% 100% at top right, #51128c 0%, transparent 60%),
                         radial-gradient(60% 60% at bottom left, #005a6b 0%, transparent 60%),
@@ -4076,6 +4080,18 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         body.dark-mode #calendarView > div[style*="background: var(--bg-gray)"] {
             background: #000000 !important;
         }
+
+        /* ==========================================
+           修復：首頁歡迎卡片深色模式適配
+           ========================================== */
+        body.dark-mode #homeWelcomeCard {
+            background: #1c1c1e !important; /* 配合 OLED 的深灰質感卡片底色 */
+            border: 1px solid #2c2c2e !important; /* 微微的邊框勾勒立體感 */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4) !important;
+        }
+        body.dark-mode #homeWelcomeCard p {
+            color: #aaa !important; /* 將次要文字調成柔和的淺灰色 */
+        }
     </style>
 
     <script>
@@ -4254,7 +4270,7 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         <main id="homeView" style="display: none; flex: 1; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 40px; background: var(--bg-gray); width: 100%; overflow-y: auto; padding-bottom: 100px;">
             <div style="width: 90%; max-width: 400px; display: flex; flex-direction: column; gap: 15px;">
                 
-                <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-align: center; margin-bottom: 10px;">
+                <div id="homeWelcomeCard" style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-align: center; margin-bottom: 10px;">
                     <h2 style="color: var(--ly-blue); margin: 0; font-size: 1.4rem;">立法院通訊系統</h2>
                     <p style="color: #888; font-size: 0.9rem; margin: 5px 0 0 0;">歡迎回來，祝您有美好的一天！</p>
                 </div>
@@ -5353,12 +5369,26 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         
         <div style="flex: 1; overflow-y: auto; padding: 25px 20px; background: transparent; -webkit-overflow-scrolling: touch;">
             <div class="release-timeline">
+
                 <div class="release-item latest">
                     <div class="version-title" style="cursor: pointer; user-select: none;" onclick="toggleReleaseContent(this)">
-                        <span class="v-badge latest">v 1.1.11</span>
+                        <span class="v-badge latest">v 1.1.16</span>
                         <span class="v-date">新增客製化頭像外框風格</span>
                     </div>
                     <div class="v-content" style="display: block;">
+                        <ul>
+                            <li><b>【視覺升級】</b>新增三款全新的專屬頭像外框風格（風格一、二、三），套用時僅改變大頭貼外框圖片，不影響系統整體的主題配色。</li>
+                            <li><b>【介面微調】</b>優化自訂外框圖片的顯示比例（放大至 1.35 倍以上）與微調中心點偏移位置，使外框能更完美地包覆大頭貼邊緣。</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="release-item">
+                    <div class="version-title" style="cursor: pointer; user-select: none;" onclick="toggleReleaseContent(this)">
+                        <span class="v-badge">v 1.1.11</span>
+                        <span class="v-date">新增客製化頭像外框風格</span>
+                    </div>
+                    <div class="v-content" style="display: none;">
                         <ul>
                             <li><b>【視覺升級】</b>新增三款全新的專屬頭像外框風格（風格一、二、三），套用時僅改變大頭貼外框圖片，不影響系統整體的主題配色。</li>
                             <li><b>【介面微調】</b>優化自訂外框圖片的顯示比例（放大至 1.35 倍以上）與微調中心點偏移位置，使外框能更完美地包覆大頭貼邊緣。</li>
@@ -6343,7 +6373,7 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
     </div>
 
     <div id="gachaView" class="app-view" style="z-index: 95; transform: translateX(100%); background: #0a0a14;">
-        <header class="messenger-header" style="background: var(--ly-blue); position: absolute; top: 0; width: 100%; z-index: 10;">
+        <header class="messenger-header" style="background: var(--ly-blue); z-index: 10;">
             <div class="header-content" style="padding: 15px 20px;">
                 <div class="user-profile">
                     <button class="back-btn" onclick="closeGachaView()" style="color: white; margin-right: 10px;"><i class="fas fa-chevron-left"></i></button>
@@ -7425,8 +7455,8 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                 } else if (senderTheme === 'chuuni') {
                     avatarHtml = `<div class="chat-avatar-wrapper theme-chuuni">${avatarHtml}<div class="chat-theme-chuuni-rune"></div></div>`;
                 } 
-                // 👇 新增這段：套用三種圖片外框到聊天氣泡頭貼
-                else if (senderTheme === 'style1' || senderTheme === 'style2' || senderTheme === 'style3') {
+                // 👇 修改為動態支援所有 style 系列外框
+                else if (senderTheme && senderTheme.startsWith('style')) {
                     avatarHtml = `<div class="chat-avatar-wrapper theme-${senderTheme}">${avatarHtml}</div>`;
                 }
 
@@ -7755,8 +7785,8 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             } else if (senderTheme === 'chuuni') {
                 avatarHtml = `<div class="chat-avatar-wrapper theme-chuuni">${avatarHtml}<div class="chat-theme-chuuni-rune"></div></div>`;
             } 
-            // 👇 新增這段：套用三種圖片外框到「正在輸入」狀態的頭貼
-            else if (senderTheme === 'style1' || senderTheme === 'style2' || senderTheme === 'style3') {
+            // 👇 修改為動態支援所有 style 系列外框
+            else if (senderTheme && senderTheme.startsWith('style')) {
                 avatarHtml = `<div class="chat-avatar-wrapper theme-${senderTheme}">${avatarHtml}</div>`;
             }
 
