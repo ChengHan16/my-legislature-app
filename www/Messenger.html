@@ -3799,6 +3799,262 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         .chat-avatar-wrapper.theme-style1::after, .center-circle.theme-style1::after { content:''; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%) scale(1.7); width:100%; height:100%; background:url('https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/01.png?raw=true') center/contain no-repeat; z-index:15; pointer-events:none; }
         .chat-avatar-wrapper.theme-style2::after, .center-circle.theme-style2::after { content:''; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%) scale(1.7); width:100%; height:100%; background:url('https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/02.png?raw=true') center/contain no-repeat; z-index:15; pointer-events:none; }
         .chat-avatar-wrapper.theme-style3::after, .center-circle.theme-style3::after { content:''; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%) scale(1.7); width:100%; height:100%; background:url('https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/03.png?raw=true') center/contain no-repeat; z-index:15; pointer-events:none; }
+    
+        /* ==========================================
+           扭蛋抽卡系統專屬樣式 (包含極致大獎破框設計)
+           ========================================== */
+        /* 抽卡機滿版畫面與按鈕 */
+
+        .gacha-banner::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, transparent, #000); }
+        .gacha-title { position: absolute; bottom: 20px; left: 20px; z-index: 2; color: white; font-size: 2rem; font-weight: 900; text-shadow: 0 2px 10px var(--ly-gold); font-style: italic; }
+        .gacha-btn-container { display: flex; justify-content: space-around; padding: 30px 20px; gap: 15px; position: absolute; bottom: 40px; width: 100%; box-sizing: border-box; }
+        .gacha-btn:active { transform: scale(0.95); box-shadow: 0 0 5px rgba(91, 164, 214, 0.4); }
+        .gacha-btn .cost { font-size: 0.85rem; color: #aaa; font-weight: normal; }
+        /* ==========================================
+           扭蛋機主畫面：極簡波浪漸層設計 (對應 image_c32241.jpg)
+           ========================================== */
+        /* ==========================================
+           扭蛋機主畫面：極簡波浪漸層設計 (對應 image_c32241.jpg)
+           ========================================== */
+        /* ==========================================
+           扭蛋機主畫面：極簡波浪漸層設計 (對應 image_c32241.jpg)
+           ========================================== */
+        .gacha-banner-simple {
+            width: 100%; 
+            height: 15vh; /* 【再次縮小高度】：從 25vh 降為 15vh，把空間讓給大獎圖片 */
+            margin-top: calc(60px + env(safe-area-inset-top)); 
+            background: radial-gradient(80% 80% at top left, #8c4c14 0%, transparent 60%),
+                        radial-gradient(100% 100% at top right, #51128c 0%, transparent 60%),
+                        radial-gradient(60% 60% at bottom left, #005a6b 0%, transparent 60%),
+                        #100c1c;
+            position: relative; 
+            border-bottom: 2px solid var(--ly-gold); 
+            box-shadow: 0 2px 15px rgba(207, 169, 0, 0.2);
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .gacha-banner-simple::after {
+            content: ''; position: absolute; inset: 0; 
+            background: linear-gradient(to bottom, transparent 40%, #0a0a14 100%); 
+            z-index: 2; pointer-events: none;
+        }
+
+        .gacha-title-simple {
+            position: absolute; 
+            bottom: 10px; /* 【微調位置】：高度縮小後，讓文字稍微貼齊底部金線 */
+            left: 20px; 
+            z-index: 3; 
+            color: #fff; 
+            font-size: 2.2rem; 
+            font-weight: 900; 
+            font-style: italic;
+            line-height: 1.3;
+            text-shadow: 0 0 8px rgba(255,255,150,0.8), 0 0 15px rgba(255,255,150,0.5), 0 2px 4px rgba(0,0,0,0.8);
+            letter-spacing: 2px;
+            transform: skewX(-8deg); 
+        }
+        
+        /* 新增：展示與說明文字區域，確保圖片有空間且置中 */
+        .gacha-content-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 20px;
+            padding-bottom: 120px; /* 避開按鈕 */
+            position: relative;
+        }
+
+        .gacha-btn-container-simple {
+            display: flex; justify-content: space-around; padding: 20px; gap: 15px; 
+            position: absolute; bottom: 30px; width: 100%; box-sizing: border-box; z-index: 10;
+        }
+
+        .gacha-btn-simple {
+            flex: 1; padding: 15px 10px; 
+            background: #021a30; 
+            border: 1.5px solid #3c82b4; 
+            border-radius: 6px; color: white; 
+            cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 8px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5); 
+            transition: 0.1s;
+        }
+        .gacha-btn-simple:active { 
+            transform: scale(0.95); 
+            background: #003153; 
+            border-color: var(--ly-gold); 
+        }
+        .gacha-btn-simple .btn-title { font-size: 1.15rem; font-weight: 900; letter-spacing: 1px; }
+        .gacha-btn-simple .cost { font-size: 0.85rem; color: #aaa; font-weight: bold; display: flex; align-items: center; gap: 4px;}
+
+
+        /* 外框選擇清單中的「上鎖」狀態 */
+        .theme-option-item.locked { opacity: 0.4; filter: grayscale(100%); cursor: not-allowed; position: relative; }
+        .theme-option-item.locked::before { content: '\f023'; font-family: 'Font Awesome 6 Free'; font-weight: 900; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 2rem; color: white; text-shadow: 0 2px 5px #000; z-index: 10; }
+
+        /* 抽卡結果 Modal 基礎設定 */
+        #gachaResultModal .modal-card { background: transparent; box-shadow: none; border: none; align-items: center; justify-content: center; overflow: visible; /* 允許破框 */ }
+
+        /* 扭蛋長按加速狀態 */
+        .gacha-speed-up .gacha-result-item, .gacha-speed-up .gacha-result-text { animation-duration: 0.15s !important; }
+
+        /* ==========================================
+           扭蛋機主畫面：大獎海報展示區 (Banner Showcase)
+           ========================================== */
+        /* 修改容器：改為置中排版，脫離 absolute */
+        .gacha-showcase-container {
+            width: 100%;
+            flex: 1; /* 佔滿剩餘空間 */
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none; 
+            z-index: 2;
+            margin-bottom: 20px; /* 與下方文字的間距 */
+        }
+        
+        .gacha-showcase-img {
+            position: absolute; object-fit: contain;
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.8));
+        }
+        
+        /* 主打大獎 (風格一：置中偏下) */
+        .gacha-showcase-img.main-prize {
+            width: 180px; height: 180px;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -20%);
+            z-index: 3;
+            animation: floatGachaMain 4s ease-in-out infinite;
+        }
+        
+        /* 次要大獎 (風格二：左上) */
+        .gacha-showcase-img.sub-prize-1 {
+            width: 130px; height: 130px;
+            top: 10%; left: 10%;
+            z-index: 2; opacity: 0.9;
+            animation: floatGachaSub 5s ease-in-out infinite 1s;
+        }
+        
+        /* 次要大獎 (風格三：右上) */
+        .gacha-showcase-img.sub-prize-2 {
+            width: 130px; height: 130px;
+            top: 10%; right: 10%;
+            z-index: 1; opacity: 0.9;
+            animation: floatGachaSub 6s ease-in-out infinite 2s;
+        }
+
+        /* 呼吸懸浮動畫 (需配合 translate) */
+        @keyframes floatGachaMain {
+            0%, 100% { transform: translate(-50%, -20%) translateY(0); }
+            50% { transform: translate(-50%, -20%) translateY(-10px); }
+        }
+        @keyframes floatGachaSub {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* ================== 單抽/連續展演 破框設計 ================== */
+        /* 演出容器 (發光基座) */
+        .gacha-result-item {
+            width: 160px; height: 160px; border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.4) 100%);
+            position: relative; /* 圖片絕對定位的基準 */
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.8), inset 0 0 20px rgba(255,215,0,0.5);
+            animation: gachaPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            margin-bottom: 30px; border: 4px solid var(--ly-gold);
+        }
+
+        /* 圖片絕對定位，徹底脫離圓圈限制 */
+        .gacha-result-item img {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(1.4);
+            width: 100%; height: 100%; object-fit: contain; pointer-events: none;
+        }
+
+        /* 🔥 大獎演出專屬 (取消實體邊框，改為巨大光暈) */
+        .gacha-result-item.grand-prize {
+            border: none;
+            background: radial-gradient(circle, rgba(255,215,0,0.6) 0%, rgba(0,0,0,0) 70%); 
+            box-shadow: 0 0 100px rgba(255, 215, 0, 0.8);
+            margin-bottom: 60px;
+        }
+
+        /* 🔥 大獎圖片強力破框 (修正：回歸絕對置中，並縮小至適合的霸氣比例) */
+        .gacha-result-item.grand-prize img {
+            transform: translate(-50%, -50%) scale(1.8); /* 把 -55% 改回 -50% 置中，放大倍率從 2.5 降到 1.8 */
+            z-index: 10;
+        }
+
+        /* 大獎文字特效 */
+        .gacha-result-text { color: white; font-size: 1.8rem; font-weight: 900; text-shadow: 0 2px 10px #000; animation: fadeIn 0.5s; margin-top: 10px; position: relative; z-index: 15; text-align: center; }
+        .gacha-result-item.grand-prize + .gacha-result-text { font-size: 2.2rem; color: #f1c40f; text-shadow: 0 2px 20px rgba(255,215,0,1), 0 0 10px black; animation: fadeInDown 0.5s; }
+
+        /* 落選 (銘謝惠顧) */
+        .gacha-result-item.blank { border-color: #444; box-shadow: none; background: #222; display: flex; justify-content: center; align-items: center; color: #555; font-size: 60px; }
+
+        @keyframes gachaPop { 0% { transform: scale(0) rotate(-180deg); opacity: 0; } 100% { transform: scale(1) rotate(0deg); opacity: 1; } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ================== 10連抽總結網格 破框設計 ================== */
+        .gacha-summary-title { color: white; font-size: 2rem; font-weight: 900; text-shadow: 0 2px 10px var(--ly-gold); margin-bottom: 30px; animation: fadeIn 0.5s; display: none; text-align: center; width: 100%;}
+        
+        /* 總結畫面網格 (修正：適應手機螢幕寬度，並確保絕對置中) */
+        .gacha-summary-grid { 
+            display: grid; 
+            grid-template-columns: repeat(5, 1fr); 
+            gap: 20px 8px; /* 縮小水平間距以容納 5 個 */
+            padding: 10px; 
+            width: 100%; /* 填滿容器 */
+            max-width: 400px; 
+            margin: 0 auto; /* 絕對置中 */
+            justify-items: center; /* 確保每顆在格子內置中 */
+            box-sizing: border-box;
+            display: none; 
+            animation: fadeInUp 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+        }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(50px); } to { opacity: 1; transform: translateY(0); } }
+
+        .gacha-summary-item { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 10px; }
+
+        /* 縮小總結卡片基座尺寸，避免 5 顆擠爆螢幕 */
+        .gacha-summary-avatar {
+            width: 52px; height: 52px; border-radius: 50%; background: #222; border: 3px solid #444; 
+            position: relative; box-shadow: 0 0 10px rgba(0,0,0,0.5); 
+            display: flex; justify-content: center; align-items: center; color: #555; font-size: 20px; 
+        }
+
+        /* 圖片絕對定位破框 (稍微調大 scale 彌補基座縮小的比例) */
+        .gacha-summary-avatar img {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(1.8); /* 放大比例彌補基底縮小 */
+            width: 100%; height: 100%; object-fit: contain; pointer-events: none;
+        }
+
+        /* 🔥 大獎總結卡片基座 */
+        .gacha-summary-avatar.win.grand-prize {
+            background: radial-gradient(circle, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.2) 100%);
+            border-color: var(--ly-gold); box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+        }
+        /* 🔥 大獎總結卡片圖片 (讓大獎更霸氣破框) */
+        .gacha-summary-avatar.win.grand-prize img { 
+            transform: translate(-50%, -50%) scale(2.2); 
+            z-index: 10; 
+        }
+
+        /* 中獎時一般金框 */
+        .gacha-summary-avatar.win { border-color: var(--ly-gold); box-shadow: 0 0 15px rgba(255, 215, 0, 0.7); }
+        /* 落選 */
+        .gacha-summary-avatar.blank { border-color: #444; box-shadow: none; background: #222; color: #555; font-size: 20px; }
+
+        /* "New" 標籤 */
+        .gacha-summary-new { position: absolute; top: -10px; right: -10px; background: red; color: white; font-size: 10px; font-weight: bold; padding: 2px 5px; border-radius: 8px; border: 1px solid white; text-transform: uppercase; z-index: 20; box-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+        
+        /* 總結畫面按鈕 */
+        .gacha-summary-buttons { display: none; gap: 15px; margin-top: 30px; animation: fadeIn 1s 0.3s both; justify-content: center; width: 100%;}
     </style>
 
     <script>
@@ -3896,7 +4152,7 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                     <i class="fas fa-chevron-right" style="color: #ccc;"></i>
                  </button>
             </div>
-            
+
             <button class="btn-modal btn-danger" style="width: 90%; max-width: 400px; margin-top: 15px; padding: 15px; border-radius: 12px; font-size: 1.05rem; box-shadow: 0 4px 15px rgba(255, 77, 77, 0.2);" onclick="handleLogout()">
                 <i class="fas fa-sign-out-alt"></i> 登出系統
             </button>
@@ -3966,7 +4222,21 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             </div>
         </div>
 
-        <main id="homeView" style="display: none; flex: 1; align-items: center; justify-content: center; color: #999; padding-bottom: 100px;">首頁功能建置中...</main>
+        <main id="homeView" style="display: none; flex: 1; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 40px; background: var(--bg-gray); width: 100%; overflow-y: auto; padding-bottom: 100px;">
+            <div style="width: 90%; max-width: 400px; display: flex; flex-direction: column; gap: 15px;">
+                
+                <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-align: center; margin-bottom: 10px;">
+                    <h2 style="color: var(--ly-blue); margin: 0; font-size: 1.4rem;">立法院通訊系統</h2>
+                    <p style="color: #888; font-size: 0.9rem; margin: 5px 0 0 0;">歡迎回來，祝您有美好的一天！</p>
+                </div>
+
+                <button class="btn-modal" style="width: 100%; padding: 20px; border-radius: 12px; font-size: 1.2rem; background: linear-gradient(135deg, #d4af37, #f9e27d, #b8860b); color: #003153; border: none; font-weight: 900; box-shadow: 0 4px 20px rgba(207, 169, 0, 0.4); text-shadow: 0 1px 1px rgba(255,255,255,0.5);" onclick="openGachaView()">
+                    <i class="fas fa-gem"></i> 主題外框 扭蛋召喚 <i class="fas fa-chevron-right" style="font-size: 1rem; margin-left: 5px;"></i>
+                </button>
+
+            </div>
+        </main>
+
         <main id="otherView" style="display: none; flex: 1; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 40px; background: var(--bg-gray); width: 100%; overflow-y: auto; padding-bottom: 100px;">
             <div style="width: 90%; max-width: 400px; display: flex; flex-direction: column; gap: 15px;">
                 
@@ -5056,7 +5326,7 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             <div class="release-timeline">
                 <div class="release-item latest">
                     <div class="version-title" style="cursor: pointer; user-select: none;" onclick="toggleReleaseContent(this)">
-                        <span class="v-badge latest">v 1.1.13</span>
+                        <span class="v-badge latest">v 1.1.11</span>
                         <span class="v-date">新增客製化頭像外框風格</span>
                     </div>
                     <div class="v-content" style="display: block;">
@@ -6043,6 +6313,70 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         </div>
     </div>
 
+    <div id="gachaView" class="app-view" style="z-index: 95; transform: translateX(100%); background: #0a0a14;">
+        <header class="messenger-header" style="background: var(--ly-blue); position: absolute; top: 0; width: 100%; z-index: 10;">
+            <div class="header-content" style="padding: 15px 20px;">
+                <div class="user-profile">
+                    <button class="back-btn" onclick="closeGachaView()" style="color: white; margin-right: 10px;"><i class="fas fa-chevron-left"></i></button>
+                    <span class="user-name" style="color: white; font-size: 1.1rem;">封印召喚</span>
+                </div>
+                <div class="header-actions">
+                    <button style="background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.3); font-size: 0.9rem; width: 30px; height: 30px; display: flex; justify-content: center; align-items: center; border-radius: 50%;" onclick="alert('【機率明細】\n風格一：15%\n風格二：5%\n風格三：5%\n一般：75%')">
+                        <i class="fas fa-question"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div class="gacha-banner-simple">
+            <div class="gacha-title-simple">傳說外框<br>限定降臨</div>
+        </div>
+        
+        <div class="gacha-content-area">
+            <div class="gacha-showcase-container">
+                <img src="https://raw.githubusercontent.com/ChengHan16/Other_File/refs/heads/master/Legislature/photo/avatar/02.png" class="gacha-showcase-img main-prize">
+                <img src="https://raw.githubusercontent.com/ChengHan16/Other_File/refs/heads/master/Legislature/photo/avatar/03.png" class="gacha-showcase-img sub-prize-1">
+                <img src="https://raw.githubusercontent.com/ChengHan16/Other_File/refs/heads/master/Legislature/photo/avatar/01.png" class="gacha-showcase-img sub-prize-2">
+            </div>
+
+            <p style="color: #777; text-align: center; margin-bottom: 30px; line-height: 1.6; font-size: 0.9rem; z-index: 5; position: relative;">
+                召喚未知的力量<br>(目前為免費無限次召喚體驗版)
+            </p>
+        </div>
+
+        <div class="gacha-btn-container-simple">
+            <button class="gacha-btn-simple" onclick="rollGacha(1)">
+                <div class="btn-title">1 次召喚</div>
+                <div class="cost"><i class="fas fa-gem" style="color: #f1c40f;"></i> 免費</div>
+            </button>
+            <button class="gacha-btn-simple" onclick="rollGacha(10)">
+                <div class="btn-title">10 次召喚</div>
+                <div class="cost"><i class="fas fa-gem" style="color: #f1c40f;"></i> 免費</div>
+            </button>
+        </div>
+    </div>
+
+    <div id="gachaResultModal" class="modal-overlay" style="z-index: 9999; background: rgba(0,0,0,0.9);">
+        <div class="modal-card" style="background: transparent; box-shadow: none; border: none; align-items: center; justify-content: center;">
+            
+            <div id="gachaSummaryTitle" class="gacha-summary-title">召喚結果</div>
+
+            <div id="gachaSummaryGrid" class="gacha-summary-grid"></div>
+
+            <div id="gachaResultSingleView" style="display: flex; flex-direction: column; align-items: center;">
+                <div id="gachaResultIcon" class="gacha-result-item"></div>
+                <div id="gachaResultText" class="gacha-result-text" style="text-align: center; margin-top: 15px; min-height: 40px;"></div>
+                <div id="gachaSpeedHint" style="color: #aaa; margin-top: 25px; font-size: 0.9rem; text-align: center; animation: fadeIn 1s infinite alternate;"><i class="fas fa-hand-pointer"></i> 長按畫面可加速展演</div>
+                <div id="gachaContinueHint" style="color: var(--ly-gold); margin-top: 25px; font-size: 1rem; font-weight: bold; text-align: center; display: none; animation: fadeIn 1s infinite alternate;"><i class="fas fa-check-circle"></i> 點擊畫面任意處關閉</div>
+            </div>
+
+            <div id="gachaSummaryButtons" class="gacha-summary-buttons">
+                <button class="btn-modal btn-default" onclick="closeModal('gachaResultModal')" style="padding: 12px 30px;">確定</button>
+                <button class="btn-modal btn-primary" onclick="rollGacha(10)" style="background: var(--ly-blue); border-color: var(--ly-blue); padding: 12px 30px;">再次十連召喚 <i class="fas fa-gem"></i></button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
@@ -6193,7 +6527,7 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             calView.style.display = 'none';
             calView.style.zIndex = '1';
             
-            calView.style.paddingBottom = 'calc(60px + env(safe-area-inset-bottom))'; 
+            calView.style.paddingBottom = 'calc(90px + env(safe-area-inset-bottom))';
             calView.style.transition = 'none';
             
             // 補回失去 app-view 後缺少的排版屬性，確保高度 100% 且垂直排列
@@ -8426,7 +8760,7 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                 calView.classList.remove('app-view');
                 calView.style.position = 'relative';
                 calView.style.zIndex = '1';
-                calView.style.paddingBottom = 'calc(60px + env(safe-area-inset-bottom))';
+                calView.style.paddingBottom = 'calc(90px + env(safe-area-inset-bottom))';
                 calView.style.transform = 'none';
                 calView.style.transition = 'none';
                 calView.style.display = 'flex';
@@ -12874,7 +13208,7 @@ renderEvMemberPreview = async function(uids, type) {
                 calView.classList.remove('app-view');
                 calView.style.position = 'relative';
                 calView.style.zIndex = '1';
-                calView.style.paddingBottom = 'calc(60px + env(safe-area-inset-bottom))';
+                calView.style.paddingBottom = 'calc(90px + env(safe-area-inset-bottom))';
                 calView.style.display = 'none';
                 calView.style.transition = 'none';
                 
@@ -18223,6 +18557,7 @@ renderEvMemberPreview = async function(uids, type) {
         if (!avatarFrameContainer) return;
         
         const navCenterCircle = document.querySelector('.center-circle');
+        const navCenterArc = document.querySelector('.center-arc'); // 【新增】：抓取那條半圓弧線
         
         // 移除所有主題與外框 class
         document.body.classList.remove('tech-theme', 'chuuni-theme', 'princess-theme', 'style1-theme', 'style2-theme', 'style3-theme');
@@ -18232,6 +18567,8 @@ renderEvMemberPreview = async function(uids, type) {
             navCenterCircle.classList.remove('theme-tech', 'theme-chuuni', 'theme-princess', 'theme-style1', 'theme-style2', 'theme-style3');
             navCenterCircle.querySelectorAll('.chat-theme-crown, .chat-theme-sakura, .chat-theme-tech-ring, .chat-theme-chuuni-rune').forEach(el => el.remove());
         }
+
+        if (navCenterArc) navCenterArc.style.display = 'block'; // 【新增】：切換主題時，預設先將弧線顯示出來
 
         // 處理新增的外框圖片
         const customFrameImg = document.getElementById('customFrameImg');
@@ -18262,6 +18599,7 @@ renderEvMemberPreview = async function(uids, type) {
         else if (themeName === 'style1' || themeName === 'style2' || themeName === 'style3') {
             avatarFrameContainer.classList.add(themeName + '-theme');
             if (navCenterCircle) navCenterCircle.classList.add('theme-' + themeName);
+            if (navCenterArc) navCenterArc.style.display = 'none'; // 【新增】：如果是這三個大獎外框，就把半圓弧線隱藏！
             
             if (customFrameImg) {
                 customFrameImg.style.display = 'block';
@@ -18359,6 +18697,263 @@ renderEvMemberPreview = async function(uids, type) {
             applyThemeVisuals(themeName);
         }
     }
+
+    // ==========================================
+    // 扭蛋抽卡與解鎖系統 (Gacha & Unlock Engine)
+    // ==========================================
+    // 全域變數：儲存使用者已解鎖的外框 (預設這四個是免費的)
+    window.unlockedFrames = ['default', 'princess', 'tech', 'chuuni'];
+
+    // 1. 登入時讀取解鎖紀錄
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            db.collection("act").doc(user.uid).get().then(doc => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    if (data.unlockedFrames) window.unlockedFrames = data.unlockedFrames;
+                    // (保留原本的 nameEl, avatarEl 等更新邏輯... 不要覆蓋到原本的 onAuthStateChanged，這只是概念說明。我們用下面的方式注入)
+                }
+            });
+        }
+    });
+
+    // 將資料庫讀取補丁加在原本的 applyThemeVisuals 或開啟 modal 時
+    async function syncUnlockedFrames() {
+        if (!auth.currentUser) return;
+        try {
+            const doc = await db.collection("act").doc(auth.currentUser.uid).get();
+            if (doc.exists && doc.data().unlockedFrames) {
+                window.unlockedFrames = doc.data().unlockedFrames;
+            }
+        } catch(e) {}
+    }
+
+    // 2. 抽卡機畫面滑動控制
+    const gachaViewDOM = document.getElementById('gachaView');
+    function openGachaView() { gachaViewDOM.style.transform = 'translateX(0%)'; }
+    function closeGachaView() { gachaViewDOM.style.transform = 'translateX(100%)'; }
+
+    // 3. 抽卡核心邏輯 (機率池)
+    const gachaPool = [
+        { id: 'style1', name: '風格一 (限定外框)', img: 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/01.png?raw=true', rate: 15 },
+        { id: 'style2', name: '風格二 (限定外框)', img: 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/02.png?raw=true', rate: 5 },
+        { id: 'style3', name: '風格三 (限定外框)', img: 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/03.png?raw=true', rate: 5 },
+        { id: 'blank', name: '銘謝惠顧', img: '', rate: 85 }
+    ];
+
+    // ==========================================
+    // 扭蛋長按加速引擎 (Gacha Speed-Up)
+    // ==========================================
+    window.isGachaSpeedUp = false;
+    const gachaModalDOM = document.getElementById('gachaResultModal');
+
+    // 綁定按住與放開事件
+    const startSpeedUp = (e) => { 
+        window.isGachaSpeedUp = true; 
+        gachaModalDOM.classList.add('gacha-speed-up'); 
+    };
+    const stopSpeedUp = () => { 
+        window.isGachaSpeedUp = false; 
+        gachaModalDOM.classList.remove('gacha-speed-up'); 
+    };
+
+    // 支援滑鼠與手機觸控
+    gachaModalDOM.addEventListener('mousedown', startSpeedUp);
+    gachaModalDOM.addEventListener('touchstart', startSpeedUp, {passive: true});
+    
+    gachaModalDOM.addEventListener('mouseup', stopSpeedUp);
+    gachaModalDOM.addEventListener('mouseleave', stopSpeedUp);
+    gachaModalDOM.addEventListener('touchend', stopSpeedUp);
+
+    // ==========================================
+    // 扭蛋抽卡池 (Gacha Pool) 
+    // 將大獎 (風格一、二、三) 的圖片更新為提供的 GitHub URL
+    // ==========================================
+    // 修改核心抽卡函式 (新增大獎設計邏輯)
+    // ==========================================
+    async function rollGacha(times) {
+        // 鎖定抽卡按鈕
+        const btnContainer = document.querySelector('.gacha-btn-container');
+        if (btnContainer) btnContainer.style.pointerEvents = 'none';
+
+        let results = [];
+        let newUnlocks = [];
+
+        // 1. 預先計算結果 (保持不變)
+        for (let i = 0; i < times; i++) {
+            const rand = Math.random() * 100;
+            let cumulativeRate = 0;
+            let pulledItem = null;
+            for (const item of gachaPool) {
+                cumulativeRate += item.rate;
+                if (rand <= cumulativeRate) { pulledItem = item; break; }
+            }
+            results.push(pulledItem);
+            
+            if (pulledItem && pulledItem.id !== 'blank' && !window.unlockedFrames.includes(pulledItem.id) && !newUnlocks.includes(pulledItem.id)) {
+                newUnlocks.push(pulledItem.id);
+            }
+        }
+
+        // 2. 存入 Firebase (保持不變)
+        if (newUnlocks.length > 0 && auth.currentUser) {
+            window.unlockedFrames = [...window.unlockedFrames, ...newUnlocks];
+            await db.collection("act").doc(auth.currentUser.uid).set({ 
+                unlockedFrames: window.unlockedFrames 
+            }, { merge: true });
+        }
+
+        // 3. 準備演出 UI
+        const modal = document.getElementById('gachaResultModal');
+        const summaryTitle = document.getElementById('gachaSummaryTitle');
+        const summaryGrid = document.getElementById('gachaSummaryGrid');
+        const summaryButtons = document.getElementById('gachaSummaryButtons');
+        const singleView = document.getElementById('gachaResultSingleView');
+        const iconDiv = document.getElementById('gachaResultIcon');
+        const textDiv = document.getElementById('gachaResultText');
+        const speedHint = document.getElementById('gachaSpeedHint');
+        const continueHint = document.getElementById('gachaContinueHint');
+        
+        modal.style.display = 'flex';
+        modal.onclick = null; // 封鎖關閉
+
+        singleView.style.display = 'flex';
+        summaryTitle.style.display = 'none';
+        summaryGrid.style.display = 'none';
+        summaryButtons.style.display = 'none';
+        speedHint.style.display = 'block'; 
+        continueHint.style.display = 'none';
+
+        // 4. 連續展演模式 (十連抽時加快) (保持不變)
+        const baseWaitTime = (times === 10) ? 800 : 1500; 
+        
+        for (let i = 0; i < results.length; i++) {
+            let pull = results[i];
+
+            // 重置動畫
+            iconDiv.style.animation = 'none';
+            textDiv.style.animation = 'none';
+            void iconDiv.offsetWidth; 
+            
+            let animTime = window.isGachaSpeedUp ? '0.2s' : '0.5s';
+            iconDiv.style.animation = `gachaPop ${animTime} cubic-bezier(0.175, 0.885, 0.32, 1.275)`;
+            textDiv.style.animation = `fadeIn ${animTime}`;
+
+            // 🔴【核心修改】：判斷是否為大獎 (風格一、二、三)，並套用專屬設計樣式
+            const isGrandPrize = (pull.id === 'style1' || pull.id === 'style2' || pull.id === 'style3');
+
+            if (pull.id === 'blank') {
+                // 🔴【修改】：銘謝惠顧保持原本樣式，並移除 grand-prize class
+                iconDiv.className = 'gacha-result-item blank';
+                iconDiv.innerHTML = '<i class="fas fa-cloud"></i>';
+                textDiv.innerHTML = ''; 
+            } else {
+                // 🔴【修改】：中獎模式，判斷是否套用大獎設計 (移除全圖裁剪限制)
+                iconDiv.className = `gacha-result-item win${isGrandPrize ? ' grand-prize' : ''}`;
+                iconDiv.innerHTML = `<img src="${pull.img}">`;
+                
+                if (window.unlockedFrames.includes(pull.id)) {
+                    // 🔴【修改】：演出時正確標記解鎖與重覆獲得
+                    const isReallyNew = window.unlockedFrames.filter(id => id === pull.id).length === 1 && newUnlocks.includes(pull.id);
+                    if (isReallyNew) {
+                        textDiv.innerHTML = `🎉 解鎖: ${pull.name}!`;
+                        textDiv.style.color = "#f1c40f";
+                    } else {
+                        textDiv.innerHTML = `${pull.name}<br><span style="font-size:1rem; color:#ccc;">(轉換為經驗值)</span>`;
+                        textDiv.style.color = "white";
+                    }
+                } else {
+                    textDiv.innerHTML = `${pull.name}<br><span style="font-size:1rem; color:#ccc;">(轉換為經驗值)</span>`;
+                    textDiv.style.color = "white";
+                }
+            }
+
+            let elapsed = 0;
+            const checkInt = 50; 
+            while (elapsed < baseWaitTime) {
+                await new Promise(r => setTimeout(r, checkInt));
+                elapsed += checkInt;
+                if (window.isGachaSpeedUp && elapsed >= 200) { break; }
+            }
+        }
+
+        // 5. 總結模式 (十連抽播完後)
+        if (times === 10) {
+            let gridHtml = '';
+            results.forEach((pull, index) => {
+                let itemHtml = '<div class="gacha-summary-item">';
+                
+                // 🔴【核心修改】：在總結網格卡片也套用 grand-prize 大獎設計 (移除全圖裁剪限制)
+                const isGrandPrize = (pull.id === 'style1' || pull.id === 'style2' || pull.id === 'style3');
+
+                if (pull.id === 'blank') {
+                    // 🔴【修改】：銘謝惠顧總結樣式 (移除 grand-prize class)
+                    itemHtml += `<div class="gacha-summary-avatar blank"><i class="fas fa-cloud"></i></div>`;
+                } else {
+                    // 🔴【修改】：大獎總結設計，使用 full-design 顯示 (移除裁剪限制)
+                    const isReallyNew = newUnlocks.includes(pull.id);
+                    let avatarClass = `gacha-summary-avatar win${isGrandPrize ? ' grand-prize' : ''}`;
+                    
+                    itemHtml += `<div class="${avatarClass}">`;
+                    if (isReallyNew) itemHtml += '<div class="gacha-summary-new">New</div>';
+                    itemHtml += `<img src="${pull.img}">`;
+                    itemHtml += '</div>';
+                }
+                
+                itemHtml += '</div>'; // close gacha-summary-item
+                gridHtml += itemHtml;
+            });
+            summaryGrid.innerHTML = gridHtml;
+
+            singleView.style.display = 'none';
+            summaryTitle.style.display = 'block';
+            summaryGrid.style.display = 'grid';
+            summaryButtons.style.display = 'flex';
+            
+            modal.onclick = null; // 總結畫面一定要按確定按鈕
+        } else {
+            // 單抽結束後的原本邏輯 (保持不變)
+            speedHint.style.display = 'none';
+            continueHint.style.display = 'block';
+            modal.onclick = () => { closeModal('gachaResultModal'); }; // 開放任意點擊關閉
+        }
+
+        // 恢復抽卡按鈕 (保持不變)
+        if (btnContainer) btnContainer.style.pointerEvents = 'auto'; 
+    }
+
+    // 4. 【重要覆蓋】修改原本開啟選單的函式，加入上鎖機制
+    const _originalOpenFrameModal = openFrameModal;
+    openFrameModal = async function() {
+        // 先去資料庫確保有抓到最新的解鎖狀態
+        await syncUnlockedFrames();
+        
+        // 呼叫原本的開啟邏輯
+        _originalOpenFrameModal();
+
+        // 幫選項加上 locked class
+        const optionItems = document.querySelectorAll('#frameModal .theme-option-item');
+        const frameIds = ['default', 'princess', 'tech', 'chuuni', 'style1', 'style2', 'style3'];
+        
+        optionItems.forEach((el, index) => {
+            const fId = frameIds[index];
+            if (!window.unlockedFrames.includes(fId)) {
+                el.classList.add('locked');
+            } else {
+                el.classList.remove('locked');
+            }
+        });
+    };
+
+    // 5. 【重要覆蓋】修改選擇外框的函式，阻止選擇未解鎖的外框
+    const _originalChangeThemeFrame = changeThemeFrame;
+    changeThemeFrame = function(themeName, btnEl) {
+        if (btnEl && btnEl.classList.contains('locked')) {
+            alert("🔒 此專屬外框尚未解鎖！\n\n請前往「封印召喚」扭蛋機試試手氣吧！");
+            return;
+        }
+        _originalChangeThemeFrame(themeName, btnEl);
+    };
 </script>
 </body>
     
