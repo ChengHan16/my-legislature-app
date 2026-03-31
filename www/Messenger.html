@@ -3802,7 +3802,12 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
 
         .avatar-frame-container.style1-theme .custom-frame-overlay,
         .avatar-frame-container.style2-theme .custom-frame-overlay,
-        .avatar-frame-container.style3-theme .custom-frame-overlay {
+        .avatar-frame-container.style3-theme .custom-frame-overlay,
+        .avatar-frame-container.style4-theme .custom-frame-overlay,
+        .avatar-frame-container.style5-theme .custom-frame-overlay,
+        .avatar-frame-container.style6-theme .custom-frame-overlay,
+        .avatar-frame-container.style7-theme .custom-frame-overlay,
+        .avatar-frame-container.style0-theme .custom-frame-overlay {
             display: block;
         }
         /* 單獨微調風格六 (06.png) 的 Y 軸位置 */
@@ -3823,6 +3828,9 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
            扭蛋抽卡系統專屬樣式 (包含極致大獎破框設計)
            ========================================== */
         /* 抽卡機滿版畫面與按鈕 */
+        /* 👇 新增這兩行：風格七 與 隱藏神話風格 */
+        .chat-avatar-wrapper.theme-style7::after, .center-circle.theme-style7::after { content:''; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%) scale(1.45); width:100%; height:100%; background:url('https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/07.png?raw=true') center/contain no-repeat; z-index:15; pointer-events:none; }
+        .chat-avatar-wrapper.theme-style0::after, .center-circle.theme-style0::after { content:''; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%) scale(1.45); width:100%; height:100%; background:url('https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/001.png?raw=true') center/contain no-repeat; z-index:15; pointer-events:none; }
 
         .gacha-banner::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, transparent, #000); }
         .gacha-title { position: absolute; bottom: 20px; left: 20px; z-index: 2; color: white; font-size: 2rem; font-weight: 900; text-shadow: 0 2px 10px var(--ly-gold); font-style: italic; }
@@ -4263,6 +4271,14 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                         <div class="theme-option-item" onclick="changeThemeFrame('style6', this)">
                             <div class="theme-swatch" style="background: url('https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/06.png?raw=true') center/contain no-repeat, var(--bg-gray);"></div>
                             <span>風格六</span>
+                        </div>
+                        <div class="theme-option-item" onclick="changeThemeFrame('style7', this)">
+                            <div class="theme-swatch" style="background: url('https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/07.png?raw=true') center/contain no-repeat, var(--bg-gray);"></div>
+                            <span>風格七</span>
+                        </div>
+                        <div class="theme-option-item" onclick="changeThemeFrame('style0', this)">
+                            <div class="theme-swatch" style="background: url('https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/001.png?raw=true') center/contain no-repeat, var(--bg-gray);"></div>
+                            <span style="color: #d4af37; font-weight: 900;">隱藏風格</span>
                         </div>
                     </div>
                 </div>
@@ -6382,7 +6398,7 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                     <span class="user-name" style="color: white; font-size: 1.1rem;">封印召喚</span>
                 </div>
                 <div class="header-actions">
-                    <button style="background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.3); font-size: 0.9rem; width: 30px; height: 30px; display: flex; justify-content: center; align-items: center; border-radius: 50%;" onclick="alert('【機率明細】\n風格四(傳說)：0.2%\n風格六(傳說)：0.2%\n風格二(大獎)：1%\n風格三(大獎)：1%\n風格一(小獎)：48.8%\n風格五(小獎)：48.8%')">
+                    <button style="background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.3); font-size: 0.9rem; width: 30px; height: 30px; display: flex; justify-content: center; align-items: center; border-radius: 50%;" onclick="alert('【機率明細】\n隱藏風格(神話)：0.1%\n風格四(傳說)：0.2%\n風格六(傳說)：0.2%\n風格二(大獎)：1%\n風格三(大獎)：1%\n風格一(小獎)：32.5%\n風格五(小獎)：32.5%\n風格七(小獎)：32.5%')">
                         <i class="fas fa-question"></i>
                     </button>
                 </div>
@@ -6767,7 +6783,7 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                 return `<video src="${cleanUrl}" class="msg-media" controls playsinline preload="metadata" onloadeddata="handleImageLoad(this)" style="border-radius: 8px; outline: none; max-height: 350px; margin-top: 5px; width: 100%;"></video>`;
             }
 
-            // 3. YouTube (包含一般影片與 Shorts)
+            // 3. YouTube (包含一般影片與 Shorts) - 聊天室內直接播放
             const ytMatch = cleanUrl.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/i);
             if (ytMatch && ytMatch[1]) {
                 const videoId = ytMatch[1];
@@ -6775,24 +6791,28 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                 const height = isShorts ? '420' : '200';
                 const maxWidth = isShorts ? '240px' : '350px';
                 
-                // 【修復】：
-                // 1. 網址加入 &enablejsapi=1&origin=https://www.youtube.com 騙過官方防護，完美解決 Error 153
-                // 2. 補齊 WebView 內部所需的完整 allow 播放權限
-                return `<div style="position: relative; display: inline-block; width: 100%; max-width: ${maxWidth}; margin-top: 5px; border-radius: 8px; overflow: hidden; background: #000;">
-                            <iframe width="100%" height="${height}" src="https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&playsinline=1&enablejsapi=1&origin=https%3A%2F%2Fwww.youtube.com" style="border: none; background: #000;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen" allowfullscreen></iframe>
+                // 【關鍵修復】：
+                // 1. 必須加入 playsinline=1，iOS 才會允許在氣泡內播放，否則會強制全螢幕或直接報錯。
+                // 2. 移除 autoplay，避免觸發 iOS 的自動播放攔截機制。
+                // 3. 動態抓取當前網域作為 origin，騙過 YouTube 的 153 防護機制。
+                const currentOrigin = (window.location.origin !== "null" && window.location.origin !== "file://") ? window.location.origin : "https://localhost";
+                
+                return `<div style="position: relative; display: inline-block; width: 100%; max-width: ${maxWidth}; margin-top: 5px; border-radius: 8px; overflow: hidden; background: #000; z-index: 10;">
+                            <iframe width="100%" height="${height}" src="https://www.youtube.com/embed/${videoId}?rel=0&playsinline=1&modestbranding=1&origin=${currentOrigin}" frameborder="0" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="border: none; background: #000; pointer-events: auto;"></iframe>
                         </div>`;
             }
 
-            // 4. Instagram (包含貼文與 Reels)
+            // 4. Instagram (包含貼文與 Reels) - 聊天室內直接播放
             const igMatch = cleanUrl.match(/https?:\/\/(?:www\.)?instagram\.com\/(?:p|reel|tv)\/([a-zA-Z0-9_-]+)/i);
             if (igMatch && igMatch[1]) {
                 const igId = igMatch[1];
                 
-                // 【修復】：
-                // 1. sandbox 中補上 allow-popups 避免 IG 腳本因為被過度限制而死機
-                // 2. 在 allow 屬性中強力寫入 autoplay 與 fullscreen 權限，解鎖沙盒狀態下的點擊播放能力
-                return `<div style="position: relative; display: inline-block; width: 100%; max-width: 320px; height: 346px; margin-top: 5px; border-radius: 8px; overflow: hidden; background: #000;">
-                            <iframe src="https://www.instagram.com/p/${igId}/embed/?hidecaption=true" sandbox="allow-scripts allow-same-origin allow-presentation allow-popups" width="100%" height="400" frameborder="0" scrolling="no" style="border: none; background: transparent; margin-top: -54px;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen" allowfullscreen></iframe>
+                // 【關鍵修復】：
+                // 1. 移除不合理的 margin-top 負值，給予足夠的 height (450px)，確保 IG 原生播放鍵的「觸控熱區」不會跑位。
+                // 2. 保留 allow="encrypted-media"，這是 IG 載入影片串流的必要權限。
+                // 3. 確保 pointer-events: auto，讓你的手指點擊能確實穿透氣泡，點到 iframe 裡面的播放鍵。
+                return `<div style="position: relative; display: inline-block; width: 100%; max-width: 320px; height: 450px; margin-top: 5px; border-radius: 8px; overflow: hidden; background: #fff; z-index: 10; border: 1px solid rgba(0,0,0,0.05);">
+                            <iframe src="https://www.instagram.com/p/${igId}/embed/?hidecaption=true" width="100%" height="450" frameborder="0" scrolling="no" allowtransparency="true" allow="encrypted-media; picture-in-picture" allowfullscreen style="border: none; background: white; pointer-events: auto;"></iframe>
                         </div>`;
             }
 
@@ -7736,7 +7756,8 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                         const senderCache = window.chatMembersCache[uid] || {};
                         const avatarUrl = senderCache.photoURL || "https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/avatar-default.png?raw=true";
                         const zIndex = 3 - index;
-                        avatarsHtml += `<img src="${avatarUrl}" style="width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid ${hasMe ? '#fffdf5' : '#fff'}; margin-left: -6px; object-fit: cover; position: relative; z-index: ${zIndex};">`;
+                        // 【修復】：加入 flex-shrink: 0; 以及 min-width/min-height，絕對禁止 Flexbox 擠壓圖片
+                        avatarsHtml += `<img src="${avatarUrl}" style="width: 16px; height: 16px; min-width: 16px; min-height: 16px; flex-shrink: 0; border-radius: 50%; border: 1.5px solid ${hasMe ? '#fffdf5' : '#fff'}; margin-left: -6px; object-fit: cover; position: relative; z-index: ${zIndex};">`;
                     });
 
                     const countText = uids.length > 1 ? `<span style="margin-left: 4px; font-weight: bold; color: #555;">${uids.length}</span>` : '';
@@ -18776,7 +18797,7 @@ renderEvMemberPreview = async function(uids, type) {
         const navCenterArc = document.querySelector('.center-arc'); // 【新增】：抓取那條半圓弧線
         
         // 修改這裡：加上 'style4-theme'
-        document.body.classList.remove('tech-theme', 'chuuni-theme', 'princess-theme', 'style1-theme', 'style2-theme', 'style3-theme', 'style4-theme', 'style5-theme', 'style6-theme');
+        document.body.classList.remove('tech-theme', 'chuuni-theme', 'princess-theme', 'style1-theme', 'style2-theme', 'style3-theme', 'style4-theme', 'style5-theme', 'style6-theme', 'style7-theme', 'style0-theme');
         avatarFrameContainer.className = 'avatar-frame-container'; 
         
         if (navCenterCircle) {
@@ -18826,6 +18847,8 @@ renderEvMemberPreview = async function(uids, type) {
                 if (themeName === 'style4') customFrameImg.src = 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/04.png?raw=true';
                 if (themeName === 'style5') customFrameImg.src = 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/05.png?raw=true';
                 if (themeName === 'style6') customFrameImg.src = 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/06.png?raw=true';
+                if (themeName === 'style7') customFrameImg.src = 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/07.png?raw=true';
+                if (themeName === 'style0') customFrameImg.src = 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/001.png?raw=true';
             }
         }
         else {
@@ -18851,6 +18874,8 @@ renderEvMemberPreview = async function(uids, type) {
         else if (currentClasses.includes('style4-theme')) { currentTheme = 'style4'; currentBtnIndex = 7; }
         else if (currentClasses.includes('style5-theme')) { currentTheme = 'style5'; currentBtnIndex = 8; }
         else if (currentClasses.includes('style6-theme')) { currentTheme = 'style6'; currentBtnIndex = 9; }
+        else if (currentClasses.includes('style7-theme')) { currentTheme = 'style7'; currentBtnIndex = 10; }
+        else if (currentClasses.includes('style0-theme')) { currentTheme = 'style0'; currentBtnIndex = 11; }
 
         const framePreviewFrame = document.getElementById('avatarFramePreview');
         const previewImg = document.getElementById('customFramePreviewImg');
@@ -18870,6 +18895,9 @@ renderEvMemberPreview = async function(uids, type) {
                 if (currentTheme === 'style4') previewImg.src = 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/04.png?raw=true';
                 if (currentTheme === 'style5') previewImg.src = 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/05.png?raw=true';
                 if (currentTheme === 'style6') previewImg.src = 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/06.png?raw=true';
+                // 👇 補上風格七與神話風格
+                if (currentTheme === 'style7') previewImg.src = 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/07.png?raw=true';
+                if (currentTheme === 'style0') previewImg.src = 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/001.png?raw=true';
             }
         }
         
@@ -18912,6 +18940,9 @@ renderEvMemberPreview = async function(uids, type) {
                 if (themeName === 'style4') previewImg.src = 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/04.png?raw=true';
                 if (themeName === 'style5') previewImg.src = 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/05.png?raw=true';
                 if (themeName === 'style6') previewImg.src = 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/06.png?raw=true';
+                // 👇 同樣補上風格七與神話風格
+                if (themeName === 'style7') previewImg.src = 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/07.png?raw=true';
+                if (themeName === 'style0') previewImg.src = 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/001.png?raw=true';
             }
         }
 
@@ -18964,12 +18995,14 @@ renderEvMemberPreview = async function(uids, type) {
 
     // 3. 抽卡核心邏輯 (機率池)
     const gachaPool = [
+        { id: 'style0', name: '隱藏風格 (神話)', img: 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/001.png?raw=true', rate: 0.1 },
         { id: 'style4', name: '風格四 (傳說)', img: 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/04.png?raw=true', rate: 0.2 },
         { id: 'style6', name: '風格六 (傳說)', img: 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/06.png?raw=true', rate: 0.2 },
         { id: 'style2', name: '風格二 (大獎)', img: 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/02.png?raw=true', rate: 1 },
         { id: 'style3', name: '風格三 (大獎)', img: 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/03.png?raw=true', rate: 1 },
-        { id: 'style1', name: '風格一 (小獎)', img: 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/01.png?raw=true', rate: 48.8 },
-        { id: 'style5', name: '風格五 (小獎)', img: 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/05.png?raw=true', rate: 48.8 }
+        { id: 'style1', name: '風格一 (小獎)', img: 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/01.png?raw=true', rate: 32.5 },
+        { id: 'style5', name: '風格五 (小獎)', img: 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/05.png?raw=true', rate: 32.5 },
+        { id: 'style7', name: '風格七 (小獎)', img: 'https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/07.png?raw=true', rate: 32.5 }
     ];
 
     // ==========================================
@@ -19071,7 +19104,8 @@ renderEvMemberPreview = async function(uids, type) {
             textDiv.style.animation = `fadeIn ${animTime}`;
 
             // 🔴【核心修改】：判斷是否為大獎 (風格一、二、三)，並套用專屬設計樣式
-            const isGrandPrize = (pull.id === 'style2' || pull.id === 'style3' || pull.id === 'style4' || pull.id === 'style6');
+            // 單抽/連續展演 與 總結網格 都需要修改為：
+            const isGrandPrize = (pull.id === 'style2' || pull.id === 'style3' || pull.id === 'style4' || pull.id === 'style6' || pull.id === 'style0');
 
             if (pull.id === 'blank') {
                 // 🔴【修改】：銘謝惠顧保持原本樣式，並移除 grand-prize class
@@ -19115,7 +19149,8 @@ renderEvMemberPreview = async function(uids, type) {
                 let itemHtml = '<div class="gacha-summary-item">';
                 
                 // 🔴【核心修改】：在總結網格卡片也套用 grand-prize 大獎設計 (移除全圖裁剪限制)
-                const isGrandPrize = (pull.id === 'style2' || pull.id === 'style3' || pull.id === 'style4' || pull.id === 'style6');
+                // 單抽/連續展演 與 總結網格 都需要修改為：
+                const isGrandPrize = (pull.id === 'style2' || pull.id === 'style3' || pull.id === 'style4' || pull.id === 'style6' || pull.id === 'style0');
 
                 if (pull.id === 'blank') {
                     // 🔴【修改】：銘謝惠顧總結樣式 (移除 grand-prize class)
@@ -19164,7 +19199,7 @@ renderEvMemberPreview = async function(uids, type) {
 
         // 幫選項加上 locked class
         const optionItems = document.querySelectorAll('#frameModal .theme-option-item');
-        const frameIds = ['default', 'princess', 'tech', 'chuuni', 'style1', 'style2', 'style3', 'style4', 'style5', 'style6'];
+        const frameIds = ['default', 'princess', 'tech', 'chuuni', 'style1', 'style2', 'style3', 'style4', 'style5', 'style6', 'style7', 'style0'];
         
         optionItems.forEach((el, index) => {
             const fId = frameIds[index];
