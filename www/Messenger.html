@@ -5948,6 +5948,16 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         <video class="image-modal-content" id="expandedVideo" controls style="display: none; max-width: 95%; max-height: 90%; outline: none;"></video>
     </div>
 
+    <div id="webPlayerModal" class="modal-overlay" style="z-index: 100000; flex-direction: column; padding: 0; background: #000;" onclick="if(event.target === this) closeWebPlayer()">
+        <div style="width: 100%; height: 50px; background: #111; display: flex; justify-content: space-between; align-items: center; padding: 0 15px; padding-top: max(5px, calc(env(safe-area-inset-top) - 5px)); flex-shrink: 0; border-bottom: 1px solid #333;">
+            <span style="color: white; font-weight: bold; font-size: 1.05rem;"><i class="fas fa-play-circle" style="color: var(--ly-gold);"></i> 影片播放器</span>
+            <button onclick="closeWebPlayer()" style="background: none; border: none; color: white; font-size: 36px; cursor: pointer; line-height: 1;">&times;</button>
+        </div>
+        <div style="flex: 1; width: 100%; background: #fff; -webkit-overflow-scrolling: touch; overflow-y: auto;">
+            <iframe id="webPlayerIframe" width="100%" height="100%" frameborder="0" scrolling="yes" allowtransparency="true" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen style="border: none; background: #fff;"></iframe>
+        </div>
+    </div>
+
     <div id="image-viewer-modal" onclick="handleViewerClick(event)" style="display: none; position: fixed; z-index: 20000; left: 0; top: 0; width: 100vw; height: 100dvh; background-color: rgba(0, 0, 0, 0.95); flex-direction: column; overflow: hidden;">
         <div class="viewer-header">
             <div class="viewer-counter" id="viewer-counter">1 / 1</div>
@@ -6783,36 +6793,40 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                 return `<video src="${cleanUrl}" class="msg-media" controls playsinline preload="metadata" onloadeddata="handleImageLoad(this)" style="border-radius: 8px; outline: none; max-height: 350px; margin-top: 5px; width: 100%;"></video>`;
             }
 
-            // 3. YouTube (包含一般影片與 Shorts) - 聊天室內直接播放
+            // 3. YouTube 預覽卡片 -> 點擊在聊天室內生成網頁播放
             const ytMatch = cleanUrl.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/i);
             if (ytMatch && ytMatch[1]) {
                 const videoId = ytMatch[1];
                 const isShorts = cleanUrl.includes('/shorts/');
-                const height = isShorts ? '420' : '200';
-                const maxWidth = isShorts ? '240px' : '350px';
+                const thumbUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+                // 使用內嵌網址，並加上自動播放參數
+                const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&playsinline=1&rel=0`;
                 
-                // 【關鍵修復】：
-                // 1. 必須加入 playsinline=1，iOS 才會允許在氣泡內播放，否則會強制全螢幕或直接報錯。
-                // 2. 移除 autoplay，避免觸發 iOS 的自動播放攔截機制。
-                // 3. 動態抓取當前網域作為 origin，騙過 YouTube 的 153 防護機制。
-                const currentOrigin = (window.location.origin !== "null" && window.location.origin !== "file://") ? window.location.origin : "https://localhost";
-                
-                return `<div style="position: relative; display: inline-block; width: 100%; max-width: ${maxWidth}; margin-top: 5px; border-radius: 8px; overflow: hidden; background: #000; z-index: 10;">
-                            <iframe width="100%" height="${height}" src="https://www.youtube.com/embed/${videoId}?rel=0&playsinline=1&modestbranding=1&origin=${currentOrigin}" frameborder="0" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="border: none; background: #000; pointer-events: auto;"></iframe>
+                return `<div class="media-preview-card" style="position: relative; display: block; width: 100%; max-width: 300px; margin-top: 5px; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); cursor: pointer; background: #000; border: 1px solid rgba(0,0,0,0.05);" onclick="openWebPlayer('${embedUrl}')">
+                            <img src="${thumbUrl}" style="width: 100%; display: block; opacity: 0.85; aspect-ratio: 16/9; object-fit: cover;">
+                            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 50px; text-shadow: 0 4px 15px rgba(0,0,0,0.6);">
+                                <i class="fab fa-youtube" style="color: #ff0000;"></i>
+                            </div>
+                            <div style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); color: white; padding: 8px 12px; font-size: 0.85rem; display: flex; align-items: center; gap: 6px;">
+                                <i class="fas fa-play" style="font-size: 0.75rem; color: #ccc;"></i> 點擊在聊天室內展開播放
+                            </div>
                         </div>`;
             }
 
-            // 4. Instagram (包含貼文與 Reels) - 聊天室內直接播放
+            // 4. Instagram 預覽卡片 -> 點擊在聊天室內生成網頁播放
             const igMatch = cleanUrl.match(/https?:\/\/(?:www\.)?instagram\.com\/(?:p|reel|tv)\/([a-zA-Z0-9_-]+)/i);
             if (igMatch && igMatch[1]) {
                 const igId = igMatch[1];
+                const embedUrl = `https://www.instagram.com/p/${igId}/embed/?hidecaption=true`;
                 
-                // 【關鍵修復】：
-                // 1. 移除不合理的 margin-top 負值，給予足夠的 height (450px)，確保 IG 原生播放鍵的「觸控熱區」不會跑位。
-                // 2. 保留 allow="encrypted-media"，這是 IG 載入影片串流的必要權限。
-                // 3. 確保 pointer-events: auto，讓你的手指點擊能確實穿透氣泡，點到 iframe 裡面的播放鍵。
-                return `<div style="position: relative; display: inline-block; width: 100%; max-width: 320px; height: 450px; margin-top: 5px; border-radius: 8px; overflow: hidden; background: #fff; z-index: 10; border: 1px solid rgba(0,0,0,0.05);">
-                            <iframe src="https://www.instagram.com/p/${igId}/embed/?hidecaption=true" width="100%" height="450" frameborder="0" scrolling="no" allowtransparency="true" allow="encrypted-media; picture-in-picture" allowfullscreen style="border: none; background: white; pointer-events: auto;"></iframe>
+                return `<div class="media-preview-card" style="position: relative; display: flex; align-items: center; gap: 15px; width: 100%; max-width: 300px; margin-top: 5px; padding: 16px 20px; border-radius: 12px; background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); color: white; cursor: pointer; box-shadow: 0 4px 15px rgba(220, 39, 67, 0.3);" onclick="openWebPlayer('${embedUrl}')">
+                            <i class="fab fa-instagram" style="font-size: 34px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));"></i>
+                            <div style="flex: 1; min-width: 0; text-shadow: 0 1px 2px rgba(0,0,0,0.2);">
+                                <div style="font-weight: 900; font-size: 1.1rem; margin-bottom: 2px;">Instagram 影片</div>
+                                <div style="font-size: 0.8rem; opacity: 0.9; display: flex; align-items: center; gap: 4px;">
+                                    點擊在聊天室內展開播放 <i class="fas fa-chevron-right" style="font-size: 0.7rem;"></i>
+                                </div>
+                            </div>
                         </div>`;
             }
 
@@ -10301,6 +10315,18 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
         closeModal('imageModal');
         const vidEl = document.getElementById('expandedVideo');
         if (vidEl) { vidEl.pause(); vidEl.src = ''; } // 關閉時停止播放
+    }
+
+    function openWebPlayer(url) {
+        const modal = document.getElementById('webPlayerModal');
+        const iframe = document.getElementById('webPlayerIframe');
+        iframe.src = url; // 載入影片網址
+        modal.style.display = 'flex'; // 彈出視窗
+    }
+
+    function closeWebPlayer() {
+        document.getElementById('webPlayerModal').style.display = 'none';
+        document.getElementById('webPlayerIframe').src = ''; // 清空網址，立刻停止影片聲音與播放
     }
 
     async function downloadCurrentMedia() {
@@ -18801,8 +18827,8 @@ renderEvMemberPreview = async function(uids, type) {
         avatarFrameContainer.className = 'avatar-frame-container'; 
         
         if (navCenterCircle) {
-            // 修正：確實移除 navCenterCircle 身上的舊外框，避免疊加卡死
-            navCenterCircle.classList.remove('theme-tech', 'theme-chuuni', 'theme-princess', 'theme-style1', 'theme-style2', 'theme-style3', 'theme-style4', 'theme-style5', 'theme-style6');
+            // 【修復】：確實移除 navCenterCircle 身上的舊外框，補上 style7 與 style0，避免疊加卡死
+            navCenterCircle.classList.remove('theme-tech', 'theme-chuuni', 'theme-princess', 'theme-style1', 'theme-style2', 'theme-style3', 'theme-style4', 'theme-style5', 'theme-style6', 'theme-style7', 'theme-style0');
             navCenterCircle.querySelectorAll('.chat-theme-crown, .chat-theme-sakura, .chat-theme-tech-ring, .chat-theme-chuuni-rune').forEach(el => el.remove());
         }
 
