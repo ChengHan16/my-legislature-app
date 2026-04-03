@@ -12,8 +12,23 @@
     <link rel="icon" href="data:,">
     <style>
         /* --- 全域基礎與阻擋選取 --- */
-        * { -webkit-touch-callout: none !important; -webkit-user-select: none !important; user-select: none !important; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        input, textarea { -webkit-user-select: auto !important; user-select: auto !important; }
+        /* 【修改】：全域禁用文字選擇與 iOS callout 選單，防止彈出放大鏡與複製選單 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Montserrat', sans-serif;
+            outline: none;
+            -webkit-touch-callout: none; /* 禁用 iOS 長按 callout 選單 */
+            -webkit-tap-highlight-color: transparent; /* 禁用點擊時的突顯顏色 */
+            -webkit-user-select: none; /* 預設禁用文字選擇 */
+            user-select: none;
+        }
+        /* 【修改】：例外設定，讓輸入框與 textarea 能繼續選擇與編輯文字 */
+        input, textarea { 
+            -webkit-user-select: text !important; 
+            user-select: text !important; 
+        }
 
         :root { 
             --ly-blue: #003153; --ly-blue-trans: rgba(0, 49, 83, 0.85); 
@@ -271,7 +286,8 @@
         .read-status.group-read { cursor: pointer; color: var(--ly-blue); font-weight: 600; transition: opacity 0.2s; }
         .read-status.group-read:hover { opacity: 0.7; text-decoration: underline; }
         
-        .input-area { flex-shrink: 0; background: var(--white); padding: 0; display: flex; flex-direction: column; align-items: center; border-top: 1px solid #e9ecef; box-shadow: 0 -2px 10px rgba(0,0,0,0.03); width: 100%; position: relative;}
+        /* 【修復】：加入 z-index: 50，確保底部輸入區與彈出選單，永遠蓋在對話氣泡與頭像外框的上方 */
+        .input-area { flex-shrink: 0; background: var(--white); padding: 0; display: flex; flex-direction: column; align-items: center; border-top: 1px solid #e9ecef; box-shadow: 0 -2px 10px rgba(0,0,0,0.03); width: 100%; position: relative; z-index: 50; }
         
         /* ==========================================
            【動畫版】輸入框與收縮選單過渡效果
@@ -3405,6 +3421,22 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             transform: translateX(-50%) scale(1.1); /* 點擊時微放大 */
             border-color: var(--ly-gold);
         }
+        /* 【新增】：當套用抽卡外框時，強制移除中央圓圈本身的框線與陰影 */
+        .center-circle.theme-princess,
+        .center-circle.theme-tech,
+        .center-circle.theme-chuuni,
+        .center-circle.theme-style0,
+        .center-circle.theme-style1,
+        .center-circle.theme-style2,
+        .center-circle.theme-style3,
+        .center-circle.theme-style4,
+        .center-circle.theme-style5,
+        .center-circle.theme-style6,
+        .center-circle.theme-style7 {
+            border: none !important; /* 強制覆蓋移除框線 */
+            box-shadow: none !important; /* 強制覆蓋移除陰影 */
+            background: transparent !important; /* 確保背景透明 */
+        }
 
         /* --- 修改：底部頭像同步主題外框特效 --- */
         .center-circle.theme-tech {
@@ -4278,7 +4310,7 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                         </div>
                         <div class="theme-option-item" onclick="changeThemeFrame('style0', this)">
                             <div class="theme-swatch" style="background: url('https://github.com/ChengHan16/Other_File/blob/master/Legislature/photo/avatar/001.png?raw=true') center/contain no-repeat, var(--bg-gray);"></div>
-                            <span style="color: #d4af37; font-weight: 900;">隱藏風格</span>
+                            <span style="color: #d4af37; font-weight: 900;">暗影君王</span>
                         </div>
                     </div>
                 </div>
@@ -5949,12 +5981,12 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
     </div>
 
     <div id="webPlayerModal" class="modal-overlay" style="z-index: 100000; flex-direction: column; padding: 0; background: #000;" onclick="if(event.target === this) closeWebPlayer()">
-        <div style="width: 100%; height: 50px; background: #111; display: flex; justify-content: space-between; align-items: center; padding: 0 15px; padding-top: max(5px, calc(env(safe-area-inset-top) - 5px)); flex-shrink: 0; border-bottom: 1px solid #333;">
+        <div style="width: 100%; min-height: 50px; background: #111; display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; padding-top: max(10px, env(safe-area-inset-top)); flex-shrink: 0; border-bottom: 1px solid #333; position: relative; z-index: 100005;">
             <span style="color: white; font-weight: bold; font-size: 1.05rem;"><i class="fas fa-play-circle" style="color: var(--ly-gold);"></i> 影片播放器</span>
-            <button onclick="closeWebPlayer()" style="background: none; border: none; color: white; font-size: 36px; cursor: pointer; line-height: 1;">&times;</button>
+            <button onclick="closeWebPlayer()" ontouchend="closeWebPlayer(); event.preventDefault();" style="background: transparent; border: none; color: white; font-size: 42px; cursor: pointer; line-height: 1; padding: 10px; margin-right: -10px; position: relative; z-index: 100006;">&times;</button>
         </div>
-        <div style="flex: 1; width: 100%; background: #fff; -webkit-overflow-scrolling: touch; overflow-y: auto;">
-            <iframe id="webPlayerIframe" width="100%" height="100%" frameborder="0" scrolling="yes" allowtransparency="true" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen style="border: none; background: #fff;"></iframe>
+        <div style="flex: 1; width: 100%; background: #000; -webkit-overflow-scrolling: touch; overflow-y: auto; position: relative; z-index: 100001;">
+            <iframe id="webPlayerIframe" width="100%" height="100%" frameborder="0" scrolling="yes" allowtransparency="true" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen style="border: none; background: #000;"></iframe>
         </div>
     </div>
 
@@ -6604,6 +6636,35 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
     // 0. 系統初始化與深色模式
     // ==========================================
     document.addEventListener("DOMContentLoaded", () => {
+
+        // ==========================================
+        // 【新增】：秒開引擎！從本地快取瞬間還原大頭貼、名稱與主題外框
+        // ==========================================
+        const cachedTheme = localStorage.getItem('localUserTheme');
+        if (cachedTheme) {
+            applyThemeVisuals(cachedTheme);
+        }
+        
+        const cachedName = localStorage.getItem('localUserName');
+        const cachedAvatar = localStorage.getItem('localUserAvatar');
+        
+        if (cachedName) {
+            const nameEl = document.getElementById('myName');
+            const navNameEl = document.getElementById('navCenterName');
+            const aboutNameEl = document.getElementById('aboutMeName');
+            if (nameEl) nameEl.innerText = cachedName;
+            if (navNameEl) navNameEl.innerText = cachedName;
+            if (aboutNameEl) aboutNameEl.innerText = cachedName;
+        }
+        if (cachedAvatar) {
+            const avatarEl = document.getElementById('myAvatar');
+            const navAvatarEl = document.getElementById('navCenterAvatar');
+            const aboutAvatarEl = document.getElementById('aboutMeAvatar');
+            if (avatarEl) avatarEl.src = cachedAvatar;
+            if (navAvatarEl) navAvatarEl.src = cachedAvatar;
+            if (aboutAvatarEl) aboutAvatarEl.src = cachedAvatar;
+        }
+
         // 【新增】：自動將行事曆轉移到主畫面內，並完美變為 Tab 分頁模式
         const calView = document.getElementById('calendarView');
         const messengerView = document.getElementById('messengerView');
@@ -6793,40 +6854,49 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
                 return `<video src="${cleanUrl}" class="msg-media" controls playsinline preload="metadata" onloadeddata="handleImageLoad(this)" style="border-radius: 8px; outline: none; max-height: 350px; margin-top: 5px; width: 100%;"></video>`;
             }
 
-            // 3. YouTube 預覽卡片 -> 點擊在聊天室內生成網頁播放
+            // 3. YouTube 預覽卡片 -> 點擊在聊天室內生成網頁播放 + 顯示網址
             const ytMatch = cleanUrl.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/i);
             if (ytMatch && ytMatch[1]) {
                 const videoId = ytMatch[1];
                 const isShorts = cleanUrl.includes('/shorts/');
                 const thumbUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
-                // 使用內嵌網址，並加上自動播放參數
-                const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&playsinline=1&rel=0`;
                 
-                return `<div class="media-preview-card" style="position: relative; display: block; width: 100%; max-width: 300px; margin-top: 5px; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); cursor: pointer; background: #000; border: 1px solid rgba(0,0,0,0.05);" onclick="openWebPlayer('${embedUrl}')">
-                            <img src="${thumbUrl}" style="width: 100%; display: block; opacity: 0.85; aspect-ratio: 16/9; object-fit: cover;">
-                            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 50px; text-shadow: 0 4px 15px rgba(0,0,0,0.6);">
-                                <i class="fab fa-youtube" style="color: #ff0000;"></i>
+                const safeOrigin = (window.location.origin !== "null" && window.location.origin !== "file://") ? window.location.origin : "https://localhost";
+                const embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?playsinline=1&rel=0&modestbranding=1&enablejsapi=1&origin=${encodeURIComponent(safeOrigin)}`;
+                
+                // 【新增】：用 flex-column 容器將卡片與底部網址包裝在一起
+                return `<div style="display: flex; flex-direction: column; width: 100%; max-width: 300px;">
+                            <div class="media-preview-card" style="position: relative; display: block; width: 100%; margin-top: 5px; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); cursor: pointer; background: #000; border: 1px solid rgba(0,0,0,0.05);" onclick="openWebPlayer('${embedUrl}')">
+                                <img src="${thumbUrl}" style="width: 100%; display: block; opacity: 0.85; aspect-ratio: 16/9; object-fit: cover;">
+                                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 50px; text-shadow: 0 4px 15px rgba(0,0,0,0.6);">
+                                    <i class="fab fa-youtube" style="color: #ff0000;"></i>
+                                </div>
+                                <div style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); color: white; padding: 8px 12px; font-size: 0.85rem; display: flex; align-items: center; gap: 6px;">
+                                    <i class="fas fa-play" style="font-size: 0.75rem; color: #ccc;"></i> 點擊展開播放器
+                                </div>
                             </div>
-                            <div style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); color: white; padding: 8px 12px; font-size: 0.85rem; display: flex; align-items: center; gap: 6px;">
-                                <i class="fas fa-play" style="font-size: 0.75rem; color: #ccc;"></i> 點擊在聊天室內展開播放
-                            </div>
+                            <a href="${cleanUrl}" target="_blank" style="margin-top: 6px; font-size: 0.9rem; color: inherit; text-decoration: underline; word-break: break-all;">${cleanUrl}</a>
                         </div>`;
             }
 
-            // 4. Instagram 預覽卡片 -> 點擊在聊天室內生成網頁播放
+            // 4. Instagram 預覽卡片 -> 點擊在聊天室內生成網頁播放 + 顯示網址
             const igMatch = cleanUrl.match(/https?:\/\/(?:www\.)?instagram\.com\/(?:p|reel|tv)\/([a-zA-Z0-9_-]+)/i);
             if (igMatch && igMatch[1]) {
                 const igId = igMatch[1];
                 const embedUrl = `https://www.instagram.com/p/${igId}/embed/?hidecaption=true`;
                 
-                return `<div class="media-preview-card" style="position: relative; display: flex; align-items: center; gap: 15px; width: 100%; max-width: 300px; margin-top: 5px; padding: 16px 20px; border-radius: 12px; background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); color: white; cursor: pointer; box-shadow: 0 4px 15px rgba(220, 39, 67, 0.3);" onclick="openWebPlayer('${embedUrl}')">
-                            <i class="fab fa-instagram" style="font-size: 34px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));"></i>
-                            <div style="flex: 1; min-width: 0; text-shadow: 0 1px 2px rgba(0,0,0,0.2);">
-                                <div style="font-weight: 900; font-size: 1.1rem; margin-bottom: 2px;">Instagram 影片</div>
-                                <div style="font-size: 0.8rem; opacity: 0.9; display: flex; align-items: center; gap: 4px;">
-                                    點擊在聊天室內展開播放 <i class="fas fa-chevron-right" style="font-size: 0.7rem;"></i>
+                // 【新增】：用 flex-column 容器將卡片與底部網址包裝在一起
+                return `<div style="display: flex; flex-direction: column; width: 100%; max-width: 300px;">
+                            <div class="media-preview-card" style="position: relative; display: flex; align-items: center; gap: 15px; width: 100%; margin-top: 5px; padding: 16px 20px; border-radius: 12px; background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); color: white; cursor: pointer; box-shadow: 0 4px 15px rgba(220, 39, 67, 0.3);" onclick="openWebPlayer('${embedUrl}')">
+                                <i class="fab fa-instagram" style="font-size: 34px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));"></i>
+                                <div style="flex: 1; min-width: 0; text-shadow: 0 1px 2px rgba(0,0,0,0.2);">
+                                    <div style="font-weight: 900; font-size: 1.1rem; margin-bottom: 2px;">Instagram 影片</div>
+                                    <div style="font-size: 0.8rem; opacity: 0.9; display: flex; align-items: center; gap: 4px;">
+                                        點擊展開播放器 <i class="fas fa-chevron-right" style="font-size: 0.7rem;"></i>
+                                    </div>
                                 </div>
                             </div>
+                            <a href="${cleanUrl}" target="_blank" style="margin-top: 6px; font-size: 0.9rem; color: inherit; text-decoration: underline; word-break: break-all;">${cleanUrl}</a>
                         </div>`;
             }
 
@@ -7123,6 +7193,10 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
 
                 if (doc.exists) {
                     const data = doc.data();
+                    // 【新增】：把最新資料存入手機本地快取，供下次秒開使用
+                    if (data.displayName) localStorage.setItem('localUserName', data.displayName);
+                    if (data.photoURL) localStorage.setItem('localUserAvatar', data.photoURL);
+                    if (data.userTheme) localStorage.setItem('localUserTheme', data.userTheme);
                     // 只有真的有名字時才更新，否則顯示提示
                     if (nameEl) nameEl.innerText = data.displayName || "身分未設定";
                     if (avatarEl) avatarEl.src = data.photoURL || 'https://via.placeholder.com/45';
@@ -7717,30 +7791,17 @@ body.dark-mode .cal-selector-item.current { background: #5ba4d6; color: #1c1c1e;
             
             // 【新增】：嚴格判斷文字是否「純粹只有一個圖片/影片/社群媒體網址」(不含其他文字)
             // 【新增】：嚴格判斷文字內容是否為純粹的媒體連結
+            // 【新增】：嚴格判斷文字內容是否為純粹的媒體連結
             const textTrimmed = msg.text ? msg.text.trim() : "";
             
             // 1. 是否純為圖片網址
             const isOnlyImageLink = /^https?:\/\/[^\s]+\.(jpeg|jpg|gif|png|webp)(\?[^\s]*)?$/i.test(textTrimmed);
-            
-            // 2. 是否純為 YouTube 網址 (包含 Shorts 與一般影片)
-            const isOnlyYoutubeLink = /^https?:\/\/(?:www\.)?(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)[a-zA-Z0-9_-]{11}(?:\S*)?$/i.test(textTrimmed);
-            
-            // 3. 是否純為 Instagram 網址 (包含 Reels 與貼文)
-            const isOnlyInstagramLink = /^https?:\/\/(?:www\.)?instagram\.com\/(?:p|reel|tv)\/[a-zA-Z0-9_-]+\/?(?:\S*)?$/i.test(textTrimmed);
-
-            // 【修復溢出 bug】：滿足以下任一條件即套用 media-only，徹底去除氣泡外框：
-            // A. 活動卡片
-            // B. 純粹的上傳檔案訊息（無回覆、無文字）
-            // C. 訊息只有「純圖/影連結」或「純 YT/IG 連結」，且無回覆
-            if (isEventCard || (msg.fileUrl && !msg.replyToId && !msg.text) || ((isOnlyImageLink || isOnlyYoutubeLink || isOnlyInstagramLink) && !msg.replyToId)) {
-                isMediaOnly = true;
-            }
+            // 2. 是否純為原生影片檔網址
             const isOnlyVideoLink = /^https?:\/\/[^\s]+\.(mp4|mov|webm|ogg)(\?[^\s]*)?$/i.test(textTrimmed);
-            // 判斷是否為純 YT 或 IG 網址
-            const isOnlySocialLink = /^https?:\/\/(?:www\.)?(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/|instagram\.com\/(?:p|reel|tv)\/)[a-zA-Z0-9_-]+(?:\/.*|\?.*)?$/i.test(textTrimmed);
 
-            // 【修復溢出 bug】：活動卡片、純媒體檔案、以及「純圖/影/社群網址」都套用 media-only，徹底去除氣泡外框
-            if (isEventCard || (msg.fileUrl && !msg.replyToId && !msg.text) || ((isOnlyImageLink || isOnlyVideoLink || isOnlySocialLink) && !msg.replyToId)) {
+            // 【終極清理】：移除所有舊版重複的判斷式。
+            // 只有「活動卡片」、「純圖」與「純原生影片」會觸發去背。YouTube 與 IG 網址絕對保留對話氣泡外框！
+            if (isEventCard || (msg.fileUrl && !msg.replyToId && !msg.text) || ((isOnlyImageLink || isOnlyVideoLink) && !msg.replyToId)) {
                 isMediaOnly = true;
             }
 
@@ -18187,6 +18248,29 @@ renderEvMemberPreview = async function(uids, type) {
             if (!doc.exists) return alert("找不到資料");
             const data = doc.data();
 
+            let latestOptions = data.options || [];
+
+            // 【關鍵修復 1】：如果目前在聊天室內，去抓聊天室氣泡內的真實最新選項 (包含成員自行新增的選項)
+            if (currentChatId) {
+                const msgsSnap = await db.collection("chats").doc(currentChatId).collection("messages").get();
+                msgsSnap.forEach(mDoc => {
+                    const mData = mDoc.data();
+                    if (mData.text && mData.text.includes('"type":"poll"')) {
+                        try {
+                            let parsed = JSON.parse(mData.text);
+                            if (parsed.pollId === pollId || parsed.question === data.question) {
+                                // 把聊天室氣泡內有，但編輯範本沒有的選項補上去
+                                parsed.options.forEach(opt => {
+                                    if (!latestOptions.includes(opt)) {
+                                        latestOptions.push(opt);
+                                    }
+                                });
+                            }
+                        } catch(e) {}
+                    }
+                });
+            }
+
             document.getElementById('pollQuestion').value = data.question || '';
             document.getElementById('pollContent').value = data.content || '';
             document.getElementById('pollDeadline').value = data.deadline || '';
@@ -18194,8 +18278,9 @@ renderEvMemberPreview = async function(uids, type) {
 
             const container = document.getElementById('pollOptionsContainer');
             container.innerHTML = '';
-            const opts = data.options || [];
-            opts.forEach((opt, idx) => {
+            
+            // 將統整後的所有選項渲染到編輯畫面上
+            latestOptions.forEach((opt, idx) => {
                 container.insertAdjacentHTML('beforeend', `
                     <div style="display:flex; gap:8px;">
                         <input type="text" class="poll-option-input" placeholder="選項 ${idx+1}" value="${escapeHtml(opt)}" style="flex:1; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size:1rem;">
@@ -18257,7 +18342,7 @@ renderEvMemberPreview = async function(uids, type) {
                 pollData.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
                 await db.collection("polls").doc(currentEditingPollId).update(pollData);
                 
-                // 【終極修復】：同步更新目前聊天室中，所有關聯這則投票的卡片內容！
+                // 同步更新目前聊天室中，所有關聯這則投票的卡片內容！
                 if (currentChatId) {
                     const msgsSnap = await db.collection("chats").doc(currentChatId).collection("messages").get();
                     const syncBatch = db.batch();
@@ -18269,29 +18354,16 @@ renderEvMemberPreview = async function(uids, type) {
                             try {
                                 let parsed = JSON.parse(mData.text);
                                 
-                                // 相容舊資料，若沒有 pollId 就用標題去配對
                                 if (parsed.pollId === currentEditingPollId || parsed.question === pollData.question) {
                                     
-                                    parsed.pollId = currentEditingPollId; // 補上 ID 確保後續追蹤
+                                    parsed.pollId = currentEditingPollId; 
                                     parsed.question = pollData.question;
                                     parsed.content = pollData.content;
                                     parsed.deadline = pollData.deadline;
                                     parsed.allowAddOptions = pollData.allowAddOptions;
                                     
-                                    // 處理選項的增減 (保留舊有票數)
-                                    let newOptions = [...pollData.options];
-                                    
-                                    // 判斷原本是否有成員自行新增的選項，如果有則保留
-                                    parsed.options.forEach(oldOpt => {
-                                        if (!newOptions.includes(oldOpt)) {
-                                            // 檢查這個舊選項是不是發起人建的，如果不是，代表是成員後來加的，予以保留
-                                            if (parsed.optionCreators && parsed.optionCreators[oldOpt] && parsed.optionCreators[oldOpt] !== pollData.creatorUid) {
-                                                newOptions.push(oldOpt);
-                                            }
-                                        }
-                                    });
-
-                                    parsed.options = newOptions;
+                                    // 【關鍵修復 2】：直接以編輯視窗中的選項為準 (完全同步)，拔除舊有的強制保留邏輯
+                                    parsed.options = [...pollData.options];
 
                                     parsed.options.forEach(opt => {
                                         if (!parsed.votes) parsed.votes = {};
@@ -18301,6 +18373,14 @@ renderEvMemberPreview = async function(uids, type) {
                                         if (!parsed.optionCreators[opt]) parsed.optionCreators[opt] = auth.currentUser.uid;
                                     });
                                     
+                                    // 清除已經被發起人刪除選項的投票紀錄 (保持資料乾淨)
+                                    Object.keys(parsed.votes).forEach(oldOpt => {
+                                        if (!parsed.options.includes(oldOpt)) {
+                                            delete parsed.votes[oldOpt];
+                                            if (parsed.optionCreators) delete parsed.optionCreators[oldOpt];
+                                        }
+                                    });
+
                                     syncBatch.update(mDoc.ref, { text: JSON.stringify(parsed) });
                                     syncCount++;
                                 }
@@ -18310,7 +18390,6 @@ renderEvMemberPreview = async function(uids, type) {
                     
                     if (syncCount > 0) {
                         await syncBatch.commit();
-                        // 順便更新聊天室首頁最後一則訊息的預覽文字
                         await db.collection("chats").doc(currentChatId).update({
                             lastMessage: `📊 發起了投票：${pollData.question}`,
                             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -18350,28 +18429,61 @@ renderEvMemberPreview = async function(uids, type) {
         
         try {
             const msgRef = db.collection("chats").doc(currentChatId).collection("messages").doc(msgId);
+
+            // 1. 【修復】：提前讀取一次，確定有沒有 pollId。若無（舊資料），用問題去 polls 找找看
+            const tempDoc = await msgRef.get();
+            if (!tempDoc.exists) throw "投票不存在";
+            let tempData = JSON.parse(tempDoc.data().text);
+            let targetPollId = tempData.pollId;
+
+            if (!targetPollId) {
+                // 相容舊投票：用標題去找 pollId
+                const pollQuery = await db.collection("polls").where("question", "==", tempData.question).get();
+                if (!pollQuery.empty) targetPollId = pollQuery.docs[0].id;
+            }
+
             await db.runTransaction(async (transaction) => {
+                // 2. 【修復】：在 Transaction 中，必須先執行「所有的讀取 (Read)」
                 const msgDoc = await transaction.get(msgRef);
                 if (!msgDoc.exists) throw "投票不存在";
-                
-                let data = msgDoc.data();
-                let parsed = JSON.parse(data.text);
-                
+
+                let parsed = JSON.parse(msgDoc.data().text);
+                if (targetPollId) parsed.pollId = targetPollId; // 補上 ID 確保後續追蹤
+
+                let pollRef = null;
+                let pollDoc = null;
+                if (targetPollId) {
+                    pollRef = db.collection("polls").doc(targetPollId);
+                    pollDoc = await transaction.get(pollRef);
+                }
+
+                // 3. 邏輯判斷
                 if (parsed.options.includes(newOpt)) throw "此選項已經存在了！";
                 if (parsed.deadline && new Date(parsed.deadline).getTime() < Date.now()) throw "投票已截止！";
-                
+
+                // 4. 準備寫入的資料
                 parsed.options.push(newOpt);
+                if (!parsed.votes) parsed.votes = {};
                 parsed.votes[newOpt] = [];
                 if (!parsed.optionCreators) parsed.optionCreators = {};
                 parsed.optionCreators[newOpt] = auth.currentUser.uid;
-                
+
+                // 5. 【修復】：最後再統一執行「所有的寫入 (Write)」
                 transaction.update(msgRef, { text: JSON.stringify(parsed) });
+
+                if (pollDoc && pollDoc.exists) {
+                    transaction.update(pollRef, { 
+                        options: firebase.firestore.FieldValue.arrayUnion(newOpt) 
+                    });
+                }
             });
+            
             inputEl.value = '';
             // 短暫延遲後刷新畫面
             setTimeout(() => openPollDetail(msgId), 300);
         } catch (e) {
             if (typeof e === 'string') alert(e);
+            else console.error("新增選項失敗", e);
         }
     }
 
@@ -18382,25 +18494,51 @@ renderEvMemberPreview = async function(uids, type) {
 
         try {
             const msgRef = db.collection("chats").doc(currentChatId).collection("messages").doc(msgId);
+
+            // 1. 【修復】：提前尋找 pollId 供後續同步刪除
+            const tempDoc = await msgRef.get();
+            if (!tempDoc.exists) throw "投票不存在";
+            let tempData = JSON.parse(tempDoc.data().text);
+            let targetPollId = tempData.pollId;
+
+            if (!targetPollId) {
+                const pollQuery = await db.collection("polls").where("question", "==", tempData.question).get();
+                if (!pollQuery.empty) targetPollId = pollQuery.docs[0].id;
+            }
+
             await db.runTransaction(async (transaction) => {
+                // 2. 【修復】：在 Transaction 中，必須先執行「所有的讀取 (Read)」
                 const msgDoc = await transaction.get(msgRef);
                 if (!msgDoc.exists) throw "投票不存在";
                 
-                let data = msgDoc.data();
-                let parsed = JSON.parse(data.text);
+                let parsed = JSON.parse(msgDoc.data().text);
+                if (targetPollId) parsed.pollId = targetPollId;
+
+                let pollRef = null;
+                let pollDoc = null;
+                if (targetPollId) {
+                    pollRef = db.collection("polls").doc(targetPollId);
+                    pollDoc = await transaction.get(pollRef);
+                }
                 
-                // 陣列移除
+                // 3. 邏輯處理 (移除該選項)
                 parsed.options = parsed.options.filter(opt => opt !== optionText);
-                // 刪除票數紀錄
                 if (parsed.votes && parsed.votes[optionText] !== undefined) delete parsed.votes[optionText];
-                // 刪除建立者紀錄
                 if (parsed.optionCreators && parsed.optionCreators[optionText] !== undefined) delete parsed.optionCreators[optionText];
                 
+                // 4. 【修復】：最後再統一執行「所有的寫入 (Write)」
                 transaction.update(msgRef, { text: JSON.stringify(parsed) });
+
+                if (pollDoc && pollDoc.exists) {
+                    transaction.update(pollRef, { 
+                        options: firebase.firestore.FieldValue.arrayRemove(optionText) 
+                    });
+                }
             });
             setTimeout(() => openPollDetail(msgId), 300);
         } catch (e) {
             if (typeof e === 'string') alert(e);
+            else console.error("刪除選項失敗", e);
         }
     }
 
@@ -18972,15 +19110,17 @@ renderEvMemberPreview = async function(uids, type) {
             }
         }
 
+        // 【極速切換】：立刻套用畫面，並寫入手機本地快取 (不再苦等資料庫)
+        applyThemeVisuals(themeName);
+        localStorage.setItem('localUserTheme', themeName);
+
         if (auth.currentUser) {
+            // 背景靜默同步至資料庫，不阻擋畫面流暢度
             db.collection("act").doc(auth.currentUser.uid).set({ 
                 userTheme: themeName 
             }, { merge: true }).then(() => {
-                console.log("主題儲存成功: " + themeName);
-                applyThemeVisuals(themeName);
-            }).catch(e => { alert("儲存失敗: " + e.message); });
-        } else {
-            applyThemeVisuals(themeName);
+                console.log("主題雲端儲存同步成功: " + themeName);
+            }).catch(e => { console.error("雲端同步失敗: " + e.message); });
         }
     }
 
